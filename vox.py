@@ -397,8 +397,16 @@ def recompile_module(path: str):
 
 
 def emit_imasm(path: str) -> str:
-    """The module as an IMASM program: a header, then one word per function,
-    each labelled by its address so the call graph survives the rewrite."""
+    """The binary as an executable IMASM module: the word in the twelve, plus
+    the payload each glyph carries and the initialised data the code reads.
+    Runs in imasm_vm.Machine with no reference back to the original."""
+    import imasm_module
+    return imasm_module.emit(path)
+
+
+def emit_word(path: str) -> str:
+    """The structure alone: one word per function, glyphs and nothing else.
+    This is what the measurements are taken over; it does not execute."""
     mod = recompile_module(path)
     total = sum(len(w) for _, _, w in mod)
     lines = [f"; ⊙ {path}", f"; {len(mod)} words   {total} glyphs"]
@@ -572,9 +580,16 @@ def main():
     ap.add_argument("--evm", metavar="HEX", help="scan an EVM bytecode hex string")
     ap.add_argument("--wasm", metavar="HEX", help="scan a WASM function-body hex string")
     ap.add_argument("--imasm", metavar="OUT", nargs="?", const="-",
-                    help="recompile a native binary into an IMASM module "
-                         "(total lift: every instruction, one glyph) and write "
-                         "it to OUT, or to stdout")
+                    help="recompile a native binary into an EXECUTABLE IMASM "
+                         "module and write it to OUT, or to stdout")
+    ap.add_argument("--word", metavar="OUT", nargs="?", const="-",
+                    help="emit the structure alone: one glyph word per "
+                         "function, which does not execute")
+    ap.add_argument("--run", metavar="SYMBOL",
+                    help="recompile, then RUN a function in the IMASM machine; "
+                         "integer arguments follow as --args")
+    ap.add_argument("--args", metavar="N,N", default="",
+                    help="comma-separated integer arguments for --run")
     ap.add_argument("--selftest", action="store_true", help="run the EVM+WASM vuln/safe self-test")
     args = ap.parse_args()
     if args.selftest:
@@ -593,17 +608,44 @@ def main():
     with open(args.target, "rb") as fh:
         magic = fh.read(4)
 
-    if args.imasm:
-        if magic[:2] != b"MZ" and magic != b"\x7fELF":
-            ap.error("--imasm recompiles a native binary (PE or ELF)")
+    native = magic[:2] == b"MZ" or magic == b"\x7fELF"
+
+    if args.run:
+        if not native:
+            ap.error("--run needs a native binary (PE or ELF)")
+        import subprocess
+
+        import imasm_vm
         text = emit_imasm(args.target)
-        if args.imasm == "-":
+        out = subprocess.run(["nm", "-D", "--defined-only", args.target],
+                             capture_output=True, text=True).stdout
+        syms = {p[2]: int(p[0], 16) for p in
+                (l.split() for l in out.splitlines())
+                if len(p) == 3 and p[1] in "Tt"}
+        if args.run not in syms:
+            ap.error(f"no symbol '{args.run}' in {args.target}")
+        m = imasm_vm.Machine(text)
+        argv = [int(a, 0) for a in args.args.split(",") if a.strip()]
+        result = m.call(syms[args.run], *argv)
+        print(f"{args.run}({', '.join(map(str, argv))}) = {result}"
+              f"   [{m.steps} steps in the twelve]")
+        return
+
+    for flag, fn, what in ((args.imasm, emit_imasm, "executable module"),
+                           (args.word, emit_word, "words")):
+        if not flag:
+            continue
+        if not native:
+            ap.error("recompiling needs a native binary (PE or ELF)")
+        text = fn(args.target)
+        if flag == "-":
             print(text, end="")
         else:
-            with open(args.imasm, "w") as fh:
+            with open(flag, "w") as fh:
                 fh.write(text)
-            n = sum(1 for ln in text.splitlines() if ln.startswith("0x"))
-            print(f"recompiled → {args.imasm}   {n} words")
+            n = sum(1 for ln in text.splitlines()
+                    if ln.startswith("@" if fn is emit_imasm else "0x"))
+            print(f"recompiled → {flag}   {n} {what}")
         return
 
     if magic[:2] == b"MZ" or magic == b"\x7fELF":         # native binary lane

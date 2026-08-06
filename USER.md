@@ -148,10 +148,52 @@ This lift is total — every decoded instruction gets a glyph:
 | ⊥ | a truth consumed: `setcc`, `cmovcc` |
 | ⊞ | engagement: everything that computes on values |
 
-What the word carries today is role and order, complete. What it does not yet
-carry is the data: registers, immediates, and the widths. Those are the next
-plank, and until they are in, the module is a faithful rewrite of what the
-program *does structurally*, not yet a rewrite that runs.
+`--word` emits exactly this and nothing else, and it does not execute — it is
+the structure, which is what MEASUREMENTS.md is taken over.
+
+## Executing
+
+`--imasm` emits the module that runs: the same glyph per instruction, each
+carrying the payload its axis needs, plus the initialised data sections the code
+reads. `imasm_vm.Machine` executes it, dispatching on the glyph alone.
+
+```bash
+python3 vox.py --run gcd --args 1071,462 lib.so
+gcd(1071, 462) = 21   [26 steps in the twelve]
+```
+
+Payload by glyph — the glyph decides how its fields are read:
+
+| Glyph | Payload |
+|-------|---------|
+| ∈ | a condition and a target |
+| > / < / ⊙ | a target; ⊙ carries whether it is a call or a jump, because a call must still leave a return address |
+| ⋈ | the two slots, and the move's kind |
+| ◻ | the memory reference, the source, the width |
+| ⊤ | the two things compared, and whether by difference or by conjunction |
+| ⊥ | the condition, and the slot it lands in |
+| ⊞ | the operation and its operands, integer or vector |
+
+Operands are normalised at emit time so the machine never parses assembly:
+`r:rax` a register, `i:0x10` an immediate, `m:base:index:scale:disp:size` a
+memory reference. `rip` is a slot like any other, because a rip-relative
+reference reads the address of the next instruction.
+
+### Verification
+
+`verify.py LIB.so ...` runs every function twice — natively through ctypes and
+as IMASM in the machine — over the same inputs, and prints any disagreement with
+the arguments that caused it.
+
+```
+lib0.so ... lib3.so, libs.so        1245 agreements, 0 mismatches
+hard0.so ... hard3.so, hards.so     1125 agreements, 0 mismatches
+```
+
+Two corpora at five optimisation levels each: integer arithmetic, division and
+modulo, loops, vectorised code (`-O3` emits SSE), deep recursion, cross-function
+calls, stack arrays, switch jump tables, and calls through a function-pointer
+table. The last is what ⊙ is for.
 
 ## Auditing
 

@@ -6,13 +6,25 @@ nothing dropped — so a binary compiled for any instruction set comes back out 
 a single alphabet that belongs to none of them.
 
 ```bash
-python3 vox.py --imasm out.imasm program.exe
+python3 vox.py --imasm out.imasm program.so      # recompile
+python3 vox.py --run gcd --args 1071,462 program.so
+gcd(1071, 462) = 21   [26 steps in the twelve]
 ```
 
+The module executes. `imasm_vm.Machine` runs it with no reference back to the
+original binary: dispatch is on the glyph and nothing else, and what an
+instruction *was* in x86 survives only as payload the glyph knows how to read.
+`verify.py` runs every function in a shared object twice — once natively through
+ctypes, once as IMASM — and both corpora agree on every input at every
+optimisation level, `-O0` through `-O3` and `-Os`, including vectorised code,
+recursion, jump tables, and calls through function pointers.
+
 Two lifts run over the same disassembly. The **recompiler** (`--imasm`) is
-total: every decoded instruction lands on exactly one of the twelve axes, in
-order, per function, labelled by address, so the emitted module is the program
-rewritten rather than a summary of it. The **auditor** (the default) keeps only
+total: every decoded instruction lands on exactly one of the twelve axes, and
+carries the payload that glyph needs, alongside the initialised data the code
+reads — so the module is the program rewritten and it runs. `--word` emits the
+structure alone, glyphs and nothing else, which is what the measurements are
+taken over and which does not execute. The **auditor** (the default) keeps only
 the control-flow skeleton, because a closure verdict does not need the
 arithmetic — a fork that commits state or returns before its paths rejoin does
 not close, and that open fork is the shape of a whole class of bugs.
