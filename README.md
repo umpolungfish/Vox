@@ -21,6 +21,15 @@ The auditor is the smaller thing. It falls out of the recompile, because once a
 program is a word you can ask the Grammar anything about it, and *does it close*
 is only the first question.
 
+## How small
+
+`measure.py` recompiles a binary and measures what came out. On a 596 KB x86-64
+build: the structure is 1.9% of the code bytes, the operands another 11.8%, and
+a lossless recompile that still runs lands at 13.7% — 7.3x smaller than the
+original, 2.3x smaller than zlib on the machine code, and still executable. See
+[MEASUREMENTS.md](MEASUREMENTS.md), including why the 1.9% is not a compression
+figure.
+
 ## What it is
 
 V⊙x lifts the control-flow graph of real bytecode to a twelve-opcode word and
