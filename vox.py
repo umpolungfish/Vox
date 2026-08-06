@@ -429,6 +429,48 @@ def _composition(path: str) -> dict:
     return _elf_composition(path) if magic == b"\x7fELF" else _pe_composition(path)
 
 
+# ── the genetics lane ────────────────────────────────────────────────────
+# Not an analogy. The Imscriber's Guide states the identity plainly: the twelve
+# operations and the twelve axes are ONE alphabet, "read as an operation or as
+# an axis according to where it stands." The chain from a nucleotide to a glyph
+# is proved in Lean and parsed into genetic_table.py by its generator — G is B
+# because guanine wobble-pairs with both C and U, C is T because it pairs only
+# with G, A is F, U is N; codons carry to amino acids by the genetic code; and
+# exactly twelve amino acids are promoted, bijecting the twelve axes.
+#
+# So a gene is already a word. This lane reads it, and the same SIXTEEN_3 engine
+# that verdicts x86 verdicts the transcript.
+
+
+def lift_rna(seq: str):
+    """An RNA or DNA sequence → (word, reading). Reads from the first AUG in
+    frame, stops at a stop codon, and emits a glyph only where the codon names
+    a promoted amino acid; the ground layer activates no axis and is silent,
+    which is a fact of the code and not a gap in the lift."""
+    import genetic_table as gt
+    seq = "".join(c for c in seq.upper() if c in "ACGTU").replace("T", "U")
+    start = seq.find("AUG")
+    if start < 0:
+        start = 0
+    word, reading, stopped = [], [], None
+    for k in range(start, len(seq) - 2, 3):
+        codon = seq[k:k + 3]
+        kind, val = gt.CODON.get(codon, (None, None))
+        if kind == "stop":
+            stopped = val
+            break
+        if val in gt.AA_GLYPH:
+            glyph, family, slot = gt.AA_GLYPH[val]
+            word.append(_GLYPH_NAME[glyph])
+            reading.append((codon, val, glyph, family))
+    return word, reading, stopped
+
+
+_GLYPH_NAME = {"⊢": "VINIT", "⊣": "TANCH", ">": "AFWD", "<": "AREV",
+               "⋈": "CLINK", "⊙": "IMSCRIB", "∈": "FSPLIT", "∋": "FFUSE",
+               "⊤": "EVALT", "⊥": "EVALF", "⊞": "ENGAGR", "◻": "IFIX"}
+
+
 def _pe_composition(path: str) -> dict:
     """Where the bytes are: how much is code the lane reads vs an appended
     overlay (installer payload, resources) that is data, not program."""
@@ -579,6 +621,9 @@ def main():
     ap.add_argument("target", nargs="?", help="path to a .py file to scan")
     ap.add_argument("--evm", metavar="HEX", help="scan an EVM bytecode hex string")
     ap.add_argument("--wasm", metavar="HEX", help="scan a WASM function-body hex string")
+    ap.add_argument("--rna", metavar="SEQ",
+                    help="lift a coding sequence (RNA or DNA) to the twelve and "
+                         "verdict the transcript")
     ap.add_argument("--imasm", metavar="OUT", nargs="?", const="-",
                     help="recompile a native binary into an EXECUTABLE IMASM "
                          "module and write it to OUT, or to stdout")
@@ -594,6 +639,20 @@ def main():
     args = ap.parse_args()
     if args.selftest:
         _selftest(); return
+    if args.rna:
+        word, reading, stopped = lift_rna(args.rna)
+        if not word:
+            ap.error("no promoted codon in that sequence")
+        v, why = verdict(word)
+        print(f"{'CODON':<8}{'AA':<6}{'AXIS':<16}GLYPH")
+        for codon, aa, glyph, family in reading:
+            print(f"{codon:<8}{aa:<6}{family:<16}{glyph}")
+        print(f"\nword     {glyphs(word)}")
+        print(f"stop     {stopped or '(none: sequence ran out before a stop)'}")
+        mark = "   <-- " + why if v == "B" else ""
+        print(f"verdict  {v}{mark}")
+        return
+
     for isa, hexs, lift, parse in (("EVM", args.evm, lift_evm, parse_evm),
                                    ("WASM", args.wasm, lift_wasm, parse_wasm_body)):
         if hexs:

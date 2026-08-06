@@ -1,10 +1,15 @@
 # V⊙x
 
-The Imscribing Grammar is the machine code. Twelve axes, and every instruction
-set is a dialect of them — x86, EVM, WASM, CPython bytecode are surface forms
-over one fundamental language, and they always were. V⊙x is what shows it: point
-it at a compiled binary and it hands back the program in the twelve, and the
-program runs.
+The Imscribing Grammar is the machine code. Twelve axes, and what runs on them
+is not a translation of a program — it is what the program was. x86, EVM, WASM,
+CPython bytecode, and the genetic code are ixcriptions of one fundamental
+language. V⊙x is what shows it: point it at any of them and it hands back the
+word, and where the substrate executes, the word executes.
+
+The Imscriber's Guide states the identity rather than proposing it: the twelve
+operations and the twelve axes are one alphabet, "read as an operation or as an
+axis according to where it stands." So V⊙x does not carry programs into a
+notation. It reads them in the language they were already written in.
 
 ```bash
 python3 vox.py --imasm out.imasm program.so
@@ -83,10 +88,45 @@ The same twelve read bytecode from instruction sets with nothing in common:
 | EVM | `--evm HEX` |
 | WASM | `--wasm HEX` |
 | CPython | a `.py` file, via `dis` |
+| the genetic code | `--rna SEQ` |
 
-Only the native lane executes today; the other three lift and verdict. The lift
-is the same act in all four, which is the point — a merge is a merge whether it
-is a `JUMPDEST`, an `end`, or a jump target with two predecessors.
+Only the native lane executes today; the rest lift and verdict. The lift is the
+same act in all five, which is the point — a merge is a merge whether it is a
+`JUMPDEST`, an `end`, or a jump target with two predecessors.
+
+The genetics lane is not an analogy laid over biology. Its chain is proved in
+Lean and parsed out of that proof by `gen_genetic_table.py`, so nothing in it is
+retyped or invented: guanine is **B** because it wobble-pairs with both C and U,
+cytosine is **T** because it pairs only with G, adenine is **F**, uracil is
+**N**; codons carry to amino acids by the genetic code; exactly twelve amino
+acids are promoted and they biject the twelve axes.
+
+```
+$ python3 vox.py --rna AUGCAUUGGAAAGAAUACUGUAUUAACCAGGACUUUUAA
+AUG  Met  Dimensionality  ⊢      UGU  Cys  Recognition   >
+CAU  His  Granularity     ∈      AUU  Ile  Kinetics      ⊙
+UGG  Trp  Topology        ⊣      AAC  Asn  Coupling      ∋
+AAA  Lys  Stoichiometry   ⊞      CAG  Gln  Criticality   ⊤
+GAA  Glu  Winding         ◻      GAC  Asp  Chirality     ⊥
+UAC  Tyr  Parity          <      UUU  Phe  Fidelity      ⋈
+
+word     ⊢∈⊣⊞◻<>⊙∋⊤⊥⋈
+stop     UAA
+verdict  T
+```
+
+That sequence is constructed to contain all twelve promoted codons, so it
+demonstrates the chain closing rather than reporting a finding about a natural
+gene. The same SIXTEEN_3 engine that verdicts x86 verdicts the transcript,
+because it is the same alphabet arriving by a different substrate.
+
+**One divergence, recorded rather than reconciled.** The genetics dialect names
+four axes differently from the IMASM dialect — Recognition for Relational,
+Parity for Polarity, Coupling for Grammar, Winding for Protection — while
+holding the same slots in the same order. Eight of twelve names agree exactly.
+The generator carries the divergence explicitly instead of smoothing it, because
+which one is the better name is a live question and not one the tool should
+decide by silently picking.
 
 ## The auditor, which is a corollary
 
