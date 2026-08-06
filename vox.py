@@ -286,6 +286,22 @@ def _native_func_word(insns) -> list:
     return tokens
 
 
+def _pe_composition(path: str) -> dict:
+    """Where the bytes are: how much is code the lane reads vs an appended
+    overlay (installer payload, resources) that is data, not program."""
+    import os
+    import pefile
+    pe = pefile.PE(path, fast_load=True)
+    size = os.path.getsize(path)
+    secs = sum(s.SizeOfRawData for s in pe.sections)
+    code = sum(s.SizeOfRawData for s in pe.sections
+               if s.Characteristics & 0x20000000)
+    head = open(path, "rb").read(2_000_000)
+    sig = next((n for m, n in ((b"Nullsoft", "NSIS"), (b"Inno Setup", "Inno"),
+                               (b"WiX", "WiX")) if m in head), "")
+    return {"size": size, "code": code, "overlay": max(0, size - secs), "sig": sig}
+
+
 def scan_native(path: str):
     """Disassemble a PE's executable sections, split into functions at the entry
     and at call targets, and lift+verdict each. Linear-sweep disassembly, so
@@ -393,13 +409,21 @@ def main():
 
     if magic[:2] == b"MZ":                               # PE executable → native lane
         from collections import Counter
+        comp = _pe_composition(args.target)
+        print(f"file {comp['size']:,} B  |  code {comp['code']:,} B (read)  |  "
+              f"overlay {comp['overlay']:,} B (not code)"
+              + (f"  |  {comp['sig']} installer" if comp["sig"] else ""))
+        if comp["overlay"] > 4 * comp["code"] and comp["code"]:
+            print("  note: this file is mostly an appended payload, not program. V⊙x read"
+                  " the stub; extract it (e.g. 7z x) to scan the real code inside.")
         rows = scan_native(args.target)
         dist = Counter(v for _, v, _, _, _ in rows)
         print(f"native PE: {len(rows)} functions   verdicts {dict(dist)}")
         findings = [(a, w) for a, v, _, w, n in rows if v == "B" and n >= 3]
         print(f"{len(findings)} B-finding(s): fork(s) holding open across a commit/return.")
         for a, w in findings[:40]:
-            print(f"  {a:<12} {' '.join(w)}")
+            shown = " ".join(w[:24]) + (f"  … (+{len(w) - 24} more)" if len(w) > 24 else "")
+            print(f"  {a:<12} {shown}")
         if len(findings) > 40:
             print(f"  ... {len(findings) - 40} more (shown 40)")
         return

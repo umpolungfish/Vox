@@ -66,17 +66,26 @@ entry point and at call targets, and lifts each function. It prints the verdict
 distribution and lists the functions that hold a fork open, with their addresses:
 
 ```
-native PE: 42 functions   verdicts {'B': 22, 'N': 11, 'T': 8, 'F': 1}
-22 B-finding(s): fork(s) holding open across a commit/return.
-  0x40128c     VINIT FSPLIT AFWD FSPLIT TANCH IFIX IFIX FFUSE IFIX IFIX FSPLIT FFUSE IFIX TANCH
+file 41,475,671 B  |  code 26,624 B (read)  |  overlay 41,406,551 B (not code)  |  NSIS installer
+  note: this file is mostly an appended payload, not program. V⊙x read the stub;
+  extract it (e.g. 7z x) to scan the real code inside.
+native PE: 94 functions   verdicts {'B': 38, 'T': 25, 'N': 31}
+38 B-finding(s): fork(s) holding open across a commit/return.
+  0x40128c     VINIT FSPLIT AFWD FSPLIT TANCH IFIX IFIX FFUSE IFIX IFIX  … (+2 more)
   ...
 ```
+
+The header is the first thing to read. A 40 MB installer is almost all appended
+payload: the real program is a small stub (here 26 KB), and the rest is the
+compressed application, which is data, not code, so V⊙x leaves it alone. To audit
+the app itself, extract the installer and point V⊙x at the unpacked binaries.
 
 Native code forks and returns constantly, so B is common and mostly benign here.
 It is a map of where control does not cleanly rejoin, ranked by the machine, for
 you to triage. This is a linear sweep with a call-target split, not recursive
-descent, so padding between functions can add a little noise. A packed binary
-hides its real code until runtime; V⊙x reads what is on disk.
+descent, so a region with few internal calls can be lumped into one long word
+(the display caps it at 24 opcodes). A packed binary hides its real code until
+runtime; V⊙x reads what is on disk.
 
 ### Self-test
 
