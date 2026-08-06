@@ -48,7 +48,7 @@ Four front ends today, one law behind them:
 | CPython | a `.py` file (via `dis`) | conditional jump | a target with two or more predecessors |
 | EVM | `--evm HEX` | `JUMPI` | `JUMPDEST` reached from two paths |
 | WASM | `--wasm HEX` | `if` | its `end`, unless a `return`/`br` escaped first |
-| native x86 | a PE binary (auto-detected) | conditional `jcc` | a jump target reached from two paths |
+| native x86 | a PE or ELF binary (auto-detected) | conditional `jcc` | a jump target reached from two paths |
 
 The native lane needs `capstone` and `pefile` (`pip install capstone pefile`).
 The other three lanes are standard library only.

@@ -408,6 +408,19 @@ def emit_imasm(path: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _elf_composition(path: str) -> dict:
+    import os
+    _, secs, _ = _elf_sections(path)
+    code = sum(len(d) for d, _ in secs)
+    return {"size": os.path.getsize(path), "code": code, "overlay": 0, "sig": ""}
+
+
+def _composition(path: str) -> dict:
+    with open(path, "rb") as fh:
+        magic = fh.read(4)
+    return _elf_composition(path) if magic == b"\x7fELF" else _pe_composition(path)
+
+
 def _pe_composition(path: str) -> dict:
     """Where the bytes are: how much is code the lane reads vs an appended
     overlay (installer payload, resources) that is data, not program."""
@@ -424,29 +437,69 @@ def _pe_composition(path: str) -> dict:
     return {"size": size, "code": code, "overlay": max(0, size - secs), "sig": sig}
 
 
-def _native_functions(path: str):
-    """Disassemble a PE's executable sections and split the stream into
-    functions at the entry point and at every direct call target. Linear sweep
-    with a call-target split, not recursive descent, so padding between
-    functions can produce a little noise. Yields (start_address, [insns])."""
-    import pefile
+def _pe_sections(path: str):
+    """(capstone mode, executable [(bytes, vaddr)], entry vaddr) for a PE."""
     import capstone
+    import pefile
     pe = pefile.PE(path, fast_load=True)
     mode = capstone.CS_MODE_64 if pe.FILE_HEADER.Machine == 0x8664 else capstone.CS_MODE_32
-    md = capstone.Cs(capstone.CS_ARCH_X86, mode)
     base = pe.OPTIONAL_HEADER.ImageBase
+    secs = [(s.get_data(), base + s.VirtualAddress) for s in pe.sections
+            if s.Characteristics & 0x20000000]          # IMAGE_SCN_MEM_EXECUTE
+    return mode, secs, base + pe.OPTIONAL_HEADER.AddressOfEntryPoint
+
+
+def _elf_sections(path: str):
+    """The same three things for an ELF. Only the header walk differs from PE —
+    the lift downstream cannot tell which container it came from."""
+    import capstone
+    import struct
+    raw = open(path, "rb").read()
+    is64 = raw[4] == 2
+    end = "<" if raw[5] == 1 else ">"
+    if is64:
+        e_entry, _phoff, e_shoff = struct.unpack_from(end + "QQQ", raw, 24)
+        e_shentsize, e_shnum = struct.unpack_from(end + "HH", raw, 58)
+    else:
+        e_entry, _phoff, e_shoff = struct.unpack_from(end + "III", raw, 24)
+        e_shentsize, e_shnum = struct.unpack_from(end + "HH", raw, 46)
+    secs = []
+    for k in range(e_shnum):
+        off = e_shoff + k * e_shentsize
+        if is64:
+            _, sh_type, sh_flags, sh_addr, sh_off, sh_size = \
+                struct.unpack_from(end + "IIQQQQ", raw, off)
+        else:
+            _, sh_type, sh_flags, sh_addr, sh_off, sh_size = \
+                struct.unpack_from(end + "IIIIII", raw, off)
+        if sh_type == 1 and sh_flags & 0x4 and sh_size:  # PROGBITS + EXECINSTR
+            secs.append((raw[sh_off:sh_off + sh_size], sh_addr))
+    mode = capstone.CS_MODE_64 if is64 else capstone.CS_MODE_32
+    return mode, secs, e_entry
+
+
+def _native_functions(path: str):
+    """Disassemble a binary's executable sections and split the stream into
+    functions at the entry point and at every direct call target. PE and ELF
+    both land here; only the container parse above differs. Linear sweep with a
+    call-target split, not recursive descent, so padding between functions can
+    produce a little noise. Yields (start_address, [insns])."""
+    import capstone
+    with open(path, "rb") as fh:
+        magic = fh.read(4)
+    parse = _elf_sections if magic == b"\x7fELF" else _pe_sections
+    mode, secs, entry = parse(path)
+    md = capstone.Cs(capstone.CS_ARCH_X86, mode)
     insns = []
-    for s in pe.sections:
-        if s.Characteristics & 0x20000000:              # IMAGE_SCN_MEM_EXECUTE
-            insns.extend(md.disasm(s.get_data(), base + s.VirtualAddress))
+    for data, vaddr in secs:
+        insns.extend(md.disasm(data, vaddr))
     if not insns:
         return
     aset = {i.address for i in insns}
     idx_of = {i.address: k for k, i in enumerate(insns)}
     starts = {insns[0].address}
-    ep = base + pe.OPTIONAL_HEADER.AddressOfEntryPoint
-    if ep in aset:
-        starts.add(ep)
+    if entry in aset:
+        starts.add(entry)
     for ins in insns:
         if ins.mnemonic == "call":
             t = _imm(ins.op_str)
@@ -454,9 +507,9 @@ def _native_functions(path: str):
                 starts.add(t)
     starts = sorted(starts)
     for si, start in enumerate(starts):
-        end = starts[si + 1] if si + 1 < len(starts) else None
+        end_a = starts[si + 1] if si + 1 < len(starts) else None
         k, func = idx_of[start], []
-        while k < len(insns) and (end is None or insns[k].address < end):
+        while k < len(insns) and (end_a is None or insns[k].address < end_a):
             func.append(insns[k]); k += 1
         yield start, func
 
@@ -541,8 +594,8 @@ def main():
         magic = fh.read(4)
 
     if args.imasm:
-        if magic[:2] != b"MZ":
-            ap.error("--imasm recompiles a native PE binary (MZ magic)")
+        if magic[:2] != b"MZ" and magic != b"\x7fELF":
+            ap.error("--imasm recompiles a native binary (PE or ELF)")
         text = emit_imasm(args.target)
         if args.imasm == "-":
             print(text, end="")
@@ -553,9 +606,9 @@ def main():
             print(f"recompiled → {args.imasm}   {n} words")
         return
 
-    if magic[:2] == b"MZ":                               # PE executable → native lane
+    if magic[:2] == b"MZ" or magic == b"\x7fELF":         # native binary lane
         from collections import Counter
-        comp = _pe_composition(args.target)
+        comp = _composition(args.target)
         print(f"file {comp['size']:,} B  |  code {comp['code']:,} B (read)  |  "
               f"overlay {comp['overlay']:,} B (not code)"
               + (f"  |  {comp['sig']} installer" if comp["sig"] else ""))
@@ -570,10 +623,6 @@ def main():
         for a, w in findings:
             print(f"  {a:<12} {glyphs(w)}")
         return
-    if magic[:4] == b"\x7fELF":
-        ap.error("ELF native lane not built yet (PE is; the lift is identical, "
-                 "only the section parse differs).")
-
     print(f"{'FUNCTION':<24}{'B4':<4}{'WORD'}")            # Python lane
     findings = 0
     for name, v, why, word in scan_module(args.target):

@@ -121,7 +121,7 @@ call at that fork. V⊙x tells you where; it does not tell you it is exploitable
 
 ## Recompiling
 
-`--imasm OUT` rewrites a native binary as an IMASM module: a labelled word per
+`--imasm OUT` rewrites a native binary — PE or ELF, auto-detected — as an IMASM module: a labelled word per
 function, in address order.
 
 ```

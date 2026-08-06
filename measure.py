@@ -15,7 +15,7 @@ import vox
 
 
 def measure(path):
-    comp = vox._pe_composition(path)
+    comp = vox._composition(path)
     code = comp["code"]
     mod = vox.recompile_module(path)
     words = [vox.glyphs(w) for _, _, w in mod]
