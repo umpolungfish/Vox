@@ -1,0 +1,312 @@
+#!/usr/bin/env python3
+"""V⊙x — control-flow closure auditor for real bytecode.
+
+V⊙x lifts a program's control-flow graph to a word in the twelve-opcode
+Imscribing Grammar (IMASM) and runs the SIXTEEN_3 verdict engine over it, no
+hand-judging. The load-bearing bug shape is a fork that COMMITS state (or
+returns) before its paths rejoin — reentrancy, an unhandled path, a leak. In
+IMASM that is a δ (FSPLIT) that never fuses (FFUSE) before an IFIX/TANCH, and the
+kernel reads it OPEN (verdict B) with no language-specific knowledge.
+
+Lift (CFG skeleton, the noise filtered to the load-bearing ops):
+  function entry            -> VINIT   ⊢
+  conditional branch        -> FSPLIT  ∈   (fork; its target is the merge)
+  the merge point (target)  -> FFUSE   ∋   (paths rejoin)
+  external call / work       -> AFWD    >
+  state write (STORE_*)     -> IFIX    ◻
+  return                    -> TANCH   ⊣
+
+Verdicts are Belnap FOUR (the universe is not two-valued): T = the control flow
+closes; B = a fork holds open across a commit (finding, triage to definite); N =
+a linear routine that never forked, clean. Three ISAs, one law: CPython (`dis`),
+EVM (`--evm HEX`, jump targets resolved from the preceding PUSH), and WASM
+(`--wasm HEX`, structured if/end control). The vulnerable case in each lifts to
+the same open-fork signature (VINIT FSPLIT IFIX TANCH… → B): one bug shape, one
+verdict, regardless of language. `--selftest` runs the EVM+WASM vuln/safe pairs.
+
+It reads the REAL bytecode CFG, not the source, and that distinction is load
+bearing: CPython 3.12 tail-duplicates a common continuation into both arms of an
+if/else, so a source-level merge can be compiled away and both arms genuinely
+commit-and-return. The scanner reports what actually executes. A true merge (a
+target with ≥2 predecessors — an `if` with a single continuation, or a loop
+back-edge) survives and reads as FFUSE.
+"""
+import argparse
+import dis
+import importlib.util
+from pathlib import Path
+
+# The SIXTEEN_3 trilattice engine, vendored — V⊙x is standalone.
+from imasm16_3_core import IMASM16_3_Machine, Sequence16_3Trace  # noqa
+
+# The twelve IMASM opcodes → their SIXTEEN_3 form (∈/∋ take the 3-way fork/fuse;
+# ⊞ ENGAGR reads EVALI in the trilattice face).
+_IMASM12_TO_16_3 = {
+    "VINIT": "VINIT", "TANCH": "TANCH", "AFWD": "AFWD", "AREV": "AREV",
+    "CLINK": "CLINK", "IMSCRIB": "IMSCRIB", "FSPLIT": "FSPLIT3", "FFUSE": "FFUSE3",
+    "EVALT": "EVALT", "EVALF": "EVALF", "ENGAGR": "EVALI", "IFIX": "IFIX",
+}
+
+_STORE = ("STORE_FAST", "STORE_GLOBAL", "STORE_DEREF", "STORE_NAME",
+          "STORE_ATTR", "STORE_SUBSCR")
+
+
+_RETURN = ("RETURN_VALUE", "RETURN_CONST")
+_UNCOND_JUMP = ("JUMP_FORWARD", "JUMP_BACKWARD", "JUMP_ABSOLUTE")
+
+
+def _merge_offsets(instrs) -> set:
+    """Offsets where control converges from ≥2 predecessors — the true merges.
+
+    A jump TARGET is not a merge by itself: if the fall-through arm returned or
+    jumped away first, the target has a single predecessor and the fork never
+    rejoins. Only ≥2 incoming edges is a real FFUSE. This is what separates a
+    guard whose paths merge from a branch that commits and returns early.
+    """
+    from collections import Counter
+    succ = []
+    for idx, ins in enumerate(instrs):
+        op = ins.opname
+        # fall-through edge (returns and unconditional jumps have none)
+        if op not in _RETURN and op not in _UNCOND_JUMP and idx + 1 < len(instrs):
+            succ.append(instrs[idx + 1].offset)
+        # jump edge
+        if "JUMP" in op and isinstance(ins.argval, int):
+            succ.append(ins.argval)
+    pred = Counter(succ)
+    return {off for off, c in pred.items() if c >= 2}
+
+
+def lift_function(func) -> list:
+    """Lift a function's bytecode CFG skeleton to an IMASM opcode-name word."""
+    instrs = list(dis.get_instructions(func))
+    merges = _merge_offsets(instrs)
+    tokens = ["VINIT"]
+    for ins in instrs:
+        if ins.offset in merges:
+            tokens.append("FFUSE")     # paths genuinely rejoin here
+        op = ins.opname
+        if op.startswith("POP_JUMP_IF"):
+            tokens.append("FSPLIT")
+        elif op in _STORE:
+            tokens.append("IFIX")
+        elif op.startswith("CALL"):
+            tokens.append("AFWD")
+        elif op in _RETURN:
+            tokens.append("TANCH")
+    # A fork with no matching merge is left dangling on purpose: the engine reads
+    # the openness (a commit/return that escaped the fork) rather than us hiding it.
+    return tokens
+
+
+# ── EVM front-end ────────────────────────────────────────────────────────────
+# Same control-flow-closure law on smart-contract bytecode: a state commit
+# (SSTORE) that lands inside a branch which has not rejoined is the DAO-class
+# reentrancy shape. EVM jump destinations are computed (pushed then JUMP/JUMPI),
+# so we resolve a jump's target from the PUSH immediately before it — the form
+# every compiler emits.
+_EVM = {
+    0x00: "STOP", 0x54: "SLOAD", 0x55: "SSTORE", 0x56: "JUMP", 0x57: "JUMPI",
+    0x5b: "JUMPDEST", 0x35: "CALLDATALOAD", 0x58: "PC", 0x5a: "GAS",
+    0xf1: "CALL", 0xf2: "CALLCODE", 0xf3: "RETURN", 0xf4: "DELEGATECALL",
+    0xfa: "STATICCALL", 0xfd: "REVERT",
+    0x01: "ADD", 0x03: "SUB", 0x10: "LT", 0x11: "GT", 0x14: "EQ", 0x15: "ISZERO",
+}
+_EVM_WORK = {"SLOAD", "CALLDATALOAD", "ADD", "SUB", "LT", "GT", "EQ", "ISZERO",
+             "GAS", "PC", "CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"}
+_EVM_HALT = {"STOP", "RETURN", "REVERT", "JUMP"}   # no fall-through edge
+
+
+def parse_evm(hexstr: str) -> list:
+    b = bytes.fromhex(hexstr.replace("0x", "").strip())
+    instrs, i, prev = [], 0, None
+    while i < len(b):
+        op = b[i]
+        if 0x60 <= op <= 0x7f:                     # PUSH1..PUSH32
+            n = op - 0x5f
+            rec = {"off": i, "name": f"PUSH{n}", "val": int.from_bytes(b[i + 1:i + 1 + n], "big")}
+            i += 1 + n
+        else:
+            rec = {"off": i, "name": _EVM.get(op, f"OP_{op:02x}")}
+            if rec["name"] in ("JUMP", "JUMPI") and prev and prev["name"].startswith("PUSH"):
+                rec["target"] = prev["val"]         # target = the PUSH just before
+            i += 1
+        instrs.append(rec)
+        prev = rec
+    return instrs
+
+
+def lift_evm(instrs: list) -> list:
+    from collections import Counter
+    succ = []
+    for idx, ins in enumerate(instrs):
+        if ins["name"] not in _EVM_HALT and idx + 1 < len(instrs):
+            succ.append(instrs[idx + 1]["off"])
+        if ins["name"] in ("JUMP", "JUMPI") and ins.get("target") is not None:
+            succ.append(ins["target"])
+    merges = {off for off, c in Counter(succ).items() if c >= 2}
+    tokens = ["VINIT"]
+    for ins in instrs:
+        nm = ins["name"]
+        if nm == "JUMPDEST" and ins["off"] in merges:
+            tokens.append("FFUSE")
+        if nm == "JUMPI":
+            tokens.append("FSPLIT")
+        elif nm == "SSTORE":
+            tokens.append("IFIX")
+        elif nm in _EVM_WORK:
+            tokens.append("AFWD")
+        elif nm in ("STOP", "RETURN", "REVERT"):
+            tokens.append("TANCH")
+    return tokens
+
+
+# ── WASM front-end ───────────────────────────────────────────────────────────
+# WASM control flow is STRUCTURED: `if`/`else`/`end`, `block`/`loop`, `br`/`br_if`.
+# So the fork and its merge are explicit in the opcodes, no predecessor analysis
+# needed — an `if` forks, its matching `end` is the merge UNLESS a `return`/`br`
+# escaped the then-branch first, exactly the CPython rule. Input is a function
+# body's instruction bytes (hex); operand immediates are skipped to stay aligned.
+
+
+def _leb_len(b, i):
+    n = 0
+    while i + n < len(b) and (b[i + n] & 0x80):
+        n += 1
+    return n + 1
+
+
+def parse_wasm_body(hexstr: str) -> list:
+    b = bytes.fromhex(hexstr.replace("0x", "").strip())
+    names = {0x00: "unreachable", 0x01: "nop", 0x02: "block", 0x03: "loop",
+             0x04: "if", 0x05: "else", 0x0b: "end", 0x0c: "br", 0x0d: "br_if",
+             0x0f: "return", 0x10: "call", 0x11: "call_indirect", 0x24: "global.set"}
+    out, i = [], 0
+    while i < len(b):
+        op = b[i]
+        nm = names.get(op, f"0x{op:02x}")
+        j = i + 1
+        if 0x36 <= op <= 0x3e:                       # stores: memarg (2 LEB)
+            nm = "store"; j = j + _leb_len(b, j); j = j + _leb_len(b, j)
+        elif 0x28 <= op <= 0x35:                     # loads: memarg (2 LEB)
+            nm = "load"; j = j + _leb_len(b, j); j = j + _leb_len(b, j)
+        elif op in (0x02, 0x03, 0x04):               # block/loop/if: 1-byte blocktype
+            j += 1
+        elif op in (0x0c, 0x0d, 0x10, 0x20, 0x21, 0x22, 0x23, 0x24, 0x41, 0x42):
+            j = j + _leb_len(b, j)                    # LEB immediate
+        elif op == 0x11:                             # call_indirect: 2 LEB
+            j = j + _leb_len(b, j); j = j + _leb_len(b, j)
+        elif op == 0x43:
+            j += 4                                    # f32.const
+        elif op == 0x44:
+            j += 8                                    # f64.const
+        out.append(nm)
+        i = j
+    return out
+
+
+def lift_wasm(names: list) -> list:
+    tokens = ["VINIT"]
+    ctrl = []  # stack of [kind, escaped] for block/loop/if
+    for nm in names:
+        if nm in ("block", "loop"):
+            ctrl.append([nm, False])
+        elif nm == "if":
+            ctrl.append(["if", False])
+            tokens.append("FSPLIT")
+        elif nm in ("return", "br"):
+            tokens.append("TANCH" if nm == "return" else "FSPLIT")
+            for c in reversed(ctrl):                  # innermost if escaped early
+                if c[0] == "if":
+                    c[1] = True
+                    break
+        elif nm == "end":
+            top = ctrl.pop() if ctrl else ["", False]
+            if top[0] == "if" and not top[1]:         # merged (no early exit)
+                tokens.append("FFUSE")
+        elif nm in ("store", "global.set"):
+            tokens.append("IFIX")
+        elif nm in ("call", "call_indirect"):
+            tokens.append("AFWD")
+    return tokens
+
+
+def verdict(word: list):
+    ops16 = [_IMASM12_TO_16_3.get(op, "IMSCRIB") for op in word]
+    tr = Sequence16_3Trace(ops16, machine=IMASM16_3_Machine())
+    tr.run()
+    return tr.tri_ancestral_verdict()
+
+
+def scan_module(path: str):
+    """Lift + verdict every top-level function in a .py file."""
+    spec = importlib.util.spec_from_file_location("_scan_target", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    results = []
+    for name in dir(mod):
+        obj = getattr(mod, name)
+        if callable(obj) and getattr(obj, "__code__", None) is not None \
+                and obj.__module__ == "_scan_target":
+            word = lift_function(obj)
+            v, why = verdict(word)
+            results.append((name, v, why, word))
+    return results
+
+
+def _selftest():
+    # EVM: state commit inside an unmerged branch (vuln) vs a guard whose paths
+    # rejoin before the commit (safe). The kernel decides.
+    #   vuln: PUSH1 1, PUSH1 7, JUMPI, SSTORE, STOP, JUMPDEST(7), STOP
+    #   safe: PUSH1 1, PUSH1 6, JUMPI, SLOAD, JUMPDEST(6), SSTORE, STOP
+    vuln = verdict(lift_evm(parse_evm("600160075755005b00")))[0]
+    safe = verdict(lift_evm(parse_evm("6001600657545b5500")))[0]
+    print(f"EVM reentrant (commit in unmerged branch): {vuln}  (expect B)")
+    print(f"EVM guarded  (paths merge before commit):  {safe}  (expect T)")
+    assert vuln == "B" and safe == "T", f"EVM selftest failed: vuln={vuln} safe={safe}"
+    # WASM: if{ store; return } (early return before the if's merge) vs
+    #       if{ call } end; store (merges before the commit).
+    wvuln = verdict(lift_wasm(parse_wasm_body("20000440410141003602000f0b0b")))[0]
+    wsafe = verdict(lift_wasm(parse_wasm_body("2000044010000b410041003602000b")))[0]
+    print(f"WASM reentrant (commit + return in if-branch): {wvuln}  (expect B)")
+    print(f"WASM guarded  (if merges before the commit):   {wsafe}  (expect T)")
+    assert wvuln == "B" and wsafe == "T", f"WASM selftest failed: vuln={wvuln} safe={wsafe}"
+    print("selftest OK: the closure law holds on EVM AND WASM bytecode.")
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Control-flow closure auditor: "
+                                 "lift bytecode to IMASM, verdict μ∘δ over SIXTEEN_3.")
+    ap.add_argument("target", nargs="?", help="path to a .py file to scan")
+    ap.add_argument("--evm", metavar="HEX", help="scan an EVM bytecode hex string")
+    ap.add_argument("--wasm", metavar="HEX", help="scan a WASM function-body hex string")
+    ap.add_argument("--selftest", action="store_true", help="run the EVM+WASM vuln/safe self-test")
+    args = ap.parse_args()
+    if args.selftest:
+        _selftest(); return
+    for isa, hexs, lift, parse in (("EVM", args.evm, lift_evm, parse_evm),
+                                   ("WASM", args.wasm, lift_wasm, parse_wasm_body)):
+        if hexs:
+            word = lift(parse(hexs))
+            v, why = verdict(word)
+            mark = "   <-- FINDING (fork open across commit): " + why if v == "B" else ""
+            print(f"{isa:<24}{v:<4}{' '.join(word)}{mark}")
+            return
+    if not args.target:
+        ap.error("give a .py target, or --evm HEX, or --selftest")
+    print(f"{'FUNCTION':<24}{'B4':<4}{'WORD'}")
+    findings = 0
+    for name, v, why, word in scan_module(args.target):
+        # B is the finding: a fork held OPEN across a commit/return (reentrancy,
+        # unhandled path, leak). N is a linear routine that never forked — clean,
+        # nothing to weigh. T is a closed control flow.
+        mark = ""
+        if v == "B":
+            mark = "   <-- FINDING (fork open across commit/return): " + why
+            findings += 1
+        print(f"{name:<24}{v:<4}{' '.join(word)}{mark}")
+    print(f"\n{findings} finding(s): fork(s) holding open across a commit/return.")
+
+
+if __name__ == "__main__":
+    main()
