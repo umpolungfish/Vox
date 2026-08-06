@@ -23,12 +23,12 @@ is only the first question.
 
 ## How small
 
-`measure.py` recompiles a binary and measures what came out. On a 596 KB x86-64
-build: the structure is 1.9% of the code bytes, the operands another 11.8%, and
-a lossless recompile that still runs lands at 13.7% — 7.3x smaller than the
-original, 2.3x smaller than zlib on the machine code, and still executable. See
-[MEASUREMENTS.md](MEASUREMENTS.md), including why the 1.9% is not a compression
-figure.
+`measure.py` recompiles a binary and measures what came out. Across seven
+binaries from four compilers and four languages, the structure — which of the
+twelve each instruction is, in order — costs 5.3% to 7.1% of the machine code,
+and a lossless recompile that still runs costs 34% to 45%, a 2.2x to 2.9x
+shrink. See [MEASUREMENTS.md](MEASUREMENTS.md), including why the ratios are
+charged against decoded bytes rather than section size.
 
 ## What it is
 

@@ -15,8 +15,7 @@ import vox
 
 
 def measure(path):
-    comp = vox._composition(path)
-    code = comp["code"]
+    section = vox._composition(path)["code"]
     mod = vox.recompile_module(path)
     words = [vox.glyphs(w) for _, _, w in mod]
     stream = "".join(words)
@@ -31,14 +30,21 @@ def measure(path):
 
     # Operands: what the glyph does not carry, and what a lossless recompile
     # would have to add. Measured, not estimated.
-    ops = [i.op_str.strip() for _, f in vox._native_functions(path) for i in f]
+    # The denominator is the bytes that ACTUALLY DECODED, not the section size.
+    # An executable section holds padding, jump tables, and embedded data that
+    # never become instructions; charging the word against those bytes inflates
+    # every ratio by however much of the section the sweep could not read.
+    insns = [i for _, f in vox._native_functions(path) for i in f]
+    code = sum(i.size for i in insns)
+    ops = [i.op_str.strip() for i in insns]
     c = Counter(ops)
     h_ops = -sum(v / len(ops) * math.log2(v / len(ops)) for v in c.values())
     operand = len(ops) * h_ops / 8
 
     uniq = Counter(words)
     return {
-        "code": code, "glyphs": n, "insns": len(ops),
+        "code": code, "section": section, "coverage": code / section,
+        "glyphs": n, "insns": len(ops),
         "struct": struct, "operand": operand, "lossless": struct + operand,
         "zlib_glyphs": len(zlib.compress(stream.encode(), 9)),
         "words": len(words), "unique": len(uniq), "h2": h2,
@@ -54,6 +60,9 @@ def main():
     print(f"glyphs                {m['glyphs']:>10,}")
     print(f"words (unique)        {m['words']:>10,} ({m['unique']:,})")
     print(f"glyph cost at order 2 {m['h2']:>10.2f} bits\n")
+    print(f"section bytes         {m['section']:>10,} B")
+    print(f"decoded to instrs     {m['code']:>10,} B  {m['coverage'] * 100:5.1f}%"
+          f"  <- the denominator")
     print(f"machine code          {m['code']:>10,} B   100.0%")
     print(f"structure             {m['struct']:>10,.0f} B  {pct(m['struct'])}")
     print(f"  zlib'd              {m['zlib_glyphs']:>10,} B  {pct(m['zlib_glyphs'])}")
