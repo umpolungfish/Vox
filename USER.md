@@ -26,9 +26,9 @@ prints a line per function:
 
 ```
 FUNCTION                B4  WORD
-guarded_use             T   VINIT IFIX FSPLIT IFIX FFUSE TANCH
-linear                  N   VINIT TANCH
-reentrant               B   VINIT FSPLIT IFIX TANCH TANCH   <-- FINDING
+guarded_use             T   ⊢◻∈◻∋⊣
+linear                  N   ⊢⊣
+reentrant               B   ⊢∈◻⊣⊣   <-- FINDING
 ```
 
 Importing the module runs its top-level code. Point V⊙x at code you trust to
@@ -71,7 +71,7 @@ file 41,475,671 B  |  code 26,624 B (read)  |  overlay 41,406,551 B (not code)  
   extract it (e.g. 7z x) to scan the real code inside.
 native PE: 94 functions   verdicts {'B': 38, 'T': 25, 'N': 31}
 38 B-finding(s): fork(s) holding open across a commit/return.
-  0x40128c     VINIT FSPLIT AFWD FSPLIT TANCH IFIX IFIX FFUSE IFIX IFIX  … (+2 more)
+  0x40128c     ⊢∈>∈⊣◻◻∋◻◻∈∋◻⊣
   ...
 ```
 
@@ -83,9 +83,10 @@ the app itself, extract the installer and point V⊙x at the unpacked binaries.
 Native code forks and returns constantly, so B is common and mostly benign here.
 It is a map of where control does not cleanly rejoin, ranked by the machine, for
 you to triage. This is a linear sweep with a call-target split, not recursive
-descent, so a region with few internal calls can be lumped into one long word
-(the display caps it at 24 opcodes). A packed binary hides its real code until
-runtime; V⊙x reads what is on disk.
+descent, so a region with few internal calls can be lumped into one long word.
+Every word is printed in full, in the alphabet, and every finding is listed:
+nothing is truncated, because a word cut short is a different word. A packed
+binary hides its real code until runtime; V⊙x reads what is on disk.
 
 ### Self-test
 
@@ -120,23 +121,23 @@ call at that fork. V⊙x tells you where; it does not tell you it is exploitable
 
 The `WORD` column is the control flow in the twelve opcodes:
 
-| Opcode | Glyph | Bytecode role |
-|--------|-------|---------------|
-| VINIT | ⊢ | function entry |
-| FSPLIT | ∈ | a branch opens a fork |
-| FFUSE | ∋ | a true merge, the paths rejoin |
-| AFWD | > | work, an external call |
-| IFIX | ◻ | a state write, irreversible |
-| TANCH | ⊣ | a return |
+| Glyph | Bytecode role |
+|-------|---------------|
+| ⊢ | function entry |
+| ∈ | a branch opens a fork |
+| ∋ | a true merge, the paths rejoin |
+| > | work, an external call |
+| ◻ | a state write, irreversible |
+| ⊣ | a return |
 
-Read the word left to right. A closed word forks (`FSPLIT`), does work, and fuses
-(`FFUSE`) before it commits or returns. A finding forks and then commits or
-returns with no `FFUSE` between: the fork dangles.
+The word is written in the alphabet and nothing else. Read it left to right. A
+closed word forks (∈), does work, and fuses (∋) before it commits or returns. A
+finding forks and then commits or returns with no ∋ between: the fork dangles.
 
 Worked example, the reentrant case in all three languages:
 
 ```
-VINIT FSPLIT IFIX TANCH   →   B
+⊢∈◻⊣   →   B
 ```
 
 Enter, fork, commit state, return. No fuse. The commit happened while the fork was

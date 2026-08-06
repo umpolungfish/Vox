@@ -40,7 +40,7 @@ them commit before control comes back together. Lift each to the grammar and the
 land on the identical word:
 
 ```
-VINIT FSPLIT IFIX TANCH  →  B
+⊢∈◻⊣  →  B
 ```
 
 One bug shape, three unrelated bytecode formats, one verdict. The leak lives in
@@ -64,8 +64,8 @@ lifted word.
 ## How it works
 
 Each front end walks the real bytecode (not the source) and emits the load-bearing
-structure as opcodes: `VINIT` at entry, `FSPLIT` at a branch, `FFUSE` at a true
-merge, `IFIX` at a state write, `AFWD` at an external call, `TANCH` at a return.
+structure in the alphabet: ⊢ at entry, ∈ at a branch, ∋ at a true merge, ◻ at a
+state write, > at an external call, ⊣ at a return.
 Everything else is noise and is dropped. The resulting word runs through the
 SIXTEEN_3 engine, which computes the μ∘δ closure verdict: a fork that does work
 on its arms and rejoins closes (T); a fork whose commit or return escapes before

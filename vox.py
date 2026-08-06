@@ -49,6 +49,20 @@ _IMASM12_TO_16_3 = {
     "EVALT": "EVALT", "EVALF": "EVALF", "ENGAGR": "EVALI", "IFIX": "IFIX",
 }
 
+# The word is written in the alphabet, never in opcode names. Twelve axes, one
+# glyph each, joined: a word is one string, not a list of labels.
+_GLYPH = {
+    "VINIT": "⊢", "TANCH": "⊣", "AFWD": ">", "AREV": "<",
+    "CLINK": "⋈", "IMSCRIB": "⊙", "FSPLIT": "∈", "FFUSE": "∋",
+    "EVALT": "⊤", "EVALF": "⊥", "ENGAGR": "⊞", "IFIX": "◻",
+}
+
+
+def glyphs(word):
+    """The lifted word as glyphs, joined, in full. No names, no truncation."""
+    return "".join(_GLYPH[t] for t in word)
+
+
 _STORE = ("STORE_FAST", "STORE_GLOBAL", "STORE_DEREF", "STORE_NAME",
           "STORE_ATTR", "STORE_SUBSCR")
 
@@ -237,7 +251,15 @@ def verdict(word: list):
     ops16 = [_IMASM12_TO_16_3.get(op, "IMSCRIB") for op in word]
     tr = Sequence16_3Trace(ops16, machine=IMASM16_3_Machine())
     tr.run()
-    return tr.tri_ancestral_verdict()
+    v, why = tr.tri_ancestral_verdict()
+    # The reason speaks in the alphabet too: the engine's SIXTEEN_3 names carry
+    # back as their glyphs, so nothing but the twelve is ever printed.
+    for name, g in (("FSPLIT3", "∈"), ("FFUSE3", "∋"), ("IFIX", "◻"),
+                    ("TANCH", "⊣"), ("VINIT", "⊢"), ("AFWD", ">"),
+                    ("AREV", "<"), ("CLINK", "⋈"), ("IMSCRIB", "⊙"),
+                    ("EVALT", "⊤"), ("EVALF", "⊥"), ("EVALI", "⊞")):
+        why = why.replace(name, g)
+    return v, why
 
 
 # ── native front-end (x86 PE) ────────────────────────────────────────────────
@@ -399,7 +421,7 @@ def main():
             word = lift(parse(hexs))
             v, why = verdict(word)
             mark = "   <-- FINDING (fork open across commit): " + why if v == "B" else ""
-            print(f"{isa:<24}{v:<4}{' '.join(word)}{mark}")
+            print(f"{isa:<24}{v:<4}{glyphs(word)}{mark}")
             return
     if not args.target:
         ap.error("give a target (.py, or a PE/ELF binary), or --evm/--wasm HEX, or --selftest")
@@ -421,11 +443,8 @@ def main():
         print(f"native PE: {len(rows)} functions   verdicts {dict(dist)}")
         findings = [(a, w) for a, v, _, w, n in rows if v == "B" and n >= 3]
         print(f"{len(findings)} B-finding(s): fork(s) holding open across a commit/return.")
-        for a, w in findings[:40]:
-            shown = " ".join(w[:24]) + (f"  … (+{len(w) - 24} more)" if len(w) > 24 else "")
-            print(f"  {a:<12} {shown}")
-        if len(findings) > 40:
-            print(f"  ... {len(findings) - 40} more (shown 40)")
+        for a, w in findings:
+            print(f"  {a:<12} {glyphs(w)}")
         return
     if magic[:4] == b"\x7fELF":
         ap.error("ELF native lane not built yet (PE is; the lift is identical, "
@@ -441,7 +460,7 @@ def main():
         if v == "B":
             mark = "   <-- FINDING (fork open across commit/return): " + why
             findings += 1
-        print(f"{name:<24}{v:<4}{' '.join(word)}{mark}")
+        print(f"{name:<24}{v:<4}{glyphs(word)}{mark}")
     print(f"\n{findings} finding(s): fork(s) holding open across a commit/return.")
 
 
