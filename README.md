@@ -120,20 +120,15 @@ demonstrates the chain closing rather than reporting a finding about a natural
 gene. The same SIXTEEN_3 engine that verdicts x86 verdicts the transcript,
 because it is the same alphabet arriving by a different substrate.
 
-**Two divergences, recorded rather than smoothed.** The genetics dialect names
-four axes differently from the IMASM dialect — Recognition for Relational,
-Parity for Polarity, Coupling for Grammar, Winding for Protection — while
-holding the same slots in the same order.
+His carries **Criticality** and lands on ⊙, which is the whole thread in one
+place: imidazole's pKa near 6 is the only sidechain pKa near physiological pH,
+so His is what titrates at the acid/base crossover — the critical point itself,
+not a resemblance to one — and ⊙ is the glyph of a system turning on itself,
+the same reading it has as the token IMSCRIB.
 
-And the Lean is not the last word on three of the assignments. red-hot_rebis
-v0.6.0 revises His, Gln, and Asn in a 3-cycle that preserves the bijection: His
-carries **Criticality**, because imidazole's pKa near 6 is the only sidechain
-that titrates at the acid/base crossover and so sits at the critical point
-itself; Gln carries **Grammar**, its long amide H-bond network structuring
-interaction; Asn carries **Granularity**, N-glycosylation gating interaction
-range. The generator applies the revision and records it, and the slot order is
-identical in both sources — only slot 9's spelling differs, red-hot_rebis
-writing it with the retired letter the current alphabet spells ⊤.
+**One divergence left, recorded rather than smoothed.** The genetics dialect
+still names two axes differently from the catalog, Recognition for Relational
+and Parity for Polarity, while holding the same slots.
 
 ## The auditor, which is a corollary
 

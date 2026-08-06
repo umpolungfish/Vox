@@ -45,8 +45,9 @@ SLOTS = ["Dimensionality", "Topology", "Relational", "Polarity", "Fidelity",
 GLYPHS = ["⊢", "⊣", ">", "<", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"]
 # The genetics dialect names four axes differently. Same slots, same
 # cardinality, different words — recorded, not reconciled away.
-DIALECT = {"Recognition": "Relational", "Parity": "Polarity",
-           "Coupling": "Grammar", "Winding": "Protection"}
+# The genetics dialect still names two axes differently; the Lean now uses the
+# catalog's names for the other two.
+DIALECT = {"Recognition": "Relational", "Parity": "Polarity"}
 
 # red-hot_rebis v0.6.0 (2026-06-03) revises three assignments, and the Lean
 # parsed above predates it. The revision is a 3-cycle, so the bijection is
@@ -61,6 +62,8 @@ DIALECT = {"Recognition": "Relational", "Parity": "Polarity",
 #   Asn  Grammar     -> Granularity   N-glycosylation gates interaction RANGE
 #
 # Slot order is identical in both sources, and both put ⊙ at Criticality.
+# Applied in the Lean itself now, so this is the identity and kept only as the
+# record of what moved and why.
 REVISION = {"His": "Criticality", "Gln": "Grammar", "Asn": "Granularity"}
 
 aa_glyph = {}
