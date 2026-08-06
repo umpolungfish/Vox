@@ -119,6 +119,42 @@ call at that fork. V⊙x tells you where; it does not tell you it is exploitable
 
 ## Reading the lifted word
 
+## Recompiling
+
+`--imasm OUT` rewrites a native binary as an IMASM module: a labelled word per
+function, in address order.
+
+```
+; ⊙ program.exe
+; 408 words   66585 glyphs
+0x140001000
+⊢<⊣⊣⊣⊣◻◻⋈⊣⊣⋈⋈⊤∈⋈<⋈⊣⊤∈⋈⊤∈⋈⊞⊤∈∋⋈⊤∈⊤∈∋⊞⊞⊤∈∋⊞⊣⊤∈◻∋⋈⊣
+```
+
+This lift is total — every decoded instruction gets a glyph:
+
+| Glyph | Instruction |
+|-------|-------------|
+| ⊢ | function entry |
+| ⊣ | a terminal: `ret`, `int3`, `ud2`, `hlt` |
+| ∈ | a conditional branch |
+| ∋ | a merge, two paths rejoining |
+| > | a direct call |
+| < | an unconditional transfer: `jmp`, a tail call |
+| ⊙ | an **indirect** call or jump — the target is data, the structure taking itself as its own object, and exactly where a linear disassembler goes blind |
+| ◻ | a write to memory, irreversible |
+| ⋈ | data movement between named slots: `mov`, `lea`, `movzx`, `push`, `pop`, `xchg` |
+| ⊤ | a truth produced: `cmp`, `test` |
+| ⊥ | a truth consumed: `setcc`, `cmovcc` |
+| ⊞ | engagement: everything that computes on values |
+
+What the word carries today is role and order, complete. What it does not yet
+carry is the data: registers, immediates, and the widths. Those are the next
+plank, and until they are in, the module is a faithful rewrite of what the
+program *does structurally*, not yet a rewrite that runs.
+
+## Auditing
+
 The `WORD` column is the control flow in the twelve opcodes:
 
 | Glyph | Bytecode role |

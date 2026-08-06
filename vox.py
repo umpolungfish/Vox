@@ -308,6 +308,106 @@ def _native_func_word(insns) -> list:
     return tokens
 
 
+# ── the recompiler: x86 → IMASM, total ─────────────────────────────────────
+# The auditor above keeps only the control-flow skeleton, because a verdict does
+# not need the arithmetic. A recompile does. Here nothing is noise: every
+# decoded instruction lands on exactly one of the twelve axes, so the emitted
+# word is the program and not a sketch of it.
+#
+#   ⊢ entry          ⊣ terminal (ret, int3, ud2, hlt)
+#   ∈ conditional branch      ∋ a merge, two paths rejoining
+#   > direct call             < unconditional transfer (jmp, tail call)
+#   ⊙ INDIRECT call/jmp — the target is data, the structure taking itself as
+#     its own object, which is exactly where a linear disassembler goes blind
+#   ◻ a write to memory, irreversible
+#   ⋈ data movement between named slots (mov, lea, movzx, push, pop, xchg)
+#   ⊤ a truth produced (cmp, test)   ⊥ a truth consumed (setcc, cmovcc)
+#   ⊞ engagement: everything that computes on values
+
+_ENGAGE = ("add", "sub", "adc", "sbb", "imul", "mul", "idiv", "div", "and",
+           "or", "xor", "not", "neg", "inc", "dec", "shl", "shr", "sar", "rol",
+           "ror", "sal", "bt", "bsf", "bsr", "popcnt", "cdq", "cqo", "cwde")
+_MOVE = ("mov", "movzx", "movsx", "movsxd", "lea", "push", "pop", "xchg",
+         "movabs", "movaps", "movdqa", "movdqu", "movups", "movd", "movq")
+_TERMINAL = ("ret", "int3", "ud2", "hlt", "iret")
+
+
+def _writes_memory(ins) -> bool:
+    """A destination operand that is a memory reference: the commit."""
+    dst = ins.op_str.split(",", 1)[0].strip()
+    return dst.endswith("]")
+
+
+def recompile_native(insns, merges) -> list:
+    """Every instruction, one glyph each. Total, order-preserving, nothing
+    dropped — this is the program rewritten in the twelve, not a summary."""
+    tokens = ["VINIT"]
+    for ins in insns:
+        if ins.address in merges:
+            tokens.append("FFUSE")
+        mn, ops = ins.mnemonic, ins.op_str.strip()
+        indirect = _imm(ops) is None and not ops.startswith("0x")
+        if mn.startswith("ret") or mn in _TERMINAL:
+            tokens.append("TANCH")
+        elif mn == "call":
+            tokens.append("IMSCRIB" if indirect else "AFWD")
+        elif mn == "jmp":
+            tokens.append("IMSCRIB" if indirect else "AREV")
+        elif mn.startswith("j"):
+            tokens.append("FSPLIT")
+        elif mn.startswith("set") or mn.startswith("cmov"):
+            tokens.append("EVALF")
+        elif mn in ("cmp", "test", "ucomiss", "ucomisd"):
+            tokens.append("EVALT")
+        elif _writes_memory(ins):
+            tokens.append("IFIX")
+        elif mn in _MOVE:
+            tokens.append("CLINK")
+        elif mn in _ENGAGE:
+            tokens.append("ENGAGR")
+        else:
+            tokens.append("ENGAGR")                       # total: no instruction
+    return tokens                                          # leaves the alphabet
+
+
+def _merges_of(insns) -> set:
+    from collections import Counter
+    aset = {i.address for i in insns}
+    succ = []
+    for idx, ins in enumerate(insns):
+        if not (ins.mnemonic == "jmp" or ins.mnemonic.startswith("ret")) \
+                and idx + 1 < len(insns):
+            succ.append(insns[idx + 1].address)
+        if ins.mnemonic.startswith("j"):
+            t = _imm(ins.op_str)
+            if t is not None and t in aset:
+                succ.append(t)
+    return {a for a, c in Counter(succ).items() if c >= 2}
+
+
+def recompile_module(path: str):
+    """The whole PE recompiled: one IMASM word per function, in address order,
+    with the call graph kept as labels so the module is a program and not a
+    pile of words. Returns [(label, address, word)]."""
+    out = []
+    for start, insns in _native_functions(path):
+        word = recompile_native(insns, _merges_of(insns))
+        out.append((f"f_{start:x}", start, word))
+    return out
+
+
+def emit_imasm(path: str) -> str:
+    """The module as an IMASM program: a header, then one word per function,
+    each labelled by its address so the call graph survives the rewrite."""
+    mod = recompile_module(path)
+    total = sum(len(w) for _, _, w in mod)
+    lines = [f"; ⊙ {path}", f"; {len(mod)} words   {total} glyphs"]
+    for _, addr, word in mod:
+        lines.append(f"0x{addr:x}")
+        lines.append(glyphs(word))
+    return "\n".join(lines) + "\n"
+
+
 def _pe_composition(path: str) -> dict:
     """Where the bytes are: how much is code the lane reads vs an appended
     overlay (installer payload, resources) that is data, not program."""
@@ -324,11 +424,11 @@ def _pe_composition(path: str) -> dict:
     return {"size": size, "code": code, "overlay": max(0, size - secs), "sig": sig}
 
 
-def scan_native(path: str):
-    """Disassemble a PE's executable sections, split into functions at the entry
-    and at call targets, and lift+verdict each. Linear-sweep disassembly, so
-    padding between functions can produce a little noise; the call-target split
-    keeps most functions clean. Returns (addr, verdict, why, word, n_insns)."""
+def _native_functions(path: str):
+    """Disassemble a PE's executable sections and split the stream into
+    functions at the entry point and at every direct call target. Linear sweep
+    with a call-target split, not recursive descent, so padding between
+    functions can produce a little noise. Yields (start_address, [insns])."""
     import pefile
     import capstone
     pe = pefile.PE(path, fast_load=True)
@@ -340,7 +440,7 @@ def scan_native(path: str):
         if s.Characteristics & 0x20000000:              # IMAGE_SCN_MEM_EXECUTE
             insns.extend(md.disasm(s.get_data(), base + s.VirtualAddress))
     if not insns:
-        return []
+        return
     aset = {i.address for i in insns}
     idx_of = {i.address: k for k, i in enumerate(insns)}
     starts = {insns[0].address}
@@ -353,12 +453,19 @@ def scan_native(path: str):
             if t is not None and t in aset:
                 starts.add(t)
     starts = sorted(starts)
-    results = []
     for si, start in enumerate(starts):
         end = starts[si + 1] if si + 1 < len(starts) else None
         k, func = idx_of[start], []
         while k < len(insns) and (end is None or insns[k].address < end):
             func.append(insns[k]); k += 1
+        yield start, func
+
+
+def scan_native(path: str):
+    """The auditor lane: skeleton lift + verdict per function.
+    Returns (addr, verdict, why, word, n_insns)."""
+    results = []
+    for start, func in _native_functions(path):
         word = _native_func_word(func)
         v, why = verdict(word)
         results.append((f"0x{start:x}", v, why, word, len(func)))
@@ -411,6 +518,10 @@ def main():
     ap.add_argument("target", nargs="?", help="path to a .py file to scan")
     ap.add_argument("--evm", metavar="HEX", help="scan an EVM bytecode hex string")
     ap.add_argument("--wasm", metavar="HEX", help="scan a WASM function-body hex string")
+    ap.add_argument("--imasm", metavar="OUT", nargs="?", const="-",
+                    help="recompile a native binary into an IMASM module "
+                         "(total lift: every instruction, one glyph) and write "
+                         "it to OUT, or to stdout")
     ap.add_argument("--selftest", action="store_true", help="run the EVM+WASM vuln/safe self-test")
     args = ap.parse_args()
     if args.selftest:
@@ -428,6 +539,19 @@ def main():
 
     with open(args.target, "rb") as fh:
         magic = fh.read(4)
+
+    if args.imasm:
+        if magic[:2] != b"MZ":
+            ap.error("--imasm recompiles a native PE binary (MZ magic)")
+        text = emit_imasm(args.target)
+        if args.imasm == "-":
+            print(text, end="")
+        else:
+            with open(args.imasm, "w") as fh:
+                fh.write(text)
+            n = sum(1 for ln in text.splitlines() if ln.startswith("0x"))
+            print(f"recompiled → {args.imasm}   {n} words")
+        return
 
     if magic[:2] == b"MZ":                               # PE executable → native lane
         from collections import Counter

@@ -1,12 +1,25 @@
 # V⊙x
 
-A control-flow closure auditor. V⊙x reads a program's bytecode, lifts its
-control flow to a word in the twelve-opcode Imscribing Grammar, and asks one
-question the same way across every language: **does the flow close?**
+A disassembler that recompiles. V⊙x reads a program's bytecode and rewrites it
+as a word in the twelve-opcode Imscribing Grammar — one glyph per instruction,
+nothing dropped — so a binary compiled for any instruction set comes back out in
+a single alphabet that belongs to none of them.
 
-A fork that commits state or returns before its paths rejoin does not close. That
-open fork is the shape of a whole class of bugs, and V⊙x names it in a grammar
-with no allegiance to any instruction set, so the one law catches it everywhere.
+```bash
+python3 vox.py --imasm out.imasm program.exe
+```
+
+Two lifts run over the same disassembly. The **recompiler** (`--imasm`) is
+total: every decoded instruction lands on exactly one of the twelve axes, in
+order, per function, labelled by address, so the emitted module is the program
+rewritten rather than a summary of it. The **auditor** (the default) keeps only
+the control-flow skeleton, because a closure verdict does not need the
+arithmetic — a fork that commits state or returns before its paths rejoin does
+not close, and that open fork is the shape of a whole class of bugs.
+
+The auditor is the smaller thing. It falls out of the recompile, because once a
+program is a word you can ask the Grammar anything about it, and *does it close*
+is only the first question.
 
 ## What it is
 
