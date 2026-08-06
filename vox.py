@@ -18,11 +18,13 @@ Lift (CFG skeleton, the noise filtered to the load-bearing ops):
 
 Verdicts are Belnap FOUR (the universe is not two-valued): T = the control flow
 closes; B = a fork holds open across a commit (finding, triage to definite); N =
-a linear routine that never forked, clean. Three ISAs, one law: CPython (`dis`),
-EVM (`--evm HEX`, jump targets resolved from the preceding PUSH), and WASM
-(`--wasm HEX`, structured if/end control). The vulnerable case in each lifts to
-the same open-fork signature (VINIT FSPLIT IFIX TANCH… → B): one bug shape, one
-verdict, regardless of language. `--selftest` runs the EVM+WASM vuln/safe pairs.
+a linear routine that never forked, clean. Four front ends, one law: CPython
+(`dis`), EVM (`--evm HEX`, jump targets resolved from the preceding PUSH), WASM
+(`--wasm HEX`, structured if/end control), and native x86 PE binaries
+(auto-detected by the MZ magic; needs `capstone` and `pefile`). The vulnerable
+case in each lifts to the same open-fork signature (VINIT FSPLIT IFIX TANCH… →
+B): one bug shape, one verdict, regardless of language. `--selftest` runs the
+EVM+WASM vuln/safe pairs.
 
 It reads the REAL bytecode CFG, not the source, and that distinction is load
 bearing: CPython 3.12 tail-duplicates a common continuation into both arms of an
@@ -238,9 +240,100 @@ def verdict(word: list):
     return tr.tri_ancestral_verdict()
 
 
+# ── native front-end (x86 PE) ────────────────────────────────────────────────
+# The same closure law on real machine code. Only the control-flow skeleton is
+# needed, so a disassembler (capstone) that gives branches, calls, rets, and
+# memory writes is enough — no full semantics. A conditional jump forks, a jump
+# target reached from two paths merges, a `mov [mem], _` commits state, a `call`
+# is work, a `ret` terminates. Needs `capstone` and `pefile` (pip).
+
+
+def _imm(op_str: str):
+    op_str = op_str.strip()
+    try:
+        return int(op_str, 16) if op_str.startswith("0x") else None
+    except ValueError:
+        return None
+
+
+def _native_func_word(insns) -> list:
+    from collections import Counter
+    aset = {i.address for i in insns}
+    succ = []
+    for idx, ins in enumerate(insns):
+        mn = ins.mnemonic
+        terminates = mn == "jmp" or mn.startswith("ret")
+        if not terminates and idx + 1 < len(insns):
+            succ.append(insns[idx + 1].address)
+        if mn.startswith("j"):                          # jmp or conditional jcc
+            t = _imm(ins.op_str)
+            if t is not None and t in aset:
+                succ.append(t)
+    merges = {a for a, c in Counter(succ).items() if c >= 2}
+    tokens = ["VINIT"]
+    for ins in insns:
+        if ins.address in merges:
+            tokens.append("FFUSE")
+        mn = ins.mnemonic
+        if mn.startswith("j") and mn != "jmp":
+            tokens.append("FSPLIT")
+        elif mn == "call":
+            tokens.append("AFWD")
+        elif mn.startswith("ret"):
+            tokens.append("TANCH")
+        elif mn == "mov" and ins.op_str.split(",", 1)[0].strip().endswith("]"):
+            tokens.append("IFIX")
+    return tokens
+
+
+def scan_native(path: str):
+    """Disassemble a PE's executable sections, split into functions at the entry
+    and at call targets, and lift+verdict each. Linear-sweep disassembly, so
+    padding between functions can produce a little noise; the call-target split
+    keeps most functions clean. Returns (addr, verdict, why, word, n_insns)."""
+    import pefile
+    import capstone
+    pe = pefile.PE(path, fast_load=True)
+    mode = capstone.CS_MODE_64 if pe.FILE_HEADER.Machine == 0x8664 else capstone.CS_MODE_32
+    md = capstone.Cs(capstone.CS_ARCH_X86, mode)
+    base = pe.OPTIONAL_HEADER.ImageBase
+    insns = []
+    for s in pe.sections:
+        if s.Characteristics & 0x20000000:              # IMAGE_SCN_MEM_EXECUTE
+            insns.extend(md.disasm(s.get_data(), base + s.VirtualAddress))
+    if not insns:
+        return []
+    aset = {i.address for i in insns}
+    idx_of = {i.address: k for k, i in enumerate(insns)}
+    starts = {insns[0].address}
+    ep = base + pe.OPTIONAL_HEADER.AddressOfEntryPoint
+    if ep in aset:
+        starts.add(ep)
+    for ins in insns:
+        if ins.mnemonic == "call":
+            t = _imm(ins.op_str)
+            if t is not None and t in aset:
+                starts.add(t)
+    starts = sorted(starts)
+    results = []
+    for si, start in enumerate(starts):
+        end = starts[si + 1] if si + 1 < len(starts) else None
+        k, func = idx_of[start], []
+        while k < len(insns) and (end is None or insns[k].address < end):
+            func.append(insns[k]); k += 1
+        word = _native_func_word(func)
+        v, why = verdict(word)
+        results.append((f"0x{start:x}", v, why, word, len(func)))
+    return results
+
+
 def scan_module(path: str):
     """Lift + verdict every top-level function in a .py file."""
     spec = importlib.util.spec_from_file_location("_scan_target", path)
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"vox: '{path}' is not an importable Python module. "
+                         "For a native binary use no flag (auto-detected), for "
+                         "EVM/WASM use --evm/--wasm.")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     results = []
@@ -293,8 +386,28 @@ def main():
             print(f"{isa:<24}{v:<4}{' '.join(word)}{mark}")
             return
     if not args.target:
-        ap.error("give a .py target, or --evm HEX, or --selftest")
-    print(f"{'FUNCTION':<24}{'B4':<4}{'WORD'}")
+        ap.error("give a target (.py, or a PE/ELF binary), or --evm/--wasm HEX, or --selftest")
+
+    with open(args.target, "rb") as fh:
+        magic = fh.read(4)
+
+    if magic[:2] == b"MZ":                               # PE executable → native lane
+        from collections import Counter
+        rows = scan_native(args.target)
+        dist = Counter(v for _, v, _, _, _ in rows)
+        print(f"native PE: {len(rows)} functions   verdicts {dict(dist)}")
+        findings = [(a, w) for a, v, _, w, n in rows if v == "B" and n >= 3]
+        print(f"{len(findings)} B-finding(s): fork(s) holding open across a commit/return.")
+        for a, w in findings[:40]:
+            print(f"  {a:<12} {' '.join(w)}")
+        if len(findings) > 40:
+            print(f"  ... {len(findings) - 40} more (shown 40)")
+        return
+    if magic[:4] == b"\x7fELF":
+        ap.error("ELF native lane not built yet (PE is; the lift is identical, "
+                 "only the section parse differs).")
+
+    print(f"{'FUNCTION':<24}{'B4':<4}{'WORD'}")            # Python lane
     findings = 0
     for name, v, why, word in scan_module(args.target):
         # B is the finding: a fork held OPEN across a commit/return (reentrancy,

@@ -54,6 +54,30 @@ Pass a single function body as a hex string: the raw instruction bytes, not a
 whole module. WASM control is structured, so `if` opens a fork and its `end`
 closes it unless a `return` or `br` escaped the branch first.
 
+### A native binary
+
+```bash
+python3 vox.py some_program.exe
+```
+
+V⊙x auto-detects a PE binary by its `MZ` magic, disassembles the executable
+sections (needs `capstone` and `pefile`), splits the code into functions at the
+entry point and at call targets, and lifts each function. It prints the verdict
+distribution and lists the functions that hold a fork open, with their addresses:
+
+```
+native PE: 42 functions   verdicts {'B': 22, 'N': 11, 'T': 8, 'F': 1}
+22 B-finding(s): fork(s) holding open across a commit/return.
+  0x40128c     VINIT FSPLIT AFWD FSPLIT TANCH IFIX IFIX FFUSE IFIX IFIX FSPLIT FFUSE IFIX TANCH
+  ...
+```
+
+Native code forks and returns constantly, so B is common and mostly benign here.
+It is a map of where control does not cleanly rejoin, ranked by the machine, for
+you to triage. This is a linear sweep with a call-target split, not recursive
+descent, so padding between functions can add a little noise. A packed binary
+hides its real code until runtime; V⊙x reads what is on disk.
+
 ### Self-test
 
 ```bash

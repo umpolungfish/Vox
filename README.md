@@ -19,13 +19,17 @@ Belnap FOUR:
 - **B** a fork is held open across a commit or a return. This is the finding.
 - **N** a linear routine that never forked. Clean, nothing to weigh.
 
-Three front ends today, one law behind them:
+Four front ends today, one law behind them:
 
 | ISA | input | fork | merge |
 |-----|-------|------|-------|
 | CPython | a `.py` file (via `dis`) | conditional jump | a target with two or more predecessors |
 | EVM | `--evm HEX` | `JUMPI` | `JUMPDEST` reached from two paths |
 | WASM | `--wasm HEX` | `if` | its `end`, unless a `return`/`br` escaped first |
+| native x86 | a PE binary (auto-detected) | conditional `jcc` | a jump target reached from two paths |
+
+The native lane needs `capstone` and `pefile` (`pip install capstone pefile`).
+The other three lanes are standard library only.
 
 ## Why it exists
 
@@ -50,6 +54,7 @@ python3 vox.py --selftest                 # EVM + WASM vulnerable/safe pairs
 python3 vox.py examples/demo.py           # every function in a Python file
 python3 vox.py --evm 600160075755005b00   # an EVM bytecode string
 python3 vox.py --wasm 20000440410141003602000f0b0b   # a WASM function body
+python3 vox.py some_program.exe           # a native x86 PE binary (auto-detected)
 ```
 
 `B` in the output is a finding: a fork held open across a commit or return.

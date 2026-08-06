@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# test targets, not part of the tool
+*.exe
+*.bin
+*.dll
+*.so
