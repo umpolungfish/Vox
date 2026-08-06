@@ -29,11 +29,20 @@ for a, b, c, kind, val in re.findall(
 prim = dict(re.findall(r"\|\s*\.(\w+)\s*=>\s*some\s+\.(\w+)",
                        src.split("def aaToPrimitive")[1].split("def ")[0]))
 
-# The slot order of the twelve, from the Imscriber's Guide: one glyph per axis.
+# The slot order of the twelve, and the glyph at each slot. The glyph row is
+# taken from IG_catalog.json, which is scripture; the Imscriber's Guide prints
+# this row with ⊙ and ⊤ transposed, and a doc gets no vote against the catalog.
+#
+# ⊙ names Criticality — as the primitive symbol, as its own type symbol, and as
+# the IMASM token IMSCRIB — and it is one thing that makes it all three. A
+# critical point is where a system turns on itself, imscribing is inclosure, and
+# ⊙ is a boundary drawn around its own centre. Self-reference is the thread: the
+# glyph is its own member and its own class, the only non-Shavian mark in the
+# alphabet, and it sits where the system takes itself as its own object.
 SLOTS = ["Dimensionality", "Topology", "Relational", "Polarity", "Fidelity",
          "Kinetics", "Granularity", "Grammar", "Criticality", "Chirality",
          "Stoichiometry", "Protection"]
-GLYPHS = ["⊢", "⊣", ">", "<", "⋈", "⊙", "∈", "∋", "⊤", "⊥", "⊞", "◻"]
+GLYPHS = ["⊢", "⊣", ">", "<", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"]
 # The genetics dialect names four axes differently. Same slots, same
 # cardinality, different words — recorded, not reconciled away.
 DIALECT = {"Recognition": "Relational", "Parity": "Polarity",
@@ -51,9 +60,7 @@ DIALECT = {"Recognition": "Relational", "Parity": "Polarity",
 #                                     is what structures interaction patterns
 #   Asn  Grammar     -> Granularity   N-glycosylation gates interaction RANGE
 #
-# Slot order is identical in both sources; red-hot_rebis writes slot 9 with the
-# retired letter ⊙, which the current alphabet spells ⊤. Only the spelling
-# differs there, not the position.
+# Slot order is identical in both sources, and both put ⊙ at Criticality.
 REVISION = {"His": "Criticality", "Gln": "Grammar", "Asn": "Granularity"}
 
 aa_glyph = {}

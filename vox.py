@@ -51,10 +51,14 @@ _IMASM12_TO_16_3 = {
 
 # The word is written in the alphabet, never in opcode names. Twelve axes, one
 # glyph each, joined: a word is one string, not a list of labels.
+# In catalog order. ⊙ stands at slot nine, Criticality, and it is the same ⊙
+# whether read as the primitive, as its own type, or as the token IMSCRIB — a
+# critical point is where a system turns on itself, and imscribing is inclosure.
+# Self-reference is the thread that makes the three readings one.
 _GLYPH = {
     "VINIT": "⊢", "TANCH": "⊣", "AFWD": ">", "AREV": "<",
-    "CLINK": "⋈", "IMSCRIB": "⊙", "FSPLIT": "∈", "FFUSE": "∋",
-    "EVALT": "⊤", "EVALF": "⊥", "ENGAGR": "⊞", "IFIX": "◻",
+    "CLINK": "⋈", "EVALT": "⊤", "FSPLIT": "∈", "FFUSE": "∋",
+    "IMSCRIB": "⊙", "EVALF": "⊥", "ENGAGR": "⊞", "IFIX": "◻",
 }
 
 
@@ -466,9 +470,7 @@ def lift_rna(seq: str):
     return word, reading, stopped
 
 
-_GLYPH_NAME = {"⊢": "VINIT", "⊣": "TANCH", ">": "AFWD", "<": "AREV",
-               "⋈": "CLINK", "⊙": "IMSCRIB", "∈": "FSPLIT", "∋": "FFUSE",
-               "⊤": "EVALT", "⊥": "EVALF", "⊞": "ENGAGR", "◻": "IFIX"}
+_GLYPH_NAME = {v: k for k, v in _GLYPH.items()}
 
 
 def _pe_composition(path: str) -> dict:
