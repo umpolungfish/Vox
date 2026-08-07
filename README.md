@@ -24,6 +24,13 @@ a ∋ fuses, a ⊞ engages, a ◻ commits, a ⊙ transfers through data. Ackerma
 recursion, SSE, switch tables, and dispatch through a function-pointer array all
 run, because they were never anything else.
 
+The lift holds to the same rule, not just the machine. A word is a list of
+these twelve glyphs from the moment a front end builds it, not a list of
+opcode names translated to glyphs when printed — `imasm16_3_core`'s own
+opcode constants are the glyphs themselves (`VINIT` is `⊢`, not the string
+`"VINIT"`), so there is no name-to-symbol boundary anywhere in the tool for
+a mismatch to hide behind.
+
 ## The twelve
 
 | | | | |
