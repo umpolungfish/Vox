@@ -460,6 +460,44 @@ def lift_rna(seq: str):
     return word, reading, stopped
 
 
+# A packed/installer binary is data on the outside, program on the inside —
+# V⊙x reads what's on disk, so an appended installer payload reads as one
+# giant non-code overlay. Rather than only naming the fix, attempt it: NSIS,
+# Inno, and WiX are all 7z-readable containers, so if `7z` is on the host,
+# actually extract and report what real executables came out, instead of
+# advice to go run a command by hand.
+def _try_extract_overlay(path: str):
+    """Extract path with 7z into a sibling directory and return the list of
+    PE/ELF executables found inside, or None if extraction wasn't possible
+    (no 7z, or 7z found nothing it recognised)."""
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    sevenzip = shutil.which("7z") or shutil.which("7za") or shutil.which("7zr")
+    if not sevenzip:
+        return None
+    out_dir = Path(path).with_suffix("")
+    out_dir = out_dir.parent / (out_dir.name + "_extracted")
+    out_dir.mkdir(exist_ok=True)
+    try:
+        subprocess.run([sevenzip, "x", "-y", f"-o{out_dir}", path],
+                       capture_output=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    found = []
+    for p in out_dir.rglob("*"):
+        if not p.is_file():
+            continue
+        try:
+            head = p.open("rb").read(4)
+        except OSError:
+            continue
+        if head[:2] == b"MZ" or head == b"\x7fELF":
+            found.append(str(p))
+    return found if found else None
+
+
 def _pe_composition(path: str) -> dict:
     """Where the bytes are: how much is code the lane reads vs an appended
     overlay (installer payload, resources) that is data, not program."""
@@ -518,39 +556,111 @@ def _elf_sections(path: str):
 
 
 def _native_functions(path: str):
-    """Disassemble a binary's executable sections and split the stream into
-    functions at the entry point and at every direct call target. PE and ELF
-    both land here; only the container parse above differs. Linear sweep with a
-    call-target split, not recursive descent, so padding between functions can
-    produce a little noise. Yields (start_address, [insns])."""
+    """Disassemble a binary by recursive descent: walk forward from the entry
+    point and every direct call target, decoding one instruction at a time and
+    following every direct jump and call as a control-flow edge. A conditional
+    jump's fall-through is a second edge; an unconditional jump has none. Only
+    bytes actually reached this way are decoded, so padding, jump tables, and
+    other data sitting between functions are never walked into and misread as
+    code — the honest-edges gap the linear-sweep-plus-call-split version had.
+
+    An indirect call or jump (⊙: the target is data, structurally where a
+    disassembler goes blind) can't be followed statically, so anything reached
+    ONLY through one — a switch's jump-table arms, say — would be invisible to
+    descent alone. The fallback below covers exactly that: whatever descent
+    never reaches, a linear sweep of the remaining bytes still finds, grouped
+    into synthetic functions of their own, so total coverage matches what the
+    old sweep read while attribution for everything reachable by real control
+    flow is the descent's, not an after-the-fact split of one long stream.
+
+    PE and ELF both land here; only the container parse above differs. Yields
+    (start_address, [insns]), descent-discovered functions first in discovery
+    order, then any fallback-swept leftovers.
+    """
     import capstone
     with open(path, "rb") as fh:
         magic = fh.read(4)
     parse = _elf_sections if magic == b"\x7fELF" else _pe_sections
     mode, secs, entry = parse(path)
     md = capstone.Cs(capstone.CS_ARCH_X86, mode)
-    insns = []
-    for data, vaddr in secs:
-        insns.extend(md.disasm(data, vaddr))
-    if not insns:
+    if not secs:
         return
-    aset = {i.address for i in insns}
-    idx_of = {i.address: k for k, i in enumerate(insns)}
-    starts = {insns[0].address}
-    if entry in aset:
-        starts.add(entry)
-    for ins in insns:
-        if ins.mnemonic == "call":
-            t = _imm(ins.op_str)
-            if t is not None and t in aset:
-                starts.add(t)
-    starts = sorted(starts)
-    for si, start in enumerate(starts):
-        end_a = starts[si + 1] if si + 1 < len(starts) else None
-        k, func = idx_of[start], []
-        while k < len(insns) and (end_a is None or insns[k].address < end_a):
-            func.append(insns[k]); k += 1
-        yield start, func
+
+    def bytes_at(addr):
+        for data, vaddr in secs:
+            if vaddr <= addr < vaddr + len(data):
+                return data[addr - vaddr:]
+        return None
+
+    def decode_one(addr):
+        b = bytes_at(addr)
+        if not b:
+            return None
+        for ins in md.disasm(b, addr, count=1):
+            return ins
+        return None
+
+    _TERM = ("hlt", "ud2", "int3", "iret")
+    entry_start = entry if bytes_at(entry) is not None else secs[0][1]
+    seen_funcs = set()
+    func_queue = [entry_start]
+    covered = {}     # address -> Instruction, across every function, for the fallback pass
+
+    while func_queue:
+        fstart = func_queue.pop(0)
+        if fstart in seen_funcs or bytes_at(fstart) is None:
+            continue
+        seen_funcs.add(fstart)
+
+        visited, addr_queue, by_addr = set(), [fstart], {}
+        while addr_queue:
+            addr = addr_queue.pop(0)
+            if addr in visited:
+                continue
+            ins = decode_one(addr)
+            if ins is None:
+                continue
+            visited.add(addr)
+            by_addr[addr] = ins
+            mn = ins.mnemonic
+            terminates = mn.startswith("ret") or mn in _TERM
+            if mn == "call":
+                t = _imm(ins.op_str)
+                if t is not None and t not in seen_funcs:
+                    func_queue.append(t)
+                if not terminates:
+                    addr_queue.append(addr + ins.size)   # the call returns here
+            elif mn.startswith("j"):
+                t = _imm(ins.op_str)
+                if t is not None:
+                    addr_queue.append(t)
+                if mn != "jmp":                          # conditional: both edges
+                    addr_queue.append(addr + ins.size)
+            elif not terminates:
+                addr_queue.append(addr + ins.size)
+
+        if by_addr:
+            covered.update(by_addr)
+            yield fstart, [by_addr[a] for a in sorted(by_addr)]
+
+    # Fallback: sweep every section for anything descent never reached — code
+    # reachable only through an indirect call/jump — and group contiguous runs
+    # of it into synthetic functions, exactly as before for that leftover.
+    leftover = []
+    for data, vaddr in secs:
+        for ins in md.disasm(data, vaddr):
+            if ins.address not in covered:
+                leftover.append(ins)
+    if leftover:
+        leftover.sort(key=lambda i: i.address)
+        run = [leftover[0]]
+        for ins in leftover[1:]:
+            if ins.address == run[-1].address + run[-1].size:
+                run.append(ins)
+            else:
+                yield run[0].address, run
+                run = [ins]
+        yield run[0].address, run
 
 
 def scan_native(path: str):
@@ -674,9 +784,13 @@ def main():
             ap.error(f"no symbol '{args.run}' in {args.target}")
         m = imasm_vm.Machine(text)
         argv = [int(a, 0) for a in args.args.split(",") if a.strip()]
-        result = m.call(syms[args.run], *argv)
-        print(f"{args.run}({', '.join(map(str, argv))}) = {result}"
-              f"   [{m.steps} steps in the twelve]")
+        try:
+            result = m.call(syms[args.run], *argv)
+            print(f"{args.run}({', '.join(map(str, argv))}) = {result}"
+                  f"   [{m.steps} steps in the twelve]")
+        except imasm_vm.SysExit as e:
+            print(f"{args.run}({', '.join(map(str, argv))}) called exit({e.code})"
+                  f"   [{m.steps} steps in the twelve]")
         return
 
     for flag, fn, what in ((args.imasm, emit_imasm, "executable module"),
@@ -704,7 +818,19 @@ def main():
               + (f"  |  {comp['sig']} installer" if comp["sig"] else ""))
         if comp["overlay"] > 4 * comp["code"] and comp["code"]:
             print("  note: this file is mostly an appended payload, not program. V⊙x read"
-                  " the stub; extract it (e.g. 7z x) to scan the real code inside.")
+                  " the stub; attempting extraction to reach the real code inside.")
+            found = _try_extract_overlay(args.target)
+            if found is None:
+                print("  extraction found nothing usable (no 7z on this host, or the"
+                      " payload isn't a 7z-readable container) — extract it by hand"
+                      " (e.g. 7z x) to scan the real code inside.")
+            else:
+                print(f"  extracted {len(found)} executable(s):")
+                for f in found[:10]:
+                    print(f"    {f}")
+                if len(found) > 10:
+                    print(f"    ... and {len(found) - 10} more")
+                print("  point V⊙x at one of those to scan the real code.")
         rows = scan_native(args.target)
         dist = Counter(v for _, v, _, _, _ in rows)
         print(f"native PE: {len(rows)} functions   verdicts {dict(dist)}")

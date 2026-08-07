@@ -68,6 +68,14 @@ class Halt(Exception):
     """A ⊣ reached with the stack unwound past where the run started."""
 
 
+class SysExit(Exception):
+    """exit/exit_group: a managed stop, not the machine running off the end.
+    Carries the process's own exit code, same as the real syscall would."""
+    def __init__(self, code):
+        self.code = code
+        super().__init__(f"exit({code})")
+
+
 class Machine:
     def __init__(self, module_text: str, stack_top=0x7FFF0000):
         self.code = {}                 # address -> [(glyph, fields), ...]
@@ -186,6 +194,31 @@ class Machine:
 
     def set_flags(self, a, b, size, kind="cmp"):
         self.flags, self.kind = (a, b, size), kind
+
+    # ── the syscall boundary, reached only through ⊙ ───────────────────────
+    # A deliberately small, honest subset — this is a function tester, not an
+    # OS. exit/exit_group stop the run cleanly with the real exit code; write
+    # actually writes the requested bytes out of the machine's own memory, to
+    # a real fd, so a program that prints is not silently wrong; anything else
+    # returns -ENOSYS in rax, the kernel's own answer for "not implemented,"
+    # rather than crashing or pretending to have done something it has not.
+    _ENOSYS = -38
+
+    def do_syscall(self):
+        import os
+        num = _sign(self.get_reg("rax"), 8)
+        a0, a1, a2 = self.get_reg("rdi"), self.get_reg("rsi"), self.get_reg("rdx")
+        if num in (60, 231):                     # exit, exit_group
+            raise SysExit(_sign(a0, 8) & 0xFF)
+        if num == 1:                             # write(fd, buf, count)
+            data = bytes(self.mem.get(a1 + k, 0) for k in range(a2))
+            try:
+                n = os.write(a0, data)
+            except OSError:
+                n = -1
+            self.set_reg("rax", n & _MASK[8])
+            return
+        self.set_reg("rax", self._ENOSYS & _MASK[8])
 
     # ── the ALU, reached only through ⊞ and ◻ ─────────────────────────────
     def alu(self, op, fields):
@@ -342,6 +375,9 @@ class Machine:
             elif glyph == "<":
                 return int(f[1][2:], 16)
             elif glyph == "⊙":
+                if f[0] == "syscall":
+                    self.do_syscall()
+                    continue
                 # ⊙ is both indirect forms. A call still has to leave its
                 # return address on the stack; only a jmp does not.
                 tgt, _ = self.read(f[1])

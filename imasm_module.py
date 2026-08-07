@@ -68,6 +68,13 @@ def encode(ins, is_merge: bool) -> list:
 
     if mn in _TERMINAL or mn.startswith("ret"):
         lines.append(f"{TERM}\t{mn}")
+    elif mn == "syscall" or (mn == "int" and f and f[0] == "i:0x80"):
+        # A syscall's real target is chosen by the value in a register (rax),
+        # not written anywhere in the instruction — the same structural shape
+        # as an indirect call/jmp, just to the kernel instead of the program's
+        # own code. ⊙ INDIRECT is what that shape is; no thirteenth glyph
+        # needed for "transfer to something outside what was disassembled."
+        lines.append(f"{INDIRECT}\tsyscall")
     elif mn == "call":
         lines.append("\t".join([CALL if direct else INDIRECT, mn] + f))
     elif mn == "jmp":
