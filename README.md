@@ -162,12 +162,28 @@ python3 vox.py --selftest
 
 ## Honest edges
 
-- The disassembler is a linear sweep split at call targets, not recursive
-  descent, so a call-sparse region can be lumped into one long word.
-- The machine implements the instructions the corpora reached. It has no
-  syscalls and no operating system; it runs functions, not processes.
-- A packed binary hides its code until runtime. V⊙x reads what is on disk, and
-  reports how much of the file decoded so a low coverage is never silent.
+- The disassembler is recursive descent: it walks forward from the entry
+  point and every discovered call target, decoding one instruction at a time
+  and following every direct call and jump as a control-flow edge, so
+  padding and embedded data between functions are never walked into and
+  misread as code. An indirect call or jump (⊙) can't be followed statically
+  — that is what the glyph is for — so anything reachable only through one,
+  a switch's jump-table arms, gets a fallback sweep of whatever descent never
+  reached, grouped into functions of its own, rather than silently dropped.
+- The machine handles a small, honest subset of syscalls, not an operating
+  system: `exit`/`exit_group` stop the run cleanly with the real exit code,
+  `write` actually writes the requested bytes to a real file descriptor, and
+  anything else returns `-ENOSYS` — the kernel's own answer for "not
+  implemented" — rather than crashing or faking success. A call to an
+  external function the loader would have resolved (libc, a PLT stub) is
+  still outside what the machine can reach; it runs functions written against
+  what's in the file, not a dynamically linked process.
+- A packed or installer binary hides its code until runtime. V⊙x reads what
+  is on disk, reports how much of the file decoded so a low coverage is never
+  silent, and — for NSIS, Inno, and WiX overlays — attempts extraction with
+  `7z` if it's on the host and reports which real executables came out. Other
+  packers, or a host without `7z`, fall back to reporting the overlay and
+  naming the fix rather than performing it.
 
 ## Layout
 
