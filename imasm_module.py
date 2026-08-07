@@ -100,18 +100,29 @@ def encode(ins, is_merge: bool) -> list:
 
 def disassembler(path: str):
     """capstone with operand detail on — the payload comes from structure, not
-    from re-parsing assembly text."""
+    from re-parsing assembly text. Recursive descent, function-grouped, the
+    same walk the auditor uses — not a second, separate linear sweep."""
     import vox
     with open(path, "rb") as fh:
         magic = fh.read(4)
     parse = vox._elf_sections if magic == b"\x7fELF" else vox._pe_sections
-    mode, secs, entry = parse(path)
-    md = capstone.Cs(capstone.CS_ARCH_X86, mode)
-    md.detail = True
-    insns = []
-    for data, vaddr in secs:
-        insns.extend(md.disasm(data, vaddr))
-    return insns, entry
+    _mode, _secs, entry = parse(path)
+    funcs = list(vox._native_functions(path))
+    insns = [ins for _, func in funcs for ins in func]
+    return insns, entry, funcs
+
+
+def _plt_map(path: str):
+    """(stub address -> external symbol name), ELF x86-64 only — see
+    vox._plt_stub_map. PE import-table resolution isn't attempted; a PE's
+    external calls stay unresolved, same as before."""
+    import vox
+    with open(path, "rb") as fh:
+        magic = fh.read(4)
+    if magic != b"\x7fELF":
+        return {}
+    mode, secs, _entry = vox._elf_sections(path)
+    return vox._plt_stub_map(path, secs, mode)
 
 
 def data_sections(path: str):
@@ -149,9 +160,15 @@ def data_sections(path: str):
 
 
 def emit(path: str) -> str:
-    """The whole binary as an executable IMASM module."""
+    """The whole binary as an executable IMASM module. Recursive descent,
+    function by function; a function that is a known PLT stub (see
+    vox._plt_stub_map) is emitted as a single external-call line instead of
+    the endbr64/indirect-jump-through-an-unloaded-GOT-slot it really holds —
+    the machine never sees a binary, so that jump has nothing real to read.
+    """
     from collections import Counter
-    insns, entry = disassembler(path)
+    insns, entry, funcs = disassembler(path)
+    stubs = _plt_map(path)
     aset = {i.address for i in insns}
     succ = []
     for k, ins in enumerate(insns):
@@ -167,7 +184,12 @@ def emit(path: str) -> str:
     out = [f"; ⊙ {path}", f"; entry 0x{entry:x}"]
     for addr, blob in data_sections(path):
         out.append(f"={addr:#x}\t{blob.hex()}")
-    for ins in insns:
-        out.append(f"@0x{ins.address:x}")
-        out.extend(encode(ins, ins.address in merges))
+    for start, func in funcs:
+        if start in stubs:
+            out.append(f"@0x{start:x}")
+            out.append(f"{INDIRECT}\texternal\t{stubs[start]}")
+            continue
+        for ins in func:
+            out.append(f"@0x{ins.address:x}")
+            out.extend(encode(ins, ins.address in merges))
     return "\n".join(out) + "\n"

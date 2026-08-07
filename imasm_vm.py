@@ -220,6 +220,57 @@ class Machine:
             return
         self.set_reg("rax", self._ENOSYS & _MASK[8])
 
+    # ── external calls, reached only through ⊙'s "external" form ──────────
+    # A PLT stub is itself an indirect jump through a GOT slot the machine
+    # never loaded (nothing loaded the binary, so nothing bound it) — the
+    # recompiler names the stub instead of emitting that dead jump, and this
+    # is where the name is read. A small, honest subset of libc, byte
+    # operations only, entirely on the machine's own memory: nothing here
+    # reaches outside self.mem. Everything else raises rather than silently
+    # returning zero, which would look like a real answer and is not one.
+    _EXTERNAL = ("memcpy", "memmove", "memset", "strlen", "strcpy", "strcmp")
+
+    def do_external(self, name):
+        rdi, rsi, rdx = self.get_reg("rdi"), self.get_reg("rsi"), self.get_reg("rdx")
+        if name in ("memcpy", "memmove"):
+            src = bytes(self.mem.get(rsi + k, 0) for k in range(rdx))
+            for k, b in enumerate(src):
+                self.mem[rdi + k] = b
+            self.set_reg("rax", rdi)
+        elif name == "memset":
+            b = rsi & 0xFF
+            for k in range(rdx):
+                self.mem[rdi + k] = b
+            self.set_reg("rax", rdi)
+        elif name == "strlen":
+            n = 0
+            while self.mem.get(rdi + n, 0):
+                n += 1
+            self.set_reg("rax", n)
+        elif name == "strcpy":
+            k = 0
+            while True:
+                b = self.mem.get(rsi + k, 0)
+                self.mem[rdi + k] = b
+                if b == 0:
+                    break
+                k += 1
+            self.set_reg("rax", rdi)
+        elif name == "strcmp":
+            k = 0
+            while True:
+                a, b = self.mem.get(rdi + k, 0), self.mem.get(rsi + k, 0)
+                if a != b or a == 0:
+                    self.set_reg("rax", _sign(a - b, 4) & _MASK[4])
+                    break
+                k += 1
+        else:
+            raise Halt(f"external call to '{name}' is not one of {self._EXTERNAL}"
+                       f" — unresolved, not guessed")
+        ret = self.load(self.reg["rsp"], 8)      # pop the return address the
+        self.reg["rsp"] += 8                     # caller's own call already pushed
+        return ret
+
     # ── the ALU, reached only through ⊞ and ◻ ─────────────────────────────
     def alu(self, op, fields):
         if op in ("nop", "endbr64", "endbr32"):
@@ -378,6 +429,8 @@ class Machine:
                 if f[0] == "syscall":
                     self.do_syscall()
                     continue
+                if f[0] == "external":
+                    return self.do_external(f[1])
                 # ⊙ is both indirect forms. A call still has to leave its
                 # return address on the stack; only a jmp does not.
                 tgt, _ = self.read(f[1])

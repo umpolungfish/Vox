@@ -555,6 +555,130 @@ def _elf_sections(path: str):
     return mode, secs, e_entry
 
 
+_R_X86_64_JUMP_SLOT = 7   # ELF x86-64 relocation type: a PLT/GOT entry
+
+
+def _elf_plt_targets(path: str) -> dict:
+    """(GOT slot address -> imported symbol name) for every lazily-bound PLT
+    entry, read straight from the section headers, the dynamic symbol table,
+    and the relocations — the same three structures the real dynamic linker
+    reads, not a guess at layout. 32-bit ELF only has 32-bit relocations
+    (Elf32_Rel, no addend, different entsize) and isn't handled; this is
+    x86-64 only, matching the one Capstone mode Vox already assumes."""
+    import struct
+    raw = open(path, "rb").read()
+    if raw[4] != 2:                     # ELFCLASS64 only
+        return {}
+    end = "<" if raw[5] == 1 else ">"
+    e_shoff, = struct.unpack_from(end + "Q", raw, 40)
+    e_shentsize, e_shnum = struct.unpack_from(end + "HH", raw, 58)
+    secs = []
+    for k in range(e_shnum):
+        off = e_shoff + k * e_shentsize
+        sh_type, sh_flags, sh_addr, sh_off, sh_size, sh_link, sh_info = \
+            struct.unpack_from(end + "IQQQQII", raw, off + 4)
+        secs.append({"type": sh_type, "off": sh_off, "size": sh_size, "link": sh_link})
+
+    dynsym = next((s for s in secs if s["type"] == 11), None)   # SHT_DYNSYM
+    if dynsym is None:
+        return {}
+    dynstr = secs[dynsym["link"]]
+
+    def sym_name(idx):
+        st_name, = struct.unpack_from(end + "I", raw, dynsym["off"] + idx * 24)
+        end_i = raw.index(b"\x00", dynstr["off"] + st_name)
+        return raw[dynstr["off"] + st_name:end_i].decode("ascii", "replace")
+
+    got_to_name = {}
+    for s in secs:
+        if s["type"] != 4:              # SHT_RELA; lazy PLT binding is always RELA on x86-64
+            continue
+        for k in range(s["size"] // 24):
+            r_offset, r_info = struct.unpack_from(end + "QQ", raw, s["off"] + k * 24)
+            if (r_info & 0xffffffff) == _R_X86_64_JUMP_SLOT:
+                got_to_name[r_offset] = sym_name(r_info >> 32)
+    return got_to_name
+
+
+_STT_FUNC = 2
+
+
+def _elf_defined_func_addrs(path: str) -> list:
+    """Addresses of every defined (st_shndx != 0), function-typed dynamic
+    symbol — a shared object's exported functions. A library's own entry
+    point calls essentially none of these; they're called from outside, by
+    whoever loads it. Descent that starts only at the entry point never
+    reaches them, so _native_functions seeds its worklist with this list too.
+    64-bit ELF only, matching _elf_plt_targets."""
+    import struct
+    raw = open(path, "rb").read()
+    if raw[4] != 2:
+        return []
+    end = "<" if raw[5] == 1 else ">"
+    e_shoff, = struct.unpack_from(end + "Q", raw, 40)
+    e_shentsize, e_shnum = struct.unpack_from(end + "HH", raw, 58)
+    dynsym = None
+    for k in range(e_shnum):
+        off = e_shoff + k * e_shentsize
+        sh_type, _flags, _addr, sh_off, sh_size, _link, _info = \
+            struct.unpack_from(end + "IQQQQII", raw, off + 4)
+        if sh_type == 11:                # SHT_DYNSYM
+            dynsym = (sh_off, sh_size)
+            break
+    if dynsym is None:
+        return []
+    off, size = dynsym
+    addrs = []
+    for k in range(size // 24):
+        st_info, = struct.unpack_from(end + "B", raw, off + k * 24 + 4)
+        st_shndx, = struct.unpack_from(end + "H", raw, off + k * 24 + 6)
+        st_value, = struct.unpack_from(end + "Q", raw, off + k * 24 + 8)
+        if (st_info & 0xf) == _STT_FUNC and st_shndx != 0 and st_value:
+            addrs.append(st_value)
+    return addrs
+
+
+def _plt_stub_map(path: str, secs, mode) -> dict:
+    """(PLT stub entry address -> imported symbol name). A stub is `[endbr64]
+    jmp *disp(%rip)` (or the CET `.plt.sec` twin, same shape); the jump's
+    real target is a GOT slot, computed the same way the CPU would — this
+    instruction's own end address plus its displacement — and matched against
+    _elf_plt_targets. Nothing here executes the stub; it only reads what the
+    stub would jump through, to name it."""
+    import capstone
+    from capstone.x86 import X86_OP_MEM
+
+    got_to_name = _elf_plt_targets(path)
+    if not got_to_name:
+        return {}
+    md = capstone.Cs(capstone.CS_ARCH_X86, mode)
+    md.detail = True
+    stubs = {}
+    for data, vaddr in secs:
+        insns = list(md.disasm(data, vaddr))
+        for k, ins in enumerate(insns):
+            # a CET stub's jump carries a `bnd` prefix capstone leaves in the
+            # mnemonic text (the same prefixes imasm_module._mnemonic strips)
+            mn = ins.mnemonic
+            for p in ("bnd ", "notrack "):
+                if mn.startswith(p):
+                    mn = mn[len(p):]
+            if mn != "jmp" or not ins.operands:
+                continue
+            op = ins.operands[0]
+            if op.type != X86_OP_MEM or ins.reg_name(op.mem.base) != "rip":
+                continue
+            got_addr = ins.address + ins.size + op.mem.disp
+            name = got_to_name.get(got_addr)
+            if name is None:
+                continue
+            # the stub's entry is this jmp, or the endbr64 immediately before it
+            entry = insns[k - 1].address if k > 0 and insns[k - 1].mnemonic == "endbr64" \
+                and insns[k - 1].address + insns[k - 1].size == ins.address else ins.address
+            stubs[entry] = name
+    return stubs
+
+
 def _native_functions(path: str):
     """Disassemble a binary by recursive descent: walk forward from the entry
     point and every direct call target, decoding one instruction at a time and
@@ -583,6 +707,7 @@ def _native_functions(path: str):
     parse = _elf_sections if magic == b"\x7fELF" else _pe_sections
     mode, secs, entry = parse(path)
     md = capstone.Cs(capstone.CS_ARCH_X86, mode)
+    md.detail = True   # emit_imasm's recompiler needs real operands, not just text
     if not secs:
         return
 
@@ -602,8 +727,13 @@ def _native_functions(path: str):
 
     _TERM = ("hlt", "ud2", "int3", "iret")
     entry_start = entry if bytes_at(entry) is not None else secs[0][1]
+    # A shared object's own entry point calls almost none of its exported
+    # functions — those are called from outside, by whoever loads it — so
+    # descent from the entry point alone misses them. Seed every defined
+    # function symbol too, not just _start/_init.
+    seeds = [entry_start] + (_elf_defined_func_addrs(path) if magic == b"\x7fELF" else [])
     seen_funcs = set()
-    func_queue = [entry_start]
+    func_queue = list(dict.fromkeys(a for a in seeds if bytes_at(a) is not None))
     covered = {}     # address -> Instruction, across every function, for the fallback pass
 
     while func_queue:

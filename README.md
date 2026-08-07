@@ -174,10 +174,19 @@ python3 vox.py --selftest
   system: `exit`/`exit_group` stop the run cleanly with the real exit code,
   `write` actually writes the requested bytes to a real file descriptor, and
   anything else returns `-ENOSYS` — the kernel's own answer for "not
-  implemented" — rather than crashing or faking success. A call to an
-  external function the loader would have resolved (libc, a PLT stub) is
-  still outside what the machine can reach; it runs functions written against
-  what's in the file, not a dynamically linked process.
+  implemented" — rather than crashing or faking success.
+- A PLT stub is itself just an indirect jump through a GOT slot nothing ever
+  loaded, so on an ELF binary the recompiler resolves it the way the dynamic
+  linker would: real `.dynsym`/`.dynstr`/`SHT_RELA` parsing turns each
+  `R_X86_64_JUMP_SLOT` relocation into a name, and the stub is emitted as one
+  external-call line instead of the dead jump it holds on disk. The machine
+  runs a small, honest subset of libc against its own memory —
+  `memcpy`/`memmove`/`memset`/`strlen`/`strcpy`/`strcmp` — and anything else
+  halts naming the unresolved symbol rather than guessing. A shared object's
+  exported functions are seeded into descent alongside the entry point, since
+  a library's own entry code never calls the functions it exports — those
+  are only ever called from outside. PE import tables aren't resolved yet,
+  so a DLL's external calls stay unreached.
 - A packed or installer binary hides its code until runtime. V⊙x reads what
   is on disk, reports how much of the file decoded so a low coverage is never
   silent, and — for NSIS, Inno, and WiX overlays — attempts extraction with
