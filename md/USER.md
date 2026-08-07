@@ -193,16 +193,15 @@ as IMASM in the machine — over the same inputs, and prints any disagreement wi
 the arguments that caused it.
 
 ```
-corpus_O0 ... corpus_Os (5 optimisation levels)     2345 agreements, 25 mismatches
+corpus_O0 ... corpus_Os (5 optimisation levels)     2370 agreements, 0 mismatches
 ```
 
 Thirteen functions at five optimisation levels: integer arithmetic, division and
 modulo, loops, vectorised code (`-O3` emits SSE), deep recursion, cross-function
 calls, stack arrays, a switch jump table, and calls through a function-pointer
-table — the last is what ⊙ is for. Every one of the twenty-five mismatches is
-Fibonacci past depth twenty-three or so, hitting the machine's two-million-step
-ceiling before it returns; the switch table and the function-pointer dispatch
-agree exactly at every level.
+table — the last is what ⊙ is for. The switch table and the function-pointer
+dispatch agree exactly at every level, as does Fibonacci to depth twenty-nine,
+which costs the machine twenty-eight million steps to answer.
 
 ## Auditing
 

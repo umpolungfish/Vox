@@ -1,14 +1,12 @@
 # V⊙x
 
-Two thousand three hundred forty-five agreements, twenty-five mismatches, and
-every mismatch is the same known cause. V⊙x lifts x86 to twelve glyphs, runs
-the glyphs in a machine that never once looks at the original bytes, and gets
-every answer native code gets — Ackermann recursion, SSE, a switch's jump
-table, a call through a function-pointer array, at five optimisation levels
-from thirteen functions gcc was free to transform however it wanted. The
-twenty-five mismatches are all deep Fibonacci recursion outrunning the
-machine's step ceiling before it can return; nothing else disagreed, and
-nothing was added to the twelve to make any of it pass.
+Two thousand three hundred seventy agreements and no mismatches. V⊙x lifts
+x86 to twelve glyphs, runs the glyphs in a machine that never once looks at
+the original bytes, and gets every answer native code gets — Ackermann
+recursion, SSE, a switch's jump table, a call through a function-pointer
+array, at five optimisation levels from thirteen functions gcc was free to
+transform however it wanted. Nothing was added to the twelve to make any of
+it pass.
 
 ```bash
 python3 vox.py --imasm out.imasm program.so
@@ -58,18 +56,17 @@ IMASM in the machine — over identical inputs, and prints any disagreement
 with the arguments that produced it.
 
 ```
-corpus_O0 … corpus_Os (5 optimisation levels)      2345 agreements, 25 mismatches
+corpus_O0 … corpus_Os (5 optimisation levels)      2370 agreements, 0 mismatches
 ```
 
 Thirteen functions — integer arithmetic, division and modulo, loops,
 vectorised code, deep recursion, cross-function calls, stack arrays, a switch
 jump table, calls through a function-pointer array — at `-O0` through `-O3`
-and `-Os`. Every one of the twenty-five mismatches is Fibonacci past depth
-twenty-three or so: native returns, IMASM is still recursing when it hits the
-machine's two-million-step ceiling, a real limit named once in `Machine.call`
-rather than a silent cutoff. The switch table and the function-pointer
-dispatch — the two places a disassembler is most likely to lose the thread —
-agree exactly, at every optimisation level.
+and `-Os`, built by `build_corpus.sh` from `corpus.c`. The switch table and
+the function-pointer dispatch — the two places a disassembler is most likely
+to lose the thread — agree exactly, at every optimisation level, as does
+Fibonacci to depth twenty-nine, which costs the machine twenty-eight million
+steps to answer.
 
 Read that as a statement about the twelve rather than about the emulator.
 Every transformation gcc applies at every level — unrolling, vectorising,
@@ -92,9 +89,8 @@ Structure — which of the twelve each instruction is, in order — lands betwee
 5.3% and 7.1% of the machine code every time, across seven binaries, four
 compilers, four languages, two containers, and a decoded-size range spanning
 two hundredfold. A lossless rewrite that still runs costs 34% to 45%. The
-remainder is what the dialect charges for saying it in x86. See
-[md/MEASUREMENTS.md](md/MEASUREMENTS.md), all seven rows and why an earlier
-version of this table was wrong.
+remainder is what the dialect charges for saying it in x86. All seven rows
+are in [md/MEASUREMENTS.md](md/MEASUREMENTS.md).
 
 ## One law over four dialects
 
@@ -172,7 +168,7 @@ python3 vox.py --word out.imscrb program.exe   # the structure alone
 python3 vox.py --selftest
 ```
 
-## Honest edges
+## The edges
 
 - The disassembler is recursive descent: it walks forward from the entry
   point, every exported function symbol, and every discovered call target,
@@ -183,12 +179,12 @@ python3 vox.py --selftest
   so anything reachable only through one, a switch's jump-table arms, gets
   a fallback sweep of whatever descent never reached, grouped into functions
   of its own, rather than silently dropped.
-- The machine handles a small, honest subset of syscalls, not an operating
+- The machine handles a small subset of syscalls, not an operating
   system: `exit`/`exit_group` stop the run cleanly with the real exit code,
   `write` actually writes the requested bytes to a real file descriptor, and
   anything else returns `-ENOSYS` — the kernel's own answer for "not
   implemented" — rather than crashing or faking success. A run is also
-  capped at two million steps; deep enough recursion halts there with the
+  capped at fifty million steps; recursion deeper than that halts with the
   step count in the error rather than running forever or silently returning
   a wrong answer.
 - A PLT stub is itself just an indirect jump through a GOT slot nothing ever
@@ -196,7 +192,7 @@ python3 vox.py --selftest
   linker would: real `.dynsym`/`.dynstr`/`SHT_RELA` parsing turns each
   `R_X86_64_JUMP_SLOT` relocation into a name, and the stub is emitted as one
   external-call line instead of the dead jump it holds on disk. The machine
-  runs a small, honest subset of libc against its own memory —
+  runs a small subset of libc against its own memory —
   `memcpy`/`memmove`/`memset`/`strlen`/`strcpy`/`strcmp` — and anything else
   halts naming the unresolved symbol rather than guessing. PE import tables
   aren't resolved yet, so a DLL's external calls stay unreached.
@@ -213,6 +209,7 @@ python3 vox.py --selftest
 - `imasm_module.py` the recompiler: every instruction to its glyph and payload.
 - `imasm_vm.py` the machine that runs a module, dispatching on the glyph.
 - `verify.py` native versus IMASM, the same inputs, decided.
+- `corpus.c`, `build_corpus.sh` the thirteen functions and the five builds.
 - `measure.py` what the dialect costs.
 - `imasm16_3_core.py` the SIXTEEN_3 trilattice engine, vendored and standalone.
 - `md/USER.md` the full reading. `md/MEASUREMENTS.md` the numbers.

@@ -321,6 +321,15 @@ class Machine:
             r = _sign(self.get_reg({8: "rax", 4: "eax"}[size]), size) * _sign(a, size)
             self.set_reg({8: "rax", 4: "eax"}[size], r & _MASK[size])
             return
+        if op == "imul" and len(fields) == 3:
+            # three-operand imul multiplies the two sources, not the
+            # destination: dst may hold anything at all when it is reached.
+            x, _ = self.read(fields[1], size)
+            y, _ = self.read(fields[2], size)
+            r = _sign(x, size) * _sign(y, size)
+            self.write(fields[0], r & _MASK[size])
+            self.set_flags(r & _MASK[size], 0, size)
+            return
         b, _ = self.read(fields[-1], size)
         r = {
             "add": a + b, "sub": a - b, "adc": a + b, "sbb": a - b,
@@ -479,7 +488,7 @@ class Machine:
                 self.alu(f[0], f[1:])
         return self.next_of.get(addr)
 
-    def call(self, addr, *args, limit=2_000_000):
+    def call(self, addr, *args, limit=50_000_000):
         """Run one function to its ⊣, System V integer arguments."""
         for name, v in zip(("rdi", "rsi", "rdx", "rcx", "r8", "r9"), args):
             self.set_reg(name, v & _MASK[8])
