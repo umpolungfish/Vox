@@ -21,7 +21,7 @@ closes; B = a fork holds open across a commit (finding, triage to definite); N =
 a linear routine that never forked, clean. Four front ends, one law: CPython
 (`dis`), EVM (`--evm HEX`, jump targets resolved from the preceding PUSH), WASM
 (`--wasm HEX`, structured if/end control), and native x86 PE binaries
-(auto-detected by the MZ magic; needs `capstone` and `pefile`). The vulnerable
+(auto-detected by the MZ magic; no third-party package needed). The vulnerable
 case in each lifts to the same open-fork signature (VINIT FSPLIT IFIX TANCH… →
 B): one bug shape, one verdict, regardless of language. `--selftest` runs the
 EVM+WASM vuln/safe pairs.
@@ -33,6 +33,7 @@ commit-and-return. The scanner reports what actually executes. A true merge (a
 target with ≥2 predecessors — an `if` with a single continuation, or a loop
 back-edge) survives and reads as FFUSE.
 """
+from vox_x86 import X86_OP_IMM, X86_OP_MEM, X86_OP_REG
 import argparse
 import dis
 import importlib.util
@@ -258,10 +259,13 @@ def verdict(word: list):
 
 # ── native front-end (x86 PE) ────────────────────────────────────────────────
 # The same closure law on real machine code. Only the control-flow skeleton is
-# needed, so a disassembler (capstone) that gives branches, calls, rets, and
-# memory writes is enough — no full semantics. A conditional jump forks, a jump
-# target reached from two paths merges, a `mov [mem], _` commits state, a `call`
-# is work, a `ret` terminates. Needs `capstone` and `pefile` (pip).
+# needed, so a decoder that gives branches, calls, rets, and memory writes is
+# enough — no full semantics. A conditional jump forks, a jump target reached
+# from two paths merges, a `mov [mem], _` commits state, a `call` is work, a
+# `ret` terminates. The decoder is V⊙x's own (`vox_decode`) and the PE
+# reader is its own too (`vox_pe`), so the native lane needs nothing installed.
+# capstone can be swapped back in with VOX_CAPSTONE=1 to cross-check the two
+# decoders against each other.
 
 
 def _imm(op_str: str):
@@ -272,12 +276,27 @@ def _imm(op_str: str):
         return None
 
 
+# Mnemonic prefixes that capstone attaches but don't change classification
+_MNEMONIC_PREFIXES = ("notrack ", "lock ", "bnd ", "rep ", "repe ", "repne ", "data16 ")
+
+
+def _mnemonic(ins) -> str:
+    """Strip capstone mnemonic prefixes so classification matches imasm_module.
+    A `notrack jmp` is a jmp; a `lock add` is an add — the prefix changes
+    guards, not which of the twelve it is."""
+    mn = ins.mnemonic
+    for p in _MNEMONIC_PREFIXES:
+        if mn.startswith(p):
+            mn = mn[len(p):]
+    return mn
+
+
 def _native_func_word(insns) -> list:
     from collections import Counter
     aset = {i.address for i in insns}
     succ = []
     for idx, ins in enumerate(insns):
-        mn = ins.mnemonic
+        mn = _mnemonic(ins)
         terminates = mn == "jmp" or mn.startswith("ret")
         if not terminates and idx + 1 < len(insns):
             succ.append(insns[idx + 1].address)
@@ -290,9 +309,16 @@ def _native_func_word(insns) -> list:
     for ins in insns:
         if ins.address in merges:
             tokens.append(FFUSE)
-        mn = ins.mnemonic
+        mn = _mnemonic(ins)
         if mn.startswith("j") and mn != "jmp":
             tokens.append(FSPLIT)
+        elif mn == "jmp":
+            # An unconditional jump is a transfer, and the skeleton has to say
+            # so. Dropping it while still emitting the ∋ at the address it
+            # lands on spends a fuse that nothing opened, and the word comes
+            # out ill-typed for a reason that belongs to this lifter rather
+            # than to the program it is reading.
+            tokens.append(AREV)
         elif mn == "call":
             tokens.append(AFWD)
         elif mn.startswith("ret"):
@@ -321,7 +347,7 @@ def _native_func_word(insns) -> list:
 _ENGAGE = ("add", "sub", "adc", "sbb", "imul", "mul", "idiv", "div", "and",
            "or", "xor", "not", "neg", "inc", "dec", "shl", "shr", "sar", "rol",
            "ror", "sal", "bt", "bsf", "bsr", "popcnt", "cdq", "cqo", "cwde")
-_MOVE = ("mov", "movzx", "movsx", "movsxd", "lea", "push", "pop", "xchg",
+_MOVE = ("mov", "movzx", "movsx", "movsxd", "leave", "push", "pop", "xchg",
          "movabs", "movaps", "movdqa", "movdqu", "movups", "movd", "movq")
 _TERMINAL = ("ret", "int3", "ud2", "hlt", "iret")
 
@@ -332,6 +358,58 @@ def _writes_memory(ins) -> bool:
     return dst.endswith("]")
 
 
+_INERT = ("nop", "endbr64", "endbr32")     # never a commit, whatever they address
+_TRUTH = ("cmp", "test", "ucomiss", "ucomisd", "comiss", "comisd")
+
+
+def classify(ins) -> str:
+    """Which of the twelve one instruction is.
+
+    This is the only place that decision is made. `recompile_native` reads the
+    word off it and `imasm_module.encode` builds its executable line off it, so
+    the auditor's word and the module's word cannot drift apart — they are the
+    same call. They did drift, before: the module read a syscall as ⊙ and the
+    auditor read it as ⊞, and a round trip through the module text could never
+    return the word the auditor produced.
+
+    The order is the reading order. A terminal is a terminal whatever else it
+    touches; a comparison is truth-making even when its destination is memory;
+    an inert instruction never commits however it addresses memory.
+    """
+    mn, ops = _mnemonic(ins), ins.operands
+    direct = bool(ops) and ops[0].type == X86_OP_IMM
+
+    if mn.startswith("ret") or mn in _TERMINAL:
+        return TANCH
+    # A syscall's target is chosen by a register, not written in the
+    # instruction: the same shape as an indirect transfer, to the kernel
+    # instead of to the program's own code.
+    if mn == "syscall" or mn == "sysenter" or (mn == "int" and ops
+                                               and ops[0].type == X86_OP_IMM
+                                               and ops[0].imm == 0x80):
+        return IMSCRIB
+    if mn == "call":
+        return AFWD if direct else IMSCRIB
+    if mn == "jmp":
+        return AREV if direct else IMSCRIB
+    if mn.startswith("j") or mn == "loop":
+        return FSPLIT
+    if mn.startswith("set") or mn.startswith("cmov"):
+        return EVALF
+    if mn in _TRUTH:
+        return EVALT
+    if mn in _INERT:
+        return ENGAGR
+    # The commit is a memory destination. `lea` computes an address without
+    # touching it and `push` reads its operand, so neither commits.
+    if ops and ops[0].type == X86_OP_MEM and mn not in ("lea", "push"):
+        return IFIX
+    if mn in _MOVE:
+        return CLINK
+    return ENGAGR                                          # total: no instruction
+                                                           # leaves the alphabet
+
+
 def recompile_native(insns, merges) -> list:
     """Every instruction, one glyph each. Total, order-preserving, nothing
     dropped — this is the program rewritten in the twelve, not a summary."""
@@ -339,29 +417,8 @@ def recompile_native(insns, merges) -> list:
     for ins in insns:
         if ins.address in merges:
             tokens.append(FFUSE)
-        mn, ops = ins.mnemonic, ins.op_str.strip()
-        indirect = _imm(ops) is None and not ops.startswith("0x")
-        if mn.startswith("ret") or mn in _TERMINAL:
-            tokens.append(TANCH)
-        elif mn == "call":
-            tokens.append(IMSCRIB if indirect else AFWD)
-        elif mn == "jmp":
-            tokens.append(IMSCRIB if indirect else AREV)
-        elif mn.startswith("j"):
-            tokens.append(FSPLIT)
-        elif mn.startswith("set") or mn.startswith("cmov"):
-            tokens.append(EVALF)
-        elif mn in ("cmp", "test", "ucomiss", "ucomisd"):
-            tokens.append(EVALT)
-        elif _writes_memory(ins):
-            tokens.append(IFIX)
-        elif mn in _MOVE:
-            tokens.append(CLINK)
-        elif mn in _ENGAGE:
-            tokens.append(ENGAGR)
-        else:
-            tokens.append(ENGAGR)                          # total: no instruction
-    return tokens                                          # leaves the alphabet
+        tokens.append(classify(ins))
+    return tokens
 
 
 def _merges_of(insns) -> set:
@@ -369,10 +426,11 @@ def _merges_of(insns) -> set:
     aset = {i.address for i in insns}
     succ = []
     for idx, ins in enumerate(insns):
-        if not (ins.mnemonic == "jmp" or ins.mnemonic.startswith("ret")) \
+        mn = _mnemonic(ins)
+        if not (mn == "jmp" or mn.startswith("ret")) \
                 and idx + 1 < len(insns):
             succ.append(insns[idx + 1].address)
-        if ins.mnemonic.startswith("j"):
+        if mn.startswith("j"):
             t = _imm(ins.op_str)
             if t is not None and t in aset:
                 succ.append(t)
@@ -502,12 +560,11 @@ def _pe_composition(path: str) -> dict:
     """Where the bytes are: how much is code the lane reads vs an appended
     overlay (installer payload, resources) that is data, not program."""
     import os
-    import pefile
-    pe = pefile.PE(path, fast_load=True)
+    import vox_pe
+    pe = vox_pe.PE(path)
     size = os.path.getsize(path)
-    secs = sum(s.SizeOfRawData for s in pe.sections)
-    code = sum(s.SizeOfRawData for s in pe.sections
-               if s.Characteristics & 0x20000000)
+    secs = pe.total_raw()
+    code = pe.total_code()
     head = open(path, "rb").read(2_000_000)
     sig = next((n for m, n in ((b"Nullsoft", "NSIS"), (b"Inno Setup", "Inno"),
                                (b"WiX", "WiX")) if m in head), "")
@@ -515,21 +572,18 @@ def _pe_composition(path: str) -> dict:
 
 
 def _pe_sections(path: str):
-    """(capstone mode, executable [(bytes, vaddr)], entry vaddr) for a PE."""
-    import capstone
-    import pefile
-    pe = pefile.PE(path, fast_load=True)
-    mode = capstone.CS_MODE_64 if pe.FILE_HEADER.Machine == 0x8664 else capstone.CS_MODE_32
-    base = pe.OPTIONAL_HEADER.ImageBase
-    secs = [(s.get_data(), base + s.VirtualAddress) for s in pe.sections
-            if s.Characteristics & 0x20000000]          # IMAGE_SCN_MEM_EXECUTE
-    return mode, secs, base + pe.OPTIONAL_HEADER.AddressOfEntryPoint
+    """(decoder mode, executable [(bytes, vaddr)], entry vaddr) for a PE."""
+    import vox_x86 as capstone
+    import vox_pe
+    pe = vox_pe.PE(path)
+    mode = capstone.CS_MODE_64 if pe.is64 else capstone.CS_MODE_32
+    return mode, pe.executable_sections(), pe.entry
 
 
 def _elf_sections(path: str):
     """The same three things for an ELF. Only the header walk differs from PE —
     the lift downstream cannot tell which container it came from."""
-    import capstone
+    import vox_x86 as capstone
     import struct
     raw = open(path, "rb").read()
     is64 = raw[4] == 2
@@ -645,8 +699,8 @@ def _plt_stub_map(path: str, secs, mode) -> dict:
     instruction's own end address plus its displacement — and matched against
     _elf_plt_targets. Nothing here executes the stub; it only reads what the
     stub would jump through, to name it."""
-    import capstone
-    from capstone.x86 import X86_OP_MEM
+    import vox_x86 as capstone
+    from vox_x86 import X86_OP_MEM
 
     got_to_name = _elf_plt_targets(path)
     if not got_to_name:
@@ -659,7 +713,7 @@ def _plt_stub_map(path: str, secs, mode) -> dict:
         for k, ins in enumerate(insns):
             # a CET stub's jump carries a `bnd` prefix capstone leaves in the
             # mnemonic text (the same prefixes imasm_module._mnemonic strips)
-            mn = ins.mnemonic
+            mn = _mnemonic(ins)
             for p in ("bnd ", "notrack "):
                 if mn.startswith(p):
                     mn = mn[len(p):]
@@ -701,7 +755,7 @@ def _native_functions(path: str):
     (start_address, [insns]), descent-discovered functions first in discovery
     order, then any fallback-swept leftovers.
     """
-    import capstone
+    import vox_x86 as capstone
     with open(path, "rb") as fh:
         magic = fh.read(4)
     parse = _elf_sections if magic == b"\x7fELF" else _pe_sections
@@ -752,7 +806,7 @@ def _native_functions(path: str):
                 continue
             visited.add(addr)
             by_addr[addr] = ins
-            mn = ins.mnemonic
+            mn = _mnemonic(ins)
             terminates = mn.startswith("ret") or mn in _TERM
             if mn == "call":
                 t = _imm(ins.op_str)
@@ -783,14 +837,47 @@ def _native_functions(path: str):
                 leftover.append(ins)
     if leftover:
         leftover.sort(key=lambda i: i.address)
+        # A contiguous run of unreached bytes is not one function. It is every
+        # function descent could not reach, laid end to end, and glueing them
+        # together produces words that are not words: a ∋ belonging to the next
+        # function fusing into the ⊣ of the previous one, with no ∈ anywhere to
+        # pair it. The verdict engine reports that correctly as ill-typed, but
+        # the ill-typedness is the sweep's, not the program's.
+        #
+        # A function boundary is a terminal, then padding, then a body. All
+        # three are needed: padding alone is not a boundary, because both
+        # compilers also pad for alignment inside a body, and cutting there
+        # shatters one function into dozens.
+        _PAD = ("int3", "nop")
+
+        runs = []
         run = [leftover[0]]
+        saw_terminal = False
+        in_pad = False
         for ins in leftover[1:]:
-            if ins.address == run[-1].address + run[-1].size:
-                run.append(ins)
+            prev = run[-1]
+            pm, im = _mnemonic(prev), _mnemonic(ins)
+            gap = ins.address != prev.address + prev.size
+            if pm in _PAD:
+                in_pad = True
+            elif pm.startswith("ret") or pm in _TERM or pm == "jmp":
+                saw_terminal = True
             else:
-                yield run[0].address, run
+                saw_terminal = False
+                in_pad = False
+            if gap or (in_pad and saw_terminal and im not in _PAD):
+                runs.append(run)
                 run = [ins]
-        yield run[0].address, run
+                saw_terminal = in_pad = False
+            else:
+                run.append(ins)
+        runs.append(run)
+
+        for r in runs:
+            # A run that is nothing but padding is not a function either.
+            if all(_mnemonic(i) in _PAD for i in r):
+                continue
+            yield r[0].address, r
 
 
 def scan_native(path: str):

@@ -1,1 +1,54 @@
-initial
+Standalone: V⊙x's own decoder and PE reader, one classifier, and a boundary rule
+
+V⊙x claimed a program is a word but could not read a program without capstone
+and pefile. Both are gone. The native lane now needs nothing installed.
+
+vox_decode.py decodes x86-64 to the shape capstone hands back: ModRM/SIB into
+named registers, memory expressions, immediates, rip-relative targets. The
+surface is deliberately capstone's, because matching an interface that already
+works is cheaper than changing every call site. An unknown opcode stops the
+walk rather than guessing a width, since a guessed length slips out of phase
+and keeps producing confident, wrong instructions.
+
+vox_pe.py reads the three things a PE was ever asked for: machine, executable
+sections with their virtual addresses, and the entry point. Fixed offsets in a
+header that has not changed shape since 1993.
+
+vox_x86.py selects the backend. V⊙x's own by default; VOX_CAPSTONE=1 swaps
+capstone back in, which is how the two are cross-checked against each other over
+the same corpus.
+
+verify.py: 2370 agreements, 0 mismatches, at -O0 through -O3 and -Os. The same
+number capstone gives, on our own decoder. Getting there took six defects, and
+the last three were invisible to a disassembly diff and only showed in the
+emitted module text, because mnemonics and lengths matched while the operands
+the machine executes did not:
+
+  SSE mnemonics collapsed to one name
+  movaps/movdqa store direction reversed, so a store executed as a load
+  0F 71/72/73 shift group decoded with the wrong operand shape
+  a bare REX (0x40) read as no REX, so movzx eax, sil decoded as dh
+  0F 6E/7E treating the general-register operand as xmm
+  immediate width: imm32 unsigned, imm8 signed, bitwise imm8 widened as a mask
+
+vox.classify is now the only reading of the twelve. recompile_native and
+imasm_module.encode both call it; they previously disagreed on syscalls, on
+nop with a memory operand, on SSE moves and on ucomiss, which is why a round
+trip through the module text could never return the auditor's word.
+
+The fallback sweep no longer glues every unreached region into one pseudo-
+function. A boundary is a terminal, then padding, then a body. On notepad that
+is 437 glued regions against 558 real ones.
+
+The skeleton lifter emits < for an unconditional jmp. It dropped the jump while
+still emitting the ∋ at the address it lands on, which spends a fuse nothing
+opened. The verdicts do not move — pairing needs ∈, and < is a transfer — but
+the word is now faithful.
+
+vox_decompiler closes μ∘δ=id, expanding a PLT stub back from the single
+external-call line emit collapses it to, and _word_to_imasm_text is implemented.
+
+What F turned out to mean: not a program property. Every ill-typed word on
+notepad is a function entered from inside another function, which is descent
+cutting one function in two and stranding a merge from its fork. Three of 558,
+found without being told what to look for.
