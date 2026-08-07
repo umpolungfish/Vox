@@ -5,8 +5,9 @@ covers how to run it, how to read the verdict, and what a finding means.
 
 ## Install
 
-Nothing to install. Python 3.10 or newer, standard library only. The verdict
-engine is vendored in `imasm16_3_core.py`.
+Python 3.10 or newer. The verdict engine is vendored in `imasm16_3_core.py`
+and needs nothing else; the EVM, WASM, and RNA lanes are standard library
+only. The native lane (PE and ELF) needs `capstone` and `pefile`.
 
 ```bash
 git clone <this repo> vox && cd vox
@@ -60,10 +61,15 @@ closes it unless a `return` or `br` escaped the branch first.
 python3 vox.py some_program.exe
 ```
 
-V⊙x auto-detects a PE binary by its `MZ` magic, disassembles the executable
-sections (needs `capstone` and `pefile`), splits the code into functions at the
-entry point and at call targets, and lifts each function. It prints the verdict
-distribution and lists the functions that hold a fork open, with their addresses:
+V⊙x auto-detects a PE or ELF binary by its magic bytes (needs `capstone` and
+`pefile`) and finds functions by recursive descent: walk forward from the
+entry point, every exported function symbol, and every discovered call
+target, decoding one instruction at a time and following direct calls and
+jumps as control-flow edges. Whatever descent can't reach — a switch's
+jump-table arms, anything behind an indirect call — gets a fallback sweep of
+the leftover bytes, grouped into functions of its own rather than silently
+dropped. It prints the verdict distribution and lists the functions that
+hold a fork open, with their addresses:
 
 ```
 file 41,475,671 B  |  code 26,624 B (read)  |  overlay 41,406,551 B (not code)  |  NSIS installer
@@ -77,16 +83,19 @@ native PE: 94 functions   verdicts {'B': 38, 'T': 25, 'N': 31}
 
 The header is the first thing to read. A 40 MB installer is almost all appended
 payload: the real program is a small stub (here 26 KB), and the rest is the
-compressed application, which is data, not code, so V⊙x leaves it alone. To audit
-the app itself, extract the installer and point V⊙x at the unpacked binaries.
+compressed application, which is data, not code, so V⊙x leaves it alone. For
+NSIS, Inno, and WiX overlays, V⊙x attempts extraction with `7z` if it's on the
+host and reports which real executables came out; otherwise, extract the
+installer by hand and point V⊙x at the unpacked binaries.
 
 Native code forks and returns constantly, so B is common and mostly benign here.
 It is a map of where control does not cleanly rejoin, ranked by the machine, for
-you to triage. This is a linear sweep with a call-target split, not recursive
-descent, so a region with few internal calls can be lumped into one long word.
-Every word is printed in full, in the alphabet, and every finding is listed:
-nothing is truncated, because a word cut short is a different word. A packed
-binary hides its real code until runtime; V⊙x reads what is on disk.
+you to triage. Descent groups a function by its own control flow, so a region
+reachable only through an indirect jump — the fallback sweep's territory — can
+still be lumped into one long word if little inside it branches. Every word is
+printed in full, in the alphabet, and every finding is listed: nothing is
+truncated, because a word cut short is a different word. A packed binary hides
+its real code until runtime; V⊙x reads what is on disk.
 
 ### Self-test
 
@@ -113,11 +122,9 @@ A finding is **B**: the fork opened alternatives and then a state write (`IFIX`)
 or a return (`TANCH`) escaped before the alternatives rejoined (`FFUSE`). That is
 the structural signature of reentrancy, an unhandled path, and resource leaks.
 
-**B is not a verdict of guilt.** It is dialetheic: both closed and open are live.
-It marks the spot to look, and you resolve it to a definite T or F by reading the
-call at that fork. V⊙x tells you where; it does not tell you it is exploitable.
-
-## Reading the lifted word
+**B is dialetheic: both closed and open are live.** It marks the spot to look,
+resolved to a definite T or F by reading the call at that fork. V⊙x tells you
+where; the exploitability judgment is yours.
 
 ## Recompiling
 
@@ -149,7 +156,7 @@ This lift is total — every decoded instruction gets a glyph:
 | ⊞ | engagement: everything that computes on values |
 
 `--word` emits exactly this and nothing else, and it does not execute — it is
-the structure, which is what MEASUREMENTS.md is taken over.
+the structure, which is what `MEASUREMENTS.md` is taken over.
 
 ## Executing
 
@@ -167,7 +174,7 @@ Payload by glyph — the glyph decides how its fields are read:
 | Glyph | Payload |
 |-------|---------|
 | ∈ | a condition and a target |
-| > / < / ⊙ | a target; ⊙ carries whether it is a call or a jump, because a call must still leave a return address |
+| > / < / ⊙ | a target; ⊙ carries whether it is a call or a jump, because a call must still leave a return address — or, when the target is a `syscall` or a resolved PLT stub, that name in place of an address, since there is no code left to jump to |
 | ⋈ | the two slots, and the move's kind |
 | ◻ | the memory reference, the source, the width |
 | ⊤ | the two things compared, and whether by difference or by conjunction |
@@ -186,14 +193,16 @@ as IMASM in the machine — over the same inputs, and prints any disagreement wi
 the arguments that caused it.
 
 ```
-lib0.so ... lib3.so, libs.so        1245 agreements, 0 mismatches
-hard0.so ... hard3.so, hards.so     1125 agreements, 0 mismatches
+corpus_O0 ... corpus_Os (5 optimisation levels)     2345 agreements, 25 mismatches
 ```
 
-Two corpora at five optimisation levels each: integer arithmetic, division and
+Thirteen functions at five optimisation levels: integer arithmetic, division and
 modulo, loops, vectorised code (`-O3` emits SSE), deep recursion, cross-function
-calls, stack arrays, switch jump tables, and calls through a function-pointer
-table. The last is what ⊙ is for.
+calls, stack arrays, a switch jump table, and calls through a function-pointer
+table — the last is what ⊙ is for. Every one of the twenty-five mismatches is
+Fibonacci past depth twenty-three or so, hitting the machine's two-million-step
+ceiling before it returns; the switch table and the function-pointer dispatch
+agree exactly at every level.
 
 ## Auditing
 

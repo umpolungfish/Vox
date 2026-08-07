@@ -738,14 +738,14 @@ def _native_functions(path: str):
 
     while func_queue:
         fstart = func_queue.pop(0)
-        if fstart in seen_funcs or bytes_at(fstart) is None:
+        if fstart in seen_funcs or fstart in covered or bytes_at(fstart) is None:
             continue
         seen_funcs.add(fstart)
 
         visited, addr_queue, by_addr = set(), [fstart], {}
         while addr_queue:
             addr = addr_queue.pop(0)
-            if addr in visited:
+            if addr in visited or addr in covered:
                 continue
             ins = decode_one(addr)
             if ins is None:
