@@ -41,30 +41,24 @@ from pathlib import Path
 # The SIXTEEN_3 trilattice engine, vendored — V⊙x is standalone.
 from imasm16_3_core import IMASM16_3_Machine, Sequence16_3Trace  # noqa
 
-# The twelve IMASM opcodes → their SIXTEEN_3 form (∈/∋ take the 3-way fork/fuse;
-# ⊞ ENGAGR reads EVALI in the trilattice face).
-_IMASM12_TO_16_3 = {
-    "VINIT": "VINIT", "TANCH": "TANCH", "AFWD": "AFWD", "AREV": "AREV",
-    "CLINK": "CLINK", "IMSCRIB": "IMSCRIB", "FSPLIT": "FSPLIT3", "FFUSE": "FFUSE3",
-    "EVALT": "EVALT", "EVALF": "EVALF", "ENGAGR": "EVALI", "IFIX": "IFIX",
-}
-
-# The word is written in the alphabet, never in opcode names. Twelve axes, one
-# glyph each, joined: a word is one string, not a list of labels.
-# In catalog order. ⊙ stands at slot nine, Criticality, and it is the same ⊙
-# whether read as the primitive, as its own type, or as the token IMSCRIB — a
-# critical point is where a system turns on itself, and imscribing is inclosure.
-# Self-reference is the thread that makes the three readings one.
-_GLYPH = {
-    "VINIT": "⊢", "TANCH": "⊣", "AFWD": ">", "AREV": "<",
-    "CLINK": "⋈", "EVALT": "⊤", "FSPLIT": "∈", "FFUSE": "∋",
-    "IMSCRIB": "⊙", "EVALF": "⊥", "ENGAGR": "⊞", "IFIX": "◻",
-}
+# The twelve IMASM opcodes, as the glyphs and nothing else. A word is a list of
+# these, and every front end below builds one directly — there is no name form
+# to translate out of. ⊙ stands at slot nine, Criticality, and it is the same ⊙
+# whether read as the primitive, as its own type, or as the SIXTEEN_3 opcode
+# IMASM16_3_core calls IMSCRIB — a critical point is where a system turns on
+# itself, and imscribing is inclosure. Self-reference is the thread that makes
+# the readings one, which is also why lifting into SIXTEEN_3 needs no
+# translation table: FSPLIT/FFUSE/ENGAGR and FSPLIT3/FFUSE3/EVALI are the same
+# three glyphs (∈, ∋, ⊞) under two names, and a glyph does not have two names.
+VINIT, TANCH, AFWD, AREV = "⊢", "⊣", ">", "<"
+CLINK, EVALT, FSPLIT, FFUSE = "⋈", "⊤", "∈", "∋"
+IMSCRIB, EVALF, ENGAGR, IFIX = "⊙", "⊥", "⊞", "◻"
 
 
 def glyphs(word):
-    """The lifted word as glyphs, joined, in full. No names, no truncation."""
-    return "".join(_GLYPH[t] for t in word)
+    """The lifted word, joined into one string. It already is glyphs — every
+    front end appends them directly — so this is just the join."""
+    return "".join(word)
 
 
 _STORE = ("STORE_FAST", "STORE_GLOBAL", "STORE_DEREF", "STORE_NAME",
@@ -101,19 +95,19 @@ def lift_function(func) -> list:
     """Lift a function's bytecode CFG skeleton to an IMASM opcode-name word."""
     instrs = list(dis.get_instructions(func))
     merges = _merge_offsets(instrs)
-    tokens = ["VINIT"]
+    tokens = [VINIT]
     for ins in instrs:
         if ins.offset in merges:
-            tokens.append("FFUSE")     # paths genuinely rejoin here
+            tokens.append(FFUSE)       # paths genuinely rejoin here
         op = ins.opname
         if op.startswith("POP_JUMP_IF"):
-            tokens.append("FSPLIT")
+            tokens.append(FSPLIT)
         elif op in _STORE:
-            tokens.append("IFIX")
+            tokens.append(IFIX)
         elif op.startswith("CALL"):
-            tokens.append("AFWD")
+            tokens.append(AFWD)
         elif op in _RETURN:
-            tokens.append("TANCH")
+            tokens.append(TANCH)
     # A fork with no matching merge is left dangling on purpose: the engine reads
     # the openness (a commit/return that escaped the fork) rather than us hiding it.
     return tokens
@@ -165,19 +159,19 @@ def lift_evm(instrs: list) -> list:
         if ins["name"] in ("JUMP", "JUMPI") and ins.get("target") is not None:
             succ.append(ins["target"])
     merges = {off for off, c in Counter(succ).items() if c >= 2}
-    tokens = ["VINIT"]
+    tokens = [VINIT]
     for ins in instrs:
         nm = ins["name"]
         if nm == "JUMPDEST" and ins["off"] in merges:
-            tokens.append("FFUSE")
+            tokens.append(FFUSE)
         if nm == "JUMPI":
-            tokens.append("FSPLIT")
+            tokens.append(FSPLIT)
         elif nm == "SSTORE":
-            tokens.append("IFIX")
+            tokens.append(IFIX)
         elif nm in _EVM_WORK:
-            tokens.append("AFWD")
+            tokens.append(AFWD)
         elif nm in ("STOP", "RETURN", "REVERT"):
-            tokens.append("TANCH")
+            tokens.append(TANCH)
     return tokens
 
 
@@ -226,16 +220,16 @@ def parse_wasm_body(hexstr: str) -> list:
 
 
 def lift_wasm(names: list) -> list:
-    tokens = ["VINIT"]
+    tokens = [VINIT]
     ctrl = []  # stack of [kind, escaped] for block/loop/if
     for nm in names:
         if nm in ("block", "loop"):
             ctrl.append([nm, False])
         elif nm == "if":
             ctrl.append(["if", False])
-            tokens.append("FSPLIT")
+            tokens.append(FSPLIT)
         elif nm in ("return", "br"):
-            tokens.append("TANCH" if nm == "return" else "FSPLIT")
+            tokens.append(TANCH if nm == "return" else FSPLIT)
             for c in reversed(ctrl):                  # innermost if escaped early
                 if c[0] == "if":
                     c[1] = True
@@ -243,27 +237,23 @@ def lift_wasm(names: list) -> list:
         elif nm == "end":
             top = ctrl.pop() if ctrl else ["", False]
             if top[0] == "if" and not top[1]:         # merged (no early exit)
-                tokens.append("FFUSE")
+                tokens.append(FFUSE)
         elif nm in ("store", "global.set"):
-            tokens.append("IFIX")
+            tokens.append(IFIX)
         elif nm in ("call", "call_indirect"):
-            tokens.append("AFWD")
+            tokens.append(AFWD)
     return tokens
 
 
 def verdict(word: list):
-    ops16 = [_IMASM12_TO_16_3.get(op, "IMSCRIB") for op in word]
-    tr = Sequence16_3Trace(ops16, machine=IMASM16_3_Machine())
+    # No translation: the twelve glyphs V⊙x lifts to are the same twelve glyphs
+    # IMASM16_3_core's opcodes carry (FSPLIT/FFUSE/ENGAGR and FSPLIT3/FFUSE3/EVALI
+    # are two names for one glyph each), so the word runs as-is, and the engine's
+    # own verdict reasons are already written in the alphabet, not translated
+    # into it after the fact.
+    tr = Sequence16_3Trace(word, machine=IMASM16_3_Machine())
     tr.run()
-    v, why = tr.tri_ancestral_verdict()
-    # The reason speaks in the alphabet too: the engine's SIXTEEN_3 names carry
-    # back as their glyphs, so nothing but the twelve is ever printed.
-    for name, g in (("FSPLIT3", "∈"), ("FFUSE3", "∋"), ("IFIX", "◻"),
-                    ("TANCH", "⊣"), ("VINIT", "⊢"), ("AFWD", ">"),
-                    ("AREV", "<"), ("CLINK", "⋈"), ("IMSCRIB", "⊙"),
-                    ("EVALT", "⊤"), ("EVALF", "⊥"), ("EVALI", "⊞")):
-        why = why.replace(name, g)
-    return v, why
+    return tr.tri_ancestral_verdict()
 
 
 # ── native front-end (x86 PE) ────────────────────────────────────────────────
@@ -296,19 +286,19 @@ def _native_func_word(insns) -> list:
             if t is not None and t in aset:
                 succ.append(t)
     merges = {a for a, c in Counter(succ).items() if c >= 2}
-    tokens = ["VINIT"]
+    tokens = [VINIT]
     for ins in insns:
         if ins.address in merges:
-            tokens.append("FFUSE")
+            tokens.append(FFUSE)
         mn = ins.mnemonic
         if mn.startswith("j") and mn != "jmp":
-            tokens.append("FSPLIT")
+            tokens.append(FSPLIT)
         elif mn == "call":
-            tokens.append("AFWD")
+            tokens.append(AFWD)
         elif mn.startswith("ret"):
-            tokens.append("TANCH")
+            tokens.append(TANCH)
         elif mn == "mov" and ins.op_str.split(",", 1)[0].strip().endswith("]"):
-            tokens.append("IFIX")
+            tokens.append(IFIX)
     return tokens
 
 
@@ -345,32 +335,32 @@ def _writes_memory(ins) -> bool:
 def recompile_native(insns, merges) -> list:
     """Every instruction, one glyph each. Total, order-preserving, nothing
     dropped — this is the program rewritten in the twelve, not a summary."""
-    tokens = ["VINIT"]
+    tokens = [VINIT]
     for ins in insns:
         if ins.address in merges:
-            tokens.append("FFUSE")
+            tokens.append(FFUSE)
         mn, ops = ins.mnemonic, ins.op_str.strip()
         indirect = _imm(ops) is None and not ops.startswith("0x")
         if mn.startswith("ret") or mn in _TERMINAL:
-            tokens.append("TANCH")
+            tokens.append(TANCH)
         elif mn == "call":
-            tokens.append("IMSCRIB" if indirect else "AFWD")
+            tokens.append(IMSCRIB if indirect else AFWD)
         elif mn == "jmp":
-            tokens.append("IMSCRIB" if indirect else "AREV")
+            tokens.append(IMSCRIB if indirect else AREV)
         elif mn.startswith("j"):
-            tokens.append("FSPLIT")
+            tokens.append(FSPLIT)
         elif mn.startswith("set") or mn.startswith("cmov"):
-            tokens.append("EVALF")
+            tokens.append(EVALF)
         elif mn in ("cmp", "test", "ucomiss", "ucomisd"):
-            tokens.append("EVALT")
+            tokens.append(EVALT)
         elif _writes_memory(ins):
-            tokens.append("IFIX")
+            tokens.append(IFIX)
         elif mn in _MOVE:
-            tokens.append("CLINK")
+            tokens.append(CLINK)
         elif mn in _ENGAGE:
-            tokens.append("ENGAGR")
+            tokens.append(ENGAGR)
         else:
-            tokens.append("ENGAGR")                       # total: no instruction
+            tokens.append(ENGAGR)                          # total: no instruction
     return tokens                                          # leaves the alphabet
 
 
@@ -465,12 +455,9 @@ def lift_rna(seq: str):
             break
         if val in gt.AA_GLYPH:
             glyph, family, slot = gt.AA_GLYPH[val]
-            word.append(_GLYPH_NAME[glyph])
+            word.append(glyph)
             reading.append((codon, val, glyph, family))
     return word, reading, stopped
-
-
-_GLYPH_NAME = {v: k for k, v in _GLYPH.items()}
 
 
 def _pe_composition(path: str) -> dict:

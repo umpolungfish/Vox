@@ -129,32 +129,28 @@ def join_c(x: Reg, y: Reg) -> Reg:
 assert meet_t(frozenset('T'), frozenset('t')) == EMPTY, "meet_t formula does not match the paper's T∧t=N example"
 
 
-# ── Opcode constants (glyph is the wire form; name is for humans/logs) ──
+# ── Opcode constants: the glyph IS the value — the wire form and the token
+# are the same object, not a name that gets translated at the boundary. NAME
+# below is a reverse lookup for logs only and is never compared against.
 # In catalog order — the same ordering IG_catalog.json gives its columns. ⊙
 # stands at slot nine, Criticality: IMSCRIB is ⊙ because imscribing is
 # inclosure, a boundary drawn around its own centre, and a critical point is
 # where a system turns on itself.
-VINIT   = "VINIT"    # ⊢  0→1  source boundary
-TANCH   = "TANCH"    # ⊣  1→1  sink boundary
-AFWD    = "AFWD"     # >  1→1  forward morphism, WORK
-AREV    = "AREV"     # <  1→1  reverse morphism, WORK
-CLINK   = "CLINK"    # ⋈  1→1  composition / relational link, WORK
-EVALT   = "EVALT"    # ⊤  1→1  evaluates the True axis (≤_t), WORK
-FSPLIT3 = "FSPLIT3"  # ∈  1→3  3-way split: T, F, I arms
-FFUSE3  = "FFUSE3"   # ∋  3→1  3-way fuse: merges T, F, I arms
-IMSCRIB = "IMSCRIB"  # ⊙  1→1  identity / neutral self-reference
-EVALF   = "EVALF"    # ⊥  1→1  evaluates the False axis (≤_t), WORK
-EVALI   = "EVALI"    # ⊞  1→1  evaluates the Information axis (≤_i), WORK
-IFIX    = "IFIX"     # ◻  1→1  irreversible commit, WORK
+VINIT   = "⊢"    # 0→1  source boundary
+TANCH   = "⊣"    # 1→1  sink boundary
+AFWD    = ">"    # 1→1  forward morphism, WORK
+AREV    = "<"    # 1→1  reverse morphism, WORK
+CLINK   = "⋈"    # 1→1  composition / relational link, WORK
+EVALT   = "⊤"    # 1→1  evaluates the True axis (≤_t), WORK
+FSPLIT3 = "∈"    # 1→3  3-way split: T, F, I arms
+FFUSE3  = "∋"    # 3→1  3-way fuse: merges T, F, I arms
+IMSCRIB = "⊙"    # 1→1  identity / neutral self-reference
+EVALF   = "⊥"    # 1→1  evaluates the False axis (≤_t), WORK
+EVALI   = "⊞"    # 1→1  evaluates the Information axis (≤_i), WORK
+IFIX    = "◻"    # 1→1  irreversible commit, WORK
 
 OPCODES = [VINIT, TANCH, AFWD, AREV, CLINK, EVALT, FSPLIT3, FFUSE3,
            IMSCRIB, EVALF, EVALI, IFIX]
-
-GLYPH = {
-    VINIT: "⊢", TANCH: "⊣", AFWD: ">", AREV: "<", CLINK: "⋈", EVALT: "⊤",
-    FSPLIT3: "∈", FFUSE3: "∋", IMSCRIB: "⊙", EVALF: "⊥", EVALI: "⊞",
-    IFIX: "◻",
-}
 
 # THE set is twelve. Only these glyphs are tokens. The old marks ◇ ● = + × ¬ ~ ≁
 # do NOT parse — no alias, no shim; a word containing one reads it as nothing,
@@ -162,7 +158,11 @@ GLYPH = {
 # notation survives a purge, so there is none. TNEG and INEG were never a
 # thirteenth and fourteenth opcode: the two-layer swaps they named are internal
 # to AREV `<`, which is the whole reverse morphism, and ◻ IFIX replaced the rest.
-NAME_FROM_GLYPH = {v: k for k, v in GLYPH.items()}
+NAME = {
+    VINIT: "VINIT", TANCH: "TANCH", AFWD: "AFWD", AREV: "AREV",
+    CLINK: "CLINK", EVALT: "EVALT", FSPLIT3: "FSPLIT3", FFUSE3: "FFUSE3",
+    IMSCRIB: "IMSCRIB", EVALF: "EVALF", EVALI: "EVALI", IFIX: "IFIX",
+}
 
 LOGICAL   = {VINIT, TANCH, AFWD, AREV, CLINK, IMSCRIB}
 TRILATIC  = {FSPLIT3, FFUSE3}
@@ -371,9 +371,9 @@ class Sequence16_3Trace:
         if not pairs and not un_split and not un_fuse:
             return ("N", "No fork/fuse — void, never weighed alternatives")
         if len(un_fuse) > len(un_split):
-            return ("F", f"FFUSE3 at step {un_fuse[0]+1} has no FSPLIT3 to pair — ill-typed")
+            return ("F", f"{FFUSE3} at step {un_fuse[0]+1} has no {FSPLIT3} to pair — ill-typed")
         if un_split:
-            return ("B", f"FSPLIT3 at step {un_split[0]+1} dangles — no matching FFUSE3")
+            return ("B", f"{FSPLIT3} at step {un_split[0]+1} dangles — no matching {FFUSE3}")
 
         for si, fj in pairs:
             if any(t in WORK_OPS for t in _cyclic_interior(self.steps, si, fj)):
@@ -385,7 +385,7 @@ class Sequence16_3Trace:
         lines.append(f"  {'Step':>3} {'Glyph':^5} {'Token':<9} {'Reg↓':>5} → {'Reg↑':>5}")
         lines.append(f"  {'─'*3} {'─'*5} {'─'*9} {'─'*5}   {'─'*5}")
         for i, (tok, rb, ra) in enumerate(zip(self.steps, self.register_before, self.register_after)):
-            lines.append(f"  {i+1:>3} {GLYPH.get(tok,'?'):^5} {tok:<9} "
+            lines.append(f"  {i+1:>3} {tok:^5} {NAME.get(tok, tok):<9} "
                           f"{reg_name(rb):>5} → {reg_name(ra):>5}")
         verdict, msg = self.tri_ancestral_verdict()
         lines.append("")
@@ -395,7 +395,7 @@ class Sequence16_3Trace:
 
     def json_report(self) -> dict:
         verdict, msg = self.tri_ancestral_verdict()
-        interior = [GLYPH.get(t, "?") for t in self.steps if t not in (VINIT, TANCH)]
+        interior = [t for t in self.steps if t not in (VINIT, TANCH)]
         glyph_word = "⊢" + "".join(interior) + "⊣"
         return {
             "steps": self.steps,
@@ -424,7 +424,7 @@ class IMASM16_3Sequence:
         print(f"\n{'='*64}")
         print(f"  {self.name}")
         print(f"  {self.description}")
-        interior = [GLYPH.get(t,'?') for t in self.steps if t not in (VINIT, TANCH)]
+        interior = [t for t in self.steps if t not in (VINIT, TANCH)]
         print(f"  Word: ⊢{''.join(interior)}⊣")
         print(f"{'='*64}")
         print(trace.summary())
@@ -436,8 +436,10 @@ class IMASM16_3Sequence:
 
 
 def parse_glyph_word(word: str) -> List[str]:
-    """⊢>∈⊤⊥⊞∋◻⊣  →  [VINIT, AFWD, FSPLIT3, EVALT, EVALF, EVALI, FFUSE3, IFIX, TANCH]"""
-    return [NAME_FROM_GLYPH[ch] for ch in word if ch in NAME_FROM_GLYPH]
+    """⊢>∈⊤⊥⊞∋◻⊣  →  [⊢, >, ∈, ⊤, ⊥, ⊞, ∋, ◻, ⊣] — filtered to the twelve; a
+    character outside the alphabet (retired mark or stray letter) drops out,
+    the same way a token the machine has never seen reads as nothing."""
+    return [ch for ch in word if ch in OPCODES]
 
 
 if __name__ == "__main__":
