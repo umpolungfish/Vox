@@ -1,27 +1,16 @@
-Recompile and run: the twelve-glyph machine, native x86 answer
+Universal loader: any executable format, any OS
 
-This is the execution engine the auditor port was missing — the headline
-"runs the glyphs, gets every answer native code gets."
+src/loader.rs reads ELF, PE, Mach-O (including fat binaries), and falls back to
+a raw flat image, handing the rest of the pipeline the same thing regardless of
+source: entry, executable segments, data segments, and what symbols the file
+carries. The x86 decoder and the machine never knew about containers; only the
+loader did, and now it reads all of them.
 
-  src/x86.rs         hand-written x86-64 operand decoder, zero external crates:
-                     ModRM/SIB/REX/prefixes into structured operands
-                     (r:reg  i:imm  m:base:index:scale:disp:size). Full coverage
-                     of the corpus, integer and SSE, checked against objdump.
-  src/imasm_module.rs  the recompiler: each instruction to its glyph plus the
-                     executable payload the glyph reads, data sections, ELF
-                     symbol resolution. Decodes the whole executable segment
-                     linearly, so a switch's jump-table arm reached only through
-                     an indirect jump is in the module too.
-  src/imasm_vm.rs    the machine: registers with sub-register aliasing, byte
-                     memory, lazy cmp/test flags, the ALU, the SSE vector unit,
-                     a small honest syscall subset, dispatch on the glyph and
-                     nothing else. call(sym, args) runs a function to its ⊣.
+The container is universal; the instruction set is x86-64. A code segment that
+is not x86 fails to decode instruction by instruction and the walk reports how
+far it got, rather than being refused at the door.
 
-CLI: vox run <sym> --args a,b <file>, vox imasm <file>, vox word <file>,
-vox disasm <file>. Verified against native (ctypes) across all five gcc
-optimisation levels of the thirteen-function corpus: every function, every
-input, zero mismatches — gcd, fib, ack recursion, -O3 SSE, the switch jump
-table, function pointers, the stack array. gcd(1071,462)=21 in 41 steps.
-
-Still Python: the genetic (RNA) lane, native to the mOMonadOS circuit, and
-CPython, which needs a running interpreter's disassembler.
+emit, words, the auditor and symbol resolution all route through the loader now.
+Verified: a PE (7z.exe) lifts and audits where before it read as no sections;
+ELF execution parity with native is unchanged, zero mismatches across all five
+optimisation levels.

@@ -7,7 +7,7 @@ use ::vox::vox;
 use ::vox::vox_decode;
 use ::vox::lanes;
 use ::vox::x86;
-use ::vox::{imasm_module, imasm_vm};
+use ::vox::{imasm_module, imasm_vm, loader};
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
@@ -32,16 +32,15 @@ fn lift_file(path: &str) -> i32 {
         Ok(r) => r,
         Err(e) => { eprintln!("cannot read {}: {}", path, e); return 2; }
     };
-    let (entry, segments) = vox::parse_elf(&raw);
-    if segments.is_empty() {
+    let l = loader::load(&raw);
+    if l.code.is_empty() {
         eprintln!("{}: no executable sections found", path);
         return 1;
     }
-    let image = vox_decode::Image { segments };
-    println!("{}  entry 0x{:x}  {} byte(s) of code", path, entry, image.total_bytes());
-
-    let seeds = vox::elf_function_symbols(&raw);
-    let w = vox_decode::walk(&image, entry, &seeds);
+    let image = vox_decode::Image { segments: l.code };
+    println!("{}  {}  entry 0x{:x}  {} byte(s) of code", path, l.format, l.entry, image.total_bytes());
+    let mut seeds: Vec<u64> = l.symbols.values().copied().collect(); seeds.push(l.entry);
+    let w = vox_decode::walk(&image, l.entry, &seeds);
     let decoded: usize = w.functions.iter().map(|f| f.1.len()).sum();
     println!("  {} function(s), {} instruction(s)", w.functions.len(), decoded);
     println!("  claimed {}% of the image ({} of {} bytes)",

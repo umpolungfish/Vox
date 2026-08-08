@@ -17,3 +17,4 @@ pub mod lanes;
 pub mod x86;
 pub mod imasm_module;
 pub mod imasm_vm;
+pub mod loader;
