@@ -14,6 +14,8 @@ use crate::x86::{self, Op};
 use crate::vox_decode;
 use crate::loader;
 
+fn bits_of(arch: &str) -> u8 { if arch == "x86-32" { 32 } else { 64 } }
+
 const ENTRY: char = '⊢'; const TERM: char = '⊣'; const SPLIT: char = '∈'; const FUSE: char = '∋';
 const CALL: char = '>'; const XFER: char = '<'; const INDIRECT: char = '⊙'; const COMMIT: char = '◻';
 const LINK: char = '⋈'; const TRUTH: char = '⊤'; const CONSUME: char = '⊥'; const ENGAGE: char = '⊞';
@@ -98,17 +100,18 @@ pub fn emit(raw: &[u8]) -> String {
     let l = loader::load(raw);
 
     let mut out: Vec<String> = Vec::new();
-    out.push(format!("; {} module ({})", INDIRECT, l.format));
+    out.push(format!("; {} module ({} {})", INDIRECT, l.format, l.arch));
     out.push(format!("; entry 0x{:x}", l.entry));
     for (at, blob) in &l.data {
         let hex: String = blob.iter().map(|b| format!("{:02x}", b)).collect();
         out.push(format!("={:#x}\t{}", at, hex));
     }
+    let bits = bits_of(l.arch);
     for (base, bytes) in &l.code {
         let mut pos = 0usize;
         while pos < bytes.len() {
             let addr = base + pos as u64;
-            match x86::decode(&bytes[pos..], addr) {
+            match x86::decode_mode(&bytes[pos..], addr, bits) {
                 Some(d) if d.len > 0 => {
                     out.push(format!("@0x{:x}", addr));
                     for line in encode(&d, false) { out.push(line); }

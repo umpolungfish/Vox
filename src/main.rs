@@ -27,6 +27,47 @@ fn usage() {
     eprintln!("F is ill-typed (a ∋ with no ∈ to pair).");
 }
 
+
+/// A mode-aware linear-sweep audit: decode every executable byte at the given
+/// width, split into functions at each terminal, verdict each. Used where
+/// recursive descent's length decoder does not apply (32-bit x86).
+fn audit_linear(path: &str, l: &loader::Loaded, bits: u8) -> i32 {
+    let total: usize = l.code.iter().map(|(_, b)| b.len()).sum();
+    println!("{}  {} {}  entry 0x{:x}  {} byte(s) of code", path, l.format, l.arch, l.entry, total);
+    let mut tally = [0usize; 4]; let mut funcs = 0usize; let mut covered = 0usize;
+    let mut b_findings: Vec<(u64, String)> = Vec::new();
+    for (base, bytes) in &l.code {
+        let mut pos = 0usize; let mut cur: Vec<x86::Insn> = Vec::new(); let mut fstart = *base;
+        let mut flush = |cur: &mut Vec<x86::Insn>, fstart: u64, tally: &mut [usize;4], funcs: &mut usize, bf: &mut Vec<(u64,String)>| {
+            if cur.is_empty() { return; }
+            let word = alloc_word(cur);
+            let v = vox::verdict(&word);
+            match v { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>tally[3]+=1 }
+            if v == 'B' && bf.len() < 40 { bf.push((fstart, vox::glyphs(&word))); }
+            *funcs += 1; cur.clear();
+        };
+        while pos < bytes.len() {
+            let addr = base + pos as u64;
+            match x86::decode_mode(&bytes[pos..], addr, bits) {
+                Some(d) if d.len > 0 => {
+                    if cur.is_empty() { fstart = addr; }
+                    let mn = d.mnemonic.clone(); covered += d.len; pos += d.len;
+                    let term = mn.starts_with("ret") || matches!(mn.as_str(), "int3"|"ud2"|"hlt"|"jmp");
+                    cur.push(d);
+                    if term { flush(&mut cur, fstart, &mut tally, &mut funcs, &mut b_findings); }
+                }
+                _ => { flush(&mut cur, fstart, &mut tally, &mut funcs, &mut b_findings); pos += 1; }
+            }
+        }
+        flush(&mut cur, fstart, &mut tally, &mut funcs, &mut b_findings);
+    }
+    println!("  {} function(s) by linear sweep, {}% decoded ({} of {} bytes)",
+        funcs, (covered*100/total.max(1)).min(100), covered.min(total), total);
+    println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
+    for (a, w) in b_findings.iter().take(12) { println!("    0x{:x}  {}", a, w); }
+    0
+}
+
 fn alloc_word(insns: &[x86::Insn]) -> Vec<char> {
     let mut w = alloc_prefix();
     for i in insns { w.push(imasm_module::classify(i)); }
@@ -43,6 +84,14 @@ fn lift_file(path: &str) -> i32 {
     if l.code.is_empty() {
         eprintln!("{}: no executable sections found", path);
         return 1;
+    }
+    if l.arch != "x86-64" && l.arch != "x86-32" {
+        eprintln!("{}: {} {} code. V⊙x decodes x86; it will not misread another", path, l.format, l.arch);
+        eprintln!("architecture and hand back a confident, wrong word.");
+        return 3;
+    }
+    if l.arch == "x86-32" {
+        return audit_linear(path, &l, 32);
     }
     let image = vox_decode::Image { segments: l.code };
     println!("{}  {}  entry 0x{:x}  {} byte(s) of code", path, l.format, l.entry, image.total_bytes());
@@ -176,6 +225,42 @@ fn main() {
         }
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
+        Some("findings") => {
+            if args.len()<2 { eprintln!("vox findings <file>"); return; }
+            let raw = std::fs::read(&args[1]).expect("read");
+            let l = loader::load(&raw);
+            let image = vox_decode::Image { segments: l.code };
+            let mut seeds: Vec<u64> = l.symbols.values().copied().collect(); seeds.push(l.entry);
+            let w = vox_decode::walk(&image, l.entry, &seeds);
+            let mut claimed: std::collections::BTreeSet<u64> = std::collections::BTreeSet::new();
+            let mut b: Vec<(u64,String)> = Vec::new();
+            for (start,f) in &w.functions {
+                for ins in f { claimed.insert(ins.address); }
+                let word = vox::recompile_function(f);
+                if vox::verdict(&word)=='B' { b.push((*start, vox::glyphs(&word))); }
+            }
+            // sweep
+            for (base,bytes) in &image.segments {
+                let mut pos=0usize; let mut cur:Vec<x86::Insn>=Vec::new(); let mut fstart=*base;
+                let mut flush=|cur:&mut Vec<x86::Insn>, fstart:u64, b:&mut Vec<(u64,String)>| {
+                    if cur.is_empty(){return;} let word=alloc_word(cur);
+                    if vox::verdict(&word)=='B' { b.push((fstart, vox::glyphs(&word))); } cur.clear();
+                };
+                while pos<bytes.len() {
+                    let addr=base+pos as u64;
+                    if claimed.contains(&addr){ flush(&mut cur,fstart,&mut b); if let Some(d)=x86::decode(&bytes[pos..],addr){pos+=d.len.max(1);}else{pos+=1;} continue; }
+                    match x86::decode(&bytes[pos..],addr){
+                        Some(d) if d.len>0 => { if cur.is_empty(){fstart=addr;} let mn=d.mnemonic.clone(); pos+=d.len; let term=mn.starts_with("ret")||matches!(mn.as_str(),"int3"|"ud2"|"hlt"|"jmp"); cur.push(d); if term{flush(&mut cur,fstart,&mut b);} }
+                        _ => { flush(&mut cur,fstart,&mut b); pos+=1; }
+                    }
+                }
+                flush(&mut cur,fstart,&mut b);
+            }
+            println!("{} B-finding(s): a fork held open across a commit or return.", b.len());
+            println!("Inspect each; B is a candidate shape, not a proof.");
+            for (a,word) in &b { println!("  0x{:x}  {}", a, word); }
+            std::process::exit(0);
+        }
         Some("run") => {
             // vox run SYMBOL --args a,b FILE   (order-tolerant)
             let mut sym=String::new(); let mut argv:Vec<i64>=Vec::new(); let mut file=String::new(); let mut i=1;

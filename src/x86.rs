@@ -79,7 +79,7 @@ impl<'a> Cur<'a> {
     }
 }
 
-struct Rex { w: bool, r: bool, x: bool, b: bool, p: bool }
+struct Rex { w: bool, r: bool, x: bool, b: bool, p: bool, bits: u8 }
 
 fn modrm(c: &mut Cur, rex: &Rex, osz: u8, msz: u8) -> Option<(Op, u8)> {
     let m = c.u8()?;
@@ -101,7 +101,9 @@ fn modrm(c: &mut Cur, rex: &Rex, osz: u8, msz: u8) -> Option<(Op, u8)> {
         if (sib & 7) == 5 && md == 0 { disp = c.imm(4, true)?; }
         else { base = R64[(bas & 15) as usize].to_string(); }
     } else if rm3 == 5 && md == 0 {
-        base = "rip".to_string(); disp = c.imm(4, true)?;
+        // 64-bit: RIP-relative. 32-bit: an absolute disp32, no base.
+        disp = c.imm(4, true)?;
+        if rex.bits == 64 { base = "rip".to_string(); }
     } else {
         let rm = rm3 | if rex.b { 8 } else { 0 };
         base = R64[(rm & 15) as usize].to_string();
@@ -115,10 +117,15 @@ fn opsize(rex: &Rex, o66: bool) -> u8 { if rex.w { 8 } else if o66 { 2 } else { 
 macro_rules! ins { ($addr:expr,$c:expr,$mn:expr,$ops:expr,$wm:expr,$t:expr) =>
     { Some(Insn{addr:$addr,len:$c.i,mnemonic:$mn.to_string(),ops:$ops,target:$t,writes_mem:$wm}) }; }
 
-pub fn decode(b: &[u8], addr: u64) -> Option<Insn> {
+pub fn decode(b: &[u8], addr: u64) -> Option<Insn> { decode_mode(b, addr, 64) }
+
+/// `bits` is 64 or 32. In 32-bit mode there is no REX, 0x40..0x4F are the short
+/// inc/dec forms, and a mod=0 rm=5 memory operand is an absolute disp32 rather
+/// than RIP-relative.
+pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
     let mut c = Cur { b, i: 0 };
     let (mut o66, mut f3, mut f2) = (false, false, false);
-    let mut rex = Rex { w:false, r:false, x:false, b:false, p:false };
+    let mut rex = Rex { w:false, r:false, x:false, b:false, p:false, bits };
     loop {
         let p = *b.get(c.i)?;
         match p {
@@ -126,7 +133,7 @@ pub fn decode(b: &[u8], addr: u64) -> Option<Insn> {
             0xF3 => { f3 = true; c.i += 1; }
             0xF2 => { f2 = true; c.i += 1; }
             0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 | 0x64 | 0x65 => { c.i += 1; }
-            0x40..=0x4F => { rex = Rex { w:p&8!=0, r:p&4!=0, x:p&2!=0, b:p&1!=0, p:true }; c.i += 1; break; }
+            0x40..=0x4F if bits == 64 => { rex = Rex { w:p&8!=0, r:p&4!=0, x:p&2!=0, b:p&1!=0, p:true, bits }; c.i += 1; break; }
             _ => break,
         }
     }
@@ -148,6 +155,14 @@ pub fn decode(b: &[u8], addr: u64) -> Option<Insn> {
     }
 
     match op {
+        // 32-bit short forms (in 64-bit these bytes are REX and never reach here)
+        0x40..=0x47 => { let r=op-0x40; ins!(addr,c,"inc",vec![rop(r,osz,false)],false,None) }
+        0x48..=0x4F => { let r=op-0x48; ins!(addr,c,"dec",vec![rop(r,osz,false)],false,None) }
+        0x60 => ins!(addr,c,"pushad",vec![],false,None),
+        0x61 => ins!(addr,c,"popad",vec![],false,None),
+        0x9C => ins!(addr,c,"pushfd",vec![],false,None),
+        0x9D => ins!(addr,c,"popfd",vec![],false,None),
+        0xC2 => { let im=c.imm(2,false)?; ins!(addr,c,"ret",vec![Op::Imm(im)],false,None) }
         0xA8 => { let im=c.imm(1,true)?; ins!(addr,c,"test",vec![Op::Reg("al".into()),Op::Imm(im)],false,None) }
         0xA9 => { let im=c.imm(if osz==2{2}else{4},true)?; ins!(addr,c,"test",vec![rop(0,osz,rex.p),Op::Imm(im)],false,None) }
         0xB0..=0xB7 => { let r=(op-0xB0)|if rex.b{8}else{0}; let im=c.imm(1,false)?; ins!(addr,c,"mov",vec![rop(r,1,rex.p),Op::Imm(im)],false,None) }

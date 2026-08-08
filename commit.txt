@@ -1,10 +1,19 @@
-Audit: fallback sweep of what recursive descent never reached
+Read 32-bit x86, and refuse the architectures we cannot
 
-Recursive descent only follows direct edges, so on a large stripped binary it
-claims little (6% of 7z.exe) and the rest, reached only through indirect calls,
-went unverdicted. After descent the audit now linearly decodes the unclaimed
-executable bytes, groups them into functions of their own at each terminal, and
-verdicts those too, the way the Python auditor does. 7z.exe goes from 6% to 99%
-covered, 840 functions by descent plus 6662 by sweep, six ill-typed. The corpus
-covers 100%. The two are reported separately, so a swept function is never
-passed off as a descended one.
+Two things a length decoder must never do: read one architecture's bytes as
+another's, or do it silently. 7z.exe is a 32-bit i386 PE; the x86-64 decoder was
+reading 0x41 (inc ecx) as a REX prefix and every byte after it was garbage, at a
+confident 99% coverage.
+
+  loader now reads the machine field of ELF, PE and Mach-O and carries the arch
+  (x86-64, x86-32, arm64, ...). A binary that is not x86 is refused with its name
+  rather than misdecoded.
+  x86::decode_mode(bytes, addr, bits) decodes 32-bit as well as 64-bit: no REX,
+  0x40..0x4F are the short inc/dec forms, mod=0 rm=5 is an absolute disp32 not
+  RIP-relative, and ret imm16 / pushad / popad / pushfd / popfd are read.
+  the audit routes by arch: recursive descent for x86-64, a mode-aware linear
+  sweep for x86-32.
+
+7z.exe now decodes in phase: 99% covered, zero ill-typed words (F=0), 859
+functions whose control flow does not close. Execution (vox run) still needs the
+64-bit machine; 32-bit audit, disasm, imasm and word are correct.
