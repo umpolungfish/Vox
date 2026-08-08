@@ -13,3 +13,4 @@ extern crate alloc;
 
 pub mod vox;
 pub mod vox_decode;
+pub mod lanes;

@@ -5,6 +5,7 @@
 
 use ::vox::vox;
 use ::vox::vox_decode;
+use ::vox::lanes;
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
@@ -12,6 +13,8 @@ fn usage() {
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
+    eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
+    eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
     eprintln!("  vox --selftest            planted open/closed forks");
     eprintln!();
@@ -59,6 +62,13 @@ fn lift_file(path: &str) -> i32 {
     0
 }
 
+fn lane(isa: &str, word: &[char]) -> i32 {
+    let v = vox::verdict(word);
+    let mark = if v == 'B' { "   <-- FINDING (fork open across commit)" } else { "" };
+    println!("{:<6} {}  {}{}", isa, v, vox::glyphs(word), mark);
+    0
+}
+
 fn selftest() -> i32 {
     // Planted glyph words: the auditor's own law, independent of any decoder.
     // ⊢ open ∈ fork ◻ commit ⊣ terminal ∋ merge
@@ -75,7 +85,21 @@ fn selftest() -> i32 {
         let mark = if got == *want { "ok" } else { ok = false; "FAIL" };
         println!("  {:<38} {}  {}  (expect {})  {}", name, w, got, want, mark);
     }
-    if ok { println!("selftest OK: the closure law holds."); 0 } else { eprintln!("selftest FAILED"); 1 }
+    // EVM and WASM bytecode: a state commit inside an unmerged branch (B) vs
+    // paths that rejoin before the commit (T). Same law, real bytes.
+    let bc: &[(&str, char, Vec<char>)] = &[
+        ("EVM reentrant (commit in unmerged branch)", 'B', lanes::evm_word("600160075755005b00")),
+        ("EVM guarded  (paths merge before commit)",  'T', lanes::evm_word("6001600657545b5500")),
+        ("WASM reentrant (commit + return in branch)", 'B', lanes::wasm_word("20000440410141003602000f0b0b")),
+        ("WASM guarded  (if merges before commit)",    'T', lanes::wasm_word("2000044010000b410041003602000b")),
+    ];
+    for (name, want, word) in bc {
+        let got = vox::verdict(word);
+        let mark = if got == *want { "ok" } else { ok = false; "FAIL" };
+        println!("  {:<42} {}  (expect {})  {}", name, got, want, mark);
+    }
+    if ok { println!("selftest OK: the closure law holds on x86, EVM and WASM."); 0 }
+    else { eprintln!("selftest FAILED"); 1 }
 }
 
 fn main() {
@@ -100,6 +124,8 @@ fn main() {
                 0
             }
         }
+        Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
+        Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
         Some("lift") => { if args.len() < 2 { eprintln!("vox lift <file>"); 1 } else { lift_file(&args[1]) } }
         Some(path) => lift_file(path),
     };

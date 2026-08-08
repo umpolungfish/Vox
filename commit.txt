@@ -1,17 +1,15 @@
-Move Vox out of Python: a standalone Rust crate on the foundation
+Port the EVM and WASM lanes to Rust; selftest covers all three
 
-Vox is now a Rust crate that builds on its own — zero external crates, no
-capstone, no pefile, and no mOMonadOS repo required. src/vox_decode.rs is the
-native x86-64 decoder and ELF reader; src/vox.rs lifts a function's CFG to the
-twelve-glyph IMASM word and verdicts its closure (T closes, B holds a fork open
-across a terminal, N never forked, F ill-typed). src/main.rs is the CLI —
-lift an ELF, verdict a word, classify a mnemonic, --selftest.
+src/lanes.rs lifts EVM bytecode and WASM function bodies to the same
+twelve-glyph word the x86 lane produces, verdicted by the same closure law —
+an SSTORE / store inside a branch that has not rejoined reads B (the reentrancy
+shape), paths that merge before the commit read T. Pure Rust over alloc, no
+external crates, translated straight from vox.py's parse_evm/lift_evm and
+parse_wasm_body/lift_wasm. The CLI gains 'vox evm <hex>' and 'vox wasm <hex>',
+and --selftest now runs the four bytecode cases (EVM/WASM vuln vs guarded)
+beside the four glyph-word cases — all eight pass, matching the Python.
 
-The two modules were the canonical Rust source living in mOMonadOS/src; they now
-live here as the one home, and mOMonadOS links this crate rather than carrying a
-copy. cargo build --release, then target/release/vox <file.so>. Verified: the
-selftest passes and it lifts a real x86-64 .so natively.
-
-The x86 lane — the only lane that executed in the Python — is moved. The EVM,
-WASM, CPython and genetics lanes are still the Python vox.py until their lifters
-are ported to Rust too.
+x86, EVM and WASM are now native Rust and build on their own. The genetic (RNA)
+lane needs the genetic code and already runs natively in the mOMonadOS circuit;
+the CPython lane needs a running interpreter's disassembler, so it stays in
+vox.py.
