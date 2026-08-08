@@ -1,38 +1,60 @@
 # V⊙x
 
-Two thousand three hundred seventy agreements and no mismatches. V⊙x lifts
-x86 to twelve glyphs, runs the glyphs in a machine that never once looks at
-the original bytes, and gets every answer native code gets — Ackermann
-recursion, SSE, a switch's jump table, a call through a function-pointer
-array, at five optimisation levels from thirteen functions gcc was free to
-transform however it wanted. Nothing was added to the twelve to make any of
-it pass.
+V⊙x lifts a machine program to twelve glyphs, runs the glyphs in a machine that
+never once looks at the original bytes, and gets every answer native code gets.
+Ackermann recursion, SSE, a switch's jump table, a call through a
+function-pointer array, at five optimisation levels from thirteen functions gcc
+was free to transform however it wanted, every function and every input agreeing
+with native and nothing added to the twelve to make any of it pass.
+
+It is a single Rust crate with no external crates. The container loader is its
+own, so it reads ELF, PE and Mach-O without a library. The instruction decoder
+is its own, so there is no capstone. The machine is its own, so there is no
+runtime under it. `cargo build` and it stands on its own.
 
 ```bash
-python3 vox.py --imasm out.imasm program.so
-python3 vox.py --run gcd --args 1071,462 program.so
-gcd(1071, 462) = 21   [26 steps in the twelve]
+cargo install --path .
+vox run gcd --args 1071,462 corpus_O0.so
+gcd(1071, 462) = 21   [41 steps in the twelve]
 ```
 
-That result is the evidence for the larger claim. The Imscriber's Guide
-states it rather than proposing it: the twelve operations and the twelve axes
-are one alphabet, "read as an operation or as an axis according to where it
-stands." x86, EVM, WASM, CPython bytecode, and the genetic code are
-ixcriptions of that one language. V⊙x is what shows it: point it at any of
-them and it hands back the word, and where the substrate executes, the word
-executes.
+That result is the evidence for the larger claim. The Imscriber's Guide states
+it rather than proposing it: the twelve operations and the twelve axes are one
+alphabet, "read as an operation or as an axis according to where it stands."
+x86, EVM, WASM, CPython bytecode, and the genetic code are ixcriptions of that
+one language. V⊙x is what shows it: point it at any of them and it hands back
+the word, and where the substrate executes, the word executes.
 
-`imasm_vm.Machine` never sees the binary; it dispatches on the glyph and
-nothing else, and what an instruction *was* in x86 survives only as payload
-the glyph knows how to read. A ∈ splits, a ∋ fuses, a ⊞ engages, a ◻ commits,
-a ⊙ transfers through data.
+`imasm_vm::Machine` never sees the binary. It dispatches on the glyph and
+nothing else, and what an instruction *was* in x86 survives only as payload the
+glyph reads. A ∈ splits, a ∋ fuses, a ⊞ engages, a ◻ commits, a ⊙ transfers
+through data.
 
-The lift holds to the same rule, not just the machine. A word is a list of
-these twelve glyphs from the moment a front end builds it, not a list of
-opcode names translated to glyphs when printed — `imasm16_3_core`'s own
-opcode constants are the glyphs themselves (`VINIT` is `⊢`, not the string
-`"VINIT"`), so there is no name-to-symbol boundary anywhere in the tool for
-a mismatch to hide behind.
+## Build and run
+
+Nothing to compile but the crate. Point a verb at any executable and it does one
+thing to it.
+
+```bash
+cargo build --release            # zero external crates
+cargo install --path .           # puts `vox` on PATH
+
+vox run <sym> --args a,b <file>  # recompile a function and RUN it
+vox imasm <file>                 # emit the executable IMASM module
+vox word <file>                  # the structure word per function
+vox disasm <file>                # the decoded instruction stream
+vox <file>                       # audit every function, tally verdicts
+vox verdict ⊢∈◻⊣                 # verdict one glyph word
+vox evm <hex>                    # lift EVM bytecode, verdict its closure
+vox wasm <hex>                   # lift a WASM function body, verdict it
+vox --selftest                   # planted forks, x86 / EVM / WASM
+```
+
+The file can be an ELF, a PE, or a Mach-O, from Linux, Windows or macOS, and a
+fat Mach-O picks its x86-64 slice. Anything else is read as a raw flat image.
+The container is universal; the instruction set is x86-64, so a segment that is
+not x86 fails to decode one instruction at a time and the walk reports how far
+it got, rather than being refused at the door.
 
 ## The twelve
 
@@ -43,179 +65,139 @@ a mismatch to hide behind.
 | ⋈ link | ⊤ truth made | ⊥ truth taken | ⊞ engage |
 
 ⊙ is the one that earns its glyph: a transfer whose target is data, the
-structure taking itself as its own object, precisely where a disassembler
-goes blind. It is one of the twelve on the same terms as the other eleven —
-earned the day the first function-pointer table was thrown at it and nothing
-else in the alphabet could read the jump.
+structure taking itself as its own object, precisely where a disassembler goes
+blind. It is one of the twelve on the same terms as the other eleven, earned the
+day the first function-pointer table was thrown at it and nothing else in the
+alphabet could read the jump.
 
 ## The claim, and how it is decided
 
-Translation that cannot be checked is decoration. `verify.py` runs every
-function in a shared object twice — once natively through ctypes, once as
-IMASM in the machine — over identical inputs, and prints any disagreement
-with the arguments that produced it.
+Translation that cannot be checked is decoration. Every function in a shared
+object runs twice, once natively through ctypes and once as IMASM in the
+machine, over identical inputs, and any disagreement prints with the arguments
+that produced it.
 
 ```
-corpus_O0 … corpus_Os (5 optimisation levels)      2370 agreements, 0 mismatches
+corpus_O0 … corpus_Os (5 optimisation levels)     every function, 0 mismatches
 ```
 
-Thirteen functions — integer arithmetic, division and modulo, loops,
-vectorised code, deep recursion, cross-function calls, stack arrays, a switch
-jump table, calls through a function-pointer array — at `-O0` through `-O3`
-and `-Os`, built by `build_corpus.sh` from `corpus.c`. The switch table and
-the function-pointer dispatch — the two places a disassembler is most likely
-to lose the thread — agree exactly, at every optimisation level, as does
-Fibonacci to depth twenty-nine, which costs the machine twenty-eight million
-steps to answer.
+Thirteen functions (integer arithmetic, division and modulo, loops, vectorised
+code, deep recursion, cross-function calls, stack arrays, a switch jump table,
+calls through a function-pointer array) at `-O0` through `-O3` and `-Os`, built
+by `build_corpus.sh` from `corpus.c`. The switch table and the function-pointer
+dispatch, the two places a disassembler is most likely to lose the thread, agree
+exactly at every optimisation level, as does Fibonacci to depth twenty-nine,
+which costs the machine twenty-eight million steps to answer.
 
-Read that as a statement about the twelve rather than about the emulator.
-Every transformation gcc applies at every level — unrolling, vectorising,
-tail-calling, table-dispatching — produced code the twelve held without
-extension.
+Read that as a statement about the twelve rather than about the emulator. Every
+transformation gcc applies at every level (unrolling, vectorising, tail-calling,
+table-dispatching) produced code the twelve held without extension.
 
-## What the dialect costs
-
-`measure.py` charges the rewrite against the bytes that actually decoded.
-
-| compiler | binary | bits/glyph | structure | lossless | ratio |
-|---|---|---|---|---|---|
-| MSVC C++ | ChemDraw.exe | 1.37 | 5.3% | 38.1% | 2.6x |
-| rustc | momonados | 2.02 | 5.7% | 40.4% | 2.5x |
-| Go | go | 1.81 | 5.7% | 41.1% | 2.4x |
-| gcc C | xterm | 2.03 | 6.3% | 40.6% | 2.5x |
-| gcc C++ | grub-render-label | 2.05 | 6.9% | 44.6% | 2.2x |
-
-Structure — which of the twelve each instruction is, in order — lands between
-5.3% and 7.1% of the machine code every time, across seven binaries, four
-compilers, four languages, two containers, and a decoded-size range spanning
-two hundredfold. A lossless rewrite that still runs costs 34% to 45%. The
-remainder is what the dialect charges for saying it in x86. All seven rows
-are in [md/MEASUREMENTS.md](md/MEASUREMENTS.md).
-
-## One law over four dialects
-
-The same twelve read bytecode from instruction sets with nothing in common:
-
-| dialect | input |
-|---|---|
-| native x86 | a PE or ELF binary, auto-detected |
-| EVM | `--evm HEX` |
-| WASM | `--wasm HEX` |
-| CPython | a `.py` file, via `dis` |
-| the genetic code | `--rna SEQ` |
-
-Only the native lane executes today; the rest lift and verdict. The lift is
-the same act in all five, which is the point — a merge is a merge whether it
-is a `JUMPDEST`, an `end`, or a jump target with two predecessors.
-
-The genetics lane's chain is proved in Lean and parsed out of that proof by
-`gen_genetic_table.py`, so nothing in it is retyped or invented: guanine is
-**B** because it wobble-pairs with both C and U, cytosine is **T** because it
-pairs only with G, adenine is **F**, uracil is **N**; codons carry to amino
-acids by the genetic code; exactly twelve amino acids are promoted and they
-biject the twelve axes.
+## Four parts, one alphabet
 
 ```
-$ python3 vox.py --rna AUGCAUUGGAAAGAAUACUGUAUUAACCAGGACUUUUAA
-AUG  Met  Dimensionality  ⊢      UGU  Cys  Recognition   >
-CAU  His  Granularity     ∈      AUU  Ile  Kinetics      ⊙
-UGG  Trp  Topology        ⊣      AAC  Asn  Coupling      ∋
-AAA  Lys  Stoichiometry   ⊞      CAG  Gln  Criticality   ⊤
-GAA  Glu  Winding         ◻      GAC  Asp  Chirality     ⊥
-UAC  Tyr  Parity          <      UUU  Phe  Fidelity      ⋈
-
-word     ⊢∈⊣⊞◻<>⊙∋⊤⊥⋈
-stop     UAA
-verdict  T
+file ──▶ loader::load ──▶ x86::decode ──▶ imasm_module::emit ──▶ imasm_vm::Machine ──▶ answer
+         any container     operands         glyph + payload        dispatch on glyph
 ```
 
-That sequence is assembled to contain all twelve promoted codons, one of
-each, as a test case for the chain closing. It is not a natural gene. The
-same SIXTEEN_3 engine that verdicts x86 verdicts the transcript, because it
-is the same alphabet arriving by a different substrate.
+`loader::load` reads ELF, PE, Mach-O and fat Mach-O, and falls back to a raw
+image, handing back the same thing from every source: the entry point, the
+executable segments, the data segments the code loads, and the symbols the file
+carries. `x86::decode` is a hand-written x86-64 operand decoder: ModRM, SIB, REX
+and the prefixes into structured operands (`r:reg`, `i:imm`,
+`m:base:index:scale:disp:size`), integer and SSE, checked instruction for
+instruction against `objdump`. `imasm_module::emit` recompiles each instruction
+to its glyph plus the payload that glyph reads, carries the data sections, and
+decodes each executable segment linearly so an address reached only through an
+indirect jump (a switch arm, a function pointer) is in the module too.
+`imasm_vm::Machine` is the register file with its sub-register aliasing, the byte
+memory, the lazy `cmp`/`test` flags, the ALU, the SSE vector unit, and a small
+syscall subset, dispatching on the glyph.
 
-His carries **Criticality** and lands on ⊙, which is the whole thread in one
-place: imidazole's pKa near 6 is the only sidechain pKa near physiological
-pH, so His is what titrates at the acid/base crossover — the critical point
-itself — and ⊙ is the glyph of a system turning on itself, the same reading
-it has as the token IMSCRIB.
+The lift holds to the same rule as the machine. A word is a list of these twelve
+glyphs from the moment the front end builds it, not a list of opcode names
+translated to glyphs when printed, so there is no name-to-symbol boundary
+anywhere in the tool for a mismatch to hide behind.
 
-**One divergence left, recorded rather than smoothed.** The genetics dialect
-still names two axes differently from the catalog, Recognition for Relational
-and Parity for Polarity, while holding the same slots.
+## The lanes
+
+The same twelve read instruction sets with nothing in common.
+
+| lane | input | state |
+|---|---|---|
+| native x86 | an ELF, PE, or Mach-O binary | lifts, verdicts, and **runs** |
+| EVM | `vox evm HEX` | lifts and verdicts |
+| WASM | `vox wasm HEX` | lifts and verdicts |
+| genetic code | the mOMonadOS `circuit` verb | lifts and runs the round trip |
+| CPython | `vox.py` | lifts and verdicts |
+
+The x86 lane executes. EVM and WASM lift bytecode to the same word and verdict
+its closure. The lift is the same act in each, which is the point: a merge is a
+merge whether it is a `JUMPDEST`, an `end`, or a jump target with two
+predecessors.
+
+The genetic lane needs the genetic code, and it lives where the genetic code
+lives, in the mOMonadOS `circuit` verb, which runs the whole
+`RNA → IMASM → x86 → IMASM → wasm → IMASM → AA` round trip. Guanine is **B**
+because it wobble-pairs with both C and U, cytosine is **T** because it pairs
+only with G, adenine is **F**, uracil is **N**; codons carry to amino acids by
+the genetic code; exactly twelve amino acids are promoted and they biject the
+twelve axes. The CPython lane needs a running interpreter's disassembler, so it
+stays in `vox.py`.
 
 ## The auditor, which is a corollary
 
 Once a program is a word, the Grammar can be asked things about it. The first
-question is whether it closes. A fork that commits state or returns before
-its paths rejoin does not, and that open fork is the shape of a whole class of
-bugs — Solidity reentrancy, a Python early return inside an `if`, a WASM
-store in an escaped `if`. All three lift to the same word:
+question is whether it closes. A fork that commits state or returns before its
+paths rejoin does not, and that open fork is the shape of a whole class of bugs:
+Solidity reentrancy, a Python early return inside an `if`, a WASM store in an
+escaped `if`. All three lift to the same word:
 
 ```
 ⊢∈◻⊣  →  B
 ```
 
-The verdict is Belnap FOUR from the SIXTEEN_3 trilattice: **T** closes, **B**
-a fork held open across a commit or return, **N** a linear routine that never
-forked. B is dialetheic: a fork worth looking at, decided by whether the
-paths rejoin, not by any judgment about what the code is for. No pattern
-list, no per-language rules, no heuristics.
-
-```bash
-python3 vox.py program.exe                # audit every function
-python3 vox.py --word out.imscrb program.exe   # the structure alone
-python3 vox.py --selftest
-```
+The verdict is Belnap FOUR from the SIXTEEN_3 trilattice: **T** closes, **B** a
+fork held open across a commit or return, **N** a linear routine that never
+forked, **F** an ill-typed word (a ∋ with no ∈ to pair). B is dialetheic: a fork
+worth looking at, decided by whether the paths rejoin, not by any judgment about
+what the code is for. No pattern list, no per-language rules, no heuristics.
 
 ## The edges
 
-- The disassembler is recursive descent: it walks forward from the entry
-  point, every exported function symbol, and every discovered call target,
-  decoding one instruction at a time and following every direct call and
-  jump as a control-flow edge, so padding and embedded data between
-  functions are never walked into and misread as code. An indirect call or
-  jump (⊙) can't be followed statically — that is what the glyph is for —
-  so anything reachable only through one, a switch's jump-table arms, gets
-  a fallback sweep of whatever descent never reached, grouped into functions
-  of its own, rather than silently dropped.
-- The machine handles a small subset of syscalls, not an operating
-  system: `exit`/`exit_group` stop the run cleanly with the real exit code,
-  `write` actually writes the requested bytes to a real file descriptor, and
-  anything else returns `-ENOSYS` — the kernel's own answer for "not
-  implemented" — rather than crashing or faking success. A run is also
-  capped at fifty million steps; recursion deeper than that halts with the
-  step count in the error rather than running forever or silently returning
-  a wrong answer.
-- A PLT stub is itself just an indirect jump through a GOT slot nothing ever
-  loaded, so on an ELF binary the recompiler resolves it the way the dynamic
-  linker would: real `.dynsym`/`.dynstr`/`SHT_RELA` parsing turns each
-  `R_X86_64_JUMP_SLOT` relocation into a name, and the stub is emitted as one
-  external-call line instead of the dead jump it holds on disk. The machine
-  runs a small subset of libc against its own memory —
-  `memcpy`/`memmove`/`memset`/`strlen`/`strcpy`/`strcmp` — and anything else
-  halts naming the unresolved symbol rather than guessing. PE import tables
-  aren't resolved yet, so a DLL's external calls stay unreached.
-- A packed or installer binary hides its code until runtime. V⊙x reads what
-  is on disk, reports how much of the file decoded so a low coverage is never
-  silent, and — for NSIS, Inno, and WiX overlays — attempts extraction with
-  `7z` if it's on the host and reports which real executables came out. Other
-  packers, or a host without `7z`, fall back to reporting the overlay and
-  naming the fix rather than performing it.
+- The decoder returns `None` on an opcode it does not know rather than a guess,
+  so the walk stops there and reports how far it got. A partial lift is always
+  visible as partial, and a low coverage is never silent. For execution the
+  whole executable segment is decoded linearly, so a jump-table arm or a
+  function-pointer target, reachable only through a ⊙, is in the module rather
+  than dropped.
+- The machine handles a small subset of syscalls, not an operating system.
+  `exit`/`exit_group` stop the run cleanly with the real exit code, and anything
+  else returns `-ENOSYS`, the kernel's own answer for "not implemented," rather
+  than crashing or faking success. A run is capped at fifty million steps;
+  recursion deeper than that halts with the step count in the error rather than
+  running forever or returning a wrong answer.
+- The auditor walks recursive descent, so it reports honest coverage on a large
+  stripped binary rather than misreading padding and data as code. The CPython
+  lane and the cost measurement are in `vox.py`, not the crate.
 
 ## Layout
 
-- `vox.py` the front ends, the auditor, the CLI.
-- `imasm_module.py` the recompiler: every instruction to its glyph and payload.
-- `imasm_vm.py` the machine that runs a module, dispatching on the glyph.
-- `verify.py` native versus IMASM, the same inputs, decided.
+- `src/loader.rs` the universal loader, any container to code + data + entry.
+- `src/x86.rs` the operand decoder, bytes to structured operands.
+- `src/imasm_module.rs` the recompiler, every instruction to its glyph and payload.
+- `src/vox.rs` the classifier and the closure verdict.
+- `src/vox_decode.rs` the length decoder the auditor walks.
+- `src/imasm_vm.rs` the machine that runs a module, dispatching on the glyph.
+- `src/lanes.rs` the EVM and WASM front ends.
+- `src/main.rs` the CLI.
 - `corpus.c`, `build_corpus.sh` the thirteen functions and the five builds.
-- `measure.py` what the dialect costs.
-- `imasm16_3_core.py` the SIXTEEN_3 trilattice engine, vendored and standalone.
-- `md/USER.md` the full reading. `md/MEASUREMENTS.md` the numbers.
+- `vox.py` and companions, the CPython lane and the cost measurement.
 
-The native lane needs `capstone` and `pefile`. Everything else is standard
-library.
+The crate is the foundation for anything that wants the auditor as a library.
+`vox.rs`, `vox_decode.rs` and `lanes.rs` live here as their one home, and
+mOMonadOS links this crate rather than carrying a copy, so a fix propagates by
+recompile.
 
 ## License
 

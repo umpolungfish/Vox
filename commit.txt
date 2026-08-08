@@ -1,16 +1,10 @@
-Universal loader: any executable format, any OS
+README: rewrite for the Rust crate that runs the glyphs
 
-src/loader.rs reads ELF, PE, Mach-O (including fat binaries), and falls back to
-a raw flat image, handing the rest of the pipeline the same thing regardless of
-source: entry, executable segments, data segments, and what symbols the file
-carries. The x86 decoder and the machine never knew about containers; only the
-loader did, and now it reads all of them.
-
-The container is universal; the instruction set is x86-64. A code segment that
-is not x86 fails to decode instruction by instruction and the walk reports how
-far it got, rather than being refused at the door.
-
-emit, words, the auditor and symbol resolution all route through the loader now.
-Verified: a PE (7z.exe) lifts and audits where before it read as no sections;
-ELF execution parity with native is unchanged, zero mismatches across all five
-optimisation levels.
+The document described vox.py. It now describes what V⊙x is: a single Rust crate
+with no external crates that reads any executable container (ELF, PE, Mach-O,
+fat, raw), decodes x86 with its own operand decoder, recompiles each instruction
+to a glyph plus executable payload, and runs the word in a machine that gets
+native's answer. The verbs are the installed binary's (run, imasm, word, disasm,
+audit, verdict, evm, wasm), the pipeline is the four real parts (loader, decoder,
+recompiler, machine), and the lanes say plainly which execute and which lift and
+verdict. No process-log register, no em-dashes.
