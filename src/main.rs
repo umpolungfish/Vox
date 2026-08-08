@@ -6,12 +6,17 @@
 use ::vox::vox;
 use ::vox::vox_decode;
 use ::vox::lanes;
+use ::vox::x86;
+use ::vox::{imasm_module, imasm_vm};
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
     eprintln!();
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
     eprintln!("  vox lift <file>           same");
+    eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
+    eprintln!("  vox imasm <file>          emit the executable IMASM module");
+    eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
@@ -126,6 +131,57 @@ fn main() {
         }
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
+        Some("run") => {
+            // vox run SYMBOL --args a,b FILE   (order-tolerant)
+            let mut sym=String::new(); let mut argv:Vec<i64>=Vec::new(); let mut file=String::new(); let mut i=1;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--args" => { i+=1; if i<args.len() { for a in args[i].split(',') { let a=a.trim(); if !a.is_empty() {
+                        let v = if let Some(h)=a.strip_prefix("0x") { i64::from_str_radix(h,16).unwrap_or(0) } else { a.parse().unwrap_or(0) }; argv.push(v);} } } }
+                    other => { if sym.is_empty() { sym=other.to_string(); } else { file=other.to_string(); } }
+                }
+                i+=1;
+            }
+            if sym.is_empty() || file.is_empty() { eprintln!("vox run <symbol> --args a,b <file>"); return; }
+            let raw = std::fs::read(&file).expect("read");
+            let syms = imasm_module::symbols(&raw);
+            let addr = match syms.get(&sym) { Some(a)=>*a, None=>{ eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1);} };
+            let module = imasm_module::emit(&raw);
+            let mut m = imasm_vm::Machine::new(&module);
+            match m.call(addr, &argv, 50_000_000) {
+                Ok(r) => println!("{}({}) = {}   [{} steps in the twelve]", sym, argv.iter().map(|a|a.to_string()).collect::<Vec<_>>().join(", "), r, m.steps),
+                Err(imasm_vm::Stop::SysExit(c)) => println!("{}(...) called exit({})   [{} steps in the twelve]", sym, c, m.steps),
+                Err(imasm_vm::Stop::Halt(e)) => println!("{}(...) halted: {}   [{} steps]", sym, e, m.steps),
+            }
+            std::process::exit(0);
+        }
+        Some("imasm") => { if args.len()<2 { eprintln!("vox imasm <file>"); return; }
+            let raw=std::fs::read(&args[1]).expect("read"); print!("{}", imasm_module::emit(&raw)); std::process::exit(0); }
+        Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
+            let raw=std::fs::read(&args[1]).expect("read"); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
+        Some("disasm") => {
+            if args.len() < 2 { eprintln!("vox disasm <file> [symbol]"); return; }
+            let raw = std::fs::read(&args[1]).expect("read");
+            let (entry, segments) = vox::parse_elf(&raw);
+            let image = vox_decode::Image { segments };
+            let seeds = vox::elf_function_symbols(&raw);
+            let w = vox_decode::walk(&image, entry, &seeds);
+            for (start, f) in &w.functions {
+                if args.len() > 2 { /* filter by address later */ }
+                let _ = start;
+                for ins in f {
+                    if let Some(bytes) = image.bytes_at(ins.address) {
+                        if let Some(d) = x86::decode(bytes, ins.address) {
+                            let ops: Vec<String> = d.ops.iter().map(|o| o.field()).collect();
+                            println!("{:x}	{}	{}", d.addr, d.mnemonic, ops.join(" "));
+                        } else {
+                            println!("{:x}	??? (undecoded)", ins.address);
+                        }
+                    }
+                }
+            }
+            std::process::exit(0);
+        }
         Some("lift") => { if args.len() < 2 { eprintln!("vox lift <file>"); 1 } else { lift_file(&args[1]) } }
         Some(flag) if flag.starts_with('-') => { eprintln!("vox: unknown option {}\n", flag); usage(); 2 }
         Some(path) => lift_file(path),

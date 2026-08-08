@@ -1,5 +1,27 @@
-CLI: accept --self-test, and stop treating unknown -flags as filenames
+Recompile and run: the twelve-glyph machine, native x86 answer
 
-vox --self-test now works alongside --selftest, and any unrecognized option
-beginning with - prints usage instead of trying to open a file named after the
-flag (which is what turned 'vox --self-test' into 'cannot read --self-test').
+This is the execution engine the auditor port was missing — the headline
+"runs the glyphs, gets every answer native code gets."
+
+  src/x86.rs         hand-written x86-64 operand decoder, zero external crates:
+                     ModRM/SIB/REX/prefixes into structured operands
+                     (r:reg  i:imm  m:base:index:scale:disp:size). Full coverage
+                     of the corpus, integer and SSE, checked against objdump.
+  src/imasm_module.rs  the recompiler: each instruction to its glyph plus the
+                     executable payload the glyph reads, data sections, ELF
+                     symbol resolution. Decodes the whole executable segment
+                     linearly, so a switch's jump-table arm reached only through
+                     an indirect jump is in the module too.
+  src/imasm_vm.rs    the machine: registers with sub-register aliasing, byte
+                     memory, lazy cmp/test flags, the ALU, the SSE vector unit,
+                     a small honest syscall subset, dispatch on the glyph and
+                     nothing else. call(sym, args) runs a function to its ⊣.
+
+CLI: vox run <sym> --args a,b <file>, vox imasm <file>, vox word <file>,
+vox disasm <file>. Verified against native (ctypes) across all five gcc
+optimisation levels of the thirteen-function corpus: every function, every
+input, zero mismatches — gcd, fib, ack recursion, -O3 SSE, the switch jump
+table, function pointers, the stack array. gcd(1071,462)=21 in 41 steps.
+
+Still Python: the genetic (RNA) lane, native to the mOMonadOS circuit, and
+CPython, which needs a running interpreter's disassembler.
