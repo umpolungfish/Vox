@@ -57,13 +57,14 @@ pub struct Machine {
     flags: (u128, u128, u8),
     kind: String,
     pub steps: u64,
+    pub bits: u8,
 }
 
 impl Machine {
     pub fn new(module: &str) -> Machine {
         let mut m = Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0,
-            reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0,
+            reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip"] {
             m.reg.insert(r.into(), 0);
@@ -78,8 +79,11 @@ impl Machine {
         let mut addr: Option<u64> = None;
         for line in text.lines() {
             if let Some(rest) = line.strip_prefix(';') {
-                if let Some(e) = rest.trim().strip_prefix("entry ") {
+                let t = rest.trim();
+                if let Some(e) = t.strip_prefix("entry ") {
                     if let Ok(v) = u64::from_str_radix(e.trim().trim_start_matches("0x"), 16) { self.entry = v; }
+                } else if let Some(b) = t.strip_prefix("bits ") {
+                    if let Ok(v) = b.trim().parse::<u8>() { self.bits = v; }
                 }
             } else if let Some(rest) = line.strip_prefix('=') {
                 let mut it = rest.splitn(2, '\t');
@@ -188,6 +192,10 @@ impl Machine {
     }
     fn set_flags(&mut self, a: u128, b: u128, size: u8, kind: &str) { self.flags = (a, b, size); self.kind = kind.to_string(); }
 
+    fn slot(&self) -> u8 { self.bits / 8 }              // stack slot width, 8 or 4
+    fn push_val(&mut self, v: u128) { let s = self.slot(); self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(s as u128)); let sp = self.get_reg("rsp") as u64; self.store(sp, v, s); }
+    fn pop_val(&mut self) -> u128 { let s = self.slot(); let sp = self.get_reg("rsp") as u64; let v = self.load(sp, s); self.set_reg("rsp", self.get_reg("rsp").wrapping_add(s as u128)); v }
+
     fn do_syscall(&mut self) -> Result<(), Stop> {
         let num = sign(self.get_reg("rax"), 8);
         let a0 = self.get_reg("rdi"); let _a1 = self.get_reg("rsi"); let _a2 = self.get_reg("rdx");
@@ -237,10 +245,20 @@ impl Machine {
             if op != "not" { self.set_flags(r & mask(size), 0, size, "cmp"); }
             return;
         }
-        if op == "imul" && f.len() == 1 {
-            let base = if size == 8 { "rax" } else { "eax" };
-            let r = (sign(self.get_reg(base), size) * sign(a, size)) as u128;
-            self.set_reg(base, r & mask(size));
+        // One-operand imul/mul: the full 2*size product lands in edx:eax
+        // (rdx:rax at 64-bit). Dropping the high half silently breaks every
+        // magic-number division the compiler emits.
+        if (op == "imul" || op == "mul") && f.len() == 1 {
+            let (lo_r, hi_r) = match size { 8 => ("rax","rdx"), 4 => ("eax","edx"), 2 => ("ax","dx"), _ => ("al","ah") };
+            let prod: u128 = if op == "imul" {
+                ((sign(self.get_reg(lo_r), size)).wrapping_mul(sign(a, size))) as u128
+            } else {
+                (self.get_reg(lo_r) & mask(size)).wrapping_mul(a & mask(size))
+            };
+            self.set_reg(lo_r, prod & mask(size));
+            let hi = (prod >> (size as u32 * 8)) & mask(size);
+            self.set_reg(hi_r, hi);
+            self.set_flags(prod & mask(size), 0, size, "cmp");
             return;
         }
         if op == "imul" && f.len() == 3 {
@@ -327,12 +345,17 @@ impl Machine {
                 '∋' => continue,
                 '⊣' => {
                     if f.get(0).map(|s| s.as_str()) == Some("leave") {
+                        let s = self.slot();
                         let rbp = self.get_reg("rbp"); self.set_reg("rsp", rbp);
-                        let v = self.load(self.get_reg("rsp") as u64, 8); self.set_reg("rbp", v);
-                        self.set_reg("rsp", self.get_reg("rsp").wrapping_add(8)); continue;
+                        let v = self.load(self.get_reg("rsp") as u64, s); self.set_reg("rbp", v);
+                        self.set_reg("rsp", self.get_reg("rsp").wrapping_add(s as u128)); continue;
                     }
-                    let ret = self.load(self.get_reg("rsp") as u64, 8);
-                    self.set_reg("rsp", self.get_reg("rsp").wrapping_add(8));
+                    let ret = self.pop_val();
+                    // ret imm16: stdcall callee-cleanup of stack args.
+                    if let Some(im) = f.get(1) { if im.as_bytes().get(0) == Some(&b'i') {
+                        let n = parse_imm(&im[2..]) as u128;
+                        self.set_reg("rsp", self.get_reg("rsp").wrapping_add(n));
+                    }}
                     return Ok(Some(ret as u64));
                 }
                 '⊤' => { let size=self.width(&f[1]); let a=self.read(&f[1],size).0; let b=self.read(&f[2],size).0; self.set_flags(a,b,size,&f[0]); }
@@ -342,23 +365,19 @@ impl Machine {
                     if f.get(0).map(|s|s.as_str()) == Some("syscall") { self.do_syscall()?; continue; }
                     if f.get(0).map(|s|s.as_str()) == Some("external") { return Err(Stop::Halt(format!("external {}", f.get(1).cloned().unwrap_or_default()))); }
                     let tgt = self.read(&f[1], 8).0;
-                    if f.get(0).map(|s|s.as_str()) == Some("call") {
-                        self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(8));
-                        self.store(self.get_reg("rsp") as u64, next as u128, 8);
-                    }
+                    if f.get(0).map(|s|s.as_str()) == Some("call") { self.push_val(next as u128); }
                     return Ok(Some(tgt as u64));
                 }
                 '>' => {
-                    self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(8));
-                    self.store(self.get_reg("rsp") as u64, next as u128, 8);
+                    self.push_val(next as u128);
                     return Ok(Some(parse_imm(&f[1][2..]) as u64));
                 }
                 '⋈' | '◻' => {
                     let op = f[0].as_str();
                     match op {
-                        "push" => { let v=self.read(&f[1],8).0; self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(8)); self.store(self.get_reg("rsp") as u64, v, 8); }
-                        "pop" => { let v=self.load(self.get_reg("rsp") as u64,8); self.write(&f[1], v); self.set_reg("rsp", self.get_reg("rsp").wrapping_add(8)); }
-                        "leave" => { let rbp=self.get_reg("rbp"); self.set_reg("rsp",rbp); let v=self.load(self.get_reg("rsp") as u64,8); self.set_reg("rbp",v); self.set_reg("rsp", self.get_reg("rsp").wrapping_add(8)); }
+                        "push" => { let v=self.read(&f[1],self.slot()).0; self.push_val(v); }
+                        "pop" => { let v=self.pop_val(); self.write(&f[1], v); }
+                        "leave" => { let s=self.slot(); let rbp=self.get_reg("rbp"); self.set_reg("rsp",rbp); let v=self.load(self.get_reg("rsp") as u64,s); self.set_reg("rbp",v); self.set_reg("rsp", self.get_reg("rsp").wrapping_add(s as u128)); }
                         "xchg" => { let x=self.read(&f[1],8).0; let y=self.read(&f[2],8).0; self.write(&f[1],y); self.write(&f[2],x); }
                         "mov"|"movabs" => { let w=self.width(&f[1]); let v=self.read(&f[2],w).0; self.write(&f[1], v & mask(w)); }
                         "movzx" => { let v=self.read(&f[2],8).0; self.write(&f[1], v & mask(self.width(&f[2]))); }
@@ -377,14 +396,20 @@ impl Machine {
         Ok(self.next_of.get(&addr).copied())
     }
 
-    /// Run one function to its ⊣, System V integer arguments. Returns eax.
+    /// Run one function to its ⊣. 64-bit takes integer args in registers (System
+    /// V); 32-bit takes them on the stack (cdecl). Returns eax.
     pub fn call(&mut self, addr: u64, args: &[i64], limit: u64) -> Result<i64, Stop> {
-        for (name, v) in ["rdi","rsi","rdx","rcx","r8","r9"].iter().zip(args) {
-            self.set_reg(name, (*v as u128) & mask(8));
-        }
         let sentinel: u64 = 0xDEAD_0000;
-        self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(8));
-        self.store(self.get_reg("rsp") as u64, sentinel as u128, 8);
+        if self.bits == 32 {
+            // cdecl: args pushed right-to-left, then the return address on top.
+            for v in args.iter().rev() { self.push_val((*v as u32) as u128); }
+            self.push_val(sentinel as u128);
+        } else {
+            for (name, v) in ["rdi","rsi","rdx","rcx","r8","r9"].iter().zip(args) {
+                self.set_reg(name, (*v as u128) & mask(8));
+            }
+            self.push_val(sentinel as u128);
+        }
         let mut pc = addr; self.steps = 0;
         while pc != sentinel {
             if !self.code.contains_key(&pc) { return Err(Stop::Halt(format!("no instruction at 0x{:x}", pc))); }

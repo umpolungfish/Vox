@@ -163,6 +163,16 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
         0x9C => ins!(addr,c,"pushfd",vec![],false,None),
         0x9D => ins!(addr,c,"popfd",vec![],false,None),
         0xC2 => { let im=c.imm(2,false)?; ins!(addr,c,"ret",vec![Op::Imm(im)],false,None) }
+        // mov al/eax, moffs and the reverse. The offset is address-sized.
+        0xA0 | 0xA1 | 0xA2 | 0xA3 => {
+            let asz = if bits == 32 { 4 } else { 8 };
+            let off = c.imm(asz, false)?;
+            let osize = if op & 1 == 0 { 1 } else { osz };
+            let m = Op::Mem { base: String::new(), index: String::new(), scale: 1, disp: off, size: osize };
+            let r = rop(0, osize, rex.p);
+            if op < 0xA2 { ins!(addr,c,"mov",vec![r,m],false,None) }
+            else { ins!(addr,c,"mov",vec![m,r],true,None) }
+        }
         0xA8 => { let im=c.imm(1,true)?; ins!(addr,c,"test",vec![Op::Reg("al".into()),Op::Imm(im)],false,None) }
         0xA9 => { let im=c.imm(if osz==2{2}else{4},true)?; ins!(addr,c,"test",vec![rop(0,osz,rex.p),Op::Imm(im)],false,None) }
         0xB0..=0xB7 => { let r=(op-0xB0)|if rex.b{8}else{0}; let im=c.imm(1,false)?; ins!(addr,c,"mov",vec![rop(r,1,rex.p),Op::Imm(im)],false,None) }

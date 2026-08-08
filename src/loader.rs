@@ -55,40 +55,49 @@ pub fn load(raw: &[u8]) -> Loaded {
              symbols: BTreeMap::new(), format: "raw", arch: "x86-64" }
 }
 
-// ── ELF ──────────────────────────────────────────────────────────────────────
+// ── ELF (32- and 64-bit) ──────────────────────────────────────────────────────
 fn elf(raw: &[u8]) -> Loaded {
     let is64 = raw.get(4).copied() == Some(2);
     let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), format: "elf", arch: arch_name(le(raw,18,2), "elf") };
-    if !is64 { return out; }
-    out.entry = le(raw, 24, 8);
-    let shoff = le(raw, 0x28, 8) as usize;
-    let shentsize = le(raw, 0x3a, 2) as usize;
-    let shnum = le(raw, 0x3c, 2) as usize;
+    // header field widths and offsets differ by class
+    let w = if is64 { 8usize } else { 4 };                 // address width
+    out.entry = le(raw, 24, w);
+    let shoff = le(raw, if is64 {0x28} else {0x20}, w) as usize;
+    let shentsize = le(raw, if is64 {0x3a} else {0x2e}, 2) as usize;
+    let shnum = le(raw, if is64 {0x3c} else {0x30}, 2) as usize;
+    // section field offsets: sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_entsize
+    let (f_flags, f_addr, f_off, f_size, f_link, f_ent) = if is64 {
+        (8, 16, 24, 32, 40, 56) } else { (8, 12, 16, 20, 24, 36) };
     let sh = |k: usize, f: usize, n: usize| le(raw, shoff + k * shentsize + f, n);
     for k in 0..shnum {
         let sh_type = sh(k, 4, 4);
-        let sh_flags = sh(k, 8, 8);
-        let sh_addr = sh(k, 16, 8);
-        let sh_off = sh(k, 24, 8) as usize;
-        let sh_size = sh(k, 32, 8) as usize;
+        let sh_flags = sh(k, f_flags, w);
+        let sh_addr = sh(k, f_addr, w);
+        let sh_off = sh(k, f_off, w) as usize;
+        let sh_size = sh(k, f_size, w) as usize;
         if sh_type == 1 && sh_off + sh_size <= raw.len() && sh_size > 0 && (sh_flags & 0x2) != 0 {
             let bytes = raw[sh_off..sh_off + sh_size].to_vec();
-            if (sh_flags & 0x4) != 0 { out.code.push((sh_addr, bytes)); }   // SHF_EXECINSTR
+            if (sh_flags & 0x4) != 0 { out.code.push((sh_addr, bytes)); }
             else { out.data.push((sh_addr, bytes)); }
         }
     }
-    // function symbols
+    // function symbols. Elf32_Sym is 16 bytes (name,value,size,info,other,shndx);
+    // Elf64_Sym is 24 (name,info,other,shndx,value,size). info and value move.
     for k in 0..shnum {
         let sh_type = sh(k, 4, 4);
         if sh_type != 2 && sh_type != 11 { continue; }
-        let sym_off = sh(k, 24, 8) as usize; let sym_size = sh(k, 32, 8) as usize;
-        let strtab = sh(k, 40, 4) as usize; let str_off = sh(strtab, 24, 8) as usize;
-        let ent = sh(k, 56, 8).max(24) as usize;
+        let sym_off = sh(k, f_off, w) as usize; let sym_size = sh(k, f_size, w) as usize;
+        let strtab = sh(k, f_link, 4) as usize; let str_off = sh(strtab, f_off, w) as usize;
+        let entsize: usize = if is64 { 24 } else { 16 };
+        let ent = (sh(k, f_ent, w) as usize).max(entsize);
         let mut o = sym_off;
-        while o + 24 <= sym_off + sym_size && o + 24 <= raw.len() {
+        while o + entsize <= sym_off + sym_size && o + entsize <= raw.len() {
             let st_name = le(raw, o, 4) as usize;
-            let st_info = raw.get(o + 4).copied().unwrap_or(0);
-            let st_value = le(raw, o + 8, 8);
+            let (st_info, st_value) = if is64 {
+                (raw.get(o + 4).copied().unwrap_or(0), le(raw, o + 8, 8))
+            } else {
+                (raw.get(o + 12).copied().unwrap_or(0), le(raw, o + 4, 4))
+            };
             if (st_info & 0xf) == 2 && st_value != 0 {
                 let name = cstr(raw, str_off + st_name);
                 if !name.is_empty() { out.symbols.insert(name, st_value); }

@@ -54,7 +54,9 @@ fn encode(i: &x86::Insn, is_merge: bool) -> Vec<String> {
     let join = |parts: &[String]| parts.join("\t");
 
     if g == TERM {
-        lines.push(format!("{}\t{}", TERM, mn));
+        // keep ret's imm16 (stdcall stack cleanup): ⊣  ret  i:0x4
+        if mn == "ret" && !f.is_empty() { let mut parts=vec![TERM.to_string(), mn.to_string()]; parts.extend(f); lines.push(join(&parts)); }
+        else { lines.push(format!("{}\t{}", TERM, mn)); }
     } else if g == INDIRECT && matches!(mn, "syscall"|"sysenter"|"int") {
         lines.push(format!("{}\tsyscall", INDIRECT));
     } else if mn == "call" || mn == "jmp" {
@@ -99,14 +101,15 @@ fn merges_of(insns: &[x86::Insn]) -> BTreeSet<u64> {
 pub fn emit(raw: &[u8]) -> String {
     let l = loader::load(raw);
 
+    let bits = bits_of(l.arch);
     let mut out: Vec<String> = Vec::new();
     out.push(format!("; {} module ({} {})", INDIRECT, l.format, l.arch));
     out.push(format!("; entry 0x{:x}", l.entry));
+    out.push(format!("; bits {}", bits));
     for (at, blob) in &l.data {
         let hex: String = blob.iter().map(|b| format!("{:02x}", b)).collect();
         out.push(format!("={:#x}\t{}", at, hex));
     }
-    let bits = bits_of(l.arch);
     for (base, bytes) in &l.code {
         let mut pos = 0usize;
         while pos < bytes.len() {
