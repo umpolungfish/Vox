@@ -4,10 +4,11 @@ The Pancosmic Disassembling Re-Compiling Organism. Every word of that is meant
 literally, and each one names something you can run.
 
 **Pancosmic.** One lift, every substrate. Native x86 at both widths, out of ELF,
-PE or Mach-O; EVM bytecode; a WASM function body; and a coding sequence, where
-the twelve promoted amino acids biject the twelve axes so a gene is already a
-word. A merge is a merge whether it is a `JUMPDEST`, an `end`, a jump target with
-two predecessors, or a codon.
+PE or Mach-O; EVM bytecode; a WASM function body; CPython, straight out of a
+`.pyc` with no interpreter running; and a coding sequence, where the twelve
+promoted amino acids biject the twelve axes so a gene is already a word. A merge
+is a merge whether it is a `JUMPDEST`, an `end`, a jump target with two
+predecessors, or a codon.
 
 **Disassembling.** Its own container loader, its own instruction decoder, its own
 machine. No capstone, no pefile, no runtime underneath. It reads the machine
@@ -27,6 +28,7 @@ and reads the lifter: every function, in phase, F zero.
 cargo install --path .
 vox run gcd --args 1071,462 corpus_O0.so
 vox self
+vox pyc module.pyc
 ```
 
 ## What the verdict means, and what B costs

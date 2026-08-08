@@ -23,6 +23,7 @@ fn usage() {
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
     eprintln!("  vox rna <seq>             lift a coding sequence, verdict the transcript");
     eprintln!("  vox self                  lift V⊙x's own image and read it back");
+    eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
     eprintln!("  vox --selftest            planted open/closed forks");
     eprintln!();
@@ -61,6 +62,29 @@ fn rna(seq: &str) -> i32 {
 /// V⊙x lifts every substrate it is pointed at; pointed at its own image it
 /// lifts the lifter. What comes back is not decoration: the self-image is the
 /// only binary whose source is here to check the reading against.
+/// Lift every code object in a .pyc and verdict each.
+fn pyc_file(path: &str) -> i32 {
+    let raw = match std::fs::read(path) {
+        Ok(r) => r,
+        Err(e) => { eprintln!("cannot read {}: {}", path, e); return 2; }
+    };
+    let objs = match ::vox::pyc::read_pyc(&raw) {
+        Ok(o) => o,
+        Err(e) => { eprintln!("{}: {}", path, e); return 3; }
+    };
+    println!("{}  cpython {}  {} code object(s)", path, ::vox::pyc_table::PY_VERSION, objs.len());
+    let mut tally = [0usize; 4];
+    for o in &objs {
+        let w = ::vox::pyc::lift(&o.code);
+        let v = vox::verdict(&w);
+        match v { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>tally[3]+=1 }
+        let f = vox::open_forks(&w);
+        println!("  {:<28} {}  {}   surplus {:>3} exits {}", o.name, v, vox::glyphs(&w), f.surplus, f.exits);
+    }
+    println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
+    0
+}
+
 fn selfread(path: &str) -> i32 {
     let raw = match std::fs::read(path) {
         Ok(r) => r,
@@ -310,6 +334,9 @@ fn main() {
             let me = std::env::current_exe().map(|p| p.display().to_string())
                 .unwrap_or_else(|_| "vox".into());
             selfread(&me)
+        }
+        Some("pyc") | Some("py") => {
+            if args.len() < 2 { eprintln!("vox pyc <file.pyc>"); 1 } else { pyc_file(&args[1]) }
         }
         Some("findings") => {
             if args.len()<2 { eprintln!("vox findings <file>"); return; }

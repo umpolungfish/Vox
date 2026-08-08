@@ -1,27 +1,27 @@
-The organism reads itself, and learns what B costs
+CPython comes into the crate, read from the file rather than the interpreter
 
-`vox self` points the lifter at its own image. It comes back in phase: every
-function by descent, F zero, which is the only signal that says the decoder and
-the bytes agree.
+The CPython lane was the one substrate V⊙x could only reach through a running
+interpreter, which made the pancosmic claim true of vox.py and not of the crate.
+It reads .pyc now: the header, enough of marshal to recover every code object,
+and the bytecode itself.
 
-What the self-image taught is worth more than the fact that it worked. Six
-hundred of its own functions verdict B, which looked like either a defect in the
-lifter or a truth about the code, and was neither. An early return IS a fork that
-leaves and never rejoins, so a function with several exits carries several open
-forks by construction. Measured across its own image the surplus of splits over
-fuses rises with exits — 0.28 at none, 5.26 at one, 12.91 at two, 15.00 at four
-or more — and above two exits essentially every function carries surplus.
+Three things the 3.11+ interpreter does that a decoder has to know. Inline cache
+entries are interleaved into co_code and are part of the stream, so they are
+stepped over rather than decoded; miss that and every offset after the first
+cached opcode is wrong. Jump arguments are in instruction units counted from
+after the instruction and its caches, and JUMP_BACKWARD counts the other way.
+And an instruction carrying an extended argument BEGINS at its first
+EXTENDED_ARG, which is the offset a jump to it targets.
 
-Two hypotheses were tested and dropped before that one. Instruction order is not
-the cause; the walker holds a function's body in an address-keyed map and the
-emitted module has no descending step. Panic handlers are not the cause either:
-functions that call one carry surplus at 38 percent against 39 percent for
-functions that call none, which is no signal at all.
+That last one was mine to get wrong and I did. Differential-testing every code
+object of a real stdlib module against the interpreter's own disassembler showed
+one word in forty differing by a single merge, and the missing merge was exactly
+an arrival point whose argument needed more than one byte. Recording the opcode's
+offset instead of the instruction's silently drops those. Fixed, and all forty
+words now agree glyph for glyph.
 
-So ranking B candidates by raw surplus ranks them by how many ways a function can
-return. `open_forks` now separates the surplus into the part the exits explain
-and the residual that they do not, and `vox self` ranks by the residual. On its
-own image the deepest residual belongs to the descent walker itself.
-
-The README states the four words of the name and what each one names that can be
-run, rather than leaving them as decoration.
+The opcode numbers, the jump sets and the cache widths are generated from the
+running interpreter by gen_pyc_table.py rather than retyped, so the lane cannot
+drift when CPython moves. A .pyc from another version is refused by magic with
+its own number quoted: opcode numbers differ between versions, and lifting one
+against this table would produce a word that reads cleanly and means nothing.
