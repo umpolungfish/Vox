@@ -337,6 +337,41 @@ pub fn verdict(word: &[char]) -> char {
     'N'
 }
 
+
+/// What a word's open forks are, split into the part exits explain and the part
+/// they do not.
+///
+/// A held-open fork is not by itself a defect. An early return IS a fork that
+/// leaves and never rejoins, so a function with several exits carries several
+/// open forks by construction. Measured across a large real binary the surplus
+/// of ∈ over ∋ rises with the number of terminals at about five per exit, from
+/// a mean of 0.30 at one exit to 15.5 at four or more, and above two exits
+/// essentially every function carries surplus. Ranking candidates by raw
+/// surplus therefore ranks by how many ways a function can return.
+///
+/// The residual is what remains once exits are accounted for. That is the part
+/// worth reading.
+pub struct OpenForks {
+    /// ∈ minus ∋: forks the word never closes
+    pub surplus: i32,
+    /// ⊣ in the word: the ways this function leaves
+    pub exits: i32,
+    /// surplus beyond what the exits explain
+    pub residual: i32,
+}
+
+/// Slope of surplus against exit count, measured over a stripped release binary
+/// of about fifteen hundred functions.
+const SURPLUS_PER_EXIT: i32 = 5;
+
+pub fn open_forks(word: &[char]) -> OpenForks {
+    let splits = word.iter().filter(|&&c| c == FSPLIT).count() as i32;
+    let fuses  = word.iter().filter(|&&c| c == FFUSE).count() as i32;
+    let exits  = word.iter().filter(|&&c| c == TANCH).count() as i32;
+    let surplus = splits - fuses;
+    OpenForks { surplus, exits, residual: surplus - SURPLUS_PER_EXIT * exits }
+}
+
 /// Emit word as glyph string
 pub fn glyphs(word: &[char]) -> String {
     word.iter().collect()

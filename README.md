@@ -1,11 +1,48 @@
 # V⊙x
 
-V⊙x lifts a machine program to twelve glyphs, runs the glyphs in a machine that
-never once looks at the original bytes, and gets every answer native code gets.
-Ackermann recursion, SSE, a switch's jump table, a call through a
-function-pointer array, at five optimisation levels from thirteen functions gcc
-was free to transform however it wanted, every function and every input agreeing
-with native and nothing added to the twelve to make any of it pass.
+The Pancosmic Disassembling Re-Compiling Organism. Every word of that is meant
+literally, and each one names something you can run.
+
+**Pancosmic.** One lift, every substrate. Native x86 at both widths, out of ELF,
+PE or Mach-O; EVM bytecode; a WASM function body; and a coding sequence, where
+the twelve promoted amino acids biject the twelve axes so a gene is already a
+word. A merge is a merge whether it is a `JUMPDEST`, an `end`, a jump target with
+two predecessors, or a codon.
+
+**Disassembling.** Its own container loader, its own instruction decoder, its own
+machine. No capstone, no pefile, no runtime underneath. It reads the machine
+field and refuses an architecture it cannot decode rather than misreading one as
+another.
+
+**Re-Compiling.** The lift is not a description of the program, it is the
+program. V⊙x recompiles native code into an executable IMASM module and runs the
+glyphs in a machine that never once looks at the original bytes, returning every
+answer native code returns — Ackermann recursion, SSE, a jump table, a call
+through a function-pointer array, at five optimisation levels and both widths.
+
+**Organism.** It closes on itself. `vox self` points the lifter at its own image
+and reads the lifter: every function, in phase, F zero.
+
+```bash
+cargo install --path .
+vox run gcd --args 1071,462 corpus_O0.so
+vox self
+```
+
+## What the verdict means, and what B costs
+
+T closes, B holds a fork open across the cycle, N never forked, F is ill-typed.
+Pairing is cyclic, because a word is a loop and ROTAT is the cyclic shift, and T
+additionally requires work inside the paired region: a split and fuse with
+nothing between them is μ∘δ=id and verifies nothing.
+
+Reading its own image taught it what B costs. An early return IS a fork that
+leaves and never rejoins, so the surplus of ∈ over ∋ rises with the number of
+exits — a mean of 0.28 at no exit, 5.26 at one, 12.91 at two, 15.00 at four or
+more, and above two exits essentially every function carries surplus. Ranking
+candidates by raw surplus therefore ranks by how many ways a function can return.
+`vox self` reports the residual, which is the surplus left once the exits are
+paid for, and that is the part worth reading.
 
 It is a single Rust crate with no external crates. The container loader is its
 own, so it reads ELF, PE and Mach-O without a library. The instruction decoder

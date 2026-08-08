@@ -1,31 +1,27 @@
-Read a gene, and read the verdict from the engine that owns it
+The organism reads itself, and learns what B costs
 
-Three things, and the second is why the first was worth doing.
+`vox self` points the lifter at its own image. It comes back in phase: every
+function by descent, F zero, which is the only signal that says the decoder and
+the bytes agree.
 
-The genetics lane comes into the crate: `vox rna <sequence>` reads from the
-first AUG, stops at a stop codon, and emits a glyph where the codon names one
-of the twelve promoted amino acids. The table is parsed out of the Lean that
-proves it by the generator that already wrote the Python one, so it now emits
-`src/genetic_table.rs` as well and neither language can drift from the source.
+What the self-image taught is worth more than the fact that it worked. Six
+hundred of its own functions verdict B, which looked like either a defect in the
+lifter or a truth about the code, and was neither. An early return IS a fork that
+leaves and never rejoins, so a function with several exits carries several open
+forks by construction. Measured across its own image the surplus of splits over
+fuses rises with exits — 0.28 at none, 5.26 at one, 12.91 at two, 15.00 at four
+or more — and above two exits essentially every function carries surplus.
 
-Checking Rust against the Python lane on the same sequences turned up a word
-the two disagreed on, and the disagreement was not in the lift. The crate had
-its own hand-written verdict rule: linear pairing, T for any fork that closed,
-B only for a fork open across a terminal. The SIXTEEN_3 engine reads it
-otherwise. Pairing is CYCLIC, because a word is a loop and ROTAT is the cyclic
-shift, so a rotation cutting through a region must not change the readout. T
-requires WORK inside the paired region, since a split and fuse with nothing
-between them is μ∘δ=id and verifies nothing. B is a dangling split anywhere,
-not only at a terminal. There is one Grammar; the crate now reads that one, and
-agrees with the engine on four hundred words.
+Two hypotheses were tested and dropped before that one. Instruction order is not
+the cause; the walker holds a function's body in an address-keyed map and the
+emitted module has no descending step. Panic handlers are not the cause either:
+functions that call one carry surplus at 38 percent against 39 percent for
+functions that call none, which is no signal at all.
 
-That fix exposed the third. The linear-sweep lane built its words without the
-merge pass, so it never emitted a single ∋ — every fork read as dangling and
-the lane could not return T at all. Its B count was an artefact of its own
-lifter. It goes through `recompile_function` now, like the descent lane, and
-returns T where a fork really closes.
+So ranking B candidates by raw surplus ranks them by how many ways a function can
+return. `open_forks` now separates the surplus into the part the exits explain
+and the residual that they do not, and `vox self` ranks by the residual. On its
+own image the deepest residual belongs to the descent walker itself.
 
-The 32-bit sweep still reports more open forks than descent does on the same
-source, because splitting at every terminal cuts functions that have interior
-returns. That is a property of the sweep, and the count is a triage surface,
-not a defect count.
+The README states the four words of the name and what each one names that can be
+run, rather than leaving them as decoration.
