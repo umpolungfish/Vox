@@ -106,7 +106,7 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let code = match args.first().map(|s| s.as_str()) {
         None | Some("-h") | Some("--help") | Some("help") => { usage(); 0 }
-        Some("--selftest") | Some("selftest") => selftest(),
+        Some("--selftest") | Some("--self-test") | Some("selftest") | Some("self-test") => selftest(),
         Some("verdict") => {
             if args.len() < 2 { eprintln!("vox verdict <glyph-word>"); 1 }
             else {
@@ -127,6 +127,7 @@ fn main() {
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
         Some("lift") => { if args.len() < 2 { eprintln!("vox lift <file>"); 1 } else { lift_file(&args[1]) } }
+        Some(flag) if flag.starts_with('-') => { eprintln!("vox: unknown option {}\n", flag); usage(); 2 }
         Some(path) => lift_file(path),
     };
     std::process::exit(code);

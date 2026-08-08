@@ -1,15 +1,5 @@
-Port the EVM and WASM lanes to Rust; selftest covers all three
+CLI: accept --self-test, and stop treating unknown -flags as filenames
 
-src/lanes.rs lifts EVM bytecode and WASM function bodies to the same
-twelve-glyph word the x86 lane produces, verdicted by the same closure law —
-an SSTORE / store inside a branch that has not rejoined reads B (the reentrancy
-shape), paths that merge before the commit read T. Pure Rust over alloc, no
-external crates, translated straight from vox.py's parse_evm/lift_evm and
-parse_wasm_body/lift_wasm. The CLI gains 'vox evm <hex>' and 'vox wasm <hex>',
-and --selftest now runs the four bytecode cases (EVM/WASM vuln vs guarded)
-beside the four glyph-word cases — all eight pass, matching the Python.
-
-x86, EVM and WASM are now native Rust and build on their own. The genetic (RNA)
-lane needs the genetic code and already runs natively in the mOMonadOS circuit;
-the CPython lane needs a running interpreter's disassembler, so it stays in
-vox.py.
+vox --self-test now works alongside --selftest, and any unrecognized option
+beginning with - prints usage instead of trying to open a file named after the
+flag (which is what turned 'vox --self-test' into 'cannot read --self-test').
