@@ -6,6 +6,7 @@
 use ::vox::vox;
 use ::vox::vox_decode;
 use ::vox::lanes;
+use ::vox::genetic;
 use ::vox::x86;
 use ::vox::{imasm_module, imasm_vm, loader};
 
@@ -20,6 +21,7 @@ fn usage() {
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
+    eprintln!("  vox rna <seq>             lift a coding sequence, verdict the transcript");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
     eprintln!("  vox --selftest            planted open/closed forks");
     eprintln!();
@@ -31,6 +33,28 @@ fn usage() {
 /// A mode-aware linear-sweep audit: decode every executable byte at the given
 /// width, split into functions at each terminal, verdict each. Used where
 /// recursive descent's length decoder does not apply (32-bit x86).
+/// Read a coding sequence as a word in the twelve and verdict it.
+fn rna(seq: &str) -> i32 {
+    let t = genetic::lift_rna(seq);
+    if t.word.is_empty() {
+        eprintln!("no promoted codon in that sequence");
+        return 1;
+    }
+    println!("{:<8}{:<6}{:<16}{}", "CODON", "AA", "AXIS", "GLYPH");
+    for r in &t.reading {
+        println!("{:<8}{:<6}{:<16}{}", r.codon, r.aa, r.axis, r.glyph);
+    }
+    println!();
+    println!("frame    {} at offset {}", if t.implicit_frame { "no AUG, read from the start" } else { "AUG" }, t.start);
+    println!("word     {}", vox::glyphs(&t.word));
+    match t.stopped {
+        Some(s) => println!("stop     {}", s),
+        None => println!("stop     (none: the sequence ran out before a stop)"),
+    }
+    println!("verdict  {}", vox::verdict(&t.word));
+    0
+}
+
 fn audit_linear(path: &str, l: &loader::Loaded, bits: u8) -> i32 {
     let total: usize = l.code.iter().map(|(_, b)| b.len()).sum();
     println!("{}  {} {}  entry 0x{:x}  {} byte(s) of code", path, l.format, l.arch, l.entry, total);
@@ -68,10 +92,17 @@ fn audit_linear(path: &str, l: &loader::Loaded, bits: u8) -> i32 {
     0
 }
 
+/// Lift a decoded run to a word. This goes through `vox::recompile_function`
+/// so the merge pass runs: without it no ∋ is ever emitted, every fork reads as
+/// dangling, and the lane cannot return T at all.
 fn alloc_word(insns: &[x86::Insn]) -> Vec<char> {
-    let mut w = alloc_prefix();
-    for i in insns { w.push(imasm_module::classify(i)); }
-    w
+    let lifted: Vec<vox::Instruction> = insns.iter().map(|i| vox::Instruction {
+        address: i.addr,
+        mnemonic: i.mnemonic.clone(),
+        op_str: if let (true, Some(t)) = (i.ops.len() == 1, i.target) { format!("{:#x}", t) }
+                else { i.ops.iter().map(|o| o.intel()).collect::<Vec<_>>().join(", ") },
+    }).collect();
+    vox::recompile_function(&lifted)
 }
 fn alloc_prefix() -> Vec<char> { vec!['⊢'] }
 
@@ -225,6 +256,9 @@ fn main() {
         }
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
+        Some("rna") | Some("--rna") => {
+            if args.len() < 2 { eprintln!("vox rna <sequence>"); 1 } else { rna(&args[1..].join("")) }
+        }
         Some("findings") => {
             if args.len()<2 { eprintln!("vox findings <file>"); return; }
             let raw = std::fs::read(&args[1]).expect("read");

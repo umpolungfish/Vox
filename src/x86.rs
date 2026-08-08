@@ -30,6 +30,28 @@ impl Op {
         }
     }
     fn is_mem(&self) -> bool { matches!(self, Op::Mem { .. }) }
+
+    /// Intel text, the form the lifter in `vox` reads: a bare `0x...` for a
+    /// direct branch target, and a bracketed operand for a memory reference.
+    pub fn intel(&self) -> String {
+        match self {
+            Op::Reg(r) => r.clone(),
+            Op::Imm(v) => if *v >= 0 { format!("{:#x}", v) } else { format!("-{:#x}", -v) },
+            Op::Mem { base, index, scale, disp, .. } => {
+                let mut inner = base.clone();
+                if !index.is_empty() {
+                    if !inner.is_empty() { inner.push('+'); }
+                    inner.push_str(&format!("{}*{}", index, scale));
+                }
+                if *disp != 0 || inner.is_empty() {
+                    if !inner.is_empty() && *disp >= 0 { inner.push('+'); }
+                    if *disp < 0 { inner.push('-'); inner.push_str(&format!("{:#x}", -disp)); }
+                    else { inner.push_str(&format!("{:#x}", disp)); }
+                }
+                format!("[{}]", inner)
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

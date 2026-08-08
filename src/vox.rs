@@ -277,40 +277,64 @@ pub fn recompile_module(functions: &[(String, u64, Vec<Instruction>)]) -> Vec<(S
 /// no ∈ to pair. Refusing to score an ill-formed word is the point. A fuse
 /// that nothing opened means the lifter cut a function in the wrong place, and
 /// scoring it T or N would bury that under a verdict that looks like an answer.
-pub fn verdict(word: &[char]) -> char {
-    let mut depth: i32 = 0;
-    let mut has_fork = false;
-    let mut open_at_terminal = false;
+/// Work opcodes: the seven that transform the object (⊞ is ENGAGR here, EVALI in the core: one glyph, two names). ∈ ∋ ⊙ ⊢ ⊣ do not.
+fn is_work(g: char) -> bool { matches!(g, AFWD | AREV | CLINK | EVALT | EVALF | ENGAGR | IFIX) }
 
-    for &g in word {
-        match g {
-            FSPLIT => {
-                depth += 1;
-                has_fork = true;
+/// Pair ∈ → ∋ over the word read as a loop.
+///
+/// A word is a loop and ROTAT is the cyclic shift, so any readout that pairs
+/// split with fuse must pair around the cycle. Pairing over the linearized list
+/// makes every region the cut passes through look dangling, and turns
+/// rotation-invariant structure into spurious phase. Splits and fuses go
+/// unmatched only on a true count imbalance, which no rotation can repair.
+fn cyclic_pairs(word: &[char]) -> (Vec<(usize, usize)>, Vec<usize>, Vec<usize>) {
+    let n = word.len();
+    let split_idx: Vec<usize> = (0..n).filter(|&i| word[i] == FSPLIT).collect();
+    let fuse_idx: Vec<usize> = (0..n).filter(|&i| word[i] == FFUSE).collect();
+    if split_idx.is_empty() && fuse_idx.is_empty() { return (Vec::new(), Vec::new(), Vec::new()); }
+    if split_idx.len() != fuse_idx.len() { return (Vec::new(), split_idx, fuse_idx); }
+    // Balanced counts: by the cycle lemma some rotation beginning at a split
+    // pairs every region without underflow. Read from there.
+    for &start in &split_idx {
+        let mut stack: Vec<usize> = Vec::new();
+        let mut pairs: Vec<(usize, usize)> = Vec::new();
+        let mut underflowed = false;
+        for off in 0..n {
+            let i = (start + off) % n;
+            if word[i] == FSPLIT { stack.push(i); }
+            else if word[i] == FFUSE {
+                match stack.pop() { Some(si) => pairs.push((si, i)), None => { underflowed = true; break; } }
             }
-            FFUSE => {
-                if depth > 0 {
-                    depth -= 1;
-                } else {
-                    return 'F';
-                }
-            }
-            TANCH => {
-                if depth > 0 {
-                    open_at_terminal = true;
-                }
-            }
-            _ => {}
         }
+        if !underflowed && stack.is_empty() { return (pairs, Vec::new(), Vec::new()); }
     }
+    (Vec::new(), split_idx, fuse_idx)
+}
 
-    if open_at_terminal {
-        'B'
-    } else if has_fork {
-        'T'
-    } else {
-        'N'
+/// Glyphs strictly inside a region, walking forward around the cycle.
+fn cyclic_interior(word: &[char], si: usize, fj: usize) -> Vec<char> {
+    let n = word.len();
+    let len = (fj + n - si - 1) % n;
+    (0..len).map(|j| word[(si + 1 + j) % n]).collect()
+}
+
+/// The tri-ancestral verdict, the same rule the SIXTEEN_3 engine reads.
+///
+/// T — every ∈ pairs with a ∋ around the cycle, and at least one work opcode
+///     ran inside that region (a real transformation).
+/// N — split and fused, but no work ran inside: μ∘δ=id verifies nothing. Also
+///     the void, where nothing ever forked.
+/// B — an ∈ dangles with no ∋ to pair (a fork left open).
+/// F — a ∋ has no ∈ to pair (ill-typed).
+pub fn verdict(word: &[char]) -> char {
+    let (pairs, un_split, un_fuse) = cyclic_pairs(word);
+    if pairs.is_empty() && un_split.is_empty() && un_fuse.is_empty() { return 'N'; }
+    if un_fuse.len() > un_split.len() { return 'F'; }
+    if !un_split.is_empty() { return 'B'; }
+    for (si, fj) in pairs {
+        if cyclic_interior(word, si, fj).into_iter().any(is_work) { return 'T'; }
     }
+    'N'
 }
 
 /// Emit word as glyph string

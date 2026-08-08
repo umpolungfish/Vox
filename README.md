@@ -47,6 +47,7 @@ vox <file>                       # audit every function, tally verdicts
 vox verdict ⊢∈◻⊣                 # verdict one glyph word
 vox evm <hex>                    # lift EVM bytecode, verdict its closure
 vox wasm <hex>                   # lift a WASM function body, verdict it
+vox rna <seq>                    # lift a coding sequence, verdict the transcript
 vox --selftest                   # planted forks, x86 / EVM / WASM
 ```
 
@@ -128,7 +129,7 @@ The same twelve read instruction sets with nothing in common.
 | native x86 | an ELF, PE, or Mach-O binary | lifts, verdicts, and **runs** |
 | EVM | `vox evm HEX` | lifts and verdicts |
 | WASM | `vox wasm HEX` | lifts and verdicts |
-| genetic code | the mOMonadOS `circuit` verb | lifts and runs the round trip |
+| genetic code | `vox rna SEQ` | lifts and verdicts |
 | CPython | `vox.py` | lifts and verdicts |
 
 The x86 lane executes. EVM and WASM lift bytecode to the same word and verdict
@@ -136,13 +137,15 @@ its closure. The lift is the same act in each, which is the point: a merge is a
 merge whether it is a `JUMPDEST`, an `end`, or a jump target with two
 predecessors.
 
-The genetic lane needs the genetic code, and it lives where the genetic code
-lives, in the mOMonadOS `circuit` verb, which runs the whole
-`RNA → IMASM → x86 → IMASM → wasm → IMASM → AA` round trip. Guanine is **B**
+The genetic lane reads a gene as what it already is, a word. The table is not
+retyped here: `gen_genetic_table.py` parses it out of the Lean that proves it
+and writes both `genetic_table.py` and `src/genetic_table.rs`, so neither
+language can drift from the source. Guanine is **B**
 because it wobble-pairs with both C and U, cytosine is **T** because it pairs
 only with G, adenine is **F**, uracil is **N**; codons carry to amino acids by
 the genetic code; exactly twelve amino acids are promoted and they biject the
-twelve axes. The CPython lane needs a running interpreter's disassembler, so it
+twelve axes. The full `RNA → IMASM → x86 → IMASM → wasm → IMASM → AA` round
+trip still runs in the mOMonadOS `circuit` verb. The CPython lane needs a running interpreter's disassembler, so it
 stays in `vox.py`.
 
 ## The auditor, which is a corollary

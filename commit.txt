@@ -1,20 +1,31 @@
-Execute 32-bit x86, and fix the multiply that hid it
+Read a gene, and read the verdict from the engine that owns it
 
-Reading 32-bit was only half of it. Running it needs the loader to parse
-Elf32 (16-byte symbols, info and value in different places, 4-byte address
-fields), the machine to know its stack slot is four bytes wide, cdecl args
-pushed right-to-left, and ret imm16 to clean up after itself.
+Three things, and the second is why the first was worth doing.
 
-Two decode holes surfaced once execution ran:
+The genetics lane comes into the crate: `vox rna <sequence>` reads from the
+first AUG, stops at a stop codon, and emits a glyph where the codon names one
+of the twelve promoted amino acids. The table is parsed out of the Lean that
+proves it by the generator that already wrote the Python one, so it now emits
+`src/genetic_table.rs` as well and neither language can drift from the source.
 
-  mov eax, moffs (0xA0..0xA3) was missing entirely, so every stack-canary
-  prologue left a gap and everything after it was read out of phase.
+Checking Rust against the Python lane on the same sequences turned up a word
+the two disagreed on, and the disagreement was not in the lift. The crate had
+its own hand-written verdict rule: linear pairing, T for any fork that closed,
+B only for a fork open across a terminal. The SIXTEEN_3 engine reads it
+otherwise. Pairing is CYCLIC, because a word is a loop and ROTAT is the cyclic
+shift, so a rotation cutting through a region must not change the readout. T
+requires WORK inside the paired region, since a split and fuse with nothing
+between them is μ∘δ=id and verifies nothing. B is a dangling split anywhere,
+not only at a terminal. There is one Grammar; the crate now reads that one, and
+agrees with the engine on four hundred words.
 
-  one-operand imul/mul wrote only the low half and never touched edx. Every
-  magic-number division a compiler emits reads its answer out of the high
-  half, so division silently returned garbage or never terminated.
+That fix exposed the third. The linear-sweep lane built its words without the
+merge pass, so it never emitted a single ∋ — every fork read as dangling and
+the lane could not return T at all. Its B count was an artefact of its own
+lifter. It goes through `recompile_function` now, like the descent lane, and
+returns T where a fork really closes.
 
-The second one was live at 64-bit too and had simply never been reached by a
-case that divides. Both widths now agree with the native answer on the whole
-corpus at every optimisation level: gcd, fib, fact, ack, sumsq, collatz,
-clamp, popcnt, viadd, arr, sw, fptr, sumdigits, at O0 through Os.
+The 32-bit sweep still reports more open forks than descent does on the same
+source, because splitting at every terminal cuts functions that have interior
+returns. That is a property of the sweep, and the count is a triage surface,
+not a defect count.

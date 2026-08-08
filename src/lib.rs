@@ -14,6 +14,8 @@ extern crate alloc;
 pub mod vox;
 pub mod vox_decode;
 pub mod lanes;
+pub mod genetic;
+pub mod genetic_table;
 pub mod x86;
 pub mod imasm_module;
 pub mod imasm_vm;
