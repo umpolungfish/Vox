@@ -27,6 +27,13 @@ fn usage() {
     eprintln!("F is ill-typed (a ∋ with no ∈ to pair).");
 }
 
+fn alloc_word(insns: &[x86::Insn]) -> Vec<char> {
+    let mut w = alloc_prefix();
+    for i in insns { w.push(imasm_module::classify(i)); }
+    w
+}
+fn alloc_prefix() -> Vec<char> { vec!['⊢'] }
+
 fn lift_file(path: &str) -> i32 {
     let raw = match std::fs::read(path) {
         Ok(r) => r,
@@ -48,16 +55,55 @@ fn lift_file(path: &str) -> i32 {
 
     let mut tally = [0usize; 4]; // T B N F
     let mut illtyped: Vec<(u64, String)> = Vec::new();
+    // recursive-descent functions: the trustworthy set
+    let mut claimed: std::collections::BTreeSet<u64> = std::collections::BTreeSet::new();
     for (start, f) in &w.functions {
+        for ins in f { claimed.insert(ins.address); }
         let word = vox::recompile_function(f);
         match vox::verdict(&word) {
-            'T' => tally[0] += 1,
-            'B' => tally[1] += 1,
-            'N' => tally[2] += 1,
+            'T' => tally[0] += 1, 'B' => tally[1] += 1, 'N' => tally[2] += 1,
             _ => { tally[3] += 1; if illtyped.len() < 8 { illtyped.push((*start, vox::glyphs(&word))); } }
         }
     }
+    let descended = w.functions.len();
+    // fallback sweep: linear-decode what descent never reached, group into
+    // functions of their own at each terminal, and verdict those too.
+    let mut swept = 0usize; let mut swept_bytes = 0usize;
+    for (base, bytes) in &image.segments {
+        let mut pos = 0usize;
+        let mut cur: Vec<x86::Insn> = Vec::new();
+        let flush = |cur: &mut Vec<x86::Insn>, tally: &mut [usize;4], swept: &mut usize| {
+            if cur.is_empty() { return; }
+            let mut word = alloc_word(cur);
+            match vox::verdict(&word) { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>tally[3]+=1 }
+            *swept += 1; word.clear(); cur.clear();
+        };
+        while pos < bytes.len() {
+            let addr = base + pos as u64;
+            if claimed.contains(&addr) { flush(&mut cur, &mut tally, &mut swept); 
+                // skip the claimed instruction
+                if let Some(d) = x86::decode(&bytes[pos..], addr) { pos += d.len.max(1); } else { pos += 1; }
+                continue;
+            }
+            match x86::decode(&bytes[pos..], addr) {
+                Some(d) if d.len > 0 => {
+                    let mn = d.mnemonic.clone(); swept_bytes += d.len; pos += d.len;
+                    let terminal = mn.starts_with("ret") || matches!(mn.as_str(), "int3"|"ud2"|"hlt"|"jmp");
+                    cur.push(d);
+                    if terminal { flush(&mut cur, &mut tally, &mut swept); }
+                }
+                _ => { flush(&mut cur, &mut tally, &mut swept); pos += 1; }
+            }
+        }
+        flush(&mut cur, &mut tally, &mut swept);
+    }
+    let total_cov = w.claimed_bytes + swept_bytes;
     println!();
+    if swept > 0 {
+        println!("  {} function(s) by descent, {} more by fallback sweep", descended, swept);
+        println!("  covered {}% of the image ({} of {} bytes)",
+            (total_cov*100/w.total_bytes.max(1)).min(100), total_cov.min(w.total_bytes), w.total_bytes);
+    }
     println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
     for (a, g) in &illtyped {
         let head: String = g.chars().take(90).collect();

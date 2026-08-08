@@ -25,7 +25,7 @@ fn is_truth(mn: &str) -> bool { matches!(mn, "cmp"|"test") }
 fn is_terminal(mn: &str) -> bool { mn.starts_with("ret") || matches!(mn, "int3"|"ud2"|"hlt"|"iret"|"retf") }
 
 /// The glyph — the same decision vox's classifier makes.
-fn classify(i: &x86::Insn) -> char {
+pub fn classify(i: &x86::Insn) -> char {
     let mn = i.mnemonic.as_str();
     if is_terminal(mn) { return TERM; }
     if mn == "call" { return if i.target.is_some() { CALL } else { INDIRECT }; }
