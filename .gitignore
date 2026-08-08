@@ -8,3 +8,5 @@ MpDefenderCoreService
 *.dll
 *.so
 *.imscrb
+/target
+Cargo.lock
