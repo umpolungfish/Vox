@@ -138,8 +138,8 @@ assert meet_t(frozenset('T'), frozenset('t')) == EMPTY, "meet_t formula does not
 # where a system turns on itself.
 VINIT   = "⊢"    # 0→1  source boundary
 TANCH   = "⊣"    # 1→1  sink boundary
-AFWD    = ">"    # 1→1  forward morphism, WORK
-AREV    = "<"    # 1→1  reverse morphism, WORK
+AFWD    = "≻"    # 1→1  forward morphism, WORK
+AREV    = "≺"    # 1→1  reverse morphism, WORK
 CLINK   = "⋈"    # 1→1  composition / relational link, WORK
 EVALT   = "⊤"    # 1→1  evaluates the True axis (≤_t), WORK
 FSPLIT3 = "∈"    # 1→3  3-way split: T, F, I arms

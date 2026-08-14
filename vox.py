@@ -51,7 +51,7 @@ from imasm16_3_core import IMASM16_3_Machine, Sequence16_3Trace  # noqa
 # the readings one, which is also why lifting into SIXTEEN_3 needs no
 # translation table: FSPLIT/FFUSE/ENGAGR and FSPLIT3/FFUSE3/EVALI are the same
 # three glyphs (∈, ∋, ⊞) under two names, and a glyph does not have two names.
-VINIT, TANCH, AFWD, AREV = "⊢", "⊣", ">", "<"
+VINIT, TANCH, AFWD, AREV = "⊢", "⊣", "≻", "≺"
 CLINK, EVALT, FSPLIT, FFUSE = "⋈", "⊤", "∈", "∋"
 IMSCRIB, EVALF, ENGAGR, IFIX = "⊙", "⊥", "⊞", "◻"
 
