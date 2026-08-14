@@ -1,21 +1,27 @@
-Crystal: the conditions, not only the source
+Verdict a swept fragment as a fragment, not as an ill-typed function
 
-A crystalline branch that carries the source alone is a compound without a
-notebook page. Someone checking it out later rebuilds against whatever the
-libraries have since become, which is a different reaction, and the claim was
-"under these conditions, this happens".
+My kernel audit reported F 4, and the natural reading was that four functions in
+mOMonadOS fail to close. They do not. The walk returns two kinds of thing in one
+vector: functions descent reached by following the program's own edges, and runs
+an in-walk linear sweep guessed at when descent ran out. The report called the
+whole vector the trustworthy set.
 
-So the conditions are written down: toolchain and its commit, Mathlib revision AND
-the state of its working tree, rustc, the auditor's revision and the md5 of the
-binary that actually returned the verdicts, the PARI version used for the ray class
-computation, and the host kernel.
+A swept run is cut wherever the scan happened to stop. Cut there, the piece can
+carry a merge whose fork stayed behind in code the scan already left: a merge
+with no fork, verdict F. That is true of the fragment and false of the function
+it came from, so it must not be counted in the same column.
 
-One line in it is the one a replicator should check first. The Mathlib tree is
-dirty — twenty-two files — and every one of them is a README with two lines added.
-No .lean is touched, so the reagent is mathematically stock. That is worth stating
-exactly, because "dirty" alone would invite dismissal and "clean" would be false.
+Walk now says where descent stopped and sweeping began, and the report tallies
+the two populations apart. On mOMonadOS the descended functions are F 0, and all
+four F are fragments. The ill-typed listing prints descended functions only.
 
-The verdicts obtained under these conditions are tabulated, the axiom dependencies
-of the repaired module are given, and two things that are NOT done are named: the
-corpus-wide sweep still blocked by namespaced collisions, and the bare-metal
-instantiation.
+Measured on the way, and worth writing down because it cost four wrong fixes:
+descent does not stall at a call that never returns — it follows a call's return
+edge. It stops at unconditional terminators, and what follows a jmp is reached
+only indirectly. Nothing branches to any swept start, so no reattachment rule
+built on reachability can fire; attaching by adjacency instead only glues a
+fragment to whichever function happens to precede it in memory, which moves the
+F without answering it.
+
+Also fences a docs block in imasm_module that rustdoc was reading as Rust, so
+cargo test is green.

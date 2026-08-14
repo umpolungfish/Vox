@@ -3,7 +3,9 @@
 //! the twelve axes the instruction is); the payload is normalised operands the
 //! machine reads without ever parsing assembly.
 //!
-//!     GLYPH \t field \t field ...      with  r:reg  i:imm  m:base:index:scale:disp:size
+//! ```text
+//! GLYPH \t field \t field ...      with  r:reg  i:imm  m:base:index:scale:disp:size
+//! ```
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
