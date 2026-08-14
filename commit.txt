@@ -1,10 +1,18 @@
-verdict reads stdin, because the words that matter do not fit in argv
+Name the file that would not read, and generate the list instead of pasting it
 
-A lifted proof term runs to tens of thousands of glyphs — mu_delta_A_id is 86,065
-— and an OS argument list will not carry that, so the words this verb is most
-wanted for were exactly the ones it could not be handed. `vox verdict -` takes the
-word on stdin and prints the verdict alone, which is also what a sweep wants when
-piping thousands through.
+Two faults, one in the tool and one in how it was being fed.
 
-Found by nesting the Lean corpus into Vox and having the shell refuse the first
-interesting case.
+The tool: `std::fs::read(path).expect("read")` at five call sites printed
+`read: Os { code: 2 }` and a panic notice, naming neither the path nor the verb.
+Handed a few hundred binaries — which is how this is actually used — that is a
+wall of identical panics with nothing in any of them to act on, and the one path
+that was wrong stays hidden inside it. Now: `vox: cannot read <path>: <reason>`,
+exit 2, no backtrace.
+
+The feeding: the path list had been pasted from a wrapped terminal, which had
+injected a space into `Windows/ SystemApps`, `Windows/ WinSxS`, `Microsoft/ NuGet`
+and left `M4 ` and `E ` fragments mid-path. Every one of those is a file that does
+not exist. Removing the space, the file is there. So `sweep_binaries.sh` walks the
+tree itself: a list you generate cannot be line-wrapped, a list you copy can.
+Unreadable files are counted rather than fatal, and anything vox declines is
+written to a companion .unlifted file with its path intact.

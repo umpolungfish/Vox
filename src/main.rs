@@ -303,6 +303,23 @@ fn selftest() -> i32 {
     else { eprintln!("selftest FAILED"); 1 }
 }
 
+
+/// Read a file, or say which one and why, and leave without a backtrace.
+///
+/// `.expect("read")` printed `read: Os { code: 2 }` and a panic notice, naming
+/// neither the path nor the verb. Fed a list of a few hundred binaries — which is
+/// how this is actually used — that is a wall of identical panics with nothing in
+/// them to act on, and the one path that was wrong stays hidden.
+fn read_or_exit(path: &str) -> Vec<u8> {
+    match std::fs::read(path) {
+        Ok(b) => b,
+        Err(e) => {
+            eprintln!("vox: cannot read {}: {}", path, e);
+            std::process::exit(2);
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let code = match args.first().map(|s| s.as_str()) {
@@ -357,7 +374,7 @@ fn main() {
         }
         Some("findings") => {
             if args.len()<2 { eprintln!("vox findings <file>"); return; }
-            let raw = std::fs::read(&args[1]).expect("read");
+            let raw = read_or_exit(&args[1]);
             let l = loader::load(&raw);
             let image = vox_decode::Image { segments: l.code };
             let mut seeds: Vec<u64> = l.symbols.values().copied().collect(); seeds.push(l.entry);
@@ -403,7 +420,7 @@ fn main() {
                 i+=1;
             }
             if sym.is_empty() || file.is_empty() { eprintln!("vox run <symbol> --args a,b <file>"); return; }
-            let raw = std::fs::read(&file).expect("read");
+            let raw = read_or_exit(&file);
             let syms = imasm_module::symbols(&raw);
             let addr = match syms.get(&sym) { Some(a)=>*a, None=>{ eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1);} };
             let module = imasm_module::emit(&raw);
@@ -416,12 +433,12 @@ fn main() {
             std::process::exit(0);
         }
         Some("imasm") => { if args.len()<2 { eprintln!("vox imasm <file>"); return; }
-            let raw=std::fs::read(&args[1]).expect("read"); print!("{}", imasm_module::emit(&raw)); std::process::exit(0); }
+            let raw=read_or_exit(&args[1]); print!("{}", imasm_module::emit(&raw)); std::process::exit(0); }
         Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
-            let raw=std::fs::read(&args[1]).expect("read"); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
+            let raw=read_or_exit(&args[1]); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
         Some("disasm") => {
             if args.len() < 2 { eprintln!("vox disasm <file> [symbol]"); return; }
-            let raw = std::fs::read(&args[1]).expect("read");
+            let raw = read_or_exit(&args[1]);
             let (entry, segments) = vox::parse_elf(&raw);
             let image = vox_decode::Image { segments };
             let seeds = vox::elf_function_symbols(&raw);
