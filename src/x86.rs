@@ -146,15 +146,18 @@ pub fn decode(b: &[u8], addr: u64) -> Option<Insn> { decode_mode(b, addr, 64) }
 /// than RIP-relative.
 pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
     let mut c = Cur { b, i: 0 };
-    let (mut o66, mut f3, mut f2) = (false, false, false);
+    let (mut o66, mut f3) = (false, false);
     let mut rex = Rex { w:false, r:false, x:false, b:false, p:false, bits };
     loop {
         let p = *b.get(c.i)?;
         match p {
             0x66 => { o66 = true; c.i += 1; }
             0xF3 => { f3 = true; c.i += 1; }
-            0xF2 => { f2 = true; c.i += 1; }
-            0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 | 0x64 | 0x65 => { c.i += 1; }
+            // 0xF2 (REPNE) joins the skipped prefixes: it was recorded in a
+            // flag that nothing ever read, so F2-prefixed SSE forms were never
+            // distinguished from their unprefixed spelling anyway. Consuming
+            // the byte still keeps the instruction length right.
+            0xF2 | 0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 | 0x64 | 0x65 => { c.i += 1; }
             0x40..=0x4F if bits == 64 => { rex = Rex { w:p&8!=0, r:p&4!=0, x:p&2!=0, b:p&1!=0, p:true, bits }; c.i += 1; break; }
             _ => break,
         }

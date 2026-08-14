@@ -143,7 +143,9 @@ pub fn words(raw: &[u8]) -> String {
         }
         if insns.is_empty() { continue; }
         let merges = merges_of(&insns);
-        let mut word = String::from("⊢");
+        // ENTRY, not a second "⊢" written out beside the constant that names it.
+        let mut word = String::new();
+        word.push(ENTRY);
         for i in &insns {
             if merges.contains(&i.addr) { word.push('∋'); }
             word.push(classify(i));
