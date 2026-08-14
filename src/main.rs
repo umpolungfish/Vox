@@ -309,7 +309,24 @@ fn main() {
         None | Some("-h") | Some("--help") | Some("help") => { usage(); 0 }
         Some("--selftest") | Some("--self-test") | Some("selftest") | Some("self-test") => selftest(),
         Some("verdict") => {
-            if args.len() < 2 { eprintln!("vox verdict <glyph-word>"); 1 }
+            // A word given as an ARGUMENT is capped by the OS's argv limit, and a
+            // lifted proof term runs to tens of thousands of glyphs — the words this
+            // is most wanted for are exactly the ones that will not fit. `-` reads
+            // the word from stdin instead, and prints only the verdict, so a sweep
+            // can pipe thousands through without the shell in the way.
+            if args.len() < 2 { eprintln!("vox verdict <glyph-word> | vox verdict - (word on stdin)"); 1 }
+            else if args[1] == "-" {
+                use std::io::Read;
+                let mut buf = String::new();
+                match std::io::stdin().read_to_string(&mut buf) {
+                    Err(_) => { eprintln!("vox verdict -: could not read stdin"); 1 }
+                    Ok(_) => {
+                        let word: Vec<char> = buf.trim().chars().collect();
+                        println!("verdict {}", vox::verdict(&word));
+                        0
+                    }
+                }
+            }
             else {
                 let word: Vec<char> = args[1..].join("").chars().collect();
                 println!("{}", vox::glyphs(&word));
