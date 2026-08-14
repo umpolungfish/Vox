@@ -1,18 +1,21 @@
-Name the file that would not read, and generate the list instead of pasting it
+Crystal: the conditions, not only the source
 
-Two faults, one in the tool and one in how it was being fed.
+A crystalline branch that carries the source alone is a compound without a
+notebook page. Someone checking it out later rebuilds against whatever the
+libraries have since become, which is a different reaction, and the claim was
+"under these conditions, this happens".
 
-The tool: `std::fs::read(path).expect("read")` at five call sites printed
-`read: Os { code: 2 }` and a panic notice, naming neither the path nor the verb.
-Handed a few hundred binaries — which is how this is actually used — that is a
-wall of identical panics with nothing in any of them to act on, and the one path
-that was wrong stays hidden inside it. Now: `vox: cannot read <path>: <reason>`,
-exit 2, no backtrace.
+So the conditions are written down: toolchain and its commit, Mathlib revision AND
+the state of its working tree, rustc, the auditor's revision and the md5 of the
+binary that actually returned the verdicts, the PARI version used for the ray class
+computation, and the host kernel.
 
-The feeding: the path list had been pasted from a wrapped terminal, which had
-injected a space into `Windows/ SystemApps`, `Windows/ WinSxS`, `Microsoft/ NuGet`
-and left `M4 ` and `E ` fragments mid-path. Every one of those is a file that does
-not exist. Removing the space, the file is there. So `sweep_binaries.sh` walks the
-tree itself: a list you generate cannot be line-wrapped, a list you copy can.
-Unreadable files are counted rather than fatal, and anything vox declines is
-written to a companion .unlifted file with its path intact.
+One line in it is the one a replicator should check first. The Mathlib tree is
+dirty — twenty-two files — and every one of them is a README with two lines added.
+No .lean is touched, so the reagent is mathematically stock. That is worth stating
+exactly, because "dirty" alone would invite dismissal and "clean" would be false.
+
+The verdicts obtained under these conditions are tabulated, the axiom dependencies
+of the repaired module are given, and two things that are NOT done are named: the
+corpus-wide sweep still blocked by namespaced collisions, and the bare-metal
+instantiation.
