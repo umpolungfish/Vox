@@ -90,7 +90,7 @@ def test_glyph_consistency():
     """Verify that the glyph mappings are consistent across all modules."""
     print(f"\n=== Testing glyph consistency ===")
 
-    glyph_set = {"⊢", "⊣", ">", "<", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"}
+    glyph_set = {"⊢", "⊣", "≻", "≺", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"}
     all_glyphs_used = set()
 
     for opt in ["O0", "O1", "O2", "O3", "Os"]:

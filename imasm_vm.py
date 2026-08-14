@@ -432,7 +432,7 @@ class Machine:
             elif glyph == "∈":
                 if self.cc(f[0]):
                     return int(f[1][2:], 16)
-            elif glyph == "<":
+            elif glyph == "≺":
                 return int(f[1][2:], 16)
             elif glyph == "⊙":
                 if f[0] == "syscall":
@@ -447,7 +447,7 @@ class Machine:
                     self.reg["rsp"] -= 8
                     self.store(self.reg["rsp"], self.next_of[addr], 8)
                 return tgt
-            elif glyph == ">":
+            elif glyph == "≻":
                 self.reg["rsp"] -= 8
                 self.store(self.reg["rsp"], self.next_of[addr], 8)
                 return int(f[1][2:], 16)

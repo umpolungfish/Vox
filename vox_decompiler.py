@@ -44,7 +44,7 @@ import sys
 # Entry/Terminal
 ENTRY, TERM, SPLIT, FUSE = "⊢", "⊣", "∈", "∋"
 # Calls/xfers
-CALL, XFER, INDIRECT, COMMIT = ">", "<", "⊙", "◻"
+CALL, XFER, INDIRECT, COMMIT = "≻", "≺", "⊙", "◻"
 # Data movement/truth/engagement
 LINK, TRUTH, CONSUME, ENGAGE = "⋈", "⊤", "⊥", "⊞"
 

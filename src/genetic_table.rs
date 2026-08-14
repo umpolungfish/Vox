@@ -81,8 +81,8 @@ pub const CODON: [(&str, &str, &str); 64] = [
 pub const AA_GLYPH: [(&str, char, &str, u8); 12] = [
     ("Met", '⊢', "Dimensionality", 0),
     ("Trp", '⊣', "Topology", 1),
-    ("Cys", '>', "Recognition", 2),
-    ("Tyr", '<', "Parity", 3),
+    ("Cys", '≻', "Recognition", 2),
+    ("Tyr", '≺', "Parity", 3),
     ("Phe", '⋈', "Fidelity", 4),
     ("Ile", '⊤', "Kinetics", 5),
     ("Asn", '∈', "Granularity", 6),

@@ -360,7 +360,7 @@ impl Machine {
                 }
                 '⊤' => { let size=self.width(&f[1]); let a=self.read(&f[1],size).0; let b=self.read(&f[2],size).0; self.set_flags(a,b,size,&f[0]); }
                 '∈' => { if self.cc(&f[0]) { return Ok(Some(parse_imm(&f[1][2..]) as u64)); } }
-                '<' => { return Ok(Some(parse_imm(&f[1][2..]) as u64)); }
+                '≺' => { return Ok(Some(parse_imm(&f[1][2..]) as u64)); }
                 '⊙' => {
                     if f.get(0).map(|s|s.as_str()) == Some("syscall") { self.do_syscall()?; continue; }
                     if f.get(0).map(|s|s.as_str()) == Some("external") { return Err(Stop::Halt(format!("external {}", f.get(1).cloned().unwrap_or_default()))); }
@@ -368,7 +368,7 @@ impl Machine {
                     if f.get(0).map(|s|s.as_str()) == Some("call") { self.push_val(next as u128); }
                     return Ok(Some(tgt as u64));
                 }
-                '>' => {
+                '≻' => {
                     self.push_val(next as u128);
                     return Ok(Some(parse_imm(&f[1][2..]) as u64));
                 }

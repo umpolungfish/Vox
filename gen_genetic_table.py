@@ -42,7 +42,7 @@ prim = dict(re.findall(r"\|\s*\.(\w+)\s*=>\s*some\s+\.(\w+)",
 SLOTS = ["Dimensionality", "Topology", "Relational", "Polarity", "Fidelity",
          "Kinetics", "Granularity", "Grammar", "Criticality", "Chirality",
          "Stoichiometry", "Protection"]
-GLYPHS = ["⊢", "⊣", ">", "<", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"]
+GLYPHS = ["⊢", "⊣", "≻", "≺", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"]
 # The genetics dialect names four axes differently. Same slots, same
 # cardinality, different words — recorded, not reconciled away.
 # The genetics dialect still names two axes differently; the Lean now uses the

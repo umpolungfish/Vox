@@ -17,7 +17,7 @@ use crate::loader;
 fn bits_of(arch: &str) -> u8 { if arch == "x86-32" { 32 } else { 64 } }
 
 const ENTRY: char = '⊢'; const TERM: char = '⊣'; const SPLIT: char = '∈'; const FUSE: char = '∋';
-const CALL: char = '>'; const XFER: char = '<'; const INDIRECT: char = '⊙'; const COMMIT: char = '◻';
+const CALL: char = '≻'; const XFER: char = '≺'; const INDIRECT: char = '⊙'; const COMMIT: char = '◻';
 const LINK: char = '⋈'; const TRUTH: char = '⊤'; const CONSUME: char = '⊥'; const ENGAGE: char = '⊞';
 
 fn is_move(mn: &str) -> bool {
