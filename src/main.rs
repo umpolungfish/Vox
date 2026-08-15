@@ -19,6 +19,7 @@ fn usage() {
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
+    eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
     eprintln!("  vox rna <seq>             lift a coding sequence, verdict the transcript");
@@ -331,7 +332,44 @@ fn main() {
             // is most wanted for are exactly the ones that will not fit. `-` reads
             // the word from stdin instead, and prints only the verdict, so a sweep
             // can pipe thousands through without the shell in the way.
-            if args.len() < 2 { eprintln!("vox verdict <glyph-word> | vox verdict - (word on stdin)"); 1 }
+            if args.len() < 2 { eprintln!("vox verdict <glyph-word> | vox verdict - (word on stdin) | vox verdict --tsv <file>"); 1 }
+            else if args[1] == "--tsv" {
+                // A sweep hands over thousands of lifted words at once. Spawning a
+                // process per word makes the shell the bottleneck and, worse, makes
+                // it tempting to reimplement the verdict on the caller's side. One
+                // process, one authority: `name<TAB>word` in, `name<TAB>verdict<TAB>len`
+                // out, in input order. A blank word is not verdicted — it is
+                // reported as `-`, since a word nobody lifted is not a word that
+                // failed to close.
+                if args.len() < 3 { eprintln!("vox verdict --tsv <file>"); 1 }
+                else {
+                    match std::fs::read_to_string(&args[2]) {
+                        Err(e) => { eprintln!("vox verdict --tsv: {}: {}", args[2], e); 1 }
+                        Ok(txt) => {
+                            let mut counts = std::collections::BTreeMap::new();
+                            for line in txt.lines() {
+                                if line.trim().is_empty() { continue; }
+                                let mut it = line.splitn(2, '\t');
+                                let name = it.next().unwrap_or("");
+                                let w = it.next().unwrap_or("").trim();
+                                if w.is_empty() {
+                                    println!("{}\t-\t0", name);
+                                    *counts.entry('-').or_insert(0usize) += 1;
+                                    continue;
+                                }
+                                let word: Vec<char> = w.chars().collect();
+                                let v = vox::verdict(&word);
+                                *counts.entry(v).or_insert(0usize) += 1;
+                                println!("{}\t{}\t{}", name, v, word.len());
+                            }
+                            let total: usize = counts.values().sum();
+                            let tally: Vec<String> = counts.iter().map(|(k, n)| format!("{} {}", k, n)).collect();
+                            eprintln!("verdicted {} words: {}", total, tally.join("  "));
+                            0
+                        }
+                    }
+                }
+            }
             else if args[1] == "-" {
                 use std::io::Read;
                 let mut buf = String::new();
