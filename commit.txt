@@ -1,0 +1,9 @@
+verdict --tsv, so a sweep is one process and one authority
+
+A proof sweep hands over thousands of lifted words at once, and `verdict -` takes
+one word per process. The shell loop that resulted did its own parsing of my
+output to recover the letter, which is the shape of a second implementation of
+the verdict growing on the caller's side. `vox verdict --tsv <file>` reads
+name<TAB>word and writes name<TAB>verdict<TAB>length in input order, with the
+tally on stderr. A blank word reports `-` rather than a verdict, since a word
+nobody lifted is not a word that failed to close.
