@@ -724,12 +724,6 @@ fn trim_padding(mut f: Vec<Instruction>) -> Vec<Instruction> {
 /// unclaimed bytes are counted and reported rather than guessed at.
 pub struct Walk {
     pub functions: Vec<(u64, Vec<Instruction>)>,
-    /// How many leading entries of `functions` descent actually reached. The
-    /// rest are runs the in-walk sweep guessed at, and a guess must not be
-    /// tallied as a reading: a swept run is cut wherever the linear scan
-    /// happened to stop, so its fork can sit outside it and it verdicts F on a
-    /// truth about the cut rather than about the code.
-    pub descended: usize,
     pub claimed_bytes: usize,
     pub total_bytes: usize,
 }
@@ -751,17 +745,6 @@ pub fn descend_seeded(
     entry: u64,
     seeds: &[u64],
 ) -> Vec<(u64, Vec<Instruction>)> {
-    let (out, _) = descend_seeded_split(image, entry, seeds);
-    out
-}
-
-/// As [`descend_seeded`], and also says how many leading entries descent
-/// reached rather than swept.
-pub fn descend_seeded_split(
-    image: &Image,
-    entry: u64,
-    seeds: &[u64],
-) -> (Vec<(u64, Vec<Instruction>)>, usize) {
     let mut out: Vec<(u64, Vec<Instruction>)> = Vec::new();
     let mut covered: BTreeMap<u64, Instruction> = BTreeMap::new();
     let mut seen_funcs: BTreeSet<u64> = BTreeSet::new();
@@ -931,8 +914,6 @@ pub fn descend_seeded_split(
         }
     }
 
-    let descended = out.len();
-
     for r in runs {
         for f in crate::vox::split_functions(&r) {
             if let Some(first) = f.first() {
@@ -943,12 +924,12 @@ pub fn descend_seeded_split(
             }
         }
     }
-    (out, descended)
+    out
 }
 
 /// Walk an image and report what the walk could and could not claim.
 pub fn walk(image: &Image, entry: u64, seeds: &[u64]) -> Walk {
-    let (functions, descended) = descend_seeded_split(image, entry, seeds);
+    let functions = descend_seeded(image, entry, seeds);
     // Bytes, not instructions: the question is how much of the image was read,
     // so each claimed address contributes the width of the instruction on it.
     let mut seen: BTreeSet<u64> = BTreeSet::new();
@@ -968,7 +949,6 @@ pub fn walk(image: &Image, entry: u64, seeds: &[u64]) -> Walk {
     Walk {
         claimed_bytes: bytes,
         total_bytes: image.total_bytes(),
-        descended,
         functions,
     }
 }

@@ -85,11 +85,8 @@ const TRUTH_OPS: &[&str] = &["cmp", "test", "ucomiss", "ucomisd", "ucomis", "com
 
 /// Classify an instruction into one of 12 IMASM glyphs
 pub fn classify_instruction(ins: &Instruction) -> char {
-    classify_step(strip_prefix(&ins.mnemonic), ins.op_str.trim())
-}
-
-/// The x86 judgement, on a step's name and operands alone.
-pub fn classify_step(mn: &str, ops: &str) -> char {
+    let mn = strip_prefix(&ins.mnemonic);
+    let ops = ins.op_str.trim();
 
     // Terminal instructions
     if mn.starts_with("ret") || TERMINAL_OPS.contains(&mn) {
@@ -209,16 +206,16 @@ pub fn recompile_function(insns: &[Instruction]) -> Vec<char> {
     // `compute_merges` returns ascending addresses, so membership is a binary
     // search. `Vec::contains` here would make the lift quadratic again.
     let merges = compute_merges(insns);
-    let steps: Vec<crate::lift::Step> = insns.iter().map(|ins| crate::lift::Step {
-        name: strip_prefix(&ins.mnemonic),
-        ops: ins.op_str.trim(),
-        joined: merges.binary_search(&ins.address).is_ok(),
-    }).collect();
-    // x86 judges by operand as well as mnemonic — a call through a register is
-    // not the call to a label — so it hands the lift a closure where the
-    // bytecode lanes hand it a table. Every x86 step lifts to something, which
-    // is why this one is total where the tables are partial.
-    crate::lift::lift_steps(&steps, |s| Some(classify_step(s.name, s.ops)))
+    let mut tokens = vec![VINIT];
+
+    for ins in insns {
+        if merges.binary_search(&ins.address).is_ok() {
+            tokens.push(FFUSE);
+        }
+        tokens.push(classify_instruction(ins));
+    }
+
+    tokens
 }
 
 /// Instructions a compiler uses to pad between functions.

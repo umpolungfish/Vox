@@ -10,7 +10,7 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use crate::pyc_table::{HAVE_ARGUMENT, OPS, PYC_MAGIC, PY_VERSION};
-use crate::vox::{AFWD, FSPLIT, IFIX, TANCH};
+use crate::vox::{AFWD, FFUSE, FSPLIT, IFIX, TANCH, VINIT};
 
 fn opname(op: u8) -> &'static str {
     OPS.iter().find(|o| o.0 == op).map(|o| o.1).unwrap_or("<unknown>")
@@ -66,28 +66,11 @@ pub fn decode(code: &[u8]) -> Vec<Ins> {
 fn is_return(n: &str) -> bool { n.starts_with("RETURN_") }
 fn is_uncond(n: &str) -> bool { n.starts_with("JUMP_FORWARD") || n.starts_with("JUMP_BACKWARD") || n == "JUMP_ABSOLUTE" }
 fn is_fork(n: &str) -> bool { n.starts_with("POP_JUMP_IF") || n.starts_with("JUMP_IF") || n.starts_with("FOR_ITER") || n.starts_with("SEND") }
-
-/// CPython, as a table. The order is the judgement: a fork is read before a
-/// store because `FOR_ITER` both branches and binds, and it is the branch that
-/// decides the shape of the word.
-pub const CPYTHON: crate::lift::Isa<'static> = crate::lift::Isa {
-    name: "cpython",
-    rules: &[
-        crate::lift::Rule::stem("POP_JUMP_IF", FSPLIT),
-        crate::lift::Rule::stem("JUMP_IF", FSPLIT),
-        crate::lift::Rule::stem("FOR_ITER", FSPLIT),
-        crate::lift::Rule::stem("SEND", FSPLIT),
-        crate::lift::Rule::stem("STORE_FAST", IFIX),
-        crate::lift::Rule::exact("STORE_GLOBAL", IFIX),
-        crate::lift::Rule::exact("STORE_DEREF", IFIX),
-        crate::lift::Rule::exact("STORE_NAME", IFIX),
-        crate::lift::Rule::exact("STORE_ATTR", IFIX),
-        crate::lift::Rule::exact("STORE_SUBSCR", IFIX),
-        crate::lift::Rule::exact("STORE_SLICE", IFIX),
-        crate::lift::Rule::stem("CALL", AFWD),
-        crate::lift::Rule::stem("RETURN_", TANCH),
-    ],
-};
+fn is_store(n: &str) -> bool {
+    matches!(n, "STORE_FAST"|"STORE_GLOBAL"|"STORE_DEREF"|"STORE_NAME"|"STORE_ATTR"|"STORE_SUBSCR"|"STORE_SLICE")
+        || n.starts_with("STORE_FAST_")
+}
+fn is_call(n: &str) -> bool { n.starts_with("CALL") }
 
 /// Offsets where control converges from two or more predecessors.
 ///
@@ -119,10 +102,15 @@ pub fn merges(ins: &[Ins]) -> Vec<usize> {
 pub fn lift(code: &[u8]) -> Vec<char> {
     let ins = decode(code);
     let m = merges(&ins);
-    let steps: alloc::vec::Vec<crate::lift::Step> = ins.iter()
-        .map(|i| crate::lift::Step::new(i.name, m.binary_search(&i.offset).is_ok()))
-        .collect();
-    crate::lift::lift_with(&CPYTHON, &steps)
+    let mut w = alloc::vec![VINIT];
+    for i in &ins {
+        if m.binary_search(&i.offset).is_ok() { w.push(FFUSE); }
+        if is_fork(i.name) { w.push(FSPLIT); }
+        else if is_store(i.name) { w.push(IFIX); }
+        else if is_call(i.name) { w.push(AFWD); }
+        else if is_return(i.name) { w.push(TANCH); }
+    }
+    w
 }
 
 // ── the container ────────────────────────────────────────────────────────────

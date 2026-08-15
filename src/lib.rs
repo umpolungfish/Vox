@@ -15,7 +15,6 @@ pub mod vox;
 pub mod vox_decode;
 pub mod lanes;
 pub mod genetic;
-pub mod lift;
 pub mod pyc;
 pub mod pyc_table;
 pub mod genetic_table;

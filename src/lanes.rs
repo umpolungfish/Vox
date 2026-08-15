@@ -7,51 +7,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::collections::BTreeMap;
-use crate::vox::{TANCH, AFWD, FSPLIT, IFIX};
-use crate::lift::{Isa, Rule, Step, lift_with};
-
-/// The EVM, as a table. JUMP moves control but commits nothing and does no
-/// work, so no rule names it and it lifts to nothing; its effect on the word is
-/// the merge it creates at the JUMPDEST it reaches, which the reader places.
-pub const EVM: Isa<'static> = Isa {
-    name: "evm",
-    rules: &[
-        Rule::exact("JUMPI", FSPLIT),
-        Rule::exact("SSTORE", IFIX),
-        Rule::exact("SLOAD", AFWD),
-        Rule::exact("CALLDATALOAD", AFWD),
-        Rule::exact("ADD", AFWD),
-        Rule::exact("SUB", AFWD),
-        Rule::exact("LT", AFWD),
-        Rule::exact("GT", AFWD),
-        Rule::exact("EQ", AFWD),
-        Rule::exact("ISZERO", AFWD),
-        Rule::exact("GAS", AFWD),
-        Rule::exact("PC", AFWD),
-        Rule::exact("CALL", AFWD),
-        Rule::exact("CALLCODE", AFWD),
-        Rule::exact("DELEGATECALL", AFWD),
-        Rule::exact("STATICCALL", AFWD),
-        Rule::exact("STOP", TANCH),
-        Rule::exact("RETURN", TANCH),
-        Rule::exact("REVERT", TANCH),
-    ],
-};
-
-/// WASM, as a table. `block`, `loop` and `end` shape where merges fall but lift
-/// to nothing themselves; the reader walks the control stack to place them.
-pub const WASM: Isa<'static> = Isa {
-    name: "wasm",
-    rules: &[
-        Rule::exact("if", FSPLIT),
-        Rule::exact("br", FSPLIT),
-        Rule::exact("return", TANCH),
-        Rule::exact("store", IFIX),
-        Rule::exact("global.set", IFIX),
-        Rule::exact("call", AFWD),
-        Rule::exact("call_indirect", AFWD),
-    ],
-};
+use crate::vox::{VINIT, TANCH, AFWD, FSPLIT, FFUSE, IFIX};
 
 fn from_hex(s: &str) -> Vec<u8> {
     let mut out = Vec::new();
@@ -77,6 +33,10 @@ fn evm_name(op: u8) -> &'static str {
         0x01 => "ADD", 0x03 => "SUB", 0x10 => "LT", 0x11 => "GT", 0x14 => "EQ", 0x15 => "ISZERO",
         _ => "OP",
     }
+}
+fn evm_work(n: &str) -> bool {
+    matches!(n, "SLOAD"|"CALLDATALOAD"|"ADD"|"SUB"|"LT"|"GT"|"EQ"|"ISZERO"|"GAS"|"PC"
+        |"CALL"|"CALLCODE"|"DELEGATECALL"|"STATICCALL")
 }
 fn evm_halt(n: &str) -> bool { matches!(n, "STOP"|"RETURN"|"REVERT"|"JUMP") }
 
@@ -104,9 +64,6 @@ fn parse_evm(bytes: &[u8]) -> Vec<EvmIns> {
 }
 
 fn lift_evm(instrs: &[EvmIns]) -> Vec<char> {
-    // Where control converges: an offset reached by a fall-through and by a
-    // jump, or by two jumps. Only a JUMPDEST can be jumped to, so only a
-    // JUMPDEST can carry the merge.
     let mut succ_count: BTreeMap<usize, u32> = BTreeMap::new();
     for (idx, ins) in instrs.iter().enumerate() {
         if !evm_halt(&ins.name) && idx + 1 < instrs.len() {
@@ -116,11 +73,16 @@ fn lift_evm(instrs: &[EvmIns]) -> Vec<char> {
             if let Some(t) = ins.target { *succ_count.entry(t).or_insert(0) += 1; }
         }
     }
-    let steps: Vec<Step> = instrs.iter().map(|ins| Step::new(
-        ins.name.as_str(),
-        ins.name == "JUMPDEST" && succ_count.get(&ins.off).copied().unwrap_or(0) >= 2,
-    )).collect();
-    lift_with(&EVM, &steps)
+    let mut word = alloc::vec![VINIT];
+    for ins in instrs {
+        let nm = ins.name.as_str();
+        if nm == "JUMPDEST" && succ_count.get(&ins.off).copied().unwrap_or(0) >= 2 { word.push(FFUSE); }
+        if nm == "JUMPI" { word.push(FSPLIT); }
+        else if nm == "SSTORE" { word.push(IFIX); }
+        else if evm_work(nm) { word.push(AFWD); }
+        else if matches!(nm, "STOP"|"RETURN"|"REVERT") { word.push(TANCH); }
+    }
+    word
 }
 
 /// Lift an EVM bytecode hex string to a glyph word.
@@ -160,28 +122,25 @@ fn parse_wasm_body(bytes: &[u8]) -> Vec<&'static str> {
 }
 
 fn lift_wasm(names: &[&str]) -> Vec<char> {
-    // WASM nests rather than addresses, so its merges are read off a control
-    // stack instead of a predecessor count: an `end` closes an `if` whose arms
-    // both reach it, and an arm that returned or branched away escaped, so the
-    // fork it opened never rejoins and the `end` is not a merge.
+    let mut word = alloc::vec![VINIT];
     let mut ctrl: Vec<(&str, bool)> = Vec::new();  // (kind, escaped)
-    let mut steps: Vec<Step> = Vec::new();
     for &nm in names {
-        let mut joined = false;
         match nm {
             "block" | "loop" => ctrl.push((nm, false)),
-            "if" => ctrl.push(("if", false)),
+            "if" => { ctrl.push(("if", false)); word.push(FSPLIT); }
             "return" | "br" => {
+                word.push(if nm == "return" { TANCH } else { FSPLIT });
                 for c in ctrl.iter_mut().rev() { if c.0 == "if" { c.1 = true; break; } }
             }
             "end" => {
-                if let Some((k, escaped)) = ctrl.pop() { joined = k == "if" && !escaped; }
+                if let Some((k, escaped)) = ctrl.pop() { if k == "if" && !escaped { word.push(FFUSE); } }
             }
+            "store" | "global.set" => word.push(IFIX),
+            "call" | "call_indirect" => word.push(AFWD),
             _ => {}
         }
-        steps.push(Step::new(nm, joined));
     }
-    lift_with(&WASM, &steps)
+    word
 }
 
 /// Lift a WASM function-body hex string to a glyph word.
