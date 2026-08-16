@@ -1,21 +1,13 @@
-vox glyco: locate the boundary interfaces on a peptide
+The PDB reader accepts one-letter residue names
 
-A glycopeptide is a boundary interface in the corpus's own sense — the peptide is
-the bulk, the glycan is the environment-facing boundary, and the sequon is the seam
-between them. Vox read the bulk (vox aa/fasta/pdb) and nothing of the interface.
+The odot and DARPin designs in red-hot_rebis name residues in one letter
+(ATOM … N M A 1, resName M) where a standard PDB names them in three (MET). The
+reader knew only three, so it read those files as empty and a sweep scored them a
+blank word — seventeen of sixty-eight, which is a reader gap wearing the look of a
+result. It now takes the three-letter reading where it maps and accepts a lone
+alphabetic residue name as already one-letter, recovering all seventeen.
 
-vox glyco names the interfaces, which is the half that reads off the peptide with
-no new grounding. N-linked sequons are the determinate case: Asn-X-[Ser/Thr] with
-X≠Pro, and Asn is ∈ — the recognition gate — so an N-site is an ∈ in the peptide
-word that opens a sequon, reported with its position and motif. O-linked candidates
-(Ser/Thr) are admitted but flagged as what they are: not determinate, and
-GROUND-LAYER, so they carry no mark in the word and are invisible to a reading of
-the backbone alone. That invisibility is a fact about the code worth stating, not a
-gap.
-
-Held back deliberately, and named in the output rather than faked: the glycan TREE
-at each site is a branched word of its own, and lifting it needs the
-monosaccharides grounded — GlcNAc, Man, Gal, Fuc, sialic acid — which is a job for
-the chem pipeline (imas/fg_exhaustive already maps functional groups to opcodes),
-not a sugar→mark table stipulated by hand. Hand-imscribing that table would be the
-law_never_hand_imscribe violation; it goes through the pipeline next.
+Confirmed against the sweep: the only blanks left are three copies of a poly-alanine
+scaffold (antidote_fusion.pdb, all ALA), which genuinely carry no promoted residue
+— a coordinate placeholder with no sequence, correctly read as no word rather than
+forced into one.

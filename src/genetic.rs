@@ -134,7 +134,16 @@ pub fn protein_from_pdb(text: &str) -> String {
         let atom = line.get(12..16).map(|s| s.trim()).unwrap_or("");
         if atom != "CA" { continue; }
         let res = line.get(17..20).map(|s| s.trim()).unwrap_or("");
-        if let Some(c) = three_to_one(res) { seq.push(c); }
+        // Most PDBs name residues in three letters (MET); the odot/DARPin designs
+        // here name them in one (M). Take the three-letter reading when it maps,
+        // else accept a lone alphabetic character as already a one-letter code.
+        if let Some(c) = three_to_one(res) {
+            seq.push(c);
+        } else if res.len() == 1 {
+            if let Some(ch) = res.chars().next() {
+                if ch.is_ascii_alphabetic() { seq.push(ch.to_ascii_uppercase()); }
+            }
+        }
     }
     seq
 }
