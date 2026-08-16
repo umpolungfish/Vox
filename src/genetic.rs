@@ -77,3 +77,70 @@ pub fn lift_rna(seq: &str) -> Transcript {
     }
     t
 }
+
+/// The one-letter code of a promoted amino acid, or None for the ground layer.
+/// A protein arrives as residues, one layer past the codons `lift_rna` reads —
+/// the codon degeneracy is already collapsed, so this reads the sequence directly.
+/// The eight ground-layer amino acids (A G P T S R L V) activate no axis and are
+/// silent, exactly as their codons are in the transcript.
+fn one_letter_aa(c: char) -> Option<&'static str> {
+    Some(match c.to_ascii_uppercase() {
+        'M' => "Met", 'W' => "Trp", 'C' => "Cys", 'Y' => "Tyr",
+        'F' => "Phe", 'I' => "Ile", 'N' => "Asn", 'Q' => "Gln",
+        'H' => "His", 'D' => "Asp", 'K' => "Lys", 'E' => "Glu",
+        // ground layer — real residues, no promoted axis:
+        'A' | 'G' | 'P' | 'T' | 'S' | 'R' | 'L' | 'V' => return None,
+        _ => return None,
+    })
+}
+
+/// Three-letter residue name (PDB ATOM records, some FASTA) to one-letter.
+fn three_to_one(res: &str) -> Option<char> {
+    Some(match res.to_ascii_uppercase().as_str() {
+        "MET" => 'M', "TRP" => 'W', "CYS" => 'C', "TYR" => 'Y', "PHE" => 'F',
+        "ILE" => 'I', "ASN" => 'N', "GLN" => 'Q', "HIS" => 'H', "ASP" => 'D',
+        "LYS" => 'K', "GLU" => 'E', "ALA" => 'A', "GLY" => 'G', "PRO" => 'P',
+        "THR" => 'T', "SER" => 'S', "ARG" => 'R', "LEU" => 'L', "VAL" => 'V',
+        _ => return None,
+    })
+}
+
+/// A protein — an amino-acid sequence — lifted to a word in the twelve. The same
+/// act as `lift_rna` one layer up: each promoted residue emits its glyph, the
+/// ground layer is silent. One-letter input; a residue that is not an amino acid
+/// (a gap, an X, whitespace) is skipped.
+pub fn lift_protein(seq: &str) -> Transcript {
+    let mut t = Transcript { word: Vec::new(), reading: Vec::new(), stopped: None, start: 0, implicit_frame: true };
+    for (i, c) in seq.chars().enumerate() {
+        if c.is_whitespace() { continue; }
+        if let Some(aa) = one_letter_aa(c) {
+            if let Some((glyph, axis)) = aa_glyph(aa) {
+                t.word.push(glyph);
+                t.reading.push(Read { codon: format!("{}", i + 1), aa, glyph, axis });
+            }
+        }
+    }
+    t
+}
+
+/// Pull the residue sequence out of a PDB, one letter per residue, reading the
+/// CA atom of each so an all-atom file yields one residue per position rather than
+/// one per atom. Chain breaks are not marked — the fold is one word.
+pub fn protein_from_pdb(text: &str) -> String {
+    let mut seq = String::new();
+    for line in text.lines() {
+        if !(line.starts_with("ATOM") || line.starts_with("HETATM")) { continue; }
+        if line.len() < 20 { continue; }
+        let atom = line.get(12..16).map(|s| s.trim()).unwrap_or("");
+        if atom != "CA" { continue; }
+        let res = line.get(17..20).map(|s| s.trim()).unwrap_or("");
+        if let Some(c) = three_to_one(res) { seq.push(c); }
+    }
+    seq
+}
+
+/// FASTA to a bare sequence: drop the header lines, concatenate the rest.
+pub fn protein_from_fasta(text: &str) -> String {
+    text.lines().filter(|l| !l.starts_with('>')).collect::<Vec<_>>().join("")
+}
+

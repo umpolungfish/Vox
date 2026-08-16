@@ -1,9 +1,31 @@
-verdict --tsv, so a sweep is one process and one authority
+Vox compiles and debugs proteins, not only genes
 
-A proof sweep hands over thousands of lifted words at once, and `verdict -` takes
-one word per process. The shell loop that resulted did its own parsing of my
-output to recover the letter, which is the shape of a second implementation of
-the verdict growing on the caller's side. `vox verdict --tsv <file>` reads
-name<TAB>word and writes name<TAB>verdict<TAB>length in input order, with the
-tally on stderr. A blank word reports `-` rather than a verdict, since a word
-nobody lifted is not a word that failed to close.
+The genetic lane read a coding sequence — codons to the twelve marks, one glyph per
+promoted amino acid. A protein is that sequence one layer up, the codon degeneracy
+already collapsed, so it lifts more directly. Vox already carried the bijection: the
+Lean-derived AA_GLYPH, twelve promoted amino acids on the twelve axes, agreeing with
+red-hot_rebis's own AA→primitive map on the promoted set (Met Trp Cys Tyr Phe Ile
+Asn Gln His Asp Lys Glu). What was missing was the door.
+
+Three verbs, all lifting to the same word the rna lane produces and verdicting the
+same closure law:
+
+  vox aa <SEQ>       one-letter residues → word
+  vox fasta <FILE>   protein from FASTA (headers dropped)
+  vox pdb <FILE>     protein from a PDB, one residue per CA so an all-atom file
+                     yields the sequence and not one glyph per atom
+
+The eight ground-layer amino acids (A G P T S R L V) are silent, exactly as their
+codons are in a transcript — a fact of the code, not a gap in the lift. A
+three-letter table backs the PDB reader.
+
+Compiling is the lift; debugging is the instruments on the result. rebis_chain_protein.pdb
+lifts 61 promoted residues to a fold word that verdicts F — more ∋ than ∈, an
+over-fused fold, which banked and insert then qualify (the weight survives its live
+clears; nothing is exposed). Insulin's A-chain lifts to a T-closing word. The fold
+is now a word, and every word instrument — rotat, weight, banked, trans, frames —
+reads it.
+
+Caution for the test data: red-hot_rebis/fasta/Insulin.fasta is a NUCLEOTIDE
+sequence despite the name, so it belongs to `vox rna`, not `vox aa`; handed to the
+protein lane its bare AUGC read as residues and only C promoted.

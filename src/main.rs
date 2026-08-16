@@ -23,6 +23,9 @@ fn usage() {
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
     eprintln!("  vox rna <seq>             lift a coding sequence, verdict the transcript");
+    eprintln!("  vox aa <seq>              lift a protein (one-letter residues), verdict the fold");
+    eprintln!("  vox fasta <file>          lift a protein from FASTA");
+    eprintln!("  vox pdb <file>            lift a protein from a PDB (CA per residue)");
     eprintln!("  vox self                  lift V⊙x's own image and read it back");
     eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
@@ -54,6 +57,24 @@ fn rna(seq: &str) -> i32 {
         Some(s) => println!("stop     {}", s),
         None => println!("stop     (none: the sequence ran out before a stop)"),
     }
+    println!("verdict  {}", vox::verdict(&t.word));
+    0
+}
+
+fn protein(seq: &str, source: &str) -> i32 {
+    let t = genetic::lift_protein(seq);
+    if t.word.is_empty() {
+        eprintln!("no promoted residue in that sequence (the eight ground-layer amino acids are silent)");
+        return 1;
+    }
+    println!("{:<8}{:<6}{:<16}{}", "POS", "AA", "AXIS", "GLYPH");
+    for r in &t.reading {
+        println!("{:<8}{:<6}{:<16}{}", r.codon, r.aa, r.axis, r.glyph);
+    }
+    println!();
+    println!("source   {}", source);
+    println!("residues {} promoted of the sequence", t.reading.len());
+    println!("word     {}", vox::glyphs(&t.word));
     println!("verdict  {}", vox::verdict(&t.word));
     0
 }
@@ -401,6 +422,24 @@ fn main() {
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
         Some("rna") | Some("--rna") => {
             if args.len() < 2 { eprintln!("vox rna <sequence>"); 1 } else { rna(&args[1..].join("")) }
+        }
+        Some("aa") | Some("protein") => {
+            if args.len() < 2 { eprintln!("vox aa <one-letter amino-acid sequence>"); 1 }
+            else { protein(&args[1..].join(""), "sequence") }
+        }
+        Some("fasta") => {
+            if args.len() < 2 { eprintln!("vox fasta <file.fasta>"); 1 }
+            else { match std::fs::read_to_string(&args[1]) {
+                Ok(txt) => protein(&genetic::protein_from_fasta(&txt), &args[1]),
+                Err(e) => { eprintln!("vox fasta: {}: {}", args[1], e); 1 }
+            } }
+        }
+        Some("pdb") => {
+            if args.len() < 2 { eprintln!("vox pdb <file.pdb>"); 1 }
+            else { match std::fs::read_to_string(&args[1]) {
+                Ok(txt) => protein(&genetic::protein_from_pdb(&txt), &args[1]),
+                Err(e) => { eprintln!("vox pdb: {}: {}", args[1], e); 1 }
+            } }
         }
         Some("self") => {
             let me = std::env::current_exe().map(|p| p.display().to_string())
