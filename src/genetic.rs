@@ -144,3 +144,54 @@ pub fn protein_from_fasta(text: &str) -> String {
     text.lines().filter(|l| !l.starts_with('>')).collect::<Vec<_>>().join("")
 }
 
+/// A glycosylation site found on a peptide — the boundary interface where a glycan
+/// attaches. N-linked sites are the sequon Asn-X-[Ser/Thr] with X not Proline;
+/// O-linked sites are a Ser or Thr, reported separately because they carry no
+/// promoted glyph (both are ground-layer) and so are invisible in the word itself.
+pub struct GlycoSite {
+    pub pos: usize,          // 1-based residue index of the anchor
+    pub kind: &'static str,  // "N-linked" | "O-linked"
+    pub motif: String,       // the residues that make the site
+    pub glyph: Option<char>, // the anchor's mark, where it has one (Asn = ∈)
+}
+
+/// Locate every glycosylation boundary interface on a one-letter peptide. The
+/// glycan tree that hangs off each site is a separate object — a branched word in
+/// its own right — and needs the monosaccharides grounded before it can be lifted;
+/// this names WHERE the boundary is, which is the half that reads off the peptide
+/// with no new grounding. N-linked anchors are Asn, which is ∈ (the recognition
+/// gate), so an N-site is an ∈ in the peptide word that opens a sequon.
+pub fn glyco_sites(seq: &str) -> Vec<GlycoSite> {
+    let res: Vec<char> = seq.chars()
+        .filter(|c| c.is_ascii_alphabetic())
+        .map(|c| c.to_ascii_uppercase())
+        .collect();
+    let mut sites = Vec::new();
+    for i in 0..res.len() {
+        // N-linked sequon: N - X(≠P) - S|T
+        if res[i] == 'N' && i + 2 < res.len() && res[i + 1] != 'P'
+            && (res[i + 2] == 'S' || res[i + 2] == 'T') {
+            sites.push(GlycoSite {
+                pos: i + 1,
+                kind: "N-linked",
+                motif: res[i..=i + 2].iter().collect(),
+                glyph: aa_glyph("Asn").map(|(g, _)| g),
+            });
+        }
+    }
+    // O-linked: Ser/Thr are candidates, reported but not every S/T is glycosylated;
+    // flagged as sites the sequence ADMITS, distinct from the determinate N-sequon.
+    for i in 0..res.len() {
+        if res[i] == 'S' || res[i] == 'T' {
+            sites.push(GlycoSite {
+                pos: i + 1,
+                kind: "O-linked",
+                motif: String::from(res[i]),
+                glyph: None,
+            });
+        }
+    }
+    sites.sort_by_key(|s| s.pos);
+    sites
+}
+

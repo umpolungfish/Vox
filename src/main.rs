@@ -26,6 +26,7 @@ fn usage() {
     eprintln!("  vox aa <seq>              lift a protein (one-letter residues), verdict the fold");
     eprintln!("  vox fasta <file>          lift a protein from FASTA");
     eprintln!("  vox pdb <file>            lift a protein from a PDB (CA per residue)");
+    eprintln!("  vox glyco <seq|file>      locate the glycosylation boundary interfaces");
     eprintln!("  vox self                  lift V⊙x's own image and read it back");
     eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
@@ -76,6 +77,33 @@ fn protein(seq: &str, source: &str) -> i32 {
     println!("residues {} promoted of the sequence", t.reading.len());
     println!("word     {}", vox::glyphs(&t.word));
     println!("verdict  {}", vox::verdict(&t.word));
+    0
+}
+
+fn glyco(seq: &str, source: &str) -> i32 {
+    let t = genetic::lift_protein(seq);
+    let sites = genetic::glyco_sites(seq);
+    let n_linked: Vec<_> = sites.iter().filter(|s| s.kind == "N-linked").collect();
+    let o_linked: Vec<_> = sites.iter().filter(|s| s.kind == "O-linked").collect();
+
+    println!("source   {}", source);
+    println!("peptide  {}   ({} promoted residues, the bulk)", vox::glyphs(&t.word), t.reading.len());
+    println!("verdict  {}   (of the peptide backbone)", vox::verdict(&t.word));
+    println!();
+    println!("BOUNDARY INTERFACES — where a glycan meets the peptide:");
+    println!("  N-linked sequons (Asn-X-[Ser/Thr], X≠Pro) — determinate:");
+    if n_linked.is_empty() {
+        println!("    none");
+    } else {
+        for s in &n_linked {
+            println!("    pos {:<5} {}   anchor ∈ (recognition gate) opens the sequon", s.pos, s.motif);
+        }
+    }
+    println!("  O-linked candidates (Ser/Thr) — admitted, not determinate, and");
+    println!("  GROUND-LAYER so they carry no mark in the peptide word: {}", o_linked.len());
+    println!();
+    println!("  the glycan tree at each site is a branched word of its own; lifting it");
+    println!("  needs the monosaccharides grounded through the chem pipeline, not here.");
     0
 }
 
@@ -440,6 +468,23 @@ fn main() {
                 Ok(txt) => protein(&genetic::protein_from_pdb(&txt), &args[1]),
                 Err(e) => { eprintln!("vox pdb: {}: {}", args[1], e); 1 }
             } }
+        }
+        Some("glyco") => {
+            if args.len() < 2 { eprintln!("vox glyco <seq | file.fasta | file.pdb>"); 1 }
+            else {
+                let a = &args[1];
+                let loaded: Result<(String, String), String> = if a.ends_with(".pdb") {
+                    std::fs::read_to_string(a).map(|t| (genetic::protein_from_pdb(&t), a.clone())).map_err(|e| e.to_string())
+                } else if a.ends_with(".fasta") || a.ends_with(".fa") {
+                    std::fs::read_to_string(a).map(|t| (genetic::protein_from_fasta(&t), a.clone())).map_err(|e| e.to_string())
+                } else {
+                    Ok((args[1..].join(""), "sequence".to_string()))
+                };
+                match loaded {
+                    Ok((seq, src)) => glyco(&seq, &src),
+                    Err(e) => { eprintln!("vox glyco: {a}: {e}"); 1 }
+                }
+            }
         }
         Some("self") => {
             let me = std::env::current_exe().map(|p| p.display().to_string())
