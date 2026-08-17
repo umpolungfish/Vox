@@ -292,23 +292,56 @@ fn cyclic_pairs(word: &[char]) -> (Vec<(usize, usize)>, Vec<usize>, Vec<usize>) 
     let split_idx: Vec<usize> = (0..n).filter(|&i| word[i] == FSPLIT).collect();
     let fuse_idx: Vec<usize> = (0..n).filter(|&i| word[i] == FFUSE).collect();
     if split_idx.is_empty() && fuse_idx.is_empty() { return (Vec::new(), Vec::new(), Vec::new()); }
-    if split_idx.len() != fuse_idx.len() { return (Vec::new(), split_idx, fuse_idx); }
-    // Balanced counts: by the cycle lemma some rotation beginning at a split
-    // pairs every region without underflow. Read from there.
-    for &start in &split_idx {
-        let mut stack: Vec<usize> = Vec::new();
-        let mut pairs: Vec<(usize, usize)> = Vec::new();
-        let mut underflowed = false;
-        for off in 0..n {
-            let i = (start + off) % n;
-            if word[i] == FSPLIT { stack.push(i); }
-            else if word[i] == FFUSE {
-                match stack.pop() { Some(si) => pairs.push((si, i)), None => { underflowed = true; break; } }
-            }
-        }
-        if !underflowed && stack.is_empty() { return (pairs, Vec::new(), Vec::new()); }
+    // Read from the index at which the running balance of splits against fuses
+    // is least. From there the balance never falls below zero, so no fuse finds
+    // the stack empty and the pairing is total on the smaller species: what is
+    // left over is the surplus alone, and at most one side of it is non-empty.
+    // On balanced counts this is the rotation that closes every region.
+    let mut balance: i64 = 0;
+    let mut least: i64 = 0;
+    let mut start = 0usize;
+    for i in 0..n {
+        balance += if word[i] == FSPLIT { 1 } else if word[i] == FFUSE { -1 } else { 0 };
+        if balance < least { least = balance; start = (i + 1) % n; }
     }
-    (Vec::new(), split_idx, fuse_idx)
+    let mut stack: Vec<usize> = Vec::new();
+    let mut pairs: Vec<(usize, usize)> = Vec::new();
+    let mut un_fuse: Vec<usize> = Vec::new();
+    for off in 0..n {
+        let i = (start + off) % n;
+        if word[i] == FSPLIT { stack.push(i); }
+        else if word[i] == FFUSE {
+            match stack.pop() { Some(si) => pairs.push((si, i)), None => un_fuse.push(i) }
+        }
+    }
+    stack.sort_unstable();
+    un_fuse.sort_unstable();
+    (pairs, stack, un_fuse)
+}
+
+/// One region of a word's pairing: the division, the rejoining that answers it,
+/// what stands between them, and whether any of that does work.
+pub struct Region {
+    pub split: usize,
+    pub fuse: usize,
+    pub interior: String,
+    pub substantial: bool,
+}
+
+/// The pairing of a word, reported. The regions in the order the reading forms
+/// them, and the divisions and rejoinings the reading leaves unanswered.
+pub fn pairing(word: &[char]) -> (Vec<Region>, Vec<usize>, Vec<usize>) {
+    let (pairs, un_split, un_fuse) = cyclic_pairs(word);
+    let regions = pairs.into_iter().map(|(si, fj)| {
+        let inner = cyclic_interior(word, si, fj);
+        Region {
+            split: si,
+            fuse: fj,
+            substantial: inner.iter().copied().any(is_work),
+            interior: inner.into_iter().collect(),
+        }
+    }).collect();
+    (regions, un_split, un_fuse)
 }
 
 /// Glyphs strictly inside a region, walking forward around the cycle.

@@ -19,10 +19,11 @@ fn usage() {
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
+    eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
-    eprintln!("  vox rna <seq>             lift a coding sequence, verdict the transcript");
+    eprintln!("  vox rna <seq> [--dialect mito]   lift a coding sequence, verdict the transcript");
     eprintln!("  vox aa <seq>              lift a protein (one-letter residues), verdict the fold");
     eprintln!("  vox fasta <file>          lift a protein from FASTA");
     eprintln!("  vox pdb <file>            lift a protein from a PDB (CA per residue)");
@@ -40,9 +41,15 @@ fn usage() {
 /// A mode-aware linear-sweep audit: decode every executable byte at the given
 /// width, split into functions at each terminal, verdict each. Used where
 /// recursive descent's length decoder does not apply (32-bit x86).
-/// Read a coding sequence as a word in the twelve and verdict it.
-fn rna(seq: &str) -> i32 {
-    let t = genetic::lift_rna(seq);
+/// Read a coding sequence as a word in the twelve and verdict it. The dialect
+/// names the code table: the standard one, or a mitochondrial gene, where UGA
+/// delivers tryptophan rather than terminating.
+fn rna(seq: &str, dialect: &str) -> i32 {
+    let t = if dialect.is_empty() {
+        genetic::lift_rna(seq)
+    } else {
+        genetic::lift_rna_dialect(seq, dialect)
+    };
     if t.word.is_empty() {
         eprintln!("no promoted codon in that sequence");
         return 1;
@@ -52,6 +59,8 @@ fn rna(seq: &str) -> i32 {
         println!("{:<8}{:<6}{:<16}{}", r.codon, r.aa, r.axis, r.glyph);
     }
     println!();
+    println!("dialect  {}", if dialect.is_empty() { "standard" } else { dialect });
+    println!("codons   {} promoted of {} read", t.word.len(), t.reading.len());
     println!("frame    {} at offset {}", if t.implicit_frame { "no AUG, read from the start" } else { "AUG" }, t.start);
     println!("word     {}", vox::glyphs(&t.word));
     match t.stopped {
@@ -438,6 +447,31 @@ fn main() {
                 0
             }
         }
+        Some("pairs") | Some("pairing") => {
+            if args.len() < 2 { eprintln!("vox pairs <glyph-word>"); 1 }
+            else {
+                let word: Vec<char> = args[1..].join("").chars().collect();
+                let (regions, un_split, un_fuse) = vox::pairing(&word);
+                println!("{:<7}{:<7}{:<7}{:<6}{}", "OPEN", "CLOSE", "SPAN", "WORK", "INTERIOR");
+                for r in &regions {
+                    let span = (r.fuse + word.len() - r.split) % word.len();
+                    println!("{:<7}{:<7}{:<7}{:<6}{}", r.split, r.fuse, span,
+                        if r.substantial { "yes" } else { "no" }, r.interior);
+                }
+                println!();
+                println!("letters      {}", word.len());
+                println!("regions      {} paired, {} substantial", regions.len(),
+                    regions.iter().filter(|r| r.substantial).count());
+                let ds: Vec<String> = un_split.iter().map(|i| i.to_string()).collect();
+                let fs: Vec<String> = un_fuse.iter().map(|i| i.to_string()).collect();
+                println!("unanswered   {} division(s) at {}", un_split.len(),
+                    if ds.is_empty() { "-".to_string() } else { ds.join(",") });
+                println!("unopened     {} rejoining(s) at {}", un_fuse.len(),
+                    if fs.is_empty() { "-".to_string() } else { fs.join(",") });
+                println!("verdict      {}", vox::verdict(&word));
+                0
+            }
+        }
         Some("classify") => {
             if args.len() < 2 { eprintln!("vox classify <mnemonic> [operands]"); 1 }
             else {
@@ -449,7 +483,17 @@ fn main() {
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
         Some("rna") | Some("--rna") => {
-            if args.len() < 2 { eprintln!("vox rna <sequence>"); 1 } else { rna(&args[1..].join("")) }
+            if args.len() < 2 { eprintln!("vox rna <sequence> [--dialect mito]"); 1 }
+            else {
+                let mut dialect = String::new();
+                let mut seq = String::new();
+                let mut it = args[1..].iter();
+                while let Some(a) = it.next() {
+                    if a == "--dialect" { dialect = it.next().cloned().unwrap_or_default(); }
+                    else { seq.push_str(a); }
+                }
+                rna(&seq, &dialect)
+            }
         }
         Some("aa") | Some("protein") => {
             if args.len() < 2 { eprintln!("vox aa <one-letter amino-acid sequence>"); 1 }

@@ -1,21 +1,14 @@
-V⊙x reads the other lanes a biomolecule arrives in
+Pair unbalanced words from the least balance, and expose the pairing
 
-A gene was the only text it could read. A peptide arrives as residues, a deposited
-structure as coordinates, and a small molecule as SMILES, and each of them lifts to
-the same twelve and is verdicted by the same engine.
+cyclic_pairs gave up when the fork and fuse counts differed and reported every
+fork and every fuse unmatched. The surplus lemma says otherwise: read from the
+index where the running balance is least and no fuse finds the stack empty, so
+the pairing is total on the smaller species and what is left over is the surplus
+alone, one side of it empty. On mt-co1 that is six regions answered and eleven
+divisions standing, not seventeen and six. Verdicts are unchanged across the
+sixty-five word protein sweep and across ls, dash and gzip.
 
---peptide takes one-letter or spaced three-letter codes. --pdb takes a structure and
-reads one residue per resolved alpha carbon, with --chain to restrict it, which is
-reading what the lossy render kept. --smiles types a molecule by functional-group
-census, chirality-aware, and reports the CIP word on chirality separately, since an
-achiral census cannot see what distinguishes stereoisomers.
-
-And the reading now takes a dialect. The vertebrate mitochondrial code differs from
-the standard one in four codons, and reading a mitochondrial gene with the standard
-table terminates it early: cytochrome c oxidase subunit I stops after three marks and
-reads N, and in its own dialect it runs the full length and reads B. One of the four
-differences matters to the alphabet directly, since UGA is a terminator in the
-standard code and tryptophan here, which is the mark that closes a reading.
-
-The Rust core carries the same two: lift_peptide, and lift_rna_dialect with the
-override table beside it, so the kernel reads what the Python lane reads.
+vox pairs <word> prints the pairing: every region with what stands inside it and
+whether any of it works, then what is left unanswered or unopened. vox rna takes
+--dialect, so a mitochondrial gene reads with UGA as tryptophan from the command
+line instead of terminating after twenty-five residues.
