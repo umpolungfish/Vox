@@ -494,12 +494,14 @@ def _composition(path: str) -> dict:
 # that verdicts x86 verdicts the transcript.
 
 
-def lift_rna(seq: str):
+def lift_rna(seq: str, dialect: str = "standard"):
     """An RNA or DNA sequence → (word, reading). Reads from the first AUG in
     frame, stops at a stop codon, and emits a glyph only where the codon names
     a promoted amino acid; the ground layer activates no axis and is silent,
     which is a fact of the code and not a gap in the lift."""
     import genetic_table as gt
+    table = dict(gt.CODON)
+    table.update(_DIALECTS.get(dialect, {}))
     seq = "".join(c for c in seq.upper() if c in "ACGTU").replace("T", "U")
     start = seq.find("AUG")
     if start < 0:
@@ -507,7 +509,7 @@ def lift_rna(seq: str):
     word, reading, stopped = [], [], None
     for k in range(start, len(seq) - 2, 3):
         codon = seq[k:k + 3]
-        kind, val = gt.CODON.get(codon, (None, None))
+        kind, val = table.get(codon, (None, None))
         if kind == "stop":
             stopped = val
             break
@@ -516,6 +518,122 @@ def lift_rna(seq: str):
             word.append(glyph)
             reading.append((codon, val, glyph, family))
     return word, reading, stopped
+
+
+# ── the other lanes a biomolecule arrives in ─────────────────────────────────
+# A gene is not the only text. A peptide arrives as residues, a small molecule
+# as SMILES, a deposited structure as coordinates, and a glycan as a tree. Each
+# lifts to the same twelve and is verdicted by the same engine.
+
+_ONE_TO_THREE = {
+    "A": "Ala", "R": "Arg", "N": "Asn", "D": "Asp", "C": "Cys", "Q": "Gln",
+    "E": "Glu", "G": "Gly", "H": "His", "I": "Ile", "L": "Leu", "K": "Lys",
+    "M": "Met", "F": "Phe", "P": "Pro", "S": "Ser", "T": "Thr", "W": "Trp",
+    "Y": "Tyr", "V": "Val",
+}
+_THREE_TO_ONE = {v: k for k, v in _ONE_TO_THREE.items()}
+
+# The vertebrate mitochondrial code differs from the standard one in four
+# codons, and reading a mitochondrial gene with the standard table terminates it
+# early. UGA is a terminator in the standard code and tryptophan here, which is
+# the mark that closes a reading.
+_DIALECTS = {
+    "standard": {},
+    "mitochondrial": {
+        "AUA": ("aa", "Met"),
+        "UGA": ("aa", "Trp"),
+        "AGA": ("stop", "AGA"),
+        "AGG": ("stop", "AGG"),
+    },
+}
+
+
+def lift_peptide(seq: str):
+    """A residue sequence → (word, reading). Accepts one-letter or
+    whitespace-separated three-letter codes."""
+    import genetic_table as gt
+    tokens = seq.split()
+    if len(tokens) > 1 and all(len(t) == 3 for t in tokens):
+        residues = [t[:1].upper() + t[1:].lower() for t in tokens]
+    else:
+        residues = [_ONE_TO_THREE.get(c.upper()) for c in seq if c.isalpha()]
+    word, reading = [], []
+    for aa in residues:
+        if aa and aa in gt.AA_GLYPH:
+            glyph, family, _slot = gt.AA_GLYPH[aa]
+            word.append(glyph)
+            reading.append((_THREE_TO_ONE.get(aa, "?"), aa, glyph, family))
+    return word, reading
+
+
+def lift_pdb(path: str, chain: str = None):
+    """A deposited structure → (word, reading), one residue per resolved
+    alpha carbon. The model is a lossy render of the sequence; this reads what
+    the render kept."""
+    seen, residues = set(), []
+    with open(path, encoding="utf-8", errors="ignore") as fh:
+        for line in fh:
+            if not line.startswith("ATOM") or line[12:16].strip() != "CA":
+                continue
+            ch = line[21]
+            if chain and ch != chain:
+                continue
+            key = (ch, line[22:27])
+            if key in seen:
+                continue
+            seen.add(key)
+            residues.append(line[17:20].strip().title())
+    import genetic_table as gt
+    word, reading = [], []
+    for aa in residues:
+        if aa in gt.AA_GLYPH:
+            glyph, family, _ = gt.AA_GLYPH[aa]
+            word.append(glyph)
+            reading.append((_THREE_TO_ONE.get(aa, "?"), aa, glyph, family))
+    return word, reading
+
+
+def lift_smiles(smiles: str):
+    """A molecule → (word, reading) by functional-group census.
+
+    A small molecule has no residue order to walk, so its word is the marks its
+    groups carry, in the canonical order of the twelve. Chirality, which an
+    achiral census cannot see, is reported separately as the CIP word on ⊥.
+    """
+    try:
+        from rdkit import Chem, RDLogger
+        RDLogger.DisableLog("rdApp.*")
+    except ImportError:
+        raise SystemExit("vox: reading a molecule needs rdkit (uv pip install rdkit)")
+    import sys as _sys
+    from pathlib import Path as _Path
+    rebis = _Path.home() / "imsgct" / "red-hot_rebis"
+    if rebis.exists() and str(rebis) not in _sys.path:
+        _sys.path.insert(0, str(rebis))
+    from imas import fg_exhaustive as fe
+
+    names = ["VINIT", "TANCH", "AFWD", "AREV", "CLINK", "IMSCRIB",
+             "FSPLIT", "FFUSE", "EVALT", "EVALF", "ENGAGR", "IFIX"]
+    marks = ["⊢", "⊣", "≻", "≺", "⋈", "⊙", "∈", "∋", "⊤", "⊥", "⊞", "◻"]
+    order = ["⊢", "⊣", "≻", "≺", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"]
+    token_mark = {getattr(fe, n): m for n, m in zip(names, marks) if hasattr(fe, n)}
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise SystemExit(f"vox: '{smiles}' is not a molecule rdkit can read")
+    hits = {}
+    for name, entry in fe.SMARTS_PATTERNS.items():
+        sma, tok = entry[0], entry[1]
+        patt = Chem.MolFromSmarts(sma)
+        if patt is not None and mol.HasSubstructMatch(patt, useChirality=True):
+            hits.setdefault(token_mark.get(tok, "?"), []).append(name)
+    word = [m for m in order if m in hits]
+    Chem.AssignStereochemistry(mol, cleanIt=True, force=True)
+    chirality = "".join(
+        "1" if a.GetPropsAsDict().get("_CIPCode") == "R" else "0"
+        for a in mol.GetAtoms() if a.HasProp("_CIPCode"))
+    reading = [(m, ", ".join(sorted(hits[m])[:3])) for m in word]
+    return word, reading, chirality
 
 
 # A packed/installer binary is data on the outside, program on the inside —
@@ -951,12 +1069,60 @@ def main():
                          "integer arguments follow as --args")
     ap.add_argument("--args", metavar="N,N", default="",
                     help="comma-separated integer arguments for --run")
+    ap.add_argument("--peptide", metavar="SEQ",
+                    help="lift a residue sequence (one-letter, or spaced three-letter)")
+    ap.add_argument("--pdb", metavar="FILE",
+                    help="lift a deposited structure, one residue per resolved alpha carbon")
+    ap.add_argument("--chain", metavar="ID", default=None,
+                    help="restrict --pdb to one chain")
+    ap.add_argument("--smiles", metavar="SMILES",
+                    help="type a molecule by functional-group census, with its chirality word")
+    ap.add_argument("--code", metavar="DIALECT", default="standard",
+                    choices=sorted(_DIALECTS),
+                    help="genetic code for --rna: standard or mitochondrial")
     ap.add_argument("--selftest", action="store_true", help="run the EVM+WASM vuln/safe self-test")
     args = ap.parse_args()
     if args.selftest:
         _selftest(); return
+    if args.peptide:
+        word, reading = lift_peptide(args.peptide)
+        if not word:
+            ap.error("no promoted residue in that sequence")
+        print(f"{'CODE':<8}{'AA':<6}{'AXIS':<16}GLYPH")
+        for one, aa, glyph, family in reading:
+            print(f"{one:<8}{aa:<6}{family:<16}{glyph}")
+        print()
+        print("word    ", "".join(word))
+        v, why = verdict(word)
+        print("verdict ", v, "—", why)
+        return
+
+    if args.pdb:
+        word, reading = lift_pdb(args.pdb, args.chain)
+        if not word:
+            ap.error("no promoted residue in that structure")
+        print(f"structure {args.pdb}"
+              + (f" chain {args.chain}" if args.chain else ""))
+        print(f"promoted  {len(word)} residues")
+        print("word    ", "".join(word))
+        v, why = verdict(word)
+        print("verdict ", v, "—", why)
+        return
+
+    if args.smiles:
+        word, reading, chirality = lift_smiles(args.smiles)
+        print(f"molecule {args.smiles}")
+        for mark, groups in reading:
+            print(f"  {mark}  {groups}")
+        print()
+        print("census  ", "".join(word))
+        print("⊥ word  ", chirality or "(no stereocenter)")
+        v, why = verdict(word)
+        print("verdict ", v, "—", why)
+        return
+
     if args.rna:
-        word, reading, stopped = lift_rna(args.rna)
+        word, reading, stopped = lift_rna(args.rna, args.code)
         if not word:
             ap.error("no promoted codon in that sequence")
         v, why = verdict(word)

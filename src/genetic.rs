@@ -204,3 +204,80 @@ pub fn glyco_sites(seq: &str) -> Vec<GlycoSite> {
     sites
 }
 
+/// The vertebrate mitochondrial code differs from the standard one in four
+/// codons. Reading a mitochondrial gene with the standard table terminates it
+/// early, and one of the differences matters to the alphabet directly: UGA is a
+/// terminator in the standard code and tryptophan here, which is the mark that
+/// closes a reading.
+pub fn dialect_override(dialect: &str, codon: &str) -> Option<(&'static str, &'static str)> {
+    match dialect {
+        "mitochondrial" | "mito" | "vertebrate_mitochondrial" => match codon {
+            "AUA" => Some(("aa", "Met")),
+            "UGA" => Some(("aa", "Trp")),
+            "AGA" => Some(("stop", "AGA")),
+            "AGG" => Some(("stop", "AGG")),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// A residue sequence to a word. One-letter codes; anything unrecognised is
+/// skipped, as the eight silent residues are.
+pub fn lift_peptide(seq: &str) -> Transcript {
+    const ONE: [(char, &str); 20] = [
+        ('A', "Ala"), ('R', "Arg"), ('N', "Asn"), ('D', "Asp"), ('C', "Cys"),
+        ('Q', "Gln"), ('E', "Glu"), ('G', "Gly"), ('H', "His"), ('I', "Ile"),
+        ('L', "Leu"), ('K', "Lys"), ('M', "Met"), ('F', "Phe"), ('P', "Pro"),
+        ('S', "Ser"), ('T', "Thr"), ('W', "Trp"), ('Y', "Tyr"), ('V', "Val"),
+    ];
+    let mut t = Transcript {
+        word: Vec::new(), reading: Vec::new(), stopped: None,
+        start: 0, implicit_frame: false,
+    };
+    for c in seq.chars().map(|c| c.to_ascii_uppercase()) {
+        if let Some((_, aa)) = ONE.iter().find(|(l, _)| *l == c) {
+            if let Some((glyph, axis)) = aa_glyph(aa) {
+                t.word.push(glyph);
+                let mut buf = [0u8; 4];
+                t.reading.push(Read {
+                    codon: String::from(c.encode_utf8(&mut buf)), aa, glyph, axis,
+                });
+            }
+        }
+    }
+    t
+}
+
+/// An RNA or DNA sequence read in a named genetic code.
+pub fn lift_rna_dialect(seq: &str, dialect: &str) -> Transcript {
+    let clean: Vec<char> = seq.chars()
+        .map(|c| c.to_ascii_uppercase())
+        .filter(|c| matches!(c, 'A' | 'C' | 'G' | 'T' | 'U'))
+        .map(|c| if c == 'T' { 'U' } else { c })
+        .collect();
+
+    let mut start = 0usize;
+    let mut implicit_frame = true;
+    for k in 0..clean.len().saturating_sub(2) {
+        if clean[k] == 'A' && clean[k + 1] == 'U' && clean[k + 2] == 'G' {
+            start = k; implicit_frame = false; break;
+        }
+    }
+
+    let mut t = Transcript { word: Vec::new(), reading: Vec::new(), stopped: None, start, implicit_frame };
+    let mut k = start;
+    while k + 3 <= clean.len() {
+        let codon: String = clean[k..k + 3].iter().collect();
+        let meaning = dialect_override(dialect, &codon).or_else(|| codon_meaning(&codon));
+        if let Some((kind, val)) = meaning {
+            if kind == "stop" { t.stopped = Some(val); break; }
+            if let Some((glyph, axis)) = aa_glyph(val) {
+                t.word.push(glyph);
+                t.reading.push(Read { codon, aa: val, glyph, axis });
+            }
+        }
+        k += 3;
+    }
+    t
+}

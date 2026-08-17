@@ -1,13 +1,21 @@
-The PDB reader accepts one-letter residue names
+V⊙x reads the other lanes a biomolecule arrives in
 
-The odot and DARPin designs in red-hot_rebis name residues in one letter
-(ATOM … N M A 1, resName M) where a standard PDB names them in three (MET). The
-reader knew only three, so it read those files as empty and a sweep scored them a
-blank word — seventeen of sixty-eight, which is a reader gap wearing the look of a
-result. It now takes the three-letter reading where it maps and accepts a lone
-alphabetic residue name as already one-letter, recovering all seventeen.
+A gene was the only text it could read. A peptide arrives as residues, a deposited
+structure as coordinates, and a small molecule as SMILES, and each of them lifts to
+the same twelve and is verdicted by the same engine.
 
-Confirmed against the sweep: the only blanks left are three copies of a poly-alanine
-scaffold (antidote_fusion.pdb, all ALA), which genuinely carry no promoted residue
-— a coordinate placeholder with no sequence, correctly read as no word rather than
-forced into one.
+--peptide takes one-letter or spaced three-letter codes. --pdb takes a structure and
+reads one residue per resolved alpha carbon, with --chain to restrict it, which is
+reading what the lossy render kept. --smiles types a molecule by functional-group
+census, chirality-aware, and reports the CIP word on chirality separately, since an
+achiral census cannot see what distinguishes stereoisomers.
+
+And the reading now takes a dialect. The vertebrate mitochondrial code differs from
+the standard one in four codons, and reading a mitochondrial gene with the standard
+table terminates it early: cytochrome c oxidase subunit I stops after three marks and
+reads N, and in its own dialect it runs the full length and reads B. One of the four
+differences matters to the alphabet directly, since UGA is a terminator in the
+standard code and tryptophan here, which is the mark that closes a reading.
+
+The Rust core carries the same two: lift_peptide, and lift_rna_dialect with the
+override table beside it, so the kernel reads what the Python lane reads.
