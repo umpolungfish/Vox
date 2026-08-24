@@ -411,11 +411,17 @@ impl Machine {
             self.push_val(sentinel as u128);
         }
         let mut pc = addr; self.steps = 0;
+        let mut trace: Vec<String> = Vec::new();
         while pc != sentinel {
-            if !self.code.contains_key(&pc) { return Err(Stop::Halt(format!("no instruction at 0x{:x}", pc))); }
+            if !self.code.contains_key(&pc) {
+                return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));
+            }
+            if trace.len() >= 12 { trace.remove(0); }
+            let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(" ; ")).unwrap_or_default();
+            trace.push(format!("  {:04x}: {}", pc, insn_txt));
             match self.step(pc)? {
                 Some(n) => pc = n,
-                None => return Err(Stop::Halt(format!("ran off the end after {} steps", self.steps))),
+                None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, trace.join("\n")))),
             }
             self.steps += 1;
             if self.steps > limit { return Err(Stop::Halt(format!("ran off the end after {} steps", self.steps))); }
