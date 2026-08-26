@@ -66,7 +66,7 @@ the word, and where the substrate executes, the word executes.
 
 `imasm_vm::Machine` never sees the binary. It dispatches on the glyph and
 nothing else, and what an instruction *was* in x86 survives only as payload the
-glyph reads. A ∈ splits, a ∋ fuses, a ⊞ engages, a ◻ commits, a ⊙ transfers
+glyph reads. A ∈ splits, a ∋ fuses, a ⊞ engages, a ⊡ commits, a ⊙ transfers
 through data.
 
 ## Build and run
@@ -83,7 +83,7 @@ vox imasm <file>                 # emit the executable IMASM module
 vox word <file>                  # the structure word per function
 vox disasm <file>                # the decoded instruction stream
 vox <file>                       # audit every function, tally verdicts
-vox verdict ⊢∈◻⊣                 # verdict one glyph word
+vox verdict ⊢∈⊡⊣                 # verdict one glyph word
 vox evm <hex>                    # lift EVM bytecode, verdict its closure
 vox wasm <hex>                   # lift a WASM function body, verdict it
 vox rna <seq>                    # lift a coding sequence, verdict the transcript
@@ -101,7 +101,7 @@ it got, rather than being refused at the door.
 | | | | |
 |---|---|---|---|
 | ⊢ entry | ⊣ terminal | ∈ split | ∋ fuse |
-| > call | < transfer | ⊙ indirect | ◻ commit |
+| > call | < transfer | ⊙ indirect | ⊡ commit |
 | ⋈ link | ⊤ truth made | ⊥ truth taken | ⊞ engage |
 
 ⊙ is the one that earns its glyph: a transfer whose target is data, the
@@ -196,7 +196,7 @@ Solidity reentrancy, a Python early return inside an `if`, a WASM store in an
 escaped `if`. All three lift to the same word:
 
 ```
-⊢∈◻⊣  →  B
+⊢∈⊡⊣  →  B
 ```
 
 The verdict is Belnap FOUR from the SIXTEEN_3 trilattice: **T** closes, **B** a

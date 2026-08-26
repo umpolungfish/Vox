@@ -1,6 +1,6 @@
 //! A machine that runs an IMASM module. Dispatch is on the glyph and nothing
 //! else; what an instruction *was* in x86 survives only as payload the glyph
-//! reads. Ported from imasm_vm.py. ⊞ engages the ALU, ⋈ links slots, ◻ commits
+//! reads. Ported from imasm_vm.py. ⊞ engages the ALU, ⋈ links slots, ⊡ commits
 //! to memory, ⊤ makes a truth and ⊥ consumes one, ∈ splits and ∋ fuses, > calls
 //! and ⊣ terminates, < transfers, ⊙ transfers through data.
 
@@ -372,7 +372,7 @@ impl Machine {
                     self.push_val(next as u128);
                     return Ok(Some(parse_imm(&f[1][2..]) as u64));
                 }
-                '⋈' | '◻' => {
+                '⋈' | '⊡' => {
                     let op = f[0].as_str();
                     match op {
                         "push" => { let v=self.read(&f[1],self.slot()).0; self.push_val(v); }

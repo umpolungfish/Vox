@@ -657,7 +657,7 @@ impl Image {
 
 /// Build the instruction a Decoded stands for. Descent and the sweep must
 /// agree here: synthesising the operand string differently in the two paths
-/// makes the same byte read as ◻ in one and ⊞ in the other.
+/// makes the same byte read as ⊡ in one and ⊞ in the other.
 fn instruction_of(d: &Decoded, addr: u64, raw: &[u8]) -> Instruction {
     Instruction {
         address: addr,

@@ -13,7 +13,7 @@ Lift (CFG skeleton, the noise filtered to the load-bearing ops):
   conditional branch        -> FSPLIT  ∈   (fork; its target is the merge)
   the merge point (target)  -> FFUSE   ∋   (paths rejoin)
   external call / work       -> AFWD    >
-  state write (STORE_*)     -> IFIX    ◻
+  state write (STORE_*)     -> IFIX    ⊡
   return                    -> TANCH   ⊣
 
 Verdicts are Belnap FOUR (the universe is not two-valued): T = the control flow
@@ -53,7 +53,7 @@ from imasm16_3_core import IMASM16_3_Machine, Sequence16_3Trace  # noqa
 # three glyphs (∈, ∋, ⊞) under two names, and a glyph does not have two names.
 VINIT, TANCH, AFWD, AREV = "⊢", "⊣", "≻", "≺"
 CLINK, EVALT, FSPLIT, FFUSE = "⋈", "⊤", "∈", "∋"
-IMSCRIB, EVALF, ENGAGR, IFIX = "⊙", "⊥", "⊞", "◻"
+IMSCRIB, EVALF, ENGAGR, IFIX = "⊙", "⊥", "⊞", "⊡"
 
 
 def glyphs(word):
@@ -339,7 +339,7 @@ def _native_func_word(insns) -> list:
 #   > direct call             < unconditional transfer (jmp, tail call)
 #   ⊙ INDIRECT call/jmp — the target is data, the structure taking itself as
 #     its own object, which is exactly where a linear disassembler goes blind
-#   ◻ a write to memory, irreversible
+#   ⊡ a write to memory, irreversible
 #   ⋈ data movement between named slots (mov, lea, movzx, push, pop, xchg)
 #   ⊤ a truth produced (cmp, test)   ⊥ a truth consumed (setcc, cmovcc)
 #   ⊞ engagement: everything that computes on values
@@ -614,8 +614,8 @@ def lift_smiles(smiles: str):
 
     names = ["VINIT", "TANCH", "AFWD", "AREV", "CLINK", "IMSCRIB",
              "FSPLIT", "FFUSE", "EVALT", "EVALF", "ENGAGR", "IFIX"]
-    marks = ["⊢", "⊣", "≻", "≺", "⋈", "⊙", "∈", "∋", "⊤", "⊥", "⊞", "◻"]
-    order = ["⊢", "⊣", "≻", "≺", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "◻"]
+    marks = ["⊢", "⊣", "≻", "≺", "⋈", "⊙", "∈", "∋", "⊤", "⊥", "⊞", "⊡"]
+    order = ["⊢", "⊣", "≻", "≺", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "⊡"]
     token_mark = {getattr(fe, n): m for n, m in zip(names, marks) if hasattr(fe, n)}
 
     mol = Chem.MolFromSmiles(smiles)

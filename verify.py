@@ -64,7 +64,7 @@ def main():
         "popcnt": [(r.randint(0, 2**31),) for _ in range(40)],
         "collatz": [(k,) for k in range(1, 60)],
         # the shapes that exercise the transfer glyphs: recursion and calls
-        # (>, ⊣), a jump table and a function pointer (⊙), stack memory (◻)
+        # (>, ⊣), a jump table and a function pointer (⊙), stack memory (⊡)
         "fact": [(k,) for k in range(0, 13)],
         "ack": [(m, n) for m in range(0, 3) for n in range(0, 6)],
         "viadd": [(r.randint(-500, 500), r.randint(-500, 500)) for _ in range(30)],

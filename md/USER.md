@@ -27,9 +27,9 @@ prints a line per function:
 
 ```
 FUNCTION                B4  WORD
-guarded_use             T   ⊢◻∈◻∋⊣
+guarded_use             T   ⊢⊡∈⊡∋⊣
 linear                  N   ⊢⊣
-reentrant               B   ⊢∈◻⊣⊣   <-- FINDING
+reentrant               B   ⊢∈⊡⊣⊣   <-- FINDING
 ```
 
 Importing the module runs its top-level code. Point V⊙x at code you trust to
@@ -77,7 +77,7 @@ file 41,475,671 B  |  code 26,624 B (read)  |  overlay 41,406,551 B (not code)  
   extract it (e.g. 7z x) to scan the real code inside.
 native PE: 94 functions   verdicts {'B': 38, 'T': 25, 'N': 31}
 38 B-finding(s): fork(s) holding open across a commit/return.
-  0x40128c     ⊢∈>∈⊣◻◻∋◻◻∈∋◻⊣
+  0x40128c     ⊢∈>∈⊣⊡⊡∋⊡⊡∈∋⊡⊣
   ...
 ```
 
@@ -135,7 +135,7 @@ function, in address order.
 ; ⊙ program.exe
 ; 408 words   66585 glyphs
 0x140001000
-⊢<⊣⊣⊣⊣◻◻⋈⊣⊣⋈⋈⊤∈⋈<⋈⊣⊤∈⋈⊤∈⋈⊞⊤∈∋⋈⊤∈⊤∈∋⊞⊞⊤∈∋⊞⊣⊤∈◻∋⋈⊣
+⊢<⊣⊣⊣⊣⊡⊡⋈⊣⊣⋈⋈⊤∈⋈<⋈⊣⊤∈⋈⊤∈⋈⊞⊤∈∋⋈⊤∈⊤∈∋⊞⊞⊤∈∋⊞⊣⊤∈⊡∋⋈⊣
 ```
 
 This lift is total — every decoded instruction gets a glyph:
@@ -149,7 +149,7 @@ This lift is total — every decoded instruction gets a glyph:
 | > | a direct call |
 | < | an unconditional transfer: `jmp`, a tail call |
 | ⊙ | an **indirect** call or jump — the target is data, the structure taking itself as its own object, and exactly where a linear disassembler goes blind |
-| ◻ | a write to memory, irreversible |
+| ⊡ | a write to memory, irreversible |
 | ⋈ | data movement between named slots: `mov`, `lea`, `movzx`, `push`, `pop`, `xchg` |
 | ⊤ | a truth produced: `cmp`, `test` |
 | ⊥ | a truth consumed: `setcc`, `cmovcc` |
@@ -176,7 +176,7 @@ Payload by glyph — the glyph decides how its fields are read:
 | ∈ | a condition and a target |
 | > / < / ⊙ | a target; ⊙ carries whether it is a call or a jump, because a call must still leave a return address — or, when the target is a `syscall` or a resolved PLT stub, that name in place of an address, since there is no code left to jump to |
 | ⋈ | the two slots, and the move's kind |
-| ◻ | the memory reference, the source, the width |
+| ⊡ | the memory reference, the source, the width |
 | ⊤ | the two things compared, and whether by difference or by conjunction |
 | ⊥ | the condition, and the slot it lands in |
 | ⊞ | the operation and its operands, integer or vector |
@@ -213,7 +213,7 @@ The `WORD` column is the control flow in the twelve opcodes:
 | ∈ | a branch opens a fork |
 | ∋ | a true merge, the paths rejoin |
 | > | work, an external call |
-| ◻ | a state write, irreversible |
+| ⊡ | a state write, irreversible |
 | ⊣ | a return |
 
 The word is written in the alphabet and nothing else. Read it left to right. A
@@ -223,7 +223,7 @@ finding forks and then commits or returns with no ∋ between: the fork dangles.
 Worked example, the reentrant case in all three languages:
 
 ```
-⊢∈◻⊣   →   B
+⊢∈⊡⊣   →   B
 ```
 
 Enter, fork, commit state, return. No fuse. The commit happened while the fork was

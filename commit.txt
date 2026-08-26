@@ -1,14 +1,3 @@
-Pair unbalanced words from the least balance, and expose the pairing
-
-cyclic_pairs gave up when the fork and fuse counts differed and reported every
-fork and every fuse unmatched. The surplus lemma says otherwise: read from the
-index where the running balance is least and no fuse finds the stack empty, so
-the pairing is total on the smaller species and what is left over is the surplus
-alone, one side of it empty. On mt-co1 that is six regions answered and eleven
-divisions standing, not seventeen and six. Verdicts are unchanged across the
-sixty-five word protein sweep and across ls, dash and gzip.
-
-vox pairs <word> prints the pairing: every region with what stands inside it and
-whether any of it works, then what is left unanswered or unopened. vox rna takes
---dialect, so a mitochondrial gene reads with UGA as tryptophan from the command
-line instead of terminating after twenty-five residues.
+Winding's mark is now ⊡, not ◻, matching the same change across the rest of
+the Grammar. Vox reads it constantly, as IFIX/COMMIT/Protection across the EVM
+and x86 opcode tables, so it mattered here as much as anywhere.

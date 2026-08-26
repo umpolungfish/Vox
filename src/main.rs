@@ -331,11 +331,11 @@ fn lane(isa: &str, word: &[char]) -> i32 {
 
 fn selftest() -> i32 {
     // Planted glyph words: the auditor's own law, independent of any decoder.
-    // ⊢ open ∈ fork ◻ commit ⊣ terminal ∋ merge
+    // ⊢ open ∈ fork ⊡ commit ⊣ terminal ∋ merge
     let cases: &[(&str, &str, char)] = &[
-        ("linear routine, never forks",        "⊢◻⊣",   'N'),
-        ("fork that merges before terminal",   "⊢∈◻∋⊣", 'T'),
-        ("fork held open across the terminal", "⊢∈◻⊣",  'B'),
+        ("linear routine, never forks",        "⊢⊡⊣",   'N'),
+        ("fork that merges before terminal",   "⊢∈⊡∋⊣", 'T'),
+        ("fork held open across the terminal", "⊢∈⊡⊣",  'B'),
         ("merge with nothing to pair",         "⊢∋⊣",   'F'),
     ];
     let mut ok = true;

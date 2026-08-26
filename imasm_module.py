@@ -21,7 +21,7 @@ import vox_x86 as capstone
 from vox_x86 import X86_OP_IMM, X86_OP_MEM, X86_OP_REG
 
 ENTRY, TERM, SPLIT, FUSE = "⊢", "⊣", "∈", "∋"
-CALL, XFER, INDIRECT, COMMIT = "≻", "≺", "⊙", "◻"
+CALL, XFER, INDIRECT, COMMIT = "≻", "≺", "⊙", "⊡"
 LINK, TRUTH, CONSUME, ENGAGE = "⋈", "⊤", "⊥", "⊞"
 
 _MOVE = {"mov", "movzx", "movsx", "movsxd", "movabs", "push", "pop", "xchg",

@@ -90,5 +90,5 @@ pub const AA_GLYPH: [(&str, char, &str, u8); 12] = [
     ("His", '⊙', "Criticality", 8),
     ("Asp", '⊥', "Chirality", 9),
     ("Lys", '⊞', "Stoichiometry", 10),
-    ("Glu", '◻', "Protection", 11),
+    ("Glu", '⊡', "Protection", 11),
 ];

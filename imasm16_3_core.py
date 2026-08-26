@@ -147,7 +147,7 @@ FFUSE3  = "∋"    # 3→1  3-way fuse: merges T, F, I arms
 IMSCRIB = "⊙"    # 1→1  identity / neutral self-reference
 EVALF   = "⊥"    # 1→1  evaluates the False axis (≤_t), WORK
 EVALI   = "⊞"    # 1→1  evaluates the Information axis (≤_i), WORK
-IFIX    = "◻"    # 1→1  irreversible commit, WORK
+IFIX    = "⊡"    # 1→1  irreversible commit, WORK
 
 OPCODES = [VINIT, TANCH, AFWD, AREV, CLINK, EVALT, FSPLIT3, FFUSE3,
            IMSCRIB, EVALF, EVALI, IFIX]
@@ -157,7 +157,7 @@ OPCODES = [VINIT, TANCH, AFWD, AREV, CLINK, EVALT, FSPLIT3, FFUSE3,
 # exactly as a stray letter does. A retired form that still loads is how legacy
 # notation survives a purge, so there is none. TNEG and INEG were never a
 # thirteenth and fourteenth opcode: the two-layer swaps they named are internal
-# to AREV `<`, which is the whole reverse morphism, and ◻ IFIX replaced the rest.
+# to AREV `<`, which is the whole reverse morphism, and ⊡ IFIX replaced the rest.
 NAME = {
     VINIT: "VINIT", TANCH: "TANCH", AFWD: "AFWD", AREV: "AREV",
     CLINK: "CLINK", EVALT: "EVALT", FSPLIT3: "FSPLIT3", FFUSE3: "FFUSE3",
@@ -436,7 +436,7 @@ class IMASM16_3Sequence:
 
 
 def parse_glyph_word(word: str) -> List[str]:
-    """⊢>∈⊤⊥⊞∋◻⊣  →  [⊢, >, ∈, ⊤, ⊥, ⊞, ∋, ◻, ⊣] — filtered to the twelve; a
+    """⊢>∈⊤⊥⊞∋⊡⊣  →  [⊢, >, ∈, ⊤, ⊥, ⊞, ∋, ⊡, ⊣] — filtered to the twelve; a
     character outside the alphabet (retired mark or stray letter) drops out,
     the same way a token the machine has never seen reads as nothing."""
     return [ch for ch in word if ch in OPCODES]

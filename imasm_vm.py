@@ -2,7 +2,7 @@
 
 Dispatch is on the glyph and nothing else. The twelve axes are the opcode set;
 what an instruction *was* in x86 survives only as payload the glyph knows how to
-read. ⊞ engages the ALU, ⋈ links two slots, ◻ commits to memory, ⊤ produces a
+read. ⊞ engages the ALU, ⋈ links two slots, ⊡ commits to memory, ⊤ produces a
 truth and ⊥ consumes one, ∈ splits and ∋ fuses, > calls and ⊣ terminates, <
 transfers, and ⊙ transfers through data.
 
@@ -271,7 +271,7 @@ class Machine:
         self.reg["rsp"] += 8                     # caller's own call already pushed
         return ret
 
-    # ── the ALU, reached only through ⊞ and ◻ ─────────────────────────────
+    # ── the ALU, reached only through ⊞ and ⊡ ─────────────────────────────
     def alu(self, op, fields):
         if op in ("nop", "endbr64", "endbr32"):
             return
@@ -342,7 +342,7 @@ class Machine:
         self.write(fields[0], r & _MASK[size])
         self.set_flags(r & _MASK[size], 0, size)
 
-    # ── the vector unit, likewise reached only through ⊞ and ◻ ────────────
+    # ── the vector unit, likewise reached only through ⊞ and ⊡ ────────────
     def simd(self, op, fields):
         dst = fields[0]
         if op in ("movdqa", "movdqu", "movaps", "movups"):
@@ -451,7 +451,7 @@ class Machine:
                 self.reg["rsp"] -= 8
                 self.store(self.reg["rsp"], self.next_of[addr], 8)
                 return int(f[1][2:], 16)
-            elif glyph in ("⋈", "◻"):
+            elif glyph in ("⋈", "⊡"):
                 op = f[0]
                 if op == "push":
                     v, _ = self.read(f[1])
