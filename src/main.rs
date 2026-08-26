@@ -265,6 +265,7 @@ fn lift_file(path: &str) -> i32 {
 
     let mut tally = [0usize; 4]; // T B N F
     let mut illtyped: Vec<(u64, String)> = Vec::new();
+    let mut descent_f = 0usize;
     // recursive-descent functions: the trustworthy set
     let mut claimed: std::collections::BTreeSet<u64> = std::collections::BTreeSet::new();
     for (start, f) in &w.functions {
@@ -272,25 +273,26 @@ fn lift_file(path: &str) -> i32 {
         let word = vox::recompile_function(f);
         match vox::verdict(&word) {
             'T' => tally[0] += 1, 'B' => tally[1] += 1, 'N' => tally[2] += 1,
-            _ => { tally[3] += 1; if illtyped.len() < 8 { illtyped.push((*start, vox::glyphs(&word))); } }
+            _ => { tally[3] += 1; descent_f += 1; if illtyped.len() < 8 { illtyped.push((*start, vox::glyphs(&word))); } }
         }
     }
     let descended = w.functions.len();
     // fallback sweep: linear-decode what descent never reached, group into
     // functions of their own at each terminal, and verdict those too.
     let mut swept = 0usize; let mut swept_bytes = 0usize;
+    let mut sweep_f = 0usize;
     for (base, bytes) in &image.segments {
         let mut pos = 0usize;
         let mut cur: Vec<x86::Insn> = Vec::new();
-        let flush = |cur: &mut Vec<x86::Insn>, tally: &mut [usize;4], swept: &mut usize| {
+        let flush = |cur: &mut Vec<x86::Insn>, tally: &mut [usize;4], swept: &mut usize, sweep_f: &mut usize| {
             if cur.is_empty() { return; }
             let mut word = alloc_word(cur);
-            match vox::verdict(&word) { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>tally[3]+=1 }
+            match vox::verdict(&word) { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>{tally[3]+=1; *sweep_f+=1;} }
             *swept += 1; word.clear(); cur.clear();
         };
         while pos < bytes.len() {
             let addr = base + pos as u64;
-            if claimed.contains(&addr) { flush(&mut cur, &mut tally, &mut swept); 
+            if claimed.contains(&addr) { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f);
                 // skip the claimed instruction
                 if let Some(d) = x86::decode(&bytes[pos..], addr) { pos += d.len.max(1); } else { pos += 1; }
                 continue;
@@ -300,12 +302,12 @@ fn lift_file(path: &str) -> i32 {
                     let mn = d.mnemonic.clone(); swept_bytes += d.len; pos += d.len;
                     let terminal = mn.starts_with("ret") || matches!(mn.as_str(), "int3"|"ud2"|"hlt"|"jmp");
                     cur.push(d);
-                    if terminal { flush(&mut cur, &mut tally, &mut swept); }
+                    if terminal { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f); }
                 }
-                _ => { flush(&mut cur, &mut tally, &mut swept); pos += 1; }
+                _ => { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f); pos += 1; }
             }
         }
-        flush(&mut cur, &mut tally, &mut swept);
+        flush(&mut cur, &mut tally, &mut swept, &mut sweep_f);
     }
     let total_cov = w.claimed_bytes + swept_bytes;
     println!();
@@ -314,7 +316,8 @@ fn lift_file(path: &str) -> i32 {
         println!("  covered {}% of the image ({} of {} bytes)",
             (total_cov*100/w.total_bytes.max(1)).min(100), total_cov.min(w.total_bytes), w.total_bytes);
     }
-    println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
+    println!("  verdicts  T {}   B {}   N {}   F {}  (F: {} from descent, {} from fallback sweep)",
+        tally[0], tally[1], tally[2], tally[3], descent_f, sweep_f);
     for (a, g) in &illtyped {
         let head: String = g.chars().take(90).collect();
         println!("    0x{:x}  {}", a, head);
