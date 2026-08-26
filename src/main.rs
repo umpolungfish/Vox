@@ -602,7 +602,15 @@ fn main() {
             std::process::exit(0);
         }
         Some("imasm") => { if args.len()<2 { eprintln!("vox imasm <file>"); return; }
-            let raw=read_or_exit(&args[1]); print!("{}", imasm_module::emit(&raw)); std::process::exit(0); }
+            let raw=read_or_exit(&args[1]);
+            let module = imasm_module::emit(&raw);
+            print!("{}", module);
+            let out_path = format!("{}.imasm", args[1]);
+            match std::fs::write(&out_path, &module) {
+                Ok(()) => eprintln!("saved {}", out_path),
+                Err(e) => eprintln!("could not save {}: {}", out_path, e),
+            }
+            std::process::exit(0); }
         Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
             let raw=read_or_exit(&args[1]); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
         Some("disasm") => {
