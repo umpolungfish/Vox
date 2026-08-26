@@ -108,6 +108,12 @@ pub fn emit(raw: &[u8]) -> String {
     out.push(format!("; {} module ({} {})", INDIRECT, l.format, l.arch));
     out.push(format!("; entry 0x{:x}", l.entry));
     out.push(format!("; bits {}", bits));
+    // The symbol table travels with the module, so a saved `.imasm` file is
+    // self-contained: `vox run <symbol> <file>.imasm` resolves the name from
+    // the file itself, with no second read of the original binary.
+    for (name, addr) in &l.symbols {
+        out.push(format!("; sym {} 0x{:x}", name, addr));
+    }
     for (at, blob) in &l.data {
         let hex: String = blob.iter().map(|b| format!("{:02x}", b)).collect();
         out.push(format!("={:#x}\t{}", at, hex));

@@ -58,6 +58,10 @@ pub struct Machine {
     kind: String,
     pub steps: u64,
     pub bits: u8,
+    /// Parsed from the module's own `; sym NAME 0xADDR` lines, so a saved
+    /// `.imasm` file resolves a symbol name without a second read of the
+    /// original binary.
+    pub symbols: BTreeMap<String, u64>,
 }
 
 impl Machine {
@@ -65,6 +69,7 @@ impl Machine {
         let mut m = Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0,
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
+            symbols: BTreeMap::new(),
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip"] {
             m.reg.insert(r.into(), 0);
@@ -84,6 +89,13 @@ impl Machine {
                     if let Ok(v) = u64::from_str_radix(e.trim().trim_start_matches("0x"), 16) { self.entry = v; }
                 } else if let Some(b) = t.strip_prefix("bits ") {
                     if let Ok(v) = b.trim().parse::<u8>() { self.bits = v; }
+                } else if let Some(s) = t.strip_prefix("sym ") {
+                    let mut it = s.rsplitn(2, ' ');
+                    if let (Some(addr_s), Some(name)) = (it.next(), it.next()) {
+                        if let Ok(v) = u64::from_str_radix(addr_s.trim().trim_start_matches("0x"), 16) {
+                            self.symbols.insert(name.to_string(), v);
+                        }
+                    }
                 }
             } else if let Some(rest) = line.strip_prefix('=') {
                 let mut it = rest.splitn(2, '\t');
@@ -395,6 +407,10 @@ impl Machine {
         }
         Ok(self.next_of.get(&addr).copied())
     }
+
+    /// Resolve a symbol name to its address from the module's own embedded
+    /// table (`; sym NAME 0xADDR`) — no second read of the original binary.
+    pub fn resolve(&self, name: &str) -> Option<u64> { self.symbols.get(name).copied() }
 
     /// Run one function to its ⊣. 64-bit takes integer args in registers (System
     /// V); 32-bit takes them on the stack (cdecl). Returns eax.

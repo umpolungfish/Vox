@@ -1,3 +1,5 @@
-Winding's mark is now ⊡, not ◻, matching the same change across the rest of
-the Grammar. Vox reads it constantly, as IFIX/COMMIT/Protection across the EVM
-and x86 opcode tables, so it mattered here as much as anywhere.
+I made vox run work from a saved .imasm module directly, and gave it a fallback for binaries with no symbol table at all.
+
+A .imasm file now carries its own symbol table (emit() writes "; sym NAME 0xADDR" lines next to "; entry" and "; bits"), and Machine can parse and resolve those symbols itself. So vox run on a .imasm file runs straight from the saved text, no second read of the original binary.
+
+A PE binary's loader never populates a symbol table in the first place, so a GUI .exe with no exports has no name that could ever resolve. vox run with no symbol given now falls back to the module's own entry point instead of demanding one. Verified against a minimal static ELF whose _start calls exit(42) directly: entry(...) called exit(42), matching its real exit code.

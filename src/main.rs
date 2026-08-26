@@ -578,26 +578,56 @@ fn main() {
             std::process::exit(0);
         }
         Some("run") => {
-            // vox run SYMBOL --args a,b FILE   (order-tolerant)
-            let mut sym=String::new(); let mut argv:Vec<i64>=Vec::new(); let mut file=String::new(); let mut i=1;
+            // vox run [SYMBOL] --args a,b FILE   (order-tolerant)
+            // A single bare token is the FILE, not the symbol: with no name
+            // given, the entry point is what runs. This is the only address a
+            // PE binary offers at all — the loader never populates a symbol
+            // table for PE (only ELF has one to read), so a GUI .exe with no
+            // exports has no symbol name that could ever resolve.
+            let mut bare: Vec<String> = Vec::new();
+            let mut argv:Vec<i64>=Vec::new(); let mut i=1;
             while i < args.len() {
                 match args[i].as_str() {
                     "--args" => { i+=1; if i<args.len() { for a in args[i].split(',') { let a=a.trim(); if !a.is_empty() {
                         let v = if let Some(h)=a.strip_prefix("0x") { i64::from_str_radix(h,16).unwrap_or(0) } else { a.parse().unwrap_or(0) }; argv.push(v);} } } }
-                    other => { if sym.is_empty() { sym=other.to_string(); } else { file=other.to_string(); } }
+                    other => bare.push(other.to_string()),
                 }
                 i+=1;
             }
-            if sym.is_empty() || file.is_empty() { eprintln!("vox run <symbol> --args a,b <file>"); return; }
-            let raw = read_or_exit(&file);
-            let syms = imasm_module::symbols(&raw);
-            let addr = match syms.get(&sym) { Some(a)=>*a, None=>{ eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1);} };
-            let module = imasm_module::emit(&raw);
-            let mut m = imasm_vm::Machine::new(&module);
+            let (sym, file): (String, String) = match bare.len() {
+                0 => { eprintln!("vox run [symbol] --args a,b <file>"); return; }
+                1 => (String::new(), bare[0].clone()),
+                _ => (bare[0].clone(), bare[1..].join(" ")),
+            };
+            if file.is_empty() { eprintln!("vox run [symbol] --args a,b <file>"); return; }
+            // A `.imasm` file is a saved module: text, already carrying its own
+            // symbol table (`; sym NAME 0xADDR`), so it runs directly with no
+            // second read of the original binary. Anything else is read as raw
+            // bytes and lifted fresh, same as before.
+            let is_module = file.ends_with(".imasm")
+                || std::fs::read(&file).map(|b| b.starts_with(b"; ")).unwrap_or(false);
+            let mut m = if is_module {
+                let text = match std::fs::read_to_string(&file) {
+                    Ok(t) => t,
+                    Err(e) => { eprintln!("cannot read {}: {}", file, e); std::process::exit(1); }
+                };
+                imasm_vm::Machine::new(&text)
+            } else {
+                let raw = read_or_exit(&file);
+                imasm_vm::Machine::new(&imasm_module::emit(&raw))
+            };
+            let (addr, label) = if sym.is_empty() {
+                (m.entry, "entry".to_string())
+            } else {
+                match m.resolve(&sym) {
+                    Some(a) => (a, sym.clone()),
+                    None => { eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1); }
+                }
+            };
             match m.call(addr, &argv, 50_000_000) {
-                Ok(r) => println!("{}({}) = {}   [{} steps in the twelve]", sym, argv.iter().map(|a|a.to_string()).collect::<Vec<_>>().join(", "), r, m.steps),
-                Err(imasm_vm::Stop::SysExit(c)) => println!("{}(...) called exit({})   [{} steps in the twelve]", sym, c, m.steps),
-                Err(imasm_vm::Stop::Halt(e)) => println!("{}(...) halted: {}   [{} steps]", sym, e, m.steps),
+                Ok(r) => println!("{}({}) = {}   [{} steps in the twelve]", label, argv.iter().map(|a|a.to_string()).collect::<Vec<_>>().join(", "), r, m.steps),
+                Err(imasm_vm::Stop::SysExit(c)) => println!("{}(...) called exit({})   [{} steps in the twelve]", label, c, m.steps),
+                Err(imasm_vm::Stop::Halt(e)) => println!("{}(...) halted: {}   [{} steps]", label, e, m.steps),
             }
             std::process::exit(0);
         }
