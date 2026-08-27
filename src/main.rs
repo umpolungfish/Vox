@@ -7,6 +7,9 @@ use ::vox::vox;
 use ::vox::vox_decode;
 use ::vox::lanes;
 use ::vox::genetic;
+use ::vox::protein;
+use ::vox::fold;
+use ::vox::fold3d;
 use ::vox::x86;
 use ::vox::{imasm_module, imasm_vm, loader};
 
@@ -28,6 +31,15 @@ fn usage() {
     eprintln!("  vox fasta <file>          lift a protein from FASTA");
     eprintln!("  vox pdb <file>            lift a protein from a PDB (CA per residue)");
     eprintln!("  vox glyco <seq|file>      locate the glycosylation boundary interfaces");
+    eprintln!("  vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]");
+    eprintln!("                            the full pipeline, both ends: RNA/DNA in gives a");
+    eprintln!("                            compiled protein with real fold info (Chou-Fasman");
+    eprintln!("                            secondary structure, heuristic tertiary contacts, a");
+    eprintln!("                            real 3D backbone via B4-Ramachandran-NeRF); protein");
+    eprintln!("                            in gives RNA/DNA back out (Frobenius-preferred codon");
+    eprintln!("                            per residue, full degeneracy) with the same fold on");
+    eprintln!("                            the input. Direction auto-detects from the alphabet.");
+    eprintln!("                            --pdb writes a real PDB file, readable by vox pdb.");
     eprintln!("  vox self                  lift V⊙x's own image and read it back");
     eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
@@ -87,6 +99,115 @@ fn protein(seq: &str, source: &str) -> i32 {
     println!("word     {}", vox::glyphs(&t.word));
     println!("verdict  {}", vox::verdict(&t.word));
     0
+}
+
+/// `vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]`
+///
+/// One entry point, both directions of the same pipeline. RNA/DNA in:
+/// `protein::translate_full` (every residue, not just the twelve promoted
+/// ones `genetic::lift_rna` keeps), then fold (`fold::fold_sequence` for
+/// secondary/tertiary structure, `fold3d` for a real 3D backbone). Protein
+/// in: reverse-translate with the Frobenius-preferred codon per residue
+/// (`protein::preferred_codon_for_aa`) and run the SAME fold on the input,
+/// so the "vice versa" direction carries fold info too. Direction
+/// auto-detects from the input alphabet: pure A/C/G/T/U reads as nucleic
+/// acid, anything else as protein codes.
+fn compile(args: &[String]) -> i32 {
+    let mut dialect = String::new();
+    let mut pdb_path: Option<String> = None;
+    let mut seq_parts: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--code" if i + 1 < args.len() => {
+                dialect = if args[i + 1] == "mitochondrial" || args[i + 1] == "mito" {
+                    String::from("mitochondrial")
+                } else { String::new() };
+                i += 2;
+            }
+            "--pdb" if i + 1 < args.len() => { pdb_path = Some(args[i + 1].clone()); i += 2; }
+            other => { seq_parts.push(other.to_string()); i += 1; }
+        }
+    }
+    let seq = seq_parts.join(" ");
+    let dialect_name = if dialect.is_empty() { "standard" } else { "mitochondrial" };
+
+    let compact: String = seq.chars().filter(|c| !c.is_whitespace() && *c != '-' && *c != ',').collect();
+    let is_nucleic = !compact.is_empty()
+        && compact.chars().all(|c| matches!(c.to_ascii_uppercase(), 'A' | 'C' | 'G' | 'T' | 'U'));
+
+    fn report_fold(chain: &[&'static str], b4_path: &[char], pdb_path: Option<&str>) {
+        let f = fold::fold_sequence(chain);
+        let n_h = f.residues.iter().filter(|r| r.secondary == fold::SecondaryLabel::Helix).count();
+        let n_s = f.residues.iter().filter(|r| r.secondary == fold::SecondaryLabel::Sheet).count();
+        let n_c = f.residues.len() - n_h - n_s;
+        println!();
+        println!("fold     helix {}  sheet {}  coil {}   ({} contacts, SerpentRod invariant {})",
+            n_h, n_s, n_c, f.contacts.len(), if f.frobenius_ok { "PASS" } else { "FAIL" });
+        let steps = fold3d::rama_steps(b4_path);
+        let backbone = fold3d::build_backbone(&steps);
+        println!("backbone {} residues placed (B4-Ramachandran-NeRF)", backbone.len());
+        if let Some(path) = pdb_path {
+            let elements = fold3d::group_ss_elements(&steps);
+            let winding = f.residues.iter().map(|r| r.winding_number).max().unwrap_or(0);
+            let pdb = fold3d::write_pdb(chain, &backbone, &elements, f.frobenius_ok, winding, "COMPILED THROUGH VOX", 'A');
+            match std::fs::write(path, pdb.as_bytes()) {
+                Ok(()) => println!("pdb      written to {}", path),
+                Err(e) => println!("pdb      could not write to {}: {}", path, e),
+            }
+        }
+    }
+
+    if is_nucleic {
+        let t = protein::translate_full(&compact, &dialect);
+        if t.protein.is_empty() {
+            eprintln!("no protein translated from '{}'; needs an ATG/AUG start codon", seq);
+            return 1;
+        }
+        let bytes: Vec<char> = t.mrna.chars().collect();
+        let b4_path: Vec<char> = (0..t.protein.len()).map(|k| {
+            let p = t.start + k * 3;
+            bytes.get(p).and_then(|&c| genetic::nuc_b4(c)).unwrap_or('N')
+        }).collect();
+
+        println!("== vox compile: RNA/DNA -> protein ({}) ==", dialect_name);
+        println!("input    {}", seq);
+        println!("mrna     {}", t.mrna);
+        println!("protein  {}", t.protein.join("-"));
+        match t.stopped {
+            Some(s) => println!("stop     {}", s),
+            None => println!("stop     (none: the sequence ran out before a stop)"),
+        }
+        report_fold(&t.protein, &b4_path, pdb_path.as_deref());
+        0
+    } else {
+        let chain = match protein::parse_chain(&seq) {
+            Some(c) if !c.is_empty() => c,
+            _ => {
+                eprintln!("could not parse '{}' as protein or nucleic acid", seq);
+                eprintln!("use 3-letter (Met-Ala) or 1-letter (MA) amino acid codes, or A/C/G/T/U");
+                return 1;
+            }
+        };
+        let reverse = match protein::reverse_translate_full(&chain, &dialect) {
+            Some(r) => r,
+            None => { eprintln!("no codon exists for some residue under the {} table", dialect_name); return 1; }
+        };
+        let dna = protein::reverse_transcribe(&reverse.mrna);
+        let bytes: Vec<char> = reverse.mrna.chars().collect();
+        let b4_path: Vec<char> = (0..chain.len()).map(|k| {
+            genetic::nuc_b4(bytes[k * 3]).unwrap_or('N')
+        }).collect();
+
+        println!("== vox compile: protein -> RNA/DNA ({}) ==", dialect_name);
+        println!("input    {}", chain.join("-"));
+        println!("mrna     {}  (Frobenius-preferred codon per residue)", reverse.mrna);
+        println!("dna      {}", dna);
+        println!("degeneracy  {} total possible mRNA sequences (product of per-residue codon counts)",
+            reverse.total_combinations);
+        report_fold(&chain, &b4_path, pdb_path.as_deref());
+        0
+    }
 }
 
 fn glyco(seq: &str, source: &str) -> i32 {
@@ -557,6 +678,10 @@ fn main() {
                 Ok(txt) => protein(&genetic::protein_from_pdb(&txt), &args[1]),
                 Err(e) => { eprintln!("vox pdb: {}: {}", args[1], e); 1 }
             } }
+        }
+        Some("compile") => {
+            if args.len() < 2 { eprintln!("vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]"); 1 }
+            else { compile(&args[1..]) }
         }
         Some("glyco") => {
             if args.len() < 2 { eprintln!("vox glyco <seq | file.fasta | file.pdb>"); 1 }

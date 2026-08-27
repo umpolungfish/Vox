@@ -35,7 +35,7 @@ pub fn nuc_b4(c: char) -> Option<char> {
     NUC_B4.iter().find(|(n, _)| *n == c).map(|(_, b)| *b)
 }
 
-fn codon_meaning(c: &str) -> Option<(&'static str, &'static str)> {
+pub(crate) fn codon_meaning(c: &str) -> Option<(&'static str, &'static str)> {
     CODON.iter().find(|(k, _, _)| *k == c).map(|(_, kind, val)| (*kind, *val))
 }
 
