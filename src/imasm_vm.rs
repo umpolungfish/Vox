@@ -6,6 +6,7 @@
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::format;
 
@@ -47,6 +48,20 @@ fn reg_info(name: &str) -> (&'static str, u8, u8) {
 
 pub enum Stop { Halt(String), SysExit(i32) }
 
+/// The bridge for syscalls the no_std VM cannot fulfill on its own: real files.
+/// A bare-metal kernel build supplies no `Host`, so `open`/`read`/`write`/
+/// `close` on any fd — including 0/1/2 — answer -EBADF/-ENOSYS exactly as
+/// before. A hosted std binary implements this trait once with real
+/// `std::fs`/stdio and the guest's file and console I/O becomes real: the
+/// guest reads and writes actual files under whatever permission the host
+/// process already has, and fd 0/1/2 are real stdin/stdout/stderr.
+pub trait Host {
+    fn open(&mut self, path: &str, flags: i32, mode: i32) -> i32;
+    fn read(&mut self, fd: i32, buf: &mut [u8]) -> i64;
+    fn write(&mut self, fd: i32, buf: &[u8]) -> i64;
+    fn close(&mut self, fd: i32) -> i32;
+}
+
 pub struct Machine {
     code: BTreeMap<u64, Vec<(char, Vec<String>)>>,
     addrs: Vec<u64>,
@@ -62,6 +77,13 @@ pub struct Machine {
     /// `.imasm` file resolves a symbol name without a second read of the
     /// original binary.
     pub symbols: BTreeMap<String, u64>,
+    /// Anonymous-mmap and brk cursors: fresh regions far from any loaded code
+    /// or data, since `mem` is a sparse map and reads of never-written bytes
+    /// already come back zero — a freshly "mapped" page needs no zeroing.
+    mmap_next: u64,
+    brk_cur: u64,
+    /// Real file and console I/O, when a hosted caller supplies one.
+    host: Option<Box<dyn Host>>,
 }
 
 impl Machine {
@@ -70,6 +92,7 @@ impl Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0,
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
+            mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, host: None,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip"] {
             m.reg.insert(r.into(), 0);
@@ -208,12 +231,61 @@ impl Machine {
     fn push_val(&mut self, v: u128) { let s = self.slot(); self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(s as u128)); let sp = self.get_reg("rsp") as u64; self.store(sp, v, s); }
     fn pop_val(&mut self) -> u128 { let s = self.slot(); let sp = self.get_reg("rsp") as u64; let v = self.load(sp, s); self.set_reg("rsp", self.get_reg("rsp").wrapping_add(s as u128)); v }
 
+    /// Linux x86-64 syscall ABI: number in rax, args in rdi,rsi,rdx,r10,r8,r9
+    /// (r10 stands in for rcx, which `syscall` itself clobbers). Only
+    /// exit/exit_group need nothing from the host; read/write/open/openat/
+    /// close all delegate to `self.host` — real files and real console I/O
+    /// when one is set, -EBADF/-ENOSYS when it is not. mmap is anonymous-only
+    /// (file-backed mapping is a further rung, refused with -ENOSYS exactly
+    /// like every syscall this VM cannot yet fulfill); brk tracks a cursor
+    /// with no real protection semantics, which is enough for a bump allocator.
     fn do_syscall(&mut self) -> Result<(), Stop> {
         let num = sign(self.get_reg("rax"), 8);
-        let a0 = self.get_reg("rdi"); let _a1 = self.get_reg("rsi"); let _a2 = self.get_reg("rdx");
-        if num == 60 || num == 231 { return Err(Stop::SysExit((sign(a0,8) & 0xFF) as i32)); }
-        // write and others: this is a function tester; anything but exit returns -ENOSYS
-        self.set_reg("rax", (-38i128 as u128) & mask(8));
+        let a0 = self.get_reg("rdi"); let a1 = self.get_reg("rsi"); let a2 = self.get_reg("rdx");
+        let a3 = self.get_reg("r10"); let a4 = self.get_reg("r8");
+        match num {
+            60 | 231 => return Err(Stop::SysExit((sign(a0,8) & 0xFF) as i32)),
+            0 => { // read(fd, buf, count)
+                let fd = sign(a0,8) as i32; let buf = a1 as u64; let count = (a2 as usize).min(1<<20);
+                let mut tmp = vec![0u8; count];
+                let n = self.host.as_mut().map(|h| h.read(fd, &mut tmp)).unwrap_or(-9);
+                if n > 0 { for k in 0..n as usize { self.mem.insert(buf + k as u64, tmp[k]); } }
+                self.set_reg("rax", (n as i128 as u128) & mask(8));
+            }
+            1 => { // write(fd, buf, count)
+                let fd = sign(a0,8) as i32; let buf = a1 as u64; let count = (a2 as usize).min(1<<20);
+                let mut bytes = Vec::with_capacity(count);
+                for k in 0..count as u64 { bytes.push(*self.mem.get(&(buf + k)).unwrap_or(&0)); }
+                let n = self.host.as_mut().map(|h| h.write(fd, &bytes)).unwrap_or(-9);
+                self.set_reg("rax", (n as i128 as u128) & mask(8));
+            }
+            2 | 257 => { // open(path,flags,mode) / openat(dirfd,path,flags,mode)
+                let (path_ptr, flags, mode) = if num == 2 { (a0 as u64, a1 as i32, a2 as i32) } else { (a1 as u64, a2 as i32, a3 as i32) };
+                let path = self.read_cstr(path_ptr);
+                let fd = self.host.as_mut().map(|h| h.open(&path, flags, mode)).unwrap_or(-38);
+                self.set_reg("rax", (fd as i128 as u128) & mask(8));
+            }
+            3 => { // close(fd)
+                let fd = sign(a0,8) as i32;
+                let r = self.host.as_mut().map(|h| h.close(fd)).unwrap_or(-9);
+                self.set_reg("rax", (r as i128 as u128) & mask(8));
+            }
+            9 => { // mmap(addr,length,prot,flags,fd,offset)
+                let length = a1 as u64; let fd = sign(a4, 8);
+                if fd != -1 { self.set_reg("rax", (-38i128 as u128) & mask(8)); }
+                else {
+                    let page = 4096u64;
+                    let n = (((length.max(1) + page - 1) / page) * page).max(page);
+                    let addr = self.mmap_next; self.mmap_next += n;
+                    self.set_reg("rax", addr as u128);
+                }
+            }
+            12 => { // brk(addr): 0 reads the current break, else sets it
+                if a0 != 0 { self.brk_cur = a0 as u64; }
+                self.set_reg("rax", self.brk_cur as u128);
+            }
+            _ => { self.set_reg("rax", (-38i128 as u128) & mask(8)); } // ENOSYS
+        }
         Ok(())
     }
 
@@ -412,6 +484,45 @@ impl Machine {
     /// table (`; sym NAME 0xADDR`) — no second read of the original binary.
     pub fn resolve(&self, name: &str) -> Option<u64> { self.symbols.get(name).copied() }
 
+    /// Wire real file/console I/O into `open`/`read`/`write`/`close`. With no
+    /// host set, those syscalls answer -EBADF/-ENOSYS, same as before.
+    pub fn set_host(&mut self, h: Box<dyn Host>) { self.host = Some(h); }
+
+    fn read_cstr(&self, addr: u64) -> String {
+        let mut bytes = Vec::new();
+        let mut a = addr;
+        while bytes.len() < 4096 {
+            let b = *self.mem.get(&a).unwrap_or(&0);
+            if b == 0 { break; }
+            bytes.push(b); a += 1;
+        }
+        String::from_utf8_lossy(&bytes).into_owned()
+    }
+
+    /// Step from `pc` until it reaches `sentinel` (Ok) or the machine stops
+    /// (Err). `sentinel: None` means "no such address exists" — the only ways
+    /// out are `Stop::SysExit`/`Stop::Halt`, which is what a whole process
+    /// looks like: it never `ret`s to a return address, it exits.
+    fn run_loop(&mut self, mut pc: u64, sentinel: Option<u64>, limit: u64) -> Result<u64, Stop> {
+        self.steps = 0;
+        let mut trace: Vec<String> = Vec::new();
+        loop {
+            if Some(pc) == sentinel { return Ok(pc); }
+            if !self.code.contains_key(&pc) {
+                return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));
+            }
+            if trace.len() >= 12 { trace.remove(0); }
+            let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(" ; ")).unwrap_or_default();
+            trace.push(format!("  {:04x}: {}", pc, insn_txt));
+            match self.step(pc)? {
+                Some(n) => pc = n,
+                None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, trace.join("\n")))),
+            }
+            self.steps += 1;
+            if self.steps > limit { return Err(Stop::Halt(format!("ran off the end after {} steps", self.steps))); }
+        }
+    }
+
     /// Run one function to its ⊣. 64-bit takes integer args in registers (System
     /// V); 32-bit takes them on the stack (cdecl). Returns eax.
     pub fn call(&mut self, addr: u64, args: &[i64], limit: u64) -> Result<i64, Stop> {
@@ -426,23 +537,51 @@ impl Machine {
             }
             self.push_val(sentinel as u128);
         }
-        let mut pc = addr; self.steps = 0;
-        let mut trace: Vec<String> = Vec::new();
-        while pc != sentinel {
-            if !self.code.contains_key(&pc) {
-                return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));
-            }
-            if trace.len() >= 12 { trace.remove(0); }
-            let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(" ; ")).unwrap_or_default();
-            trace.push(format!("  {:04x}: {}", pc, insn_txt));
-            match self.step(pc)? {
-                Some(n) => pc = n,
-                None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, trace.join("\n")))),
-            }
-            self.steps += 1;
-            if self.steps > limit { return Err(Stop::Halt(format!("ran off the end after {} steps", self.steps))); }
-        }
+        self.run_loop(addr, Some(sentinel), limit)?;
         Ok(sign(self.get_reg("eax"), 4) as i64)
+    }
+
+    /// Run the whole file as a real process from its own entry point: a real
+    /// argv/envp/auxv stack underneath it, real syscalls in front of it, no
+    /// assumption that it ever returns — it ends by calling exit, same as any
+    /// process does. `call()` next to this is a narrower, older contract for
+    /// naming one function and getting one value back; this is "run it."
+    pub fn run_process(&mut self, argv: &[String], envp: &[String], limit: u64) -> Result<(), Stop> {
+        let mut sp = self.get_reg("rsp") as u64;
+        let mut argv_ptrs = Vec::new();
+        for s in argv {
+            let bytes = s.as_bytes();
+            sp -= bytes.len() as u64 + 1;
+            for (k, b) in bytes.iter().enumerate() { self.mem.insert(sp + k as u64, *b); }
+            self.mem.insert(sp + bytes.len() as u64, 0);
+            argv_ptrs.push(sp);
+        }
+        let mut envp_ptrs = Vec::new();
+        for s in envp {
+            let bytes = s.as_bytes();
+            sp -= bytes.len() as u64 + 1;
+            for (k, b) in bytes.iter().enumerate() { self.mem.insert(sp + k as u64, *b); }
+            self.mem.insert(sp + bytes.len() as u64, 0);
+            envp_ptrs.push(sp);
+        }
+        // argc, argv[], NULL, envp[], NULL, auxv pairs, AT_NULL — the layout
+        // the psABI guarantees at process entry, %rsp 16-byte aligned.
+        let mut words: Vec<u64> = Vec::new();
+        words.push(argv.len() as u64);
+        words.extend(&argv_ptrs); words.push(0);
+        words.extend(&envp_ptrs); words.push(0);
+        words.push(6); words.push(4096);   // AT_PAGESZ
+        words.push(0); words.push(0);      // AT_NULL
+        let table_addr = (sp - words.len() as u64 * 8) & !0xF;
+        for (k, w) in words.iter().enumerate() {
+            let a = table_addr + k as u64 * 8;
+            for b in 0..8u64 { self.mem.insert(a + b, ((w >> (8 * b)) & 0xFF) as u8); }
+        }
+        self.set_reg("rsp", table_addr as u128);
+        match self.run_loop(self.entry, None, limit) {
+            Err(e) => Err(e),
+            Ok(_) => Ok(()), // unreachable: sentinel is None, so run_loop only ever returns via Err
+        }
     }
 }
 

@@ -1,5 +1,9 @@
-I made vox run work from a saved .imasm module directly, and gave it a fallback for binaries with no symbol table at all.
+I gave vox run the syscall coverage and process setup it needs to actually run a real Linux program, not just call one function.
 
-A .imasm file now carries its own symbol table (emit() writes "; sym NAME 0xADDR" lines next to "; entry" and "; bits"), and Machine can parse and resolve those symbols itself. So vox run on a .imasm file runs straight from the saved text, no second read of the original binary.
+Before this, do_syscall answered exactly two syscall numbers, exit and exit_group; everything else returned a fake -ENOSYS and the program's real behavior before it exited was invisible. Now read/write/open/openat/close delegate to a new Host trait that a hosted caller implements with real std::fs and real stdio, and mmap/brk hand out a real anonymous heap from a bump cursor over the VM's own sparse memory. A guest that opens a file, reads it, writes to stdout, or allocates through brk does all of that for real.
 
-A PE binary's loader never populates a symbol table in the first place, so a GUI .exe with no exports has no name that could ever resolve. vox run with no symbol given now falls back to the module's own entry point instead of demanding one. Verified against a minimal static ELF whose _start calls exit(42) directly: entry(...) called exit(42), matching its real exit code.
+vox run with no symbol given now calls a new Machine::run_process instead of treating the entry point as a callable function: it lays out a real argv/envp/auxv stack the way the psABI guarantees at process entry, then runs until the process calls exit, since a real process never returns to a return address. vox run <symbol> <file> keeps calling one function exactly as before, unchanged.
+
+Verified against native execution, byte for byte, on four hand-written static ELF binaries: a bare write()+exit(), a brk()+mmap()+write() heap test, an openat()/read()/write()/close() round trip on a real file, and the original minimal exit()-only entry point. All four match ground truth exactly, output and exit code both.
+
+A full glibc-static binary still doesn't run: strace on the native binary shows glibc's _start calling arch_prctl to set up thread-local storage before anything else, and this VM has no notion of segment registers at all, so it spins rather than completing. That's a distinct rung, thread-local storage and segment-register support, not touched here. Dynamic linking is untouched too. Both are named, not silently absorbed.

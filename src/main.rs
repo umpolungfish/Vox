@@ -382,6 +382,48 @@ fn read_or_exit(path: &str) -> Vec<u8> {
     }
 }
 
+/// Real file and console I/O for `imasm_vm::Machine::run_process`, backed by
+/// actual `std::fs`/stdio. A guest that opens, reads, or writes a file under
+/// this does so for real, under whatever permission this process already
+/// has — the same access the shell that launched `vox` already had.
+struct StdHost { files: std::collections::BTreeMap<i32, std::fs::File>, next_fd: i32 }
+impl StdHost { fn new() -> Self { StdHost { files: std::collections::BTreeMap::new(), next_fd: 100 } } }
+impl imasm_vm::Host for StdHost {
+    fn open(&mut self, path: &str, flags: i32, mode: i32) -> i32 {
+        let mut opts = std::fs::OpenOptions::new();
+        let acc = flags & 0b11;
+        opts.read(acc == 0 || acc == 2).write(acc == 1 || acc == 2);
+        if flags & 0o100 != 0 { opts.create(true); }
+        if flags & 0o1000 != 0 { opts.truncate(true); }
+        if flags & 0o2000 != 0 { opts.append(true); }
+        #[cfg(unix)] { use std::os::unix::fs::OpenOptionsExt; opts.mode(mode as u32); }
+        #[cfg(not(unix))] { let _ = mode; }
+        match opts.open(path) {
+            Ok(f) => { let fd = self.next_fd; self.next_fd += 1; self.files.insert(fd, f); fd }
+            Err(_) => -2, // ENOENT: a precise errno map is a further rung
+        }
+    }
+    fn read(&mut self, fd: i32, buf: &mut [u8]) -> i64 {
+        use std::io::Read;
+        match fd {
+            0 => std::io::stdin().read(buf).map(|n| n as i64).unwrap_or(-5),
+            _ => match self.files.get_mut(&fd) { Some(f) => f.read(buf).map(|n| n as i64).unwrap_or(-5), None => -9 },
+        }
+    }
+    fn write(&mut self, fd: i32, buf: &[u8]) -> i64 {
+        use std::io::Write;
+        match fd {
+            1 => std::io::stdout().write_all(buf).map(|_| buf.len() as i64).unwrap_or(-5),
+            2 => std::io::stderr().write_all(buf).map(|_| buf.len() as i64).unwrap_or(-5),
+            _ => match self.files.get_mut(&fd) { Some(f) => f.write(buf).map(|n| n as i64).unwrap_or(-5), None => -9 },
+        }
+    }
+    fn close(&mut self, fd: i32) -> i32 {
+        if matches!(fd, 0|1|2) { return 0; }
+        if self.files.remove(&fd).is_some() { 0 } else { -9 }
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let code = match args.first().map(|s| s.as_str()) {
@@ -578,28 +620,35 @@ fn main() {
             std::process::exit(0);
         }
         Some("run") => {
-            // vox run [SYMBOL] --args a,b FILE   (order-tolerant)
-            // A single bare token is the FILE, not the symbol: with no name
-            // given, the entry point is what runs. This is the only address a
-            // PE binary offers at all — the loader never populates a symbol
-            // table for PE (only ELF has one to read), so a GUI .exe with no
-            // exports has no symbol name that could ever resolve.
+            // vox run <file> [--argv a,b]            — run it: real process, real
+            //                                           argv/envp/auxv stack, real
+            //                                           syscalls, from its own entry.
+            // vox run <symbol> <file> [--args 1,2]   — call one function directly:
+            //                                           scalar int args in, one
+            //                                           int back, no process at all.
+            // A single bare token is the FILE, not the symbol — with no name given
+            // there is no function to call, so the whole file runs as a process.
+            // This is also the only thing a PE binary offers, since the loader
+            // never populates a symbol table for PE at all (only ELF has one).
             let mut bare: Vec<String> = Vec::new();
-            let mut argv:Vec<i64>=Vec::new(); let mut i=1;
+            let mut argv_ints: Vec<i64> = Vec::new();
+            let mut argv_strs: Vec<String> = Vec::new();
+            let mut i=1;
             while i < args.len() {
                 match args[i].as_str() {
                     "--args" => { i+=1; if i<args.len() { for a in args[i].split(',') { let a=a.trim(); if !a.is_empty() {
-                        let v = if let Some(h)=a.strip_prefix("0x") { i64::from_str_radix(h,16).unwrap_or(0) } else { a.parse().unwrap_or(0) }; argv.push(v);} } } }
+                        let v = if let Some(h)=a.strip_prefix("0x") { i64::from_str_radix(h,16).unwrap_or(0) } else { a.parse().unwrap_or(0) }; argv_ints.push(v);} } } }
+                    "--argv" => { i+=1; if i<args.len() { for a in args[i].split(',') { argv_strs.push(a.to_string()); } } }
                     other => bare.push(other.to_string()),
                 }
                 i+=1;
             }
             let (sym, file): (String, String) = match bare.len() {
-                0 => { eprintln!("vox run [symbol] --args a,b <file>"); return; }
+                0 => { eprintln!("vox run <file> [--argv a,b]   or   vox run <symbol> <file> [--args 1,2]"); return; }
                 1 => (String::new(), bare[0].clone()),
                 _ => (bare[0].clone(), bare[1..].join(" ")),
             };
-            if file.is_empty() { eprintln!("vox run [symbol] --args a,b <file>"); return; }
+            if file.is_empty() { eprintln!("vox run <file> [--argv a,b]   or   vox run <symbol> <file> [--args 1,2]"); return; }
             // A `.imasm` file is a saved module: text, already carrying its own
             // symbol table (`; sym NAME 0xADDR`), so it runs directly with no
             // second read of the original binary. Anything else is read as raw
@@ -616,18 +665,25 @@ fn main() {
                 let raw = read_or_exit(&file);
                 imasm_vm::Machine::new(&imasm_module::emit(&raw))
             };
-            let (addr, label) = if sym.is_empty() {
-                (m.entry, "entry".to_string())
-            } else {
-                match m.resolve(&sym) {
-                    Some(a) => (a, sym.clone()),
-                    None => { eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1); }
+            m.set_host(Box::new(StdHost::new()));
+            if sym.is_empty() {
+                let mut argv = vec![file.clone()];
+                argv.extend(argv_strs);
+                match m.run_process(&argv, &[], 50_000_000) {
+                    Ok(()) => println!("entry(...) ran off the end with no exit call   [{} steps]", m.steps),
+                    Err(imasm_vm::Stop::SysExit(c)) => println!("entry(...) exited({})   [{} steps in the twelve]", c, m.steps),
+                    Err(imasm_vm::Stop::Halt(e)) => println!("entry(...) halted: {}   [{} steps]", e, m.steps),
                 }
-            };
-            match m.call(addr, &argv, 50_000_000) {
-                Ok(r) => println!("{}({}) = {}   [{} steps in the twelve]", label, argv.iter().map(|a|a.to_string()).collect::<Vec<_>>().join(", "), r, m.steps),
-                Err(imasm_vm::Stop::SysExit(c)) => println!("{}(...) called exit({})   [{} steps in the twelve]", label, c, m.steps),
-                Err(imasm_vm::Stop::Halt(e)) => println!("{}(...) halted: {}   [{} steps]", label, e, m.steps),
+            } else {
+                let addr = match m.resolve(&sym) {
+                    Some(a) => a,
+                    None => { eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1); }
+                };
+                match m.call(addr, &argv_ints, 50_000_000) {
+                    Ok(r) => println!("{}({}) = {}   [{} steps in the twelve]", sym, argv_ints.iter().map(|a|a.to_string()).collect::<Vec<_>>().join(", "), r, m.steps),
+                    Err(imasm_vm::Stop::SysExit(c)) => println!("{}(...) called exit({})   [{} steps in the twelve]", sym, c, m.steps),
+                    Err(imasm_vm::Stop::Halt(e)) => println!("{}(...) halted: {}   [{} steps]", sym, e, m.steps),
+                }
             }
             std::process::exit(0);
         }
