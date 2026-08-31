@@ -11,7 +11,7 @@ use ::vox::protein;
 use ::vox::fold;
 use ::vox::fold3d;
 use ::vox::x86;
-use ::vox::{imasm_module, imasm_vm, loader};
+use ::vox::{imasm_module, imasm_vm, loader, safetensors};
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
@@ -42,6 +42,7 @@ fn usage() {
     eprintln!("                            --pdb writes a real PDB file, readable by vox pdb.");
     eprintln!("  vox self                  lift V⊙x's own image and read it back");
     eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
+    eprintln!("  vox safetensors <file>  lift a HuggingFace safetensors file, verdict each tensor");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
     eprintln!("  vox --selftest            planted open/closed forks");
     eprintln!();
@@ -313,7 +314,7 @@ fn audit_linear(path: &str, l: &loader::Loaded, bits: u8) -> i32 {
     let mut b_findings: Vec<(u64, String)> = Vec::new();
     for (base, bytes) in &l.code {
         let mut pos = 0usize; let mut cur: Vec<x86::Insn> = Vec::new(); let mut fstart = *base;
-        let mut flush = |cur: &mut Vec<x86::Insn>, fstart: u64, tally: &mut [usize;4], funcs: &mut usize, bf: &mut Vec<(u64,String)>| {
+        let flush = |cur: &mut Vec<x86::Insn>, fstart: u64, tally: &mut [usize;4], funcs: &mut usize, bf: &mut Vec<(u64,String)>| {
             if cur.is_empty() { return; }
             let word = alloc_word(cur);
             let v = vox::verdict(&word);
@@ -355,7 +356,7 @@ fn alloc_word(insns: &[x86::Insn]) -> Vec<char> {
     }).collect();
     vox::recompile_function(&lifted)
 }
-fn alloc_prefix() -> Vec<char> { vec!['⊢'] }
+
 
 fn lift_file(path: &str) -> i32 {
     let raw = match std::fs::read(path) {
@@ -725,7 +726,7 @@ fn main() {
             // sweep
             for (base,bytes) in &image.segments {
                 let mut pos=0usize; let mut cur:Vec<x86::Insn>=Vec::new(); let mut fstart=*base;
-                let mut flush=|cur:&mut Vec<x86::Insn>, fstart:u64, b:&mut Vec<(u64,String)>| {
+                let flush=|cur:&mut Vec<x86::Insn>, fstart:u64, b:&mut Vec<(u64,String)>| {
                     if cur.is_empty(){return;} let word=alloc_word(cur);
                     if vox::verdict(&word)=='B' { b.push((fstart, vox::glyphs(&word))); } cur.clear();
                 };
@@ -848,6 +849,22 @@ fn main() {
             std::process::exit(0);
         }
         Some("lift") => { if args.len() < 2 { eprintln!("vox lift <file>"); 1 } else { lift_file(&args[1]) } }
+        Some("safetensors") | Some("safetensor") => {
+            if args.len() < 2 { eprintln!("vox safetensors <file.safetensors>"); 1 }
+            else {
+                let raw = read_or_exit(&args[1]);
+                match safetensors::lift_file(&raw) {
+                    Ok(words) => {
+                        for (name, w) in &words {
+                            let v = vox::verdict(w);
+                            println!("{:<20} {}  {}", name, v, vox::glyphs(w));
+                        }
+                        0
+                    }
+                    Err(e) => { eprintln!("safetensors: {}", e); 1 }
+                }
+            }
+        }
         Some(flag) if flag.starts_with('-') => { eprintln!("vox: unknown option {}\n", flag); usage(); 2 }
         Some(path) => lift_file(path),
     };
