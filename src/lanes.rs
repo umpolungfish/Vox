@@ -9,7 +9,7 @@ use alloc::vec::Vec;
 use alloc::collections::BTreeMap;
 use crate::vox::{VINIT, TANCH, AFWD, FSPLIT, FFUSE, IFIX};
 
-fn from_hex(s: &str) -> Vec<u8> {
+pub fn from_hex(s: &str) -> Vec<u8> {
     let mut out = Vec::new();
     let mut hi: Option<u8> = None;
     for c in s.chars() {

@@ -26,6 +26,7 @@ fn usage() {
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
     eprintln!("  vox wasm <hex>            lift a WASM function body, verdict it");
+    eprintln!("  vox hex <hex>             lift raw machine-code hex, verdict its closure");
     eprintln!("  vox rna <seq> [--dialect mito]   lift a coding sequence, verdict the transcript");
     eprintln!("  vox aa <seq>              lift a protein (one-letter residues), verdict the fold");
     eprintln!("  vox fasta <file>          lift a protein from FASTA");
@@ -261,6 +262,37 @@ fn pyc_file(path: &str) -> i32 {
         match v { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>tally[3]+=1 }
         let f = vox::open_forks(&w);
         println!("  {:<28} {}  {}   surplus {:>3} exits {}", o.name, v, vox::glyphs(&w), f.surplus, f.exits);
+    }
+    println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
+    0
+}
+
+/// Lift a raw hex value stream: decode the hex to bytes, load them as a code
+/// artifact, walk the control flow, recompile each function to its glyph word,
+/// and read the closure verdict of each. The delta half of the vox pair pointed
+/// at inline hex, the same lift `vox self` runs on a file.
+fn hexlift(hexstr: &str) -> i32 {
+    let raw = lanes::from_hex(hexstr);
+    if raw.is_empty() { eprintln!("vox hex: no hex bytes in input"); return 2; }
+    let l = loader::load(&raw);
+    let image = vox_decode::Image { segments: l.code.clone() };
+    let mut seeds: Vec<u64> = l.symbols.values().copied().collect();
+    seeds.push(l.entry);
+    let w = vox_decode::walk(&image, l.entry, &seeds);
+
+    println!("HEX    {} bytes  {}  {}  {} function(s) by descent",
+             raw.len(), l.format, l.arch, w.functions.len());
+    if w.functions.is_empty() {
+        eprintln!("  no function reachable from entry 0x{:x}", l.entry);
+        return 1;
+    }
+    let mut tally = [0usize; 4];
+    for (addr, f) in &w.functions {
+        let word = vox::recompile_function(f);
+        let v = vox::verdict(&word);
+        match v { 'T'=>tally[0]+=1, 'B'=>tally[1]+=1, 'N'=>tally[2]+=1, _=>tally[3]+=1 }
+        let mark = if v == 'B' { "   <-- FINDING (fork open across commit)" } else { "" };
+        println!("  0x{:08x}  {}  {}{}", addr, v, vox::glyphs(&word), mark);
     }
     println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
     0
@@ -649,6 +681,7 @@ fn main() {
         }
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
+        Some("hex") | Some("--hex") => { if args.len() < 2 { eprintln!("vox hex <hex>   lift raw machine-code hex, verdict its closure"); 1 } else { hexlift(&args[1..].join("")) } }
         Some("rna") | Some("--rna") => {
             if args.len() < 2 { eprintln!("vox rna <sequence> [--dialect mito]"); 1 }
             else {
