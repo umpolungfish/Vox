@@ -45,6 +45,11 @@ fn usage() {
     eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
     eprintln!("  vox safetensors <file>  lift a HuggingFace safetensors file, verdict each tensor");
     eprintln!("  vox classify <mn> [ops]   the glyph an instruction lifts to");
+    eprintln!("  vox tables <file> <symbol>   shift a function one nibble, verdict a random");
+    eprintln!("                            baseline of the same length, and flag any resync run");
+    eprintln!("                            far longer than chance -- an embedded constant table");
+    eprintln!("                            (witness sets, factor bases, curve parameters), located");
+    eprintln!("                            purely from the binary and shown at its real alignment");
     eprintln!("  vox --selftest            planted open/closed forks");
     eprintln!();
     eprintln!("T closes · B holds a fork open across a terminal · N never forked ·");
@@ -295,6 +300,149 @@ fn hexlift(hexstr: &str) -> i32 {
         println!("  0x{:08x}  {}  {}{}", addr, v, vox::glyphs(&word), mark);
     }
     println!("  verdicts  T {}   B {}   N {}   F {}", tally[0], tally[1], tally[2], tally[3]);
+    0
+}
+
+/// Linear sweep of `bytes` as x86-64, splitting into fragments at each
+/// terminal instruction (ret/int3/ud2/hlt/jmp) or at the first undecodable
+/// byte. Returns each fragment's (start_offset, length_in_bytes) within
+/// `bytes` -- the same terminal predicate the fallback sweep in `lift_file`
+/// uses, applied here to a standalone buffer rather than a whole image.
+fn linear_fragments(bytes: &[u8]) -> Vec<(usize, usize)> {
+    let mut out = Vec::new();
+    let mut pos = 0usize;
+    let mut frag_start = 0usize;
+    let mut frag_len = 0usize;
+    while pos < bytes.len() {
+        match x86::decode(&bytes[pos..], pos as u64) {
+            Some(d) if d.len > 0 => {
+                let terminal = d.mnemonic.starts_with("ret")
+                    || matches!(d.mnemonic.as_str(), "int3" | "ud2" | "hlt" | "jmp");
+                frag_len += d.len;
+                pos += d.len;
+                if terminal { out.push((frag_start, frag_len)); frag_start = pos; frag_len = 0; }
+            }
+            _ => {
+                if frag_len > 0 { out.push((frag_start, frag_len)); }
+                pos += 1; frag_start = pos; frag_len = 0;
+            }
+        }
+    }
+    if frag_len > 0 { out.push((frag_start, frag_len)); }
+    out
+}
+
+/// Shift a byte buffer left by one nibble (4 bits): output byte i is built
+/// from the low nibble of input byte i and the high nibble of input byte
+/// i+1, so the same underlying bits decode from a half-byte-off starting
+/// point -- real content, read out of alignment, not a different function.
+fn nibble_shift(bytes: &[u8]) -> Vec<u8> {
+    let mut out = vec![0u8; bytes.len()];
+    for i in 0..bytes.len() {
+        let hi = bytes[i] << 4;
+        let lo = if i + 1 < bytes.len() { bytes[i + 1] >> 4 } else { 0 };
+        out[i] = hi | lo;
+    }
+    out
+}
+
+/// xorshift64* -- a small deterministic PRNG so the random baseline is
+/// reproducible from a fixed seed, with no external crate.
+fn xorshift_bytes(state: &mut u64, n: usize) -> Vec<u8> {
+    let mut out = Vec::with_capacity(n);
+    while out.len() < n {
+        *state ^= *state << 13;
+        *state ^= *state >> 7;
+        *state ^= *state << 17;
+        for b in state.to_le_bytes() { if out.len() < n { out.push(b); } }
+    }
+    out
+}
+
+/// Locate embedded constant/data tables inside one named function by nibble-
+/// phase resync anomaly: shift the function's real bytes by one nibble,
+/// linear-sweep the result into fragments at each terminal instruction, and
+/// compare the longest fragment against a random-byte baseline of the same
+/// length. Ordinary code and pure noise both desync within a bounded range;
+/// a run of near-identical instruction templates (a witness set, a factor
+/// base, curve parameters) survives misalignment far longer than chance,
+/// because its repetition is what the wrong phase accidentally resyncs
+/// against. Flags the anomaly and prints the REAL, correctly aligned
+/// instructions there, since the wrong-phase reading is a locator, not the
+/// content.
+fn find_tables(path: &str, sym: &str) -> i32 {
+    let raw = match std::fs::read(path) {
+        Ok(r) => r,
+        Err(e) => { eprintln!("cannot read {}: {}", path, e); return 2; }
+    };
+    let l = loader::load(&raw);
+    let mut addrs: Vec<(u64, String)> = l.symbols.iter().map(|(k, v)| (*v, k.clone())).collect();
+    addrs.sort();
+    // Symbol table names are Rust's raw mangled form (e.g. "_RNvNtCs...21is_prime_miller_rabin"),
+    // which still carries the real identifier as a literal substring -- so match on
+    // that instead of demangling, and prefer the shortest hit (the function itself,
+    // not one of its closures or monomorphizations, which mangle longer).
+    let candidates: Vec<usize> = addrs.iter().enumerate()
+        .filter(|(_, (_, name))| name.contains(sym))
+        .map(|(i, _)| i).collect();
+    if candidates.is_empty() { eprintln!("vox tables: symbol '{}' not found", sym); return 1; }
+    let idx = *candidates.iter().min_by_key(|&&i| addrs[i].1.len()).unwrap();
+    if candidates.len() > 1 {
+        eprintln!("  ({} symbols contain '{}', using the shortest: {})", candidates.len(), sym, addrs[idx].1);
+    }
+    let start = addrs[idx].0;
+    let end = if idx + 1 < addrs.len() { addrs[idx + 1].0 } else { start + 0x10000 };
+    let seg = match l.code.iter().find(|(base, bytes)| start >= *base && start < base + bytes.len() as u64) {
+        Some(s) => s,
+        None => { eprintln!("vox tables: 0x{:x} is not in any executable segment", start); return 1; }
+    };
+    let off = (start - seg.0) as usize;
+    let len = ((end - start) as usize).min(seg.1.len().saturating_sub(off));
+    if len == 0 { eprintln!("vox tables: empty range for '{}'", sym); return 1; }
+    let bytes = &seg.1[off..off + len];
+
+    println!("{}  0x{:x}..0x{:x}  {} bytes", sym, start, end, len);
+
+    let shifted = nibble_shift(bytes);
+    let real_frags = linear_fragments(&shifted);
+    let (real_off, real_len) = real_frags.iter().copied().max_by_key(|&(_, flen)| flen).unwrap_or((0, 0));
+
+    let trials = 20usize;
+    let mut state: u64 = 0x9E3779B97F4A7C15 ^ (len as u64);
+    let mut baseline: Vec<f64> = Vec::with_capacity(trials);
+    for _ in 0..trials {
+        let rnd = xorshift_bytes(&mut state, len);
+        let m = linear_fragments(&rnd).iter().map(|&(_, flen)| flen).max().unwrap_or(0);
+        baseline.push(m as f64);
+    }
+    let mean = baseline.iter().sum::<f64>() / trials as f64;
+    let var = baseline.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / trials as f64;
+    let sd = var.sqrt();
+    let z = if sd > 0.0 { (real_len as f64 - mean) / sd } else if (real_len as f64) > mean { f64::INFINITY } else { 0.0 };
+
+    println!("  phase-1 longest resync run: {} bytes at offset 0x{:x}  (random baseline, {} trials: mean {:.1}, sd {:.1})",
+        real_len, real_off, trials, mean, sd);
+
+    if z > 2.0 {
+        println!("  FLAG: {:.1} standard deviations above the random baseline -- probable embedded constant/table", z);
+        let show_start = real_off.saturating_sub(4);
+        let show_end = (real_off + real_len + 16).min(bytes.len());
+        println!("  real (correctly aligned) bytes at 0x{:x}:", start + show_start as u64);
+        let mut pos = show_start;
+        while pos < show_end {
+            match x86::decode(&bytes[pos..], start + pos as u64) {
+                Some(d) if d.len > 0 => {
+                    let op_str = if let (true, Some(t)) = (d.ops.len() == 1, d.target) { format!("0x{:x}", t) }
+                        else { d.ops.iter().map(|o| o.intel()).collect::<Vec<_>>().join(", ") };
+                    println!("    0x{:x}  {} {}", d.addr, d.mnemonic, op_str);
+                    pos += d.len;
+                }
+                _ => { println!("    0x{:x}  .byte 0x{:02x}", start + pos as u64, bytes[pos]); pos += 1; }
+            }
+        }
+    } else {
+        println!("  no anomaly -- consistent with ordinary code, nothing flagged");
+    }
     0
 }
 
@@ -689,6 +837,10 @@ fn main() {
                 println!("{} {}", ins.mnemonic, vox::classify_instruction(&ins));
                 0
             }
+        }
+        Some("tables") | Some("--tables") => {
+            if args.len() < 3 { eprintln!("vox tables <file> <symbol>"); 1 }
+            else { find_tables(&args[1], &args[2]) }
         }
         Some("evm") | Some("--evm") => { if args.len() < 2 { eprintln!("vox evm <hex>"); 1 } else { lane("EVM", &lanes::evm_word(&args[1])) } }
         Some("wasm") | Some("--wasm") => { if args.len() < 2 { eprintln!("vox wasm <hex>"); 1 } else { lane("WASM", &lanes::wasm_word(&args[1])) } }
