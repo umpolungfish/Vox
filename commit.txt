@@ -1,45 +1,23 @@
-Add vox tables: find embedded constant tables by nibble-phase resync anomaly
+Fix vox tables: walk from the real function start, not a guessed offset
 
-Working through the G-mOMonadOS factoring binary, prepending a stray hex
-digit before feeding a real function's bytes to vox hex changed the
-verdict. That's a one-nibble shift of the actual bit-phase vox decodes
-from, not a bug to patch shut: real bytes, read from a half-byte-off
-starting point, are still real bits, and x86 will decode a second, wholly
-different instruction stream out of them.
+Ran a sweep of vox tables across the whole factoring toolkit right after
+adding it, 106 real functions, 36 flagged. Most read clean, but a handful
+(verify_width, mod_inv, eval_at_m, congruence_multilimb) opened with
+garbled .byte lines before the real instructions showed up.
 
-Ran that shift on is_prime_miller_rabin's real compiled bytes: the correct
-alignment gives one coherent function, the wrong alignment shatters into
-249 fragments almost immediately, as expected of real code read from the
-wrong start. One fragment survives 223 bytes before it desyncs again, ten
-random byte samples of the same length top out at 70-136. That's not
-chance. Decoded at the real alignment, the anomaly is twelve near-identical
-mov instructions storing 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 to the
-stack: the classical deterministic Miller-Rabin witness set. Repeated
-near-identical instruction templates survive misalignment far longer than
-generic code or noise, because the repetition is exactly what a wrong
-phase accidentally resyncs against. That's what the anomaly is finding.
+The cause was in the display code, not in anything it found: it decoded
+raw starting from real_off - 4, and real_off is an offset found in the
+NIBBLE-SHIFTED stream. There's no reason that offset lands on a genuine
+instruction boundary in the real, correctly aligned bytes, so decoding
+cold from there could itself start mid-instruction.
 
-new subcommand: vox tables <file> <symbol>
+Fixed by walking forward from offset 0 of the function's real bytes,
+exactly the way the actual disassembly would, and only printing once the
+walk passes the flagged region. Every line is now guaranteed to start on
+a real instruction boundary, because it was reached by decoding every
+instruction before it, not by guessing where one starts.
 
-Given a named function, shifts its real bytes by one nibble, linear-sweeps
-the result into fragments at each terminal instruction the same way the
-existing fallback sweep already does, and compares the longest fragment
-against a random-byte baseline of the same length (20 trials, mean and
-standard deviation computed live, not hardcoded). Flags anything more than
-two standard deviations out, then prints the REAL, correctly aligned
-instructions there, since the wrong-phase reading is a locator, not the
-content itself.
-
-Checked against four real functions in target/release/g-momonados:
-is_prime_miller_rabin re-finds the witness table clean, 10.6 sd out.
-pollard_rho_belnap also flags, 6.1 sd out, for a different real reason: a
-dense run of near-identical stack-load instructions, not a constant table
--- checking that one corrected an earlier claim of mine that it wouldn't
-flag, which came from comparing against a random sample of the wrong
-length. pow2 and isqrt, both short and unremarkable, come back clean, no
-anomaly, confirming this doesn't just fire on everything.
-
-Symbol lookup matches against Rust's raw mangled name (substring, shortest
-match preferred over closures and monomorphizations) since the loader's
-symbol table was never demangled and doesn't need to be, the literal
-identifier already sits inside the mangled string.
+Re-verified against all six functions checked in the original sweep,
+including the two that were already reading correctly
+(is_prime_miller_rabin, gen_prime) to confirm the fix didn't change
+anything that was already right.

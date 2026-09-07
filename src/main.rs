@@ -425,19 +425,29 @@ fn find_tables(path: &str, sym: &str) -> i32 {
 
     if z > 2.0 {
         println!("  FLAG: {:.1} standard deviations above the random baseline -- probable embedded constant/table", z);
-        let show_start = real_off.saturating_sub(4);
         let show_end = (real_off + real_len + 16).min(bytes.len());
-        println!("  real (correctly aligned) bytes at 0x{:x}:", start + show_start as u64);
-        let mut pos = show_start;
+        // Walk forward from the function's real start so every printed line
+        // lands on a genuine instruction boundary, rather than decoding raw
+        // from `real_off` itself, which is a byte offset found in the SHIFTED
+        // stream and is not guaranteed to be a boundary in the real one.
+        println!("  real (correctly aligned) bytes near 0x{:x}:", start + real_off as u64);
+        let mut pos = 0usize;
+        let mut printing = false;
         while pos < show_end {
             match x86::decode(&bytes[pos..], start + pos as u64) {
                 Some(d) if d.len > 0 => {
-                    let op_str = if let (true, Some(t)) = (d.ops.len() == 1, d.target) { format!("0x{:x}", t) }
-                        else { d.ops.iter().map(|o| o.intel()).collect::<Vec<_>>().join(", ") };
-                    println!("    0x{:x}  {} {}", d.addr, d.mnemonic, op_str);
+                    if !printing && pos + d.len > real_off.saturating_sub(8) { printing = true; }
+                    if printing {
+                        let op_str = if let (true, Some(t)) = (d.ops.len() == 1, d.target) { format!("0x{:x}", t) }
+                            else { d.ops.iter().map(|o| o.intel()).collect::<Vec<_>>().join(", ") };
+                        println!("    0x{:x}  {} {}", d.addr, d.mnemonic, op_str);
+                    }
                     pos += d.len;
                 }
-                _ => { println!("    0x{:x}  .byte 0x{:02x}", start + pos as u64, bytes[pos]); pos += 1; }
+                _ => {
+                    if printing { println!("    0x{:x}  .byte 0x{:02x}", start + pos as u64, bytes[pos]); }
+                    pos += 1;
+                }
             }
         }
     } else {
