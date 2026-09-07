@@ -435,18 +435,25 @@ fn lift_file(path: &str) -> i32 {
     // functions of their own at each terminal, and verdict those too.
     let mut swept = 0usize; let mut swept_bytes = 0usize;
     let mut sweep_f = 0usize;
+    let mut illtyped_sweep: Vec<(u64, String)> = Vec::new();
     for (base, bytes) in &image.segments {
         let mut pos = 0usize;
         let mut cur: Vec<x86::Insn> = Vec::new();
-        let flush = |cur: &mut Vec<x86::Insn>, tally: &mut [usize;4], swept: &mut usize, sweep_f: &mut usize| {
+        let flush = |cur: &mut Vec<x86::Insn>, tally: &mut [usize;4], swept: &mut usize, sweep_f: &mut usize,
+                     illtyped_sweep: &mut Vec<(u64, String)>| {
             if cur.is_empty() { return; }
+            let start_addr = cur[0].addr;
             let mut word = alloc_word(cur);
-            match vox::verdict(&word) { 'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,_=>{tally[3]+=1; *sweep_f+=1;} }
+            match vox::verdict(&word) {
+                'T'=>tally[0]+=1,'B'=>tally[1]+=1,'N'=>tally[2]+=1,
+                _=>{ tally[3]+=1; *sweep_f+=1;
+                     if illtyped_sweep.len() < 8 { illtyped_sweep.push((start_addr, vox::glyphs(&word))); } }
+            }
             *swept += 1; word.clear(); cur.clear();
         };
         while pos < bytes.len() {
             let addr = base + pos as u64;
-            if claimed.contains(&addr) { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f);
+            if claimed.contains(&addr) { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f, &mut illtyped_sweep);
                 // skip the claimed instruction
                 if let Some(d) = x86::decode(&bytes[pos..], addr) { pos += d.len.max(1); } else { pos += 1; }
                 continue;
@@ -456,12 +463,12 @@ fn lift_file(path: &str) -> i32 {
                     let mn = d.mnemonic.clone(); swept_bytes += d.len; pos += d.len;
                     let terminal = mn.starts_with("ret") || matches!(mn.as_str(), "int3"|"ud2"|"hlt"|"jmp");
                     cur.push(d);
-                    if terminal { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f); }
+                    if terminal { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f, &mut illtyped_sweep); }
                 }
-                _ => { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f); pos += 1; }
+                _ => { flush(&mut cur, &mut tally, &mut swept, &mut sweep_f, &mut illtyped_sweep); pos += 1; }
             }
         }
-        flush(&mut cur, &mut tally, &mut swept, &mut sweep_f);
+        flush(&mut cur, &mut tally, &mut swept, &mut sweep_f, &mut illtyped_sweep);
     }
     let total_cov = w.claimed_bytes + swept_bytes;
     println!();
@@ -474,7 +481,11 @@ fn lift_file(path: &str) -> i32 {
         tally[0], tally[1], tally[2], tally[3], descent_f, sweep_f);
     for (a, g) in &illtyped {
         let head: String = g.chars().take(90).collect();
-        println!("    0x{:x}  {}", a, head);
+        println!("    0x{:x}  descent   {}", a, head);
+    }
+    for (a, g) in &illtyped_sweep {
+        let head: String = g.chars().take(90).collect();
+        println!("    0x{:x}  sweep     {}", a, head);
     }
     0
 }

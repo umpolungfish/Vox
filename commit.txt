@@ -1,14 +1,24 @@
-Add the hex lift lane: vox hex <hex>
+Name the fallback-sweep F, not just the descent one
 
-Lifts a raw machine-code hex value stream, the delta half of the vox pair
-pointed at inline hex instead of a file. Decodes the hex to bytes, loads them
-as a flat code image, walks the control flow, recompiles each function to its
-glyph word, and reads the closure verdict of each, the same pipeline vox self
-runs on a file. Reuses the tolerant hex decoder (lanes::from_hex, now public)
-that the evm and wasm lanes already use.
+Applied vox to the G-mOMonadOS factoring binary and found F 2 in the
+whole-image tally, with only one address ever printed. The descent loop's
+illtyped list captured address and word for its own F; the fallback-sweep
+flush closure counted sweep_f but threw the address and word away the
+moment it found one. There was no way to see what the second F actually
+was.
 
-Verified: a small function push rbp/mov/xor/pop/ret lifts and reads N; a
-conditional branch cmp/jne/xor/ret reads T with the fork and fuse reconnecting
-(⊢⊤∈⊞∋⊣); the shuffle control (permuted bytes) decodes to different words, so
-the reading tracks the bytes and is not an artifact. This is the
-lifting_hex_values_with_vox ob3ect made operational.
+Gave the sweep loop the same illtyped capture the descent loop already
+had: the flush closure now records the fragment's start address and its
+glyph word when the verdict isn't T/B/N, capped at eight like the descent
+list. The summary now prints both lists, each line tagged descent or
+sweep, instead of stopping at whichever one already had a home.
+
+Rebuilt and reinstalled, then ran it against target/release/g-momonados
+again: the descent F is std::env::_var_os, standard library. The sweep F
+is a fragment of g_momonados::loss::loss_main's cold panic path
+(unwrap_failed, panic_bounds_check) — descent already claimed that
+function's hot path, and the sweep picked up the orphaned tail as its own
+fragment, which reads as ill-typed because a fragment cut mid-function
+isn't a whole control-flow graph. Neither F touches any of the factoring
+code (native_numeral, trilattice_factor, gpu_ecm, gpu_rho, gpu_rho_ml,
+gpu_gnfs, winding_period) — checked directly by address, not assumed.
