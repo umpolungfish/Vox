@@ -1,26 +1,11 @@
-String moves in the VM: first real boot output through IMASM
+Load the constructor/destructor array sections
 
-memcpy and memset are rep movs and rep stos, and vox decoded neither, so the
-copy never happened and the instruction grid skipped the byte after the string
-op. With these the machine copies and fills for real, and g-momonados's own
-boot lines come out the far end of vox run:
+The ELF loader took PROGBITS only, so INIT_ARRAY, FINI_ARRAY and PREINIT_ARRAY
+(types 14/15/16) never reached memory and the C runtime read a zero table and
+called address 0. Loading them lets a lifted program run its constructors
+before main.
 
-  [boot] Interrupts: none — the host owns the IDT, no periodic slot
-  [boot] Heap: host allocator, 1024 bytes counted, 48MB declared budget
-
-That is the loop closed for output: the kernel's text, produced by its own
-code running as twelve-mark IMASM, surfacing at the terminal.
-
-x86 decoder:
-- movs and stos in every width (A4/A5, AA/AB), with the F3 prefix read as REP
-  and folded into the mnemonic, and the element width as the one operand.
-- hlt (F4), which musl's free() jumps to as its heap-integrity trap.
-
-imasm_vm:
-- movs/stos and their rep forms execute forward: a rep runs the whole count in
-  one VM step, so a large copy or fill costs one step rather than a million,
-  which also dropped the boot's step count from ~197M to ~1M.
-
-Where it stops now is named: musl's free() reaches its hlt trap during kernel
-boot, a heap-metadata check the VM's allocator model does not yet satisfy. That
-is the next thread — a memory-semantics question, not another opcode.
+This closes the self-host: vox built static-musl, lifted to the twelve marks
+and run in imasm_vm, executes `vox verdict ⊢⊞⊤⊣` and prints `verdict N`, exit 0,
+identical to native vox. g-momonados still boots byte-identical, so the narrow
+load carries the constructors without disturbing the proven run.
