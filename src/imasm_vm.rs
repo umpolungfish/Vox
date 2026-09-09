@@ -275,6 +275,10 @@ impl Machine {
         } else if self.kind == "logic" {
             let r = a & mask(size);
             zf = r == 0; sf = sign(r, size) < 0; cf = false; of = false;
+        } else if self.kind == "shift" {
+            // a is the result, b is the carried-out bit.
+            let r = a & mask(size);
+            zf = r == 0; sf = sign(r, size) < 0; cf = b != 0; of = false;
         } else if self.kind == "test" {
             let r = (a & b) & mask(size);
             zf = r == 0; sf = sign(r, size) < 0; cf = false; of = false;
@@ -585,6 +589,17 @@ impl Machine {
             "add"|"adc" => self.set_flags(a & mask(size), b.wrapping_add(cin) & mask(size), size, "add"),
             "sub"|"sbb" => self.set_flags(a & mask(size), b.wrapping_add(cin) & mask(size), size, "sub"),
             "and"|"or"|"xor" => self.set_flags(r & mask(size), 0, size, "logic"),
+            "shl"|"sal"|"shr"|"sar" => {
+                // CF is the last bit shifted out; a count of zero leaves the
+                // flags untouched.
+                let c = b & if size==8 {63} else {31};
+                if c != 0 {
+                    let bits = size as u32 * 8;
+                    let cf = if op == "shl" || op == "sal" { (a >> (bits - c as u32)) & 1 }
+                             else { (a >> (c - 1)) & 1 };
+                    self.set_flags(r & mask(size), cf, size, "shift");
+                }
+            }
             _ => self.set_flags(r & mask(size), 0, size, "cmp"),
         }
     }
