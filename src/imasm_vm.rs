@@ -541,9 +541,12 @@ impl Machine {
             "sub"|"sbb" => a.wrapping_sub(b),
             "and" => a & b, "or" => a | b, "xor" => a ^ b,
             "imul" => (sign(a,size) * sign(b,size)) as u128,
-            "shl"|"sal" => a.wrapping_shl((b & 63) as u32),
-            "shr" => (a & mask(size)) >> (b & 63),
-            "sar" => (sign(a,size) >> (b & 63)) as u128,
+            // x86 masks the shift count to 5 bits for 8/16/32-bit operands and
+            // 6 bits only at 64-bit; masking everything to 63 gave a 32-bit
+            // shift by 32-plus a zero where the hardware keeps the low bits.
+            "shl"|"sal" => { let c = b & if size==8 {63} else {31}; a.wrapping_shl(c as u32) }
+            "shr" => { let c = b & if size==8 {63} else {31}; (a & mask(size)) >> c }
+            "sar" => { let c = b & if size==8 {63} else {31}; (sign(a,size) >> c) as u128 }
             _ => a,
         };
         self.write(&f[0], r & mask(size));
