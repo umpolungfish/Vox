@@ -1014,7 +1014,7 @@ fn main() {
                 let mut argv = vec![file.clone()];
                 argv.extend(argv_strs);
                 let r = m.run_process(&argv, &[], 5_000_000_000);
-                if trace { for line in &m.syslog { eprintln!("{}", line); } }
+                if trace || m.wmem != 0 { for line in &m.syslog { eprintln!("{}", line); } }
                 if trace {
                     for rn in ["rax","rbx","rcx","rdx","rsi","rdi","rbp"] {
                         let a = m.reg(rn) as u64;

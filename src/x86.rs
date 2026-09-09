@@ -332,8 +332,13 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
                   let mn=match g&7 {4=>"bt",5=>"bts",6=>"btr",_=>"btc"}; ins!(addr,c,mn,vec![rm,Op::Imm(im)],wm && (g&7!=4),None) }
         0xB6 => { let (rm,r)=modrm(c,rex,1,1)?; ins!(addr,c,"movzx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xB7 => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movzx",vec![rop(r,osz,rex.p),rm],false,None) }
-        0xBC => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"bsf",vec![rop(r,osz,rex.p),rm],false,None) }
-        0xBD => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"bsr",vec![rop(r,osz,rex.p),rm],false,None) }
+        // F3 turns bit-scan into the BMI count: tzcnt/lzcnt return the operand
+        // width for a zero input where bsf/bsr leave the destination untouched.
+        // musl's allocator finds a free slot with tzcnt on the availability
+        // mask; a full group's mask is zero, and tzcnt must give the width to
+        // mean "no slot", or two allocations land on one region.
+        0xBC => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,if f3{"tzcnt"}else{"bsf"},vec![rop(r,osz,rex.p),rm],false,None) }
+        0xBD => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,if f3{"lzcnt"}else{"bsr"},vec![rop(r,osz,rex.p),rm],false,None) }
         0xBE => { let (rm,r)=modrm(c,rex,1,1)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xBF => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0x28 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movaps",vec![rop(r,16,rex.p),rm],false,None) }

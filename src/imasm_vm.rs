@@ -106,6 +106,7 @@ pub struct Machine {
     pub trace_hi: u64,
     /// Optional watch: log every store that touches this address.
     pub wmem: u64,
+    cur_pc: u64,
 }
 
 impl Machine {
@@ -115,7 +116,7 @@ impl Machine {
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
-            watch: BTreeMap::new(), syslog: Vec::new(), trace_lo: 0, trace_hi: 0, wmem: 0,
+            watch: BTreeMap::new(), syslog: Vec::new(), trace_lo: 0, trace_hi: 0, wmem: 0, cur_pc: 0,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
             m.reg.insert(r.into(), 0);
@@ -212,8 +213,8 @@ impl Machine {
     fn store(&mut self, addr: u64, val: u128, size: u8) {
         let v = val & mask(size);
         for k in 0..size as u64 { self.mem.insert(addr + k, ((v >> (8*k)) & 0xFF) as u8); }
-        if self.wmem != 0 && addr >= self.wmem && addr < self.wmem + 0x40 && self.syslog.len() < 100_000 {
-            self.syslog.push(format!("STORE [{:x}] = {:x} size {} @step {}", addr, v, size, self.steps));
+        if self.wmem != 0 && addr <= self.wmem && self.wmem < addr + size as u64 && self.syslog.len() < 100_000 {
+            self.syslog.push(format!("STORE [{:x}] = {:x} size {} pc {:x} step {}", addr, v, size, self.cur_pc, self.steps));
         }
     }
     fn ea(&self, field: &str) -> (u64, u8) {
@@ -388,6 +389,22 @@ impl Machine {
                     self.write(&f[0], idx as u128 & mask(s));
                     self.set_flags(1, 0, s, "cmp");
                 }
+                return;
+            }
+            // BMI count of trailing/leading zeros: a zero source yields the
+            // operand width in bits and sets CF, unlike bsf/bsr. musl's slot
+            // search depends on the width-for-empty answer.
+            "tzcnt"|"lzcnt" => {
+                let s = self.width(&f[0]);
+                let bits = s as u32 * 8;
+                let v = self.read(&f[1], s).0 & mask(s);
+                let (res, cf) = if v == 0 { (bits, 1u128) }
+                    else if op == "tzcnt" { (v.trailing_zeros(), 0) }
+                    else { (bits - 1 - (v.leading_zeros() - (128 - bits)), 0) };
+                self.write(&f[0], res as u128 & mask(s));
+                // CF from a zero source, ZF from a zero result, under fflags.
+                self.flags = (if res == 0 { 1 } else { 0 }, cf, 0);
+                self.kind = "fflags".into();
                 return;
             }
             // String move/store, forward (DF=0, the memcpy_fwd/memset case). A
@@ -796,6 +813,7 @@ impl Machine {
         let mut trace: Vec<String> = Vec::new();
         loop {
             if Some(pc) == sentinel { return Ok(pc); }
+            self.cur_pc = pc;
             if !self.watch.is_empty() {
                 if let Some(name) = self.watch.get(&pc) {
                     if self.syslog.len() < 100_000 {
