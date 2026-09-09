@@ -1020,6 +1020,18 @@ fn main() {
                         eprint!(" {}={:x}", rn, m.reg(rn) as u64);
                     }
                     eprintln!();
+                    // Walk saved rbp frames: each frame is [saved rbp][return addr].
+                    let mut fp = m.reg("rbp") as u64;
+                    eprint!("call chain:");
+                    for _ in 0..12 {
+                        if fp == 0 || fp < 0x1000 { break; }
+                        let ret = { let b = m.peek(fp + 8, 8); (0..8).fold(0u64, |a,i| a | ((b[i] as u64) << (8*i))) };
+                        let nfp = { let b = m.peek(fp, 8); (0..8).fold(0u64, |a,i| a | ((b[i] as u64) << (8*i))) };
+                        eprint!(" {:x}", ret);
+                        if nfp <= fp { break; }
+                        fp = nfp;
+                    }
+                    eprintln!();
                 }
                 if trace || m.wmem != 0 { for line in &m.syslog { eprintln!("{}", line); } }
                 if trace {
