@@ -86,7 +86,12 @@ fn elf(raw: &[u8]) -> Loaded {
         let sh_addr = sh(k, f_addr, w);
         let sh_off = sh(k, f_off, w) as usize;
         let sh_size = sh(k, f_size, w) as usize;
-        if sh_type == 1 && sh_off + sh_size <= raw.len() && sh_size > 0 && (sh_flags & 0x2) != 0 {
+        // PROGBITS plus the constructor/destructor pointer tables the C runtime
+        // reads before main: INIT_ARRAY(14), FINI_ARRAY(15), PREINIT_ARRAY(16).
+        // Leaving those unloaded left the table zero and the runtime called
+        // address 0. NOBITS (.bss) still stays zero from the sparse map.
+        let loadable = sh_type == 1 || sh_type == 14 || sh_type == 15 || sh_type == 16;
+        if loadable && sh_off + sh_size <= raw.len() && sh_size > 0 && (sh_flags & 0x2) != 0 {
             let bytes = raw[sh_off..sh_off + sh_size].to_vec();
             if (sh_flags & 0x4) != 0 { out.code.push((sh_addr, bytes)); }
             else { out.data.push((sh_addr, bytes)); }
