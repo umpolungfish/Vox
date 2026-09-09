@@ -1014,6 +1014,13 @@ fn main() {
                 let mut argv = vec![file.clone()];
                 argv.extend(argv_strs);
                 let r = m.run_process(&argv, &[], 5_000_000_000);
+                if let Err(imasm_vm::Stop::Halt(_)) = &r {
+                    eprint!("regs at halt:");
+                    for rn in ["rax","rbx","rcx","rdx","rsi","rdi","rbp","rsp","r12","r13","r14","r15"] {
+                        eprint!(" {}={:x}", rn, m.reg(rn) as u64);
+                    }
+                    eprintln!();
+                }
                 if trace || m.wmem != 0 { for line in &m.syslog { eprintln!("{}", line); } }
                 if trace {
                     for rn in ["rax","rbx","rcx","rdx","rsi","rdi","rbp"] {

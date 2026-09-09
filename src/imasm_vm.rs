@@ -331,6 +331,18 @@ impl Machine {
                 let n = self.host.as_mut().map(|h| h.write(fd, &bytes)).unwrap_or(-9);
                 self.set_reg("rax", (n as i128 as u128) & mask(8));
             }
+            20 => { // writev(fd, iov, iovcnt): gather the iovec array and write it
+                let fd = sign(a0,8) as i32; let iov = a1 as u64; let cnt = (a2 as usize).min(1024);
+                let mut bytes = Vec::new();
+                for i in 0..cnt as u64 {
+                    let base = self.load(iov + i*16, 8) as u64;
+                    let len = (self.load(iov + i*16 + 8, 8) as usize).min(1<<20);
+                    for k in 0..len as u64 { bytes.push(*self.mem.get(&(base + k)).unwrap_or(&0)); }
+                }
+                let total = bytes.len() as i64;
+                let n = self.host.as_mut().map(|h| h.write(fd, &bytes)).map(|_| total).unwrap_or(-9);
+                self.set_reg("rax", (n as i128 as u128) & mask(8));
+            }
             2 | 257 => { // open(path,flags,mode) / openat(dirfd,path,flags,mode)
                 let (path_ptr, flags, mode) = if num == 2 { (a0 as u64, a1 as i32, a2 as i32) } else { (a1 as u64, a2 as i32, a3 as i32) };
                 let path = self.read_cstr(path_ptr);
