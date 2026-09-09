@@ -1001,7 +1001,7 @@ fn main() {
             if sym.is_empty() {
                 let mut argv = vec![file.clone()];
                 argv.extend(argv_strs);
-                match m.run_process(&argv, &[], 50_000_000) {
+                match m.run_process(&argv, &[], 5_000_000_000) {
                     Ok(()) => println!("entry(...) ran off the end with no exit call   [{} steps]", m.steps),
                     Err(imasm_vm::Stop::SysExit(c)) => println!("entry(...) exited({})   [{} steps in the twelve]", c, m.steps),
                     Err(imasm_vm::Stop::Halt(e)) => println!("entry(...) halted: {}   [{} steps]", e, m.steps),

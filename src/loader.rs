@@ -25,6 +25,12 @@ pub struct Loaded {
     /// store the pointer it returns in the slot — which is how the CPU-specific
     /// memcpy/strlen get chosen. Empty for anything without them.
     pub irelative: alloc::vec::Vec<(u64, u64)>,
+    /// R_X86_64_RELATIVE relocations: (slot, value). A static-pie binary leaves
+    /// these for its self-relocation to apply — store base+addend at the slot.
+    /// The VM loads segments at their link addresses, base 0, so the value is
+    /// the addend. This is how .init_array's function pointers and the GOT come
+    /// to hold real addresses. Empty for a non-relocated binary.
+    pub relative: alloc::vec::Vec<(u64, u64)>,
 }
 
 fn arch_name(machine: u64, kind: &str) -> &'static str {
@@ -57,13 +63,13 @@ pub fn load(raw: &[u8]) -> Loaded {
     }
     // raw / flat binary: the whole file as code, a conventional load base.
     Loaded { entry: 0x1000, code: alloc::vec![(0x1000, raw.to_vec())], data: Vec::new(),
-             symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), format: "raw", arch: "x86-64" }
+             symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "raw", arch: "x86-64" }
 }
 
 // ── ELF (32- and 64-bit) ──────────────────────────────────────────────────────
 fn elf(raw: &[u8]) -> Loaded {
     let is64 = raw.get(4).copied() == Some(2);
-    let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), format: "elf", arch: arch_name(le(raw,18,2), "elf") };
+    let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "elf", arch: arch_name(le(raw,18,2), "elf") };
     // header field widths and offsets differ by class
     let w = if is64 { 8usize } else { 4 };                 // address width
     out.entry = le(raw, 24, w);
@@ -124,7 +130,11 @@ fn elf(raw: &[u8]) -> Loaded {
                 let r_offset = le(raw, o, 8);
                 let r_info = le(raw, o + 8, 8);
                 let r_addend = le(raw, o + 16, 8);
-                if (r_info & 0xffff_ffff) == 0x25 { out.irelative.push((r_offset, r_addend)); }
+                match r_info & 0xffff_ffff {
+                    0x25 => out.irelative.push((r_offset, r_addend)), // IRELATIVE
+                    0x08 => out.relative.push((r_offset, r_addend)),  // RELATIVE
+                    _ => {}
+                }
                 o += 24;
             }
         }
@@ -134,7 +144,7 @@ fn elf(raw: &[u8]) -> Loaded {
 
 // ── PE ───────────────────────────────────────────────────────────────────────
 fn pe(raw: &[u8]) -> Loaded {
-    let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), format: "pe", arch: "other" };
+    let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "pe", arch: "other" };
     let lfanew = le(raw, 0x3c, 4) as usize;
     if lfanew + 24 > raw.len() || &raw[lfanew..lfanew + 4] != b"PE\0\0" { return out; }
     let coff = lfanew + 4;
@@ -177,11 +187,11 @@ fn macho_fat(raw: &[u8]) -> Loaded {
         if cputype == 0x0100_0007 && offset < raw.len() { return macho(raw, offset); }   // x86_64
     }
     if nfat > 0 { return macho(raw, be(raw, 16, 4) as usize); }
-    Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), format: "macho-fat", arch: "other" }
+    Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "macho-fat", arch: "other" }
 }
 
 fn macho(raw: &[u8], base_off: usize) -> Loaded {
-    let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), format: "macho", arch: arch_name(le(raw, base_off+4, 4), "macho") };
+    let mut out = Loaded { entry: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "macho", arch: arch_name(le(raw, base_off+4, 4), "macho") };
     let ncmds = le(raw, base_off + 16, 4) as usize;
     let mut cmd = base_off + 32;   // 64-bit header
     let mut text_base = 0u64;

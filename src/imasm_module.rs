@@ -119,6 +119,11 @@ pub fn emit(raw: &[u8]) -> String {
     for (slot, resolver) in &l.irelative {
         out.push(format!("; irel 0x{:x} 0x{:x}", slot, resolver));
     }
+    // RELATIVE relocations: the machine stores the value at the slot before the
+    // process runs, the self-relocation a static-pie binary does at entry.
+    for (slot, value) in &l.relative {
+        out.push(format!("; rela 0x{:x} 0x{:x}", slot, value));
+    }
     for (at, blob) in &l.data {
         let hex: String = blob.iter().map(|b| format!("{:02x}", b)).collect();
         out.push(format!("={:#x}\t{}", at, hex));

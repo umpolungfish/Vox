@@ -127,7 +127,11 @@ fn modrm(c: &mut Cur, rex: &Rex, osz: u8, msz: u8) -> Option<(Op, u8)> {
         let idx = ((sib >> 3) & 7) | if rex.x { 8 } else { 0 };
         let bas = (sib & 7) | if rex.b { 8 } else { 0 };
         scale = 1 << ss;
-        if (sib >> 3) & 7 != 4 { index = R64[(idx & 15) as usize].to_string(); }
+        // Index 0b100 means "no index" only when REX.X is clear (RSP is not
+        // encodable as an index); with REX.X set the same field is r12, a real
+        // index. Testing the 3-bit field alone dropped every r12-indexed
+        // address, so a base+r12*scale load read base+0 and never advanced.
+        if idx != 4 { index = R64[(idx & 15) as usize].to_string(); }
         if (sib & 7) == 5 && md == 0 { disp = c.imm(4, true)?; }
         else { base = R64[(bas & 15) as usize].to_string(); }
     } else if rm3 == 5 && md == 0 {
@@ -313,6 +317,13 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool) -> Option<Ins
         0xBF => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0x28 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movaps",vec![rop(r,16,rex.p),rm],false,None) }
         0x29 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,"movaps",vec![rm,rop(r,16,rex.p)],wm,None) }
+        // packed-single moves and bitwise ops — the zero-a-vector (xorps) and
+        // 16-byte load/store the compiler emits for struct init and memset.
+        0x10 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movups",vec![rop(r,16,rex.p),rm],false,None) }
+        0x11 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,"movups",vec![rm,rop(r,16,rex.p)],wm,None) }
+        0x54 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"andps",vec![rop(r,16,rex.p),rm],false,None) }
+        0x56 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"orps",vec![rop(r,16,rex.p),rm],false,None) }
+        0x57 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"xorps",vec![rop(r,16,rex.p),rm],false,None) }
         0x6E => { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; ins!(addr,c,if rex.w{"movq"}else{"movd"},vec![rop(r,16,rex.p),rm],false,None) }
         0x6F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if f3{"movdqu"}else{"movdqa"},vec![rop(r,16,rex.p),rm],false,None) }
         0x7E => { if f3 { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,"movq",vec![rop(r,16,rex.p),rm],false,None) }

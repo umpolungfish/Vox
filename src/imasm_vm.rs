@@ -92,6 +92,9 @@ pub struct Machine {
     /// stored in the slot, which is how a static binary's CPU-selected memcpy,
     /// strlen and kin get wired before main.
     irelative: Vec<(u64, u64)>,
+    /// RELATIVE relocations (slot, value), stored at load before the process
+    /// runs — the self-relocation a static-pie binary would do at entry.
+    relative: Vec<(u64, u64)>,
     /// Real file and console I/O, when a hosted caller supplies one.
     host: Option<Box<dyn Host>>,
 }
@@ -102,7 +105,7 @@ impl Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0,
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
-            mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), host: None,
+            mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
             m.reg.insert(r.into(), 0);
@@ -129,6 +132,15 @@ impl Machine {
                             u64::from_str_radix(a.trim_start_matches("0x"), 16),
                             u64::from_str_radix(b.trim_start_matches("0x"), 16)) {
                             self.irelative.push((slot, res));
+                        }
+                    }
+                } else if let Some(s) = t.strip_prefix("rela ") {
+                    let mut it = s.split_whitespace();
+                    if let (Some(a), Some(b)) = (it.next(), it.next()) {
+                        if let (Ok(slot), Ok(val)) = (
+                            u64::from_str_radix(a.trim_start_matches("0x"), 16),
+                            u64::from_str_radix(b.trim_start_matches("0x"), 16)) {
+                            self.relative.push((slot, val));
                         }
                     }
                 } else if let Some(s) = t.strip_prefix("sym ") {
@@ -488,8 +500,8 @@ impl Machine {
                 let x0=a&mask(4); let x2=(a>>64)&mask(4); let y0=b&mask(4); let y2=(b>>64)&mask(4);
                 self.write(&dst, (x0*y0) | ((x2*y2)<<64));
             }
-            "pxor"|"pand"|"por" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
-                self.write(&dst, match op {"pxor"=>a^b,"pand"=>a&b,_=>a|b}); }
+            "pxor"|"pand"|"por"|"xorps"|"andps"|"orps" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
+                self.write(&dst, match op {"pxor"|"xorps"=>a^b,"pand"|"andps"=>a&b,_=>a|b}); }
             // Byte/word/dword equality: each lane becomes all-ones on a match,
             // zero otherwise. The SSE2 string routines lean on this and pmovmskb.
             "pcmpeqb"|"pcmpeqw"|"pcmpeqd" => {
@@ -659,6 +671,12 @@ impl Machine {
         // 64-bit pointer it returns in rax. Done before the argv stack is laid
         // down, on a scratch stack, so a later PLT jump through the slot lands on
         // the real implementation instead of a zero.
+        // RELATIVE first: they populate .init_array pointers and GOT slots the
+        // resolvers below may themselves read.
+        let rela = core::mem::take(&mut self.relative);
+        for (slot, value) in &rela { self.store(*slot, *value as u128, 8); }
+        self.relative = rela;
+
         let relocs = core::mem::take(&mut self.irelative);
         let sentinel = 0x7fff_dead_0000u64;
         for (slot, resolver) in &relocs {
@@ -713,7 +731,8 @@ fn is_simd(op: &str) -> bool {
     matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"pxor"|"pand"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pshufd"|"punpckldq"|"punpcklqdq"
-        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pminub"|"pmaxub"|"pmovmskb")
+        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pminub"|"pmaxub"|"pmovmskb"
+        |"movups"|"xorps"|"andps"|"orps")
 }
 
 fn hexbytes(s: &str) -> Vec<u8> {
