@@ -357,6 +357,11 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x5D => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("min{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
         0x5E => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("div{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
         0x5F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("max{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        // Float compare with an imm8 predicate: F3 ss, F2 sd, 66 pd, none ps.
+        // Each lane becomes all-ones or zero. libm's branchless paths use it.
+        0xC2 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
+                  let mn=if f3{"cmpss"}else if f2{"cmpsd"}else if o66{"cmppd"}else{"cmpps"};
+                  ins!(addr,c,mn,vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         // Precision convert: F3 ss->sd, F2 sd->ss, 66 pd->ps, none ps->pd.
         0x5A => { let (rm,r)=modrm(c,rex,16,16)?; let mn=if f3{"cvtss2sd"}else if f2{"cvtsd2ss"}else if o66{"cvtpd2ps"}else{"cvtps2pd"}; ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
         // Int -> float: source is a GPR/mem integer, width by REX.W.

@@ -717,6 +717,26 @@ impl Machine {
             return;
         }
         if op == "movupd" { let v = self.read(&f[1], 16).0; self.write(&dst, v & mask(16)); return; }
+        // ── float compare with imm8 predicate → per-lane all-ones/zero mask ──
+        if op == "cmpss" || op == "cmpsd" || op == "cmpps" || op == "cmppd" {
+            let scalar = op.ends_with("ss") || op.ends_with("sd");
+            let w: u8 = if op.ends_with("ss") || op.ends_with("ps") { 4 } else { 8 };
+            let imm = (parse_imm(&f[2][2..]) as u8) & 7;
+            let a = self.read(&dst, 16).0; let b = self.read(&f[1], 16).0;
+            let lanes = if scalar { 1 } else { (16 / w) as usize };
+            let mut o = a;
+            for k in 0..lanes {
+                let sh = (k as u32) * (w as u32) * 8;
+                let x = if w == 4 { f32::from_bits(((a>>sh)&mask(4)) as u32) as f64 } else { f64::from_bits(((a>>sh)&mask(8)) as u64) };
+                let y = if w == 4 { f32::from_bits(((b>>sh)&mask(4)) as u32) as f64 } else { f64::from_bits(((b>>sh)&mask(8)) as u64) };
+                let r = match imm { 0=>x==y, 1=>x<y, 2=>x<=y, 3=>x.is_nan()||y.is_nan(),
+                                    4=>!(x==y), 5=>!(x<y), 6=>!(x<=y), _=>!(x.is_nan()||y.is_nan()) };
+                let m = if r { mask(w) } else { 0 };
+                o = (o & !(mask(w) << sh)) | (m << sh);
+            }
+            self.write(&dst, o & mask(16));
+            return;
+        }
         // ── ordered/unordered compare → integer-style flags ──
         if op.starts_with("comi") || op.starts_with("ucomi") {
             let w = if op.ends_with("sd") { 8 } else { 4 };
@@ -1018,7 +1038,8 @@ fn is_float(op: &str) -> bool {
         "sqrtss"|"sqrtsd"|"sqrtps"|"sqrtpd"|
         "comiss"|"comisd"|"ucomiss"|"ucomisd"|
         "cvtsi2ss"|"cvtsi2sd"|"cvtss2si"|"cvtsd2si"|"cvttss2si"|"cvttsd2si"|
-        "cvtss2sd"|"cvtsd2ss")
+        "cvtss2sd"|"cvtsd2ss"|
+        "cmpss"|"cmpsd"|"cmpps"|"cmppd")
 }
 
 fn hexbytes(s: &str) -> Vec<u8> {
