@@ -707,7 +707,13 @@ impl Machine {
             if dst.starts_with("r:xmm") {
                 if f[1].as_bytes()[0] == b'm' { self.write(&dst, v); }        // load zero-extends
                 else { let cur = self.read(&dst, 16).0; self.write(&dst, (cur & !mask(w)) | v); } // reg-reg merges low lane
-            } else { self.write(&dst, v); }                                    // store
+            } else {
+                // store: exactly the scalar width to memory. The operand field
+                // carries the 16-byte xmm size, so writing through it would
+                // clobber the twelve bytes past the float.
+                let (a, _) = self.ea(&dst);
+                self.store(a, v, w);
+            }
             return;
         }
         if op == "movupd" { let v = self.read(&f[1], 16).0; self.write(&dst, v & mask(16)); return; }
@@ -885,7 +891,7 @@ impl Machine {
             if !self.code.contains_key(&pc) {
                 return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));
             }
-            if trace.len() >= 12 { trace.remove(0); }
+            if trace.len() >= 80 { trace.remove(0); }
             let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(" ; ")).unwrap_or_default();
             trace.push(format!("  {:04x}: {}", pc, insn_txt));
             match self.step(pc)? {
