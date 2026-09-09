@@ -266,7 +266,16 @@ impl Machine {
         }
         let (a, b, size) = self.flags;
         let (zf, sf, cf, of);
-        if self.kind == "test" {
+        if self.kind == "add" {
+            // a and b are the two addends; CF is the unsigned carry-out.
+            let r = a.wrapping_add(b) & mask(size);
+            zf = r == 0; sf = sign(r, size) < 0;
+            cf = (a & mask(size)) + (b & mask(size)) > mask(size);
+            of = (sign(a,size) >= 0) == (sign(b,size) >= 0) && (sign(r,size) >= 0) != (sign(a,size) >= 0);
+        } else if self.kind == "logic" {
+            let r = a & mask(size);
+            zf = r == 0; sf = sign(r, size) < 0; cf = false; of = false;
+        } else if self.kind == "test" {
             let r = (a & b) & mask(size);
             zf = r == 0; sf = sign(r, size) < 0; cf = false; of = false;
         } else {
@@ -287,6 +296,8 @@ impl Machine {
         }
     }
     fn set_flags(&mut self, a: u128, b: u128, size: u8, kind: &str) { self.flags = (a, b, size); self.kind = kind.to_string(); }
+    /// The current carry flag, for adc/sbb to fold in.
+    fn cf(&self) -> bool { self.cc("c") }
 
     fn slot(&self) -> u8 { self.bits / 8 }              // stack slot width, 8 or 4
     fn push_val(&mut self, v: u128) { let s = self.slot(); self.set_reg("rsp", self.get_reg("rsp").wrapping_sub(s as u128)); let sp = self.get_reg("rsp") as u64; self.store(sp, v, s); }
@@ -536,9 +547,14 @@ impl Machine {
             return;
         }
         let b = self.read(&f[f.len()-1], size).0;
+        // adc/sbb fold in the incoming carry; without it a bignum add/subtract
+        // loses the carry between limbs.
+        let cin = if op == "adc" || op == "sbb" { self.cf() as u128 } else { 0 };
         let r: u128 = match op {
-            "add"|"adc" => a.wrapping_add(b),
-            "sub"|"sbb" => a.wrapping_sub(b),
+            "add" => a.wrapping_add(b),
+            "adc" => a.wrapping_add(b).wrapping_add(cin),
+            "sub" => a.wrapping_sub(b),
+            "sbb" => a.wrapping_sub(b).wrapping_sub(cin),
             "and" => a & b, "or" => a | b, "xor" => a ^ b,
             "imul" => (sign(a,size) * sign(b,size)) as u128,
             // x86 masks the shift count to 5 bits for 8/16/32-bit operands and
@@ -550,7 +566,15 @@ impl Machine {
             _ => a,
         };
         self.write(&f[0], r & mask(size));
-        self.set_flags(r & mask(size), 0, size, "cmp");
+        // Flags that carry the carry: add/adc store their addends so CF reads
+        // the real overflow; sub/sbb route through the subtract path; the
+        // logical ops clear CF.
+        match op {
+            "add"|"adc" => self.set_flags(a & mask(size), b.wrapping_add(cin) & mask(size), size, "add"),
+            "sub"|"sbb" => self.set_flags(a & mask(size), b.wrapping_add(cin) & mask(size), size, "sub"),
+            "and"|"or"|"xor" => self.set_flags(r & mask(size), 0, size, "logic"),
+            _ => self.set_flags(r & mask(size), 0, size, "cmp"),
+        }
     }
 
     fn simd(&mut self, op: &str, f: &[String]) {
