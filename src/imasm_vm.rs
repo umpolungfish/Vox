@@ -97,6 +97,15 @@ pub struct Machine {
     relative: Vec<(u64, u64)>,
     /// Real file and console I/O, when a hosted caller supplies one.
     host: Option<Box<dyn Host>>,
+    /// Optional trace: addresses to log on entry (allocator functions), and the
+    /// log itself. Armed by trace_allocs(); read after a run.
+    watch: BTreeMap<u64, String>,
+    pub syslog: Vec<String>,
+    /// Optional per-instruction register trace over a PC window [lo,hi).
+    pub trace_lo: u64,
+    pub trace_hi: u64,
+    /// Optional watch: log every store that touches this address.
+    pub wmem: u64,
 }
 
 impl Machine {
@@ -106,6 +115,7 @@ impl Machine {
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
+            watch: BTreeMap::new(), syslog: Vec::new(), trace_lo: 0, trace_hi: 0, wmem: 0,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
             m.reg.insert(r.into(), 0);
@@ -202,6 +212,9 @@ impl Machine {
     fn store(&mut self, addr: u64, val: u128, size: u8) {
         let v = val & mask(size);
         for k in 0..size as u64 { self.mem.insert(addr + k, ((v >> (8*k)) & 0xFF) as u8); }
+        if self.wmem != 0 && addr >= self.wmem && addr < self.wmem + 0x40 && self.syslog.len() < 100_000 {
+            self.syslog.push(format!("STORE [{:x}] = {:x} size {} @step {}", addr, v, size, self.steps));
+        }
     }
     fn ea(&self, field: &str) -> (u64, u8) {
         // m:base:index:scale:disp:size
@@ -296,7 +309,7 @@ impl Machine {
                 let fd = sign(a0,8) as i32; let buf = a1 as u64; let count = (a2 as usize).min(1<<20);
                 let mut tmp = vec![0u8; count];
                 let n = self.host.as_mut().map(|h| h.read(fd, &mut tmp)).unwrap_or(-9);
-                if n > 0 { for k in 0..n as usize { self.mem.insert(buf + k as u64, tmp[k]); } }
+                if n > 0 { for k in 0..n as usize { self.store(buf + k as u64, tmp[k] as u128, 1); } }
                 self.set_reg("rax", (n as i128 as u128) & mask(8));
             }
             1 => { // write(fd, buf, count)
@@ -325,6 +338,9 @@ impl Machine {
                     let n = (((length.max(1) + page - 1) / page) * page).max(page);
                     let addr = self.mmap_next; self.mmap_next += n;
                     self.set_reg("rax", addr as u128);
+                    if !self.watch.is_empty() && self.syslog.len() < 100_000 {
+                        self.syslog.push(format!("            mmap len=0x{:x} -> 0x{:x} @step {}", length, addr, self.steps));
+                    }
                 }
             }
             12 => { // brk(addr): 0 reads the current break, else sets it
@@ -397,6 +413,21 @@ impl Machine {
                 for _ in 0..count { self.store(di, val, w as u8); di = di.wrapping_add(w); }
                 self.set_reg("rdi", di as u128);
                 if op.starts_with("rep") { self.set_reg("rcx", 0); }
+                return;
+            }
+            // Bit test: CF becomes the selected bit; the set/reset/complement
+            // forms also write it back. A following jb/jae reads CF via fflags.
+            "bt"|"bts"|"btr"|"btc" => {
+                let sz = self.width(&f[0]);
+                let bits = sz as u32 * 8;
+                let idx = (self.read(&f[1], sz).0 as u32) % bits;
+                let val = self.read(&f[0], sz).0;
+                let cf = (val >> idx) & 1;
+                self.flags = (0, cf, 0); self.kind = "fflags".into();
+                if op != "bt" {
+                    let nv = match op { "bts" => val | (1u128 << idx), "btr" => val & !(1u128 << idx), _ => val ^ (1u128 << idx) };
+                    self.write(&f[0], nv & mask(sz));
+                }
                 return;
             }
             // Atomic compare-and-swap: dest is f[0], source register f[1], the
@@ -746,11 +777,39 @@ impl Machine {
     /// (Err). `sentinel: None` means "no such address exists" — the only ways
     /// out are `Stop::SysExit`/`Stop::Halt`, which is what a whole process
     /// looks like: it never `ret`s to a return address, it exits.
+    /// Arm the allocator trace: log the entry to each of these functions, with
+    /// the argument registers, into syslog. Call before run_process.
+    pub fn trace_allocs(&mut self) {
+        for name in ["malloc","free","realloc","calloc","aligned_alloc",
+                     "__libc_malloc","__libc_free","__libc_realloc","__libc_calloc"] {
+            if let Some(&a) = self.symbols.get(name) { self.watch.insert(a, name.to_string()); }
+        }
+    }
+
+    /// Read a register by name and a byte from guest memory, for host-side
+    /// diagnostics after a run.
+    pub fn reg(&self, name: &str) -> u128 { self.get_reg(name) }
+    pub fn peek(&self, addr: u64, len: u64) -> Vec<u8> { (0..len).map(|k| *self.mem.get(&(addr+k)).unwrap_or(&0)).collect() }
+
     fn run_loop(&mut self, mut pc: u64, sentinel: Option<u64>, limit: u64) -> Result<u64, Stop> {
         self.steps = 0;
         let mut trace: Vec<String> = Vec::new();
         loop {
             if Some(pc) == sentinel { return Ok(pc); }
+            if !self.watch.is_empty() {
+                if let Some(name) = self.watch.get(&pc) {
+                    if self.syslog.len() < 100_000 {
+                        let (di, si, dx) = (self.get_reg("rdi"), self.get_reg("rsi"), self.get_reg("rdx"));
+                        self.syslog.push(format!("{:>16} rdi=0x{:x} rsi=0x{:x} rdx=0x{:x} @step {}", name, di, si, dx, self.steps));
+                    }
+                }
+            }
+            if self.trace_hi > self.trace_lo && pc >= self.trace_lo && pc < self.trace_hi && self.syslog.len() < 100_000 {
+                let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(";")).unwrap_or_default();
+                self.syslog.push(format!("{:x}: ax={:x} bx={:x} cx={:x} dx={:x} si={:x} di={:x} bp={:x} r8={:x}  | {}",
+                    pc, self.get_reg("rax"), self.get_reg("rbx"), self.get_reg("rcx"), self.get_reg("rdx"),
+                    self.get_reg("rsi"), self.get_reg("rdi"), self.get_reg("rbp"), self.get_reg("r8"), insn_txt));
+            }
             if !self.code.contains_key(&pc) {
                 return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));
             }

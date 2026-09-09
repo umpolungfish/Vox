@@ -1,23 +1,26 @@
-Fix vox tables: walk from the real function start, not a guessed offset
+String moves in the VM: first real boot output through IMASM
 
-Ran a sweep of vox tables across the whole factoring toolkit right after
-adding it, 106 real functions, 36 flagged. Most read clean, but a handful
-(verify_width, mod_inv, eval_at_m, congruence_multilimb) opened with
-garbled .byte lines before the real instructions showed up.
+memcpy and memset are rep movs and rep stos, and vox decoded neither, so the
+copy never happened and the instruction grid skipped the byte after the string
+op. With these the machine copies and fills for real, and g-momonados's own
+boot lines come out the far end of vox run:
 
-The cause was in the display code, not in anything it found: it decoded
-raw starting from real_off - 4, and real_off is an offset found in the
-NIBBLE-SHIFTED stream. There's no reason that offset lands on a genuine
-instruction boundary in the real, correctly aligned bytes, so decoding
-cold from there could itself start mid-instruction.
+  [boot] Interrupts: none — the host owns the IDT, no periodic slot
+  [boot] Heap: host allocator, 1024 bytes counted, 48MB declared budget
 
-Fixed by walking forward from offset 0 of the function's real bytes,
-exactly the way the actual disassembly would, and only printing once the
-walk passes the flagged region. Every line is now guaranteed to start on
-a real instruction boundary, because it was reached by decoding every
-instruction before it, not by guessing where one starts.
+That is the loop closed for output: the kernel's text, produced by its own
+code running as twelve-mark IMASM, surfacing at the terminal.
 
-Re-verified against all six functions checked in the original sweep,
-including the two that were already reading correctly
-(is_prime_miller_rabin, gen_prime) to confirm the fix didn't change
-anything that was already right.
+x86 decoder:
+- movs and stos in every width (A4/A5, AA/AB), with the F3 prefix read as REP
+  and folded into the mnemonic, and the element width as the one operand.
+- hlt (F4), which musl's free() jumps to as its heap-integrity trap.
+
+imasm_vm:
+- movs/stos and their rep forms execute forward: a rep runs the whole count in
+  one VM step, so a large copy or fill costs one step rather than a million,
+  which also dropped the boot's step count from ~197M to ~1M.
+
+Where it stops now is named: musl's free() reaches its hlt trap during kernel
+boot, a heap-metadata check the VM's allocator model does not yet satisfy. That
+is the next thread — a memory-semantics question, not another opcode.

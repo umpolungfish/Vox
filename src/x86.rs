@@ -321,6 +321,15 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xDA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pminub",vec![rop(r,16,rex.p),rm],false,None) }
         0xDE => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmaxub",vec![rop(r,16,rex.p),rm],false,None) }
         0xD7 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmovmskb",vec![rop(r,4,rex.p),rm],false,None) }
+        // Bit test and its set/reset/complement forms, register and immediate.
+        // musl's free() gates on bt; without it the sweep desynced and skipped
+        // a mov, leaving a register stale and a later check false.
+        0xA3 => { let (rm,r)=modrm(c,rex,osz,osz)?; let wm=rm.is_mem(); ins!(addr,c,"bt",vec![rm,rop(r,osz,rex.p)],wm,None) }
+        0xAB => { let (rm,r)=modrm(c,rex,osz,osz)?; let wm=rm.is_mem(); ins!(addr,c,"bts",vec![rm,rop(r,osz,rex.p)],wm,None) }
+        0xB3 => { let (rm,r)=modrm(c,rex,osz,osz)?; let wm=rm.is_mem(); ins!(addr,c,"btr",vec![rm,rop(r,osz,rex.p)],wm,None) }
+        0xBB => { let (rm,r)=modrm(c,rex,osz,osz)?; let wm=rm.is_mem(); ins!(addr,c,"btc",vec![rm,rop(r,osz,rex.p)],wm,None) }
+        0xBA => { let (rm,g)=modrm(c,rex,osz,osz)?; let im=c.imm(1,false)?; let wm=rm.is_mem();
+                  let mn=match g&7 {4=>"bt",5=>"bts",6=>"btr",_=>"btc"}; ins!(addr,c,mn,vec![rm,Op::Imm(im)],wm && (g&7!=4),None) }
         0xB6 => { let (rm,r)=modrm(c,rex,1,1)?; ins!(addr,c,"movzx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xB7 => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movzx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xBC => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"bsf",vec![rop(r,osz,rex.p),rm],false,None) }

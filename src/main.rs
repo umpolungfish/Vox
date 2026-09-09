@@ -998,10 +998,30 @@ fn main() {
                 imasm_vm::Machine::new(&imasm_module::emit(&raw))
             };
             m.set_host(Box::new(StdHost::new()));
+            let trace = std::env::var("VOX_TRACE").is_ok();
+            if trace { m.trace_allocs(); }
+            if let Ok(w) = std::env::var("VOX_WMEM") {
+                m.wmem = u64::from_str_radix(w.trim().trim_start_matches("0x"), 16).unwrap_or(0);
+            }
+            if let Ok(r) = std::env::var("VOX_RANGE") {
+                let p: Vec<&str> = r.split(',').collect();
+                if p.len() == 2 {
+                    m.trace_lo = u64::from_str_radix(p[0].trim_start_matches("0x"), 16).unwrap_or(0);
+                    m.trace_hi = u64::from_str_radix(p[1].trim_start_matches("0x"), 16).unwrap_or(0);
+                }
+            }
             if sym.is_empty() {
                 let mut argv = vec![file.clone()];
                 argv.extend(argv_strs);
-                match m.run_process(&argv, &[], 5_000_000_000) {
+                let r = m.run_process(&argv, &[], 5_000_000_000);
+                if trace { for line in &m.syslog { eprintln!("{}", line); } }
+                if trace {
+                    for rn in ["rax","rbx","rcx","rdx","rsi","rdi","rbp"] {
+                        let a = m.reg(rn) as u64;
+                        eprintln!("{} = {:x}  mem[{:x}..] = {:02x?}", rn, a, a, m.peek(a.wrapping_sub(4), 16));
+                    }
+                }
+                match r {
                     Ok(()) => println!("entry(...) ran off the end with no exit call   [{} steps]", m.steps),
                     Err(imasm_vm::Stop::SysExit(c)) => println!("entry(...) exited({})   [{} steps in the twelve]", c, m.steps),
                     Err(imasm_vm::Stop::Halt(e)) => println!("entry(...) halted: {}   [{} steps]", e, m.steps),
