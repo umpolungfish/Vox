@@ -15,7 +15,7 @@ use alloc::format;
 pub enum Op {
     Reg(String),
     Imm(i64),
-    Mem { base: String, index: String, scale: u8, disp: i64, size: u8 },
+    Mem { base: String, index: String, scale: u8, disp: i64, size: u8, seg: String },
 }
 
 impl Op {
@@ -23,9 +23,16 @@ impl Op {
         match self {
             Op::Reg(r) => format!("r:{}", r),
             Op::Imm(v) => if *v >= 0 { format!("i:{:#x}", v) } else { format!("i:-{:#x}", -v) },
-            Op::Mem { base, index, scale, disp, size } => {
+            Op::Mem { base, index, scale, disp, size, seg } => {
                 let d = if *disp >= 0 { format!("{:#x}", disp) } else { format!("-{:#x}", -disp) };
-                format!("m:{}:{}:{}:{}:{}", base, index, scale, d, size)
+                // A segment override (fs/gs, the thread-local bases) rides in the
+                // base slot as a pseudo-register, folded with any real base by
+                // '+', so the size stays the last colon field and every existing
+                // reader is unchanged.
+                let b = if seg.is_empty() { base.clone() }
+                        else if base.is_empty() { seg.clone() }
+                        else { format!("{}+{}", seg, base) };
+                format!("m:{}:{}:{}:{}:{}", b, index, scale, d, size)
             }
         }
     }
@@ -37,7 +44,7 @@ impl Op {
         match self {
             Op::Reg(r) => r.clone(),
             Op::Imm(v) => if *v >= 0 { format!("{:#x}", v) } else { format!("-{:#x}", -v) },
-            Op::Mem { base, index, scale, disp, .. } => {
+            Op::Mem { base, index, scale, disp, seg, .. } => {
                 let mut inner = base.clone();
                 if !index.is_empty() {
                     if !inner.is_empty() { inner.push('+'); }
@@ -48,7 +55,8 @@ impl Op {
                     if *disp < 0 { inner.push('-'); inner.push_str(&format!("{:#x}", -disp)); }
                     else { inner.push_str(&format!("{:#x}", disp)); }
                 }
-                format!("[{}]", inner)
+                let s = if seg.is_empty() { String::new() } else { format!("{}:", seg) };
+                format!("{}[{}]", s, inner)
             }
         }
     }
@@ -101,7 +109,7 @@ impl<'a> Cur<'a> {
     }
 }
 
-struct Rex { w: bool, r: bool, x: bool, b: bool, p: bool, bits: u8 }
+struct Rex { w: bool, r: bool, x: bool, b: bool, p: bool, bits: u8, seg: String }
 
 fn modrm(c: &mut Cur, rex: &Rex, osz: u8, msz: u8) -> Option<(Op, u8)> {
     let m = c.u8()?;
@@ -131,7 +139,7 @@ fn modrm(c: &mut Cur, rex: &Rex, osz: u8, msz: u8) -> Option<(Op, u8)> {
         base = R64[(rm & 15) as usize].to_string();
     }
     match md { 1 => disp = c.imm(1, true)?, 2 => disp = c.imm(4, true)?, _ => {} }
-    Some((Op::Mem { base, index, scale, disp, size: msz }, regf))
+    Some((Op::Mem { base, index, scale, disp, size: msz, seg: rex.seg.clone() }, regf))
 }
 
 fn opsize(rex: &Rex, o66: bool) -> u8 { if rex.w { 8 } else if o66 { 2 } else { 4 } }
@@ -147,21 +155,30 @@ pub fn decode(b: &[u8], addr: u64) -> Option<Insn> { decode_mode(b, addr, 64) }
 pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
     let mut c = Cur { b, i: 0 };
     let (mut o66, mut f3) = (false, false);
-    let mut rex = Rex { w:false, r:false, x:false, b:false, p:false, bits };
+    let mut seg = String::new();
+    let mut rex = Rex { w:false, r:false, x:false, b:false, p:false, bits, seg:String::new() };
     loop {
         let p = *b.get(c.i)?;
         match p {
             0x66 => { o66 = true; c.i += 1; }
             0xF3 => { f3 = true; c.i += 1; }
+            // The two thread-local segment overrides are kept: fs and gs name the
+            // TLS bases a glibc program sets up with arch_prctl and then reads
+            // from all through its init. Dropping them, as this loop once did,
+            // aliased every TLS access to an absolute address and no userland
+            // binary could start.
+            0x64 => { seg = "fs".to_string(); c.i += 1; }
+            0x65 => { seg = "gs".to_string(); c.i += 1; }
             // 0xF2 (REPNE) joins the skipped prefixes: it was recorded in a
             // flag that nothing ever read, so F2-prefixed SSE forms were never
             // distinguished from their unprefixed spelling anyway. Consuming
             // the byte still keeps the instruction length right.
-            0xF2 | 0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 | 0x64 | 0x65 => { c.i += 1; }
-            0x40..=0x4F if bits == 64 => { rex = Rex { w:p&8!=0, r:p&4!=0, x:p&2!=0, b:p&1!=0, p:true, bits }; c.i += 1; break; }
+            0xF2 | 0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 => { c.i += 1; }
+            0x40..=0x4F if bits == 64 => { rex = Rex { w:p&8!=0, r:p&4!=0, x:p&2!=0, b:p&1!=0, p:true, bits, seg:String::new() }; c.i += 1; break; }
             _ => break,
         }
     }
+    rex.seg = seg;
     let osz = opsize(&rex, o66);
     let op = c.u8()?;
 
@@ -193,7 +210,7 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
             let asz = if bits == 32 { 4 } else { 8 };
             let off = c.imm(asz, false)?;
             let osize = if op & 1 == 0 { 1 } else { osz };
-            let m = Op::Mem { base: String::new(), index: String::new(), scale: 1, disp: off, size: osize };
+            let m = Op::Mem { base: String::new(), index: String::new(), scale: 1, disp: off, size: osize, seg: rex.seg.clone() };
             let r = rop(0, osize, rex.p);
             if op < 0xA2 { ins!(addr,c,"mov",vec![r,m],false,None) }
             else { ins!(addr,c,"mov",vec![m,r],true,None) }
@@ -272,8 +289,26 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool) -> Option<Ins
         0x80..=0x8F => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,format!("j{}",CC[(op2-0x80) as usize]),vec![Op::Imm(t as i64)],false,Some(t)) }
         0x90..=0x9F => { let (rm,_)=modrm(c,rex,1,1)?; let wm=rm.is_mem(); ins!(addr,c,format!("set{}",CC[(op2-0x90) as usize]),vec![rm],wm,None) }
         0xAF => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"imul",vec![rop(r,osz,rex.p),rm],false,None) }
+        // cmpxchg r/m, reg — the compare-and-swap glibc's locks turn on. Without
+        // it the linear sweep desynced on the 0F B1 bytes, read the tail as a
+        // stray mov, and every lock loop spun forever.
+        0xB0 => { let (rm,r)=modrm(c,rex,1,1)?; let wm=rm.is_mem(); ins!(addr,c,"cmpxchg",vec![rm,rop(r,1,rex.p)],wm,None) }
+        0xB1 => { let (rm,r)=modrm(c,rex,osz,osz)?; let wm=rm.is_mem(); ins!(addr,c,"cmpxchg",vec![rm,rop(r,osz,rex.p)],wm,None) }
+        // xadd r/m, reg — exchange-and-add, the other atomic in the same locks.
+        0xC0 => { let (rm,r)=modrm(c,rex,1,1)?; let wm=rm.is_mem(); ins!(addr,c,"xadd",vec![rm,rop(r,1,rex.p)],wm,None) }
+        0xC1 => { let (rm,r)=modrm(c,rex,osz,osz)?; let wm=rm.is_mem(); ins!(addr,c,"xadd",vec![rm,rop(r,osz,rex.p)],wm,None) }
+        // SSE2 byte/word/dword compare and the byte-mask move — the core of
+        // glibc's string routines. pmovmskb's destination is a GPR.
+        0x74 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpeqb",vec![rop(r,16,rex.p),rm],false,None) }
+        0x75 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpeqw",vec![rop(r,16,rex.p),rm],false,None) }
+        0x76 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpeqd",vec![rop(r,16,rex.p),rm],false,None) }
+        0xDA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pminub",vec![rop(r,16,rex.p),rm],false,None) }
+        0xDE => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmaxub",vec![rop(r,16,rex.p),rm],false,None) }
+        0xD7 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmovmskb",vec![rop(r,4,rex.p),rm],false,None) }
         0xB6 => { let (rm,r)=modrm(c,rex,1,1)?; ins!(addr,c,"movzx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xB7 => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movzx",vec![rop(r,osz,rex.p),rm],false,None) }
+        0xBC => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"bsf",vec![rop(r,osz,rex.p),rm],false,None) }
+        0xBD => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"bsr",vec![rop(r,osz,rex.p),rm],false,None) }
         0xBE => { let (rm,r)=modrm(c,rex,1,1)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xBF => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0x28 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movaps",vec![rop(r,16,rex.p),rm],false,None) }

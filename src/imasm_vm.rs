@@ -30,6 +30,11 @@ fn reg_info(name: &str) -> (&'static str, u8, u8) {
         return (X[rest.parse::<usize>().unwrap()], 16, 0);
     }}
     if name == "rip" { return ("rip", 8, 0); }
+    // The thread-local segment bases, set by arch_prctl and read through every
+    // TLS access. Full-width pseudo-registers, so the ea() base term "fs" or
+    // "gs" resolves to the base the guest installed.
+    if name == "fs" { return ("fs", 8, 0); }
+    if name == "gs" { return ("gs", 8, 0); }
     // e** (32-bit) and r**d
     let map32: [(&str,&str);16]=[("eax","rax"),("ecx","rcx"),("edx","rdx"),("ebx","rbx"),("esp","rsp"),("ebp","rbp"),("esi","rsi"),("edi","rdi"),
         ("r8d","r8"),("r9d","r9"),("r10d","r10"),("r11d","r11"),("r12d","r12"),("r13d","r13"),("r14d","r14"),("r15d","r15")];
@@ -82,6 +87,11 @@ pub struct Machine {
     /// already come back zero — a freshly "mapped" page needs no zeroing.
     mmap_next: u64,
     brk_cur: u64,
+    /// IRELATIVE relocations (slot, resolver) carried by the module. Applied
+    /// once before a process runs: each resolver is called and its pointer
+    /// stored in the slot, which is how a static binary's CPU-selected memcpy,
+    /// strlen and kin get wired before main.
+    irelative: Vec<(u64, u64)>,
     /// Real file and console I/O, when a hosted caller supplies one.
     host: Option<Box<dyn Host>>,
 }
@@ -92,9 +102,9 @@ impl Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0,
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
-            mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, host: None,
+            mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), host: None,
         };
-        for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip"] {
+        for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
             m.reg.insert(r.into(), 0);
         }
         for k in 0..16 { m.reg.insert(format!("xmm{}", k), 0); }
@@ -112,6 +122,15 @@ impl Machine {
                     if let Ok(v) = u64::from_str_radix(e.trim().trim_start_matches("0x"), 16) { self.entry = v; }
                 } else if let Some(b) = t.strip_prefix("bits ") {
                     if let Ok(v) = b.trim().parse::<u8>() { self.bits = v; }
+                } else if let Some(s) = t.strip_prefix("irel ") {
+                    let mut it = s.split_whitespace();
+                    if let (Some(a), Some(b)) = (it.next(), it.next()) {
+                        if let (Ok(slot), Ok(res)) = (
+                            u64::from_str_radix(a.trim_start_matches("0x"), 16),
+                            u64::from_str_radix(b.trim_start_matches("0x"), 16)) {
+                            self.irelative.push((slot, res));
+                        }
+                    }
                 } else if let Some(s) = t.strip_prefix("sym ") {
                     let mut it = s.rsplitn(2, ' ');
                     if let (Some(addr_s), Some(name)) = (it.next(), it.next()) {
@@ -177,7 +196,11 @@ impl Machine {
         let parts: Vec<&str> = field.split(':').collect();
         let base = parts[1]; let index = parts[2]; let scale = parts[3];
         let disp = parts[4]; let size: u8 = parts[5].parse().unwrap_or(8);
-        let mut a: i128 = if !base.is_empty() { self.get_reg(base) as i128 } else { 0 };
+        // The base slot may fold a segment pseudo-register with a real base by
+        // '+', e.g. "fs" or "fs+rax"; sum every term so a TLS access lands at
+        // the installed fs/gs base plus any register base.
+        let mut a: i128 = 0;
+        if !base.is_empty() { for t in base.split('+') { if !t.is_empty() { a += self.get_reg(t) as i128; } } }
         if !index.is_empty() { a += self.get_reg(index) as i128 * scale.parse::<i128>().unwrap_or(1); }
         a += parse_imm(disp);
         ((a as u128 & mask(8)) as u64, size)
@@ -284,7 +307,27 @@ impl Machine {
                 if a0 != 0 { self.brk_cur = a0 as u64; }
                 self.set_reg("rax", self.brk_cur as u128);
             }
-            _ => { self.set_reg("rax", (-38i128 as u128) & mask(8)); } // ENOSYS
+            158 => { // arch_prctl(code, addr): install the thread-local base
+                match sign(a0, 8) {
+                    0x1002 => { self.set_reg("fs", a1); self.set_reg("rax", 0); } // ARCH_SET_FS
+                    0x1001 => { self.set_reg("gs", a1); self.set_reg("rax", 0); } // ARCH_SET_GS
+                    0x1003 => { self.store(a1 as u64, self.get_reg("fs"), 8); self.set_reg("rax", 0); } // ARCH_GET_FS
+                    0x1004 => { self.store(a1 as u64, self.get_reg("gs"), 8); self.set_reg("rax", 0); } // ARCH_GET_GS
+                    _ => { self.set_reg("rax", 0); }
+                }
+            }
+            318 => { // getrandom(buf, len, flags): the sparse map already reads
+                     // zero, so the buffer is filled; report the count requested.
+                self.set_reg("rax", a1);
+            }
+            // glibc's static init issues a run of housekeeping calls whose only
+            // requirement is that they succeed: set_tid_address, set_robust_list,
+            // rseq, sigaltstack, rt_sigaction/procmask, mprotect, munmap,
+            // prlimit64, sched_getaffinity, uname, poll, clock_gettime and the
+            // like. Their out-parameters read back zero from the sparse map,
+            // which each of these tolerates. Reporting success lets init reach
+            // main; a real semantics for any one of them is a later rung.
+            _ => { self.set_reg("rax", 0); } // succeed by default so userland init proceeds
         }
         Ok(())
     }
@@ -294,6 +337,44 @@ impl Machine {
         match op {
             "nop"|"endbr64"|"endbr32" => return,
             "lea" => { let (a,_) = self.ea(&f[1]); self.write(&f[0], a as u128); return; }
+            // Bit scan: index of the lowest (bsf) or highest (bsr) set bit, with
+            // ZF flagging a zero source. String routines read these off pmovmskb.
+            "bsf"|"bsr" => {
+                let s = self.width(&f[0]);
+                let v = self.read(&f[1], s).0 & mask(s);
+                if v == 0 { self.set_flags(0, 0, s, "cmp"); }
+                else {
+                    let idx = if op == "bsf" { v.trailing_zeros() } else { 127 - v.leading_zeros() };
+                    self.write(&f[0], idx as u128 & mask(s));
+                    self.set_flags(1, 0, s, "cmp");
+                }
+                return;
+            }
+            // Atomic compare-and-swap: dest is f[0], source register f[1], the
+            // implicit accumulator is a/ax/eax/rax sized to the operand. Flags
+            // are set as a cmp of accumulator against dest, which is exactly what
+            // the following jne in a lock loop reads.
+            "cmpxchg" => {
+                let s = self.width(&f[0]);
+                let acc_name = match s { 1 => "al", 2 => "ax", 4 => "eax", _ => "rax" };
+                let dest = self.read(&f[0], s).0 & mask(s);
+                let acc = self.get_reg(acc_name) & mask(s);
+                self.set_flags(acc, dest, s, "cmp");
+                if acc == dest { let src = self.read(&f[1], s).0; self.write(&f[0], src & mask(s)); }
+                else { self.set_reg(acc_name, dest); }
+                return;
+            }
+            // Exchange-and-add: dest gets dest+src, the source register gets the
+            // old dest, flags as an add.
+            "xadd" => {
+                let s = self.width(&f[0]);
+                let dest = self.read(&f[0], s).0 & mask(s);
+                let src = self.read(&f[1], s).0 & mask(s);
+                self.write(&f[0], dest.wrapping_add(src) & mask(s));
+                self.write(&f[1], dest);
+                self.set_flags(dest, src, s, "add");
+                return;
+            }
             "cdq"|"cltd" => { let v = if sign(self.get_reg("eax"),4) < 0 { mask(4) } else { 0 }; self.set_reg("edx", v); return; }
             "cqo" => { let v = if sign(self.get_reg("rax"),8) < 0 { mask(8) } else { 0 }; self.set_reg("rdx", v); return; }
             "cdqe"|"cltq" => { let v = (sign(self.get_reg("eax"),4) as u128) & mask(8); self.set_reg("rax", v); return; }
@@ -321,6 +402,10 @@ impl Machine {
         }
         if is_simd(op) { self.simd(op, f); return; }
 
+        // An operandless mnemonic here is an opcode the decoder does not yet
+        // cover, surfaced as a desync. Skip it rather than index past the end;
+        // the run continues far enough to show where the next coverage gap is.
+        if f.is_empty() { return; }
         let size = self.width(&f[0]);
         let a = self.read(&f[0], size).0;
         if matches!(op, "not"|"neg"|"inc"|"dec") {
@@ -405,6 +490,29 @@ impl Machine {
             }
             "pxor"|"pand"|"por" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
                 self.write(&dst, match op {"pxor"=>a^b,"pand"=>a&b,_=>a|b}); }
+            // Byte/word/dword equality: each lane becomes all-ones on a match,
+            // zero otherwise. The SSE2 string routines lean on this and pmovmskb.
+            "pcmpeqb"|"pcmpeqw"|"pcmpeqd" => {
+                let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
+                let w:u8 = match op.chars().last().unwrap(){'b'=>1,'w'=>2,_=>4};
+                let n=16/w; let mut o=0u128;
+                for k in 0..n { let sh=(k*w) as u32*8; if ((a>>sh)&mask(w))==((b>>sh)&mask(w)) { o |= mask(w) << sh; } }
+                self.write(&dst,o);
+            }
+            // Per-byte unsigned min/max, used by strcmp/memcmp fast paths.
+            "pminub"|"pmaxub" => {
+                let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; let mut o=0u128;
+                for k in 0..16u32 { let sh=k*8; let p=(a>>sh)&0xff; let q=(b>>sh)&0xff;
+                    let v=if op=="pminub"{p.min(q)}else{p.max(q)}; o |= v<<sh; }
+                self.write(&dst,o);
+            }
+            // Gather the top bit of each of the 16 bytes into a GPR — the mask a
+            // string routine tests to find the first differing or zero byte.
+            "pmovmskb" => {
+                let a=self.read(&f[1],16).0; let mut m=0u128;
+                for k in 0..16u32 { if (a>>(k*8+7))&1==1 { m |= 1u128<<k; } }
+                self.write(&dst, m);
+            }
             _ => { // lane-wise padd/psub/pmull
                 let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
                 let w: u8 = match op.chars().last().unwrap() {'b'=>1,'w'=>2,'d'=>4,'q'=>8,_=>4};
@@ -519,7 +627,7 @@ impl Machine {
                 None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, trace.join("\n")))),
             }
             self.steps += 1;
-            if self.steps > limit { return Err(Stop::Halt(format!("ran off the end after {} steps", self.steps))); }
+            if self.steps > limit { return Err(Stop::Halt(format!("step budget {} reached, still running at 0x{:x}\n  previous 12:\n{}", limit, pc, trace.join("\n")))); }
         }
     }
 
@@ -547,6 +655,22 @@ impl Machine {
     /// process does. `call()` next to this is a narrower, older contract for
     /// naming one function and getting one value back; this is "run it."
     pub fn run_process(&mut self, argv: &[String], envp: &[String], limit: u64) -> Result<(), Stop> {
+        // Wire the IRELATIVE slots first: run each resolver and store the full
+        // 64-bit pointer it returns in rax. Done before the argv stack is laid
+        // down, on a scratch stack, so a later PLT jump through the slot lands on
+        // the real implementation instead of a zero.
+        let relocs = core::mem::take(&mut self.irelative);
+        let sentinel = 0x7fff_dead_0000u64;
+        for (slot, resolver) in &relocs {
+            self.set_reg("rsp", 0x7FFF_0000u128);
+            self.push_val(sentinel as u128);
+            if self.run_loop(*resolver, Some(sentinel), 5_000_000).is_ok() {
+                let p = self.get_reg("rax");
+                self.store(*slot, p, 8);
+            }
+        }
+        self.irelative = relocs;
+
         let mut sp = self.get_reg("rsp") as u64;
         let mut argv_ptrs = Vec::new();
         for s in argv {
@@ -588,7 +712,8 @@ impl Machine {
 fn is_simd(op: &str) -> bool {
     matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"pxor"|"pand"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
-        |"psrlq"|"psllq"|"psrldq"|"pshufd"|"punpckldq"|"punpcklqdq")
+        |"psrlq"|"psllq"|"psrldq"|"pshufd"|"punpckldq"|"punpcklqdq"
+        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pminub"|"pmaxub"|"pmovmskb")
 }
 
 fn hexbytes(s: &str) -> Vec<u8> {

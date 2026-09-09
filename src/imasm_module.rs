@@ -114,6 +114,11 @@ pub fn emit(raw: &[u8]) -> String {
     for (name, addr) in &l.symbols {
         out.push(format!("; sym {} 0x{:x}", name, addr));
     }
+    // IRELATIVE relocations ride with the module so a saved `.imasm` boots the
+    // same as the binary: run each resolver, store its pointer in the slot.
+    for (slot, resolver) in &l.irelative {
+        out.push(format!("; irel 0x{:x} 0x{:x}", slot, resolver));
+    }
     for (at, blob) in &l.data {
         let hex: String = blob.iter().map(|b| format!("{:02x}", b)).collect();
         out.push(format!("={:#x}\t{}", at, hex));
