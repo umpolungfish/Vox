@@ -374,6 +374,31 @@ impl Machine {
                 }
                 return;
             }
+            // String move/store, forward (DF=0, the memcpy_fwd/memset case). A
+            // rep does the whole run here in one VM step, so a megabyte copy
+            // costs one step, not a million.
+            "movs"|"rep_movs" => {
+                let w = parse_imm(&f[0][2..]) as u64;
+                let count = if op.starts_with("rep") { self.get_reg("rcx") as u64 } else { 1 };
+                let mut si = self.get_reg("rsi") as u64; let mut di = self.get_reg("rdi") as u64;
+                for _ in 0..count {
+                    let v = self.load(si, w as u8); self.store(di, v, w as u8);
+                    si = si.wrapping_add(w); di = di.wrapping_add(w);
+                }
+                self.set_reg("rsi", si as u128); self.set_reg("rdi", di as u128);
+                if op.starts_with("rep") { self.set_reg("rcx", 0); }
+                return;
+            }
+            "stos"|"rep_stos" => {
+                let w = parse_imm(&f[0][2..]) as u64;
+                let count = if op.starts_with("rep") { self.get_reg("rcx") as u64 } else { 1 };
+                let val = self.get_reg("rax") & mask(w as u8);
+                let mut di = self.get_reg("rdi") as u64;
+                for _ in 0..count { self.store(di, val, w as u8); di = di.wrapping_add(w); }
+                self.set_reg("rdi", di as u128);
+                if op.starts_with("rep") { self.set_reg("rcx", 0); }
+                return;
+            }
             // Atomic compare-and-swap: dest is f[0], source register f[1], the
             // implicit accumulator is a/ax/eax/rax sized to the operand. Flags
             // are set as a cmp of accumulator against dest, which is exactly what

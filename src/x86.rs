@@ -219,6 +219,13 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
             if op < 0xA2 { ins!(addr,c,"mov",vec![r,m],false,None) }
             else { ins!(addr,c,"mov",vec![m,r],true,None) }
         }
+        // String move/store, the body of memcpy and memset. F3 here is REP, so
+        // the mnemonic carries whether to repeat; the one operand is the element
+        // width. movsb/movsw/movsd/movsq and stosb/…/stosq.
+        0xA4 => { let mn=if f3{"rep_movs"}else{"movs"}; ins!(addr,c,mn,vec![Op::Imm(1)],true,None) }
+        0xA5 => { let ew=if rex.w{8}else if o66{2}else{4}; let mn=if f3{"rep_movs"}else{"movs"}; ins!(addr,c,mn,vec![Op::Imm(ew)],true,None) }
+        0xAA => { let mn=if f3{"rep_stos"}else{"stos"}; ins!(addr,c,mn,vec![Op::Imm(1)],true,None) }
+        0xAB => { let ew=if rex.w{8}else if o66{2}else{4}; let mn=if f3{"rep_stos"}else{"stos"}; ins!(addr,c,mn,vec![Op::Imm(ew)],true,None) }
         0xA8 => { let im=c.imm(1,true)?; ins!(addr,c,"test",vec![Op::Reg("al".into()),Op::Imm(im)],false,None) }
         0xA9 => { let im=c.imm(if osz==2{2}else{4},true)?; ins!(addr,c,"test",vec![rop(0,osz,rex.p),Op::Imm(im)],false,None) }
         0xB0..=0xB7 => { let r=(op-0xB0)|if rex.b{8}else{0}; let im=c.imm(1,false)?; ins!(addr,c,"mov",vec![rop(r,1,rex.p),Op::Imm(im)],false,None) }
@@ -262,6 +269,7 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
         0xE8 => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"call",vec![Op::Imm(t as i64)],false,Some(t)) }
         0xE9 => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"jmp",vec![Op::Imm(t as i64)],false,Some(t)) }
         0xEB => { let d=c.imm(1,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"jmp",vec![Op::Imm(t as i64)],false,Some(t)) }
+        0xF4 => ins!(addr,c,"hlt",vec![],false,None),
         0xF6 => { let (rm,g)=modrm(&mut c,&rex,1,1)?; let wm=rm.is_mem();
             match g&7 { 0|1 => { let im=c.imm(1,true)?; ins!(addr,c,"test",vec![rm,Op::Imm(im)],false,None) }
                         2 => ins!(addr,c,"not",vec![rm],wm,None), 3 => ins!(addr,c,"neg",vec![rm],wm,None),
