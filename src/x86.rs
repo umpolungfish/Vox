@@ -159,6 +159,7 @@ pub fn decode(b: &[u8], addr: u64) -> Option<Insn> { decode_mode(b, addr, 64) }
 pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
     let mut c = Cur { b, i: 0 };
     let (mut o66, mut f3) = (false, false);
+    let mut f2 = false;
     let mut seg = String::new();
     let mut rex = Rex { w:false, r:false, x:false, b:false, p:false, bits, seg:String::new() };
     loop {
@@ -173,11 +174,10 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
             // binary could start.
             0x64 => { seg = "fs".to_string(); c.i += 1; }
             0x65 => { seg = "gs".to_string(); c.i += 1; }
-            // 0xF2 (REPNE) joins the skipped prefixes: it was recorded in a
-            // flag that nothing ever read, so F2-prefixed SSE forms were never
-            // distinguished from their unprefixed spelling anyway. Consuming
-            // the byte still keeps the instruction length right.
-            0xF2 | 0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 => { c.i += 1; }
+            // 0xF2 (REPNE / scalar-double SSE selector) is kept: it is what
+            // distinguishes addsd from addss and movsd from movss.
+            0xF2 => { f2 = true; c.i += 1; }
+            0x67 | 0xF0 | 0x2E | 0x36 | 0x3E | 0x26 => { c.i += 1; }
             0x40..=0x4F if bits == 64 => { rex = Rex { w:p&8!=0, r:p&4!=0, x:p&2!=0, b:p&1!=0, p:true, bits, seg:String::new() }; c.i += 1; break; }
             _ => break,
         }
@@ -277,13 +277,17 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
             match g&7 { 0 => ins!(addr,c,"inc",vec![rm],wm,None), 1 => ins!(addr,c,"dec",vec![rm],wm,None),
                         2 => ins!(addr,c,"call",vec![rm],false,None), 4 => ins!(addr,c,"jmp",vec![rm],false,None),
                         6 => ins!(addr,c,"push",vec![rm],false,None), _ => None } }
-        0x0F => decode_0f(&mut c, addr, &rex, osz, f3),
+        0x0F => decode_0f(&mut c, addr, &rex, osz, f3, f2, o66),
         _ => None,
     }
 }
 
-fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool) -> Option<Insn> {
+fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66: bool) -> Option<Insn> {
     let op2 = c.u8()?;
+    // The float-arithmetic opcodes select their variant by prefix: F3 scalar
+    // single (ss), F2 scalar double (sd), 66 packed double (pd), none packed
+    // single (ps). fsuf names it, fw is the lane width the VM reads.
+    let fsuf = if f3 { "ss" } else if f2 { "sd" } else if o66 { "pd" } else { "ps" };
     match op2 {
         0x05 => ins!(addr,c,"syscall",vec![],false,None),
         0x0B => ins!(addr,c,"ud2",vec![],false,None),
@@ -317,13 +321,31 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool) -> Option<Ins
         0xBF => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0x28 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movaps",vec![rop(r,16,rex.p),rm],false,None) }
         0x29 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,"movaps",vec![rm,rop(r,16,rex.p)],wm,None) }
-        // packed-single moves and bitwise ops — the zero-a-vector (xorps) and
-        // 16-byte load/store the compiler emits for struct init and memset.
-        0x10 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movups",vec![rop(r,16,rex.p),rm],false,None) }
-        0x11 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,"movups",vec![rm,rop(r,16,rex.p)],wm,None) }
+        // Vector/scalar move: F3 movss, F2 movsd, 66 movupd, none movups.
+        0x10 => { let (rm,r)=modrm(c,rex,16,16)?; let mn=if f3{"movss"}else if f2{"movsd"}else if o66{"movupd"}else{"movups"}; ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
+        0x11 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); let mn=if f3{"movss"}else if f2{"movsd"}else if o66{"movupd"}else{"movups"}; ins!(addr,c,mn,vec![rm,rop(r,16,rex.p)],wm,None) }
         0x54 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"andps",vec![rop(r,16,rex.p),rm],false,None) }
         0x56 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"orps",vec![rop(r,16,rex.p),rm],false,None) }
         0x57 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"xorps",vec![rop(r,16,rex.p),rm],false,None) }
+        // Scalar/packed float arithmetic, variant by prefix (fsuf).
+        0x51 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("sqrt{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        0x58 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("add{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        0x59 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("mul{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        0x5C => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("sub{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        0x5D => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("min{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        0x5E => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("div{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        0x5F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("max{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
+        // Precision convert: F3 ss->sd, F2 sd->ss, 66 pd->ps, none ps->pd.
+        0x5A => { let (rm,r)=modrm(c,rex,16,16)?; let mn=if f3{"cvtss2sd"}else if f2{"cvtsd2ss"}else if o66{"cvtpd2ps"}else{"cvtps2pd"}; ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
+        // Int -> float: source is a GPR/mem integer, width by REX.W.
+        0x2A => { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; ins!(addr,c,if f2{"cvtsi2sd"}else{"cvtsi2ss"},vec![rop(r,16,rex.p),rm],false,None) }
+        // Float -> int: dest is a GPR, width by REX.W; 2C truncates, 2D rounds.
+        0x2C => { let d=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if f2{"cvttsd2si"}else{"cvttss2si"},vec![rop(r,d,rex.p),rm],false,None) }
+        0x2D => { let d=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if f2{"cvtsd2si"}else{"cvtss2si"},vec![rop(r,d,rex.p),rm],false,None) }
+        // Ordered/unordered scalar compare, setting the integer-style flags a
+        // following ja/jb/je reads. 66 selects double, none single.
+        0x2E => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"ucomisd"}else{"ucomiss"},vec![rop(r,16,rex.p),rm],false,None) }
+        0x2F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"comisd"}else{"comiss"},vec![rop(r,16,rex.p),rm],false,None) }
         0x6E => { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; ins!(addr,c,if rex.w{"movq"}else{"movd"},vec![rop(r,16,rex.p),rm],false,None) }
         0x6F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if f3{"movdqu"}else{"movdqa"},vec![rop(r,16,rex.p),rm],false,None) }
         0x7E => { if f3 { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,"movq",vec![rop(r,16,rex.p),rm],false,None) }

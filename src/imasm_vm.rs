@@ -238,6 +238,18 @@ impl Machine {
 
     // ── truth ──
     fn cc(&self, name: &str) -> bool {
+        // A float compare (comiss/ucomiss and kin) stored its zero and carry
+        // bits directly; the parity bit a NaN would set is not modelled.
+        if self.kind == "fflags" {
+            let zf = self.flags.0 != 0; let cf = self.flags.1 != 0;
+            return match name {
+                "e"|"z" => zf, "ne"|"nz" => !zf,
+                "b"|"c"|"nae" => cf, "ae"|"nb"|"nc" => !cf,
+                "be"|"na" => cf || zf, "a"|"nbe" => !(cf || zf),
+                "p" => false, "np" => true,
+                _ => false,
+            };
+        }
         let (a, b, size) = self.flags;
         let (zf, sf, cf, of);
         if self.kind == "test" {
@@ -413,6 +425,7 @@ impl Machine {
             _ => {}
         }
         if is_simd(op) { self.simd(op, f); return; }
+        if is_float(op) { self.float_op(op, f); return; }
 
         // An operandless mnemonic here is an opcode the decoder does not yet
         // cover, surfaced as a desync. Skip it rather than index past the end;
@@ -537,6 +550,91 @@ impl Machine {
                 }
                 self.write(&dst, o);
             }
+        }
+    }
+
+    /// Read the low w bytes of an operand as a float, widened to f64 so one
+    /// path serves both single and double.
+    fn fread(&self, field: &str, w: u8) -> f64 {
+        let bits = self.read(field, 16).0 & mask(w);
+        if w == 4 { f32::from_bits(bits as u32) as f64 } else { f64::from_bits(bits as u64) }
+    }
+    /// Write a float into the low w bytes, preserving the rest of an xmm
+    /// register (scalar ops leave the upper lanes) and storing plainly to
+    /// memory.
+    fn fwrite(&mut self, field: &str, val: f64, w: u8) {
+        let bits: u128 = if w == 4 { (val as f32).to_bits() as u128 } else { val.to_bits() as u128 };
+        if field.starts_with("r:xmm") { let cur = self.read(field, 16).0; self.write(field, (cur & !mask(w)) | bits); }
+        else { self.write(field, bits); }
+    }
+
+    /// IEEE floating point: the scalar and packed single/double ops, plus the
+    /// int/float conversions and the ordered compares that set the flags a
+    /// following branch reads. Everything is computed as real f32/f64.
+    fn float_op(&mut self, op: &str, f: &[String]) {
+        let dst = f[0].clone();
+        // ── moves ──
+        if op == "movss" || op == "movsd" {
+            let w = if op == "movss" { 4 } else { 8 };
+            let v = self.read(&f[1], 16).0 & mask(w);
+            if dst.starts_with("r:xmm") {
+                if f[1].as_bytes()[0] == b'm' { self.write(&dst, v); }        // load zero-extends
+                else { let cur = self.read(&dst, 16).0; self.write(&dst, (cur & !mask(w)) | v); } // reg-reg merges low lane
+            } else { self.write(&dst, v); }                                    // store
+            return;
+        }
+        if op == "movupd" { let v = self.read(&f[1], 16).0; self.write(&dst, v & mask(16)); return; }
+        // ── ordered/unordered compare → integer-style flags ──
+        if op.starts_with("comi") || op.starts_with("ucomi") {
+            let w = if op.ends_with("sd") { 8 } else { 4 };
+            let a = self.fread(&dst, w); let b = self.fread(&f[1], w);
+            let (zf, cf) = if a.is_nan() || b.is_nan() { (true, true) }
+                           else if a < b { (false, true) } else if a > b { (false, false) } else { (true, false) };
+            self.flags = (if zf {1} else {0}, if cf {1} else {0}, 0);
+            self.kind = "fflags".into();
+            return;
+        }
+        // ── int → float ──
+        if op.starts_with("cvtsi2") {
+            let sw = self.width(&f[1]); let iv = sign(self.read(&f[1], sw).0, sw);
+            let w = if op.ends_with("sd") { 8 } else { 4 };
+            self.fwrite(&dst, iv as f64, w);
+            return;
+        }
+        // ── float → int (2C truncates, 2D rounds; both taken as truncation) ──
+        if matches!(op, "cvttss2si"|"cvtss2si"|"cvttsd2si"|"cvtsd2si") {
+            let w = if op.contains("sd") { 8 } else { 4 };
+            let val = self.fread(&f[1], w);
+            let dw = self.width(&f[0]);
+            self.write(&f[0], (val as i64 as u128) & mask(dw));
+            return;
+        }
+        // ── precision convert ──
+        if op == "cvtss2sd" { let v = self.fread(&f[1], 4); self.fwrite(&dst, v, 8); return; }
+        if op == "cvtsd2ss" { let v = self.fread(&f[1], 8); self.fwrite(&dst, v, 4); return; }
+        // ── arithmetic: scalar (ss/sd) and packed (ps/pd) ──
+        let w: u8 = if op.ends_with("ss") || op.ends_with("ps") { 4 } else { 8 };
+        let scalar = op.ends_with("ss") || op.ends_with("sd");
+        let kind = &op[..3];
+        let apply = |x: f64, y: f64| match kind {
+            "add" => x + y, "sub" => x - y, "mul" => x * y, "div" => x / y,
+            "min" => x.min(y), "max" => x.max(y), "sqr" => fsqrt(y), _ => x,
+        };
+        if scalar {
+            let a = self.fread(&dst, w); let b = self.fread(&f[1], w);
+            self.fwrite(&dst, apply(a, b), w);
+        } else {
+            let a = self.read(&dst, 16).0; let b = self.read(&f[1], 16).0;
+            let n = 16 / w; let mut o = 0u128;
+            for k in 0..n {
+                let sh = (k * w) as u32 * 8;
+                let x = if w == 4 { f32::from_bits(((a>>sh)&mask(4)) as u32) as f64 } else { f64::from_bits(((a>>sh)&mask(8)) as u64) };
+                let y = if w == 4 { f32::from_bits(((b>>sh)&mask(4)) as u32) as f64 } else { f64::from_bits(((b>>sh)&mask(8)) as u64) };
+                let r = apply(x, y);
+                let rb: u128 = if w == 4 { (r as f32).to_bits() as u128 } else { r.to_bits() as u128 };
+                o |= (rb & mask(w)) << sh;
+            }
+            self.write(&dst, o);
         }
     }
 
@@ -732,7 +830,33 @@ fn is_simd(op: &str) -> bool {
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pshufd"|"punpckldq"|"punpcklqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pminub"|"pmaxub"|"pmovmskb"
-        |"movups"|"xorps"|"andps"|"orps")
+        |"xorps"|"andps"|"orps")
+}
+
+/// Square root without std: a couple of Newton steps off a bit-halving seed.
+/// Enough for the scalar sqrtss/sqrtsd the code emits; not a rounding-correct
+/// libm.
+fn fsqrt(x: f64) -> f64 {
+    if x < 0.0 { return f64::NAN; }
+    if x == 0.0 || x.is_nan() || x.is_infinite() { return x; }
+    let mut g = f64::from_bits((x.to_bits() >> 1) + (1u64 << 61));
+    for _ in 0..6 { g = 0.5 * (g + x / g); }
+    g
+}
+
+fn is_float(op: &str) -> bool {
+    matches!(op,
+        "movss"|"movsd"|"movupd"|
+        "addss"|"addsd"|"addps"|"addpd"|
+        "subss"|"subsd"|"subps"|"subpd"|
+        "mulss"|"mulsd"|"mulps"|"mulpd"|
+        "divss"|"divsd"|"divps"|"divpd"|
+        "minss"|"minsd"|"minps"|"minpd"|
+        "maxss"|"maxsd"|"maxps"|"maxpd"|
+        "sqrtss"|"sqrtsd"|"sqrtps"|"sqrtpd"|
+        "comiss"|"comisd"|"ucomiss"|"ucomisd"|
+        "cvtsi2ss"|"cvtsi2sd"|"cvtss2si"|"cvtsd2si"|"cvttss2si"|"cvttsd2si"|
+        "cvtss2sd"|"cvtsd2ss")
 }
 
 fn hexbytes(s: &str) -> Vec<u8> {
