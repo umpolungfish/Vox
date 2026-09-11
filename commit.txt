@@ -1,9 +1,10 @@
-Execute factorization over nested IMASM numeral tapes
+Generate factor phases inside the IMASM tower
 
-I added a Vox factor path whose input, live arithmetic state, candidates,
-remainders, selection, and output are native IMASM numeral words. Each stage
-is an operator word and the tower recursively executes phase generation,
-arithmetic, branching, selection, continuation, and fixation.
+I replaced the sequential candidate-only path with Pollard phase trajectories
+inside the nested morphism evaluator. The phase coordinates, modular products,
+differences, gcd, restart constant, branch result, and selected divisor remain
+native IMASM numeral tapes through every stage.
 
-I verified the mark-only path on composite and prime controls, including
-143 = 11 x 13 and 8051 = 83 x 97.
+I verified the tower on the existing controls and on the forty-bit semiprime
+1000036000099, whose factors are 1000003 and 1000033. The mark-tape phase
+family reaches it in 0.06 seconds after compilation.

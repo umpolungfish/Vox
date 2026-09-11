@@ -166,6 +166,39 @@ fn divmod(n: &[char], d: &[char]) -> (Tape, Tape) {
     (trim(q), trim(r))
 }
 
+fn modulo(n: &[char], d: &[char]) -> Tape {
+    divmod(n, d).1
+}
+
+fn mod_add(a: &[char], b: &[char], n: &[char]) -> Tape {
+    modulo(&add(a, b), n)
+}
+
+fn mod_mul(a: &[char], b: &[char], n: &[char]) -> Tape {
+    modulo(&mul(a, b), n)
+}
+
+fn abs_diff(a: &[char], b: &[char]) -> Tape {
+    if cmp(a, b) == core::cmp::Ordering::Less {
+        sub(b, a)
+    } else {
+        sub(a, b)
+    }
+}
+
+fn gcd(mut a: Tape, mut b: Tape) -> Tape {
+    while !zero(&b) {
+        let r = modulo(&a, &b);
+        a = b;
+        b = r;
+    }
+    trim(a)
+}
+
+fn rho_step(x: &[char], c: &[char], n: &[char]) -> Tape {
+    mod_add(&mod_mul(x, x, n), c, n)
+}
+
 fn one() -> Tape {
     vec![EVALF]
 }
@@ -180,6 +213,10 @@ struct State {
     n: Tape,
     candidate: Tape,
     remainder: Tape,
+    x: Tape,
+    y: Tape,
+    phase: Tape,
+    divisor: Tape,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -190,18 +227,35 @@ fn apply_morphism(operator: &[char], state: &mut State) {
     if operator == PHASE {
         state.exhausted =
             cmp(&mul(&state.candidate, &state.candidate), &state.n) == core::cmp::Ordering::Greater;
+        state.x = rho_step(&state.x, &state.phase, &state.n);
+        state.y = rho_step(
+            &rho_step(&state.y, &state.phase, &state.n),
+            &state.phase,
+            &state.n,
+        );
     } else if operator == ARITHMETIC && !state.exhausted {
         state.remainder = divmod(&state.n, &state.candidate).1;
+        state.divisor = gcd(abs_diff(&state.x, &state.y), state.n.clone());
     } else if operator == BRANCH && !state.exhausted {
         state.remainder = trim(state.remainder.clone());
     } else if operator == SELECT {
         if state.exhausted {
             state.selected = Some(state.n.clone());
+        } else if cmp(&state.divisor, &one()) == core::cmp::Ordering::Greater
+            && cmp(&state.divisor, &state.n) == core::cmp::Ordering::Less
+        {
+            state.selected = Some(state.divisor.clone());
         } else if zero(&state.remainder) {
             state.selected = Some(state.candidate.clone());
         }
     } else if operator == CONTINUE && state.selected.is_none() {
         state.candidate = add(&state.candidate, &two());
+        if cmp(&state.divisor, &state.n) == core::cmp::Ordering::Equal {
+            state.phase = add(&state.phase, &one());
+            state.x = two();
+            state.y = two();
+            state.divisor = one();
+        }
     } else if operator == FIX {
         if let Some(value) = state.selected.take() {
             state.selected = Some(trim(value));
@@ -232,6 +286,10 @@ pub fn factor(word: &str) -> Result<String, String> {
         n,
         candidate: add(&two(), &one()),
         remainder: vec![EVALT],
+        x: two(),
+        y: two(),
+        phase: one(),
+        divisor: one(),
         exhausted: false,
         selected: None,
     };
@@ -262,6 +320,14 @@ mod tests {
     fn factors_marks_without_numeric_state() {
         assert_eq!(factor(&numeral(143)).unwrap(), numeral(11));
         assert_eq!(factor(&numeral(127)).unwrap(), numeral(127));
-        assert_eq!(factor(&numeral(8051)).unwrap(), numeral(83));
+        let f = factor(&numeral(8051)).unwrap();
+        assert!(f == numeral(83) || f == numeral(97));
+    }
+    #[test]
+    fn phase_family_reaches_a_forty_bit_semiprime() {
+        let p = 1_000_003u64;
+        let q = 1_000_033u64;
+        let f = factor(&numeral(p * q)).unwrap();
+        assert!(f == numeral(p) || f == numeral(q));
     }
 }
