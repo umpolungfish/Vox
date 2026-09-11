@@ -330,4 +330,11 @@ mod tests {
         let f = factor(&numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
     }
+    #[test]
+    fn phase_family_reaches_a_sixty_bit_semiprime() {
+        let p = 1_000_000_007u64;
+        let q = 1_000_000_009u64;
+        let f = factor(&numeral(p * q)).unwrap();
+        assert!(f == numeral(p) || f == numeral(q));
+    }
 }

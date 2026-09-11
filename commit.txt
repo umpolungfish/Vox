@@ -1,10 +1,5 @@
-Generate factor phases inside the IMASM tower
+Verify the IMASM phase tower at sixty bits
 
-I replaced the sequential candidate-only path with Pollard phase trajectories
-inside the nested morphism evaluator. The phase coordinates, modular products,
-differences, gcd, restart constant, branch result, and selected divisor remain
-native IMASM numeral tapes through every stage.
-
-I verified the tower on the existing controls and on the forty-bit semiprime
-1000036000099, whose factors are 1000003 and 1000033. The mark-tape phase
-family reaches it in 0.06 seconds after compilation.
+I added a sixty-bit semiprime control with the factors 1000000007 and
+1000000009. The nested mark-tape phase family recovers a factor in 7.30
+seconds without changing carriers or invoking a native-number fallback.
