@@ -1,11 +1,9 @@
-Load the constructor/destructor array sections
+Execute factorization over nested IMASM numeral tapes
 
-The ELF loader took PROGBITS only, so INIT_ARRAY, FINI_ARRAY and PREINIT_ARRAY
-(types 14/15/16) never reached memory and the C runtime read a zero table and
-called address 0. Loading them lets a lifted program run its constructors
-before main.
+I added a Vox factor path whose input, live arithmetic state, candidates,
+remainders, selection, and output are native IMASM numeral words. Each stage
+is an operator word and the tower recursively executes phase generation,
+arithmetic, branching, selection, continuation, and fixation.
 
-This closes the self-host: vox built static-musl, lifted to the twelve marks
-and run in imasm_vm, executes `vox verdict ⊢⊞⊤⊣` and prints `verdict N`, exit 0,
-identical to native vox. g-momonados still boots byte-identical, so the narrow
-load carries the constructors without disturbing the proven run.
+I verified the mark-only path on composite and prime controls, including
+143 = 11 x 13 and 8051 = 83 x 97.

@@ -22,6 +22,7 @@ fn usage() {
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
+    eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
@@ -1094,6 +1095,10 @@ fn main() {
             std::process::exit(0);
         }
         Some("lift") => { if args.len() < 2 { eprintln!("vox lift <file>"); 1 } else { lift_file(&args[1]) } }
+        Some("morphism-factor") => {
+            if args.len() != 2 { eprintln!("vox morphism-factor <native-numeral-word>"); 1 }
+            else { match ::vox::morphism_factor::factor(&args[1]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
         Some("safetensors") | Some("safetensor") => {
             if args.len() < 2 { eprintln!("vox safetensors <file.safetensors>"); 1 }
             else {
