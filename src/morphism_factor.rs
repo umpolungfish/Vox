@@ -4,7 +4,7 @@
 //! of EVALT/EVALF marks, least significant cell first.  Arithmetic consumes
 //! and produces those tapes through the full-adder/full-subtractor tables.
 
-use crate::vox::{AFWD, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT};
+use crate::vox::{AREV, AFWD, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT};
 use alloc::format;
 use alloc::string::String;
 use alloc::vec;
@@ -49,6 +49,25 @@ pub fn parse_numeral(word: &str) -> Result<Tape, String> {
     let c: Vec<char> = word.chars().collect();
     if c == [VINIT, IMSCRIB, IFIX, TANCH] {
         return Ok(vec![EVALT]);
+    }
+
+    // Properly-nested single-frame numeral: ⊢ ∈ [⊤/⊥ bits LSB-first] ≺ ∋ ⊡ ⊣
+    // Entry ∈ and exit ∋ are the SAME frame; AREV ≺ sits INSIDE the frame so the
+    // deposited marks bank and survive the reversal — the matched puncture.
+    if c.len() >= 6
+        && c.first() == Some(&VINIT)
+        && c[1] == FSPLIT
+        && c[c.len() - 1] == TANCH
+        && c[c.len() - 2] == IFIX
+        && c[c.len() - 3] == FFUSE
+        && c[c.len() - 4] == AREV
+    {
+        let mut out = Vec::new();
+        for &m in &c[2..c.len() - 4] {
+            bit(m)?;
+            out.push(m);
+        }
+        return Ok(trim(out));
     }
     if c.len() < 9 || c.first() != Some(&VINIT) || c[c.len() - 3..] != [IMSCRIB, IFIX, TANCH] {
         return Err("expected a native IMASM numeral word".into());
@@ -300,6 +319,23 @@ pub fn factor(word: &str) -> Result<String, String> {
             return Ok(emit_numeral(selected));
         }
     }
+}
+
+/// Verify p·q == N entirely over IMASM numeral tapes: parse three words,
+/// multiply p and q with the tape full-adder, compare the product to N, and
+/// emit both the product and N back as IMASM words. This is mu circ delta = id
+/// for the tower's own arithmetic at full RSA width.
+pub fn verify(p_word: &str, q_word: &str, n_word: &str) -> Result<String, String> {
+    let p = parse_numeral(p_word)?;
+    let q = parse_numeral(q_word)?;
+    let n = parse_numeral(n_word)?;
+    let prod = trim(mul(&p, &q));
+    let ok = cmp(&prod, &n) == core::cmp::Ordering::Equal;
+    Ok(format!(
+        "p*q == N: {ok}\nproduct: {}\nN:       {}",
+        emit_numeral(&prod),
+        emit_numeral(&n)
+    ))
 }
 
 #[cfg(test)]

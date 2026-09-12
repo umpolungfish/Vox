@@ -1099,6 +1099,10 @@ fn main() {
             if args.len() != 2 { eprintln!("vox morphism-factor <native-numeral-word>"); 1 }
             else { match ::vox::morphism_factor::factor(&args[1]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
         }
+        Some("verify") => {
+            if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }
+            else { match ::vox::morphism_factor::verify(&args[1], &args[2], &args[3]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
         Some("safetensors") | Some("safetensor") => {
             if args.len() < 2 { eprintln!("vox safetensors <file.safetensors>"); 1 }
             else {
