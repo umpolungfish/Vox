@@ -11,7 +11,7 @@ use ::vox::protein;
 use ::vox::fold;
 use ::vox::fold3d;
 use ::vox::x86;
-use ::vox::{imasm_module, imasm_vm, loader, safetensors};
+use ::vox::{imasm_module, imasm_vm, loader, safetensors, divisor_membrane};
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
@@ -23,6 +23,7 @@ fn usage() {
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
+    eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
     eprintln!("  vox evm <hex>             lift EVM bytecode, verdict its closure");
@@ -1102,6 +1103,10 @@ fn main() {
         Some("verify") => {
             if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }
             else { match ::vox::morphism_factor::verify(&args[1], &args[2], &args[3]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
+        Some("membrane") | Some("divisor-membrane") | Some("divisor_membrane") => {
+            let rest: Vec<&str> = args[1..].iter().map(|x| x.as_str()).collect();
+            println!("{}", divisor_membrane::repl_divisor_membrane(&rest)); 0
         }
         Some("safetensors") | Some("safetensor") => {
             if args.len() < 2 { eprintln!("vox safetensors <file.safetensors>"); 1 }

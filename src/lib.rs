@@ -25,5 +25,6 @@ pub mod x86;
 pub mod imasm_module;
 pub mod imasm_vm;
 pub mod morphism_factor;
+pub mod divisor_membrane;
 pub mod loader;
 pub mod safetensors;
