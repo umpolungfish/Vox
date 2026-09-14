@@ -947,6 +947,29 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
     if zero(&even) {
         return Ok(emit_numeral(&two()));
     }
+    let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
+    match run_carrier_rounds(&tower_refs, &n, u64::MAX) {
+        Some(f) => Ok(emit_numeral(&f)),
+        None => Err("carrier exhausted its round budget without latching".into()),
+    }
+}
+
+/// Run a carrier tower on a tape for at most `max_rounds` rounds, returning the
+/// factor as soon as an arm latches, or None when the budget is spent. The
+/// bounded form is what lets the HARD branch nest the whole nine-arm carrier
+/// OUTSIDE the sieve: the cheap and mid arms (witness, extract, p-1, p+1, SQUFOF,
+/// Lehman, ECM) all get their throttled rounds first, and the quadratic sieve is
+/// the deepest fallback, run only after this returns None. `u64::MAX` is the
+/// unbounded run factor_with wants.
+pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> Option<Tape> {
+    let n = trim(n_in.to_vec());
+    if cmp(&n, &two()) == core::cmp::Ordering::Less {
+        return None;
+    }
+    let (_, even) = divmod(&n, &two());
+    if zero(&even) {
+        return Some(two());
+    }
     let mut a_seed = isqrt(&n);
     if cmp(&mul(&a_seed, &a_seed), &n) == core::cmp::Ordering::Less {
         a_seed = add(&a_seed, &one());
@@ -973,12 +996,16 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         exhausted: false,
         selected: None,
     };
-    let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
+    let mut r = 0u64;
     loop {
         state.round = add(&state.round, &one());
-        execute_nested(&tower_refs, &mut state);
+        execute_nested(tower, &mut state);
         if let Some(ref selected) = state.selected {
-            return Ok(emit_numeral(selected));
+            return Some(selected.clone());
+        }
+        r += 1;
+        if r >= max_rounds {
+            return None;
         }
     }
 }
@@ -1398,6 +1425,13 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
     (None, log)
 }
 
+/// Round budget the HARD branch gives the nested nine-arm carrier before it
+/// falls through to the quadratic sieve. The carrier's rho (PHASE) arm advances
+/// one double-step per round, so this also caps its rho reach; a balanced N whose
+/// smaller factor is near 2^40 wants roughly 2^20 steps, and the sieve takes over
+/// only past where rho's N^(1/4) cost exceeds the sieve's sub-exponential one.
+pub const HARD_CARRIER_ROUNDS: u64 = 2_000_000;
+
 /// The full nine-arm carrier word, the deepest routing in one string.
 pub const NINE_ARM: &str =
     "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
@@ -1427,17 +1461,32 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 stack.push(q);
             }
             None => {
-                // HARD: the sub-exponential sieve is the arm for this shape.
-                match crate::sieve::sieve_factor(&c) {
-                    Some(p)
-                        if cmp(&p, &one()) == core::cmp::Ordering::Greater
-                            && cmp(&p, &c) == core::cmp::Ordering::Less =>
-                    {
+                // HARD nesting order, cheap-decisive arm outermost:
+                //   1. Quadratic sieve, one bounded pass. Sub-exponential and fast
+                //      through the low-to-mid width, it closes most hard shapes at
+                //      once. Its own slow Dixon fallback is held back to step 3.
+                //   2. The nine-arm carrier's rho (PHASE) arm, steady at N^(1/4).
+                //      It takes the width where the single QS pass comes up short of
+                //      smooth relations but rho still reaches the smaller factor.
+                //   3. Dixon, the exhaustive last resort, only if both above miss.
+                let good = |p: &Tape| {
+                    cmp(p, &one()) == core::cmp::Ordering::Greater
+                        && cmp(p, &c) == core::cmp::Ordering::Less
+                };
+                let (bound, m) = crate::sieve::sieve_params(&c);
+                let tower = construct_carrier(NINE_ARM).expect("NINE_ARM is a valid carrier");
+                let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
+                let hit = crate::sieve::qs(&c, bound, m, 16)
+                    .filter(&good)
+                    .or_else(|| run_carrier_rounds(&tower_refs, &c, HARD_CARRIER_ROUNDS).filter(&good))
+                    .or_else(|| crate::sieve::dixon(&c, bound, 8, 2_000_000).filter(&good));
+                match hit {
+                    Some(p) => {
                         let q = divmod(&c, &p).0;
                         stack.push(p);
                         stack.push(q);
                     }
-                    _ => factors.push(c),
+                    None => factors.push(c),
                 }
             }
         }
