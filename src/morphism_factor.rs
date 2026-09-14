@@ -72,7 +72,7 @@ fn mark(v: bool) -> char {
     }
 }
 
-fn trim(mut a: Tape) -> Tape {
+pub fn trim(mut a: Tape) -> Tape {
     while a.len() > 1 && a.last() == Some(&EVALT) {
         a.pop();
     }
@@ -308,28 +308,28 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     (l_trim(q), l_trim(r))
 }
 
-fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
+pub fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
     l_cmp(&fold(a), &fold(b))
 }
 
-fn add(a: &[char], b: &[char]) -> Tape {
+pub fn add(a: &[char], b: &[char]) -> Tape {
     unfold(&l_add(&fold(a), &fold(b)))
 }
 
-fn sub(a: &[char], b: &[char]) -> Tape {
+pub fn sub(a: &[char], b: &[char]) -> Tape {
     unfold(&l_sub(&fold(a), &fold(b)))
 }
 
-fn mul(a: &[char], b: &[char]) -> Tape {
+pub fn mul(a: &[char], b: &[char]) -> Tape {
     unfold(&l_mul(&fold(a), &fold(b)))
 }
 
-fn divmod(n: &[char], d: &[char]) -> (Tape, Tape) {
+pub fn divmod(n: &[char], d: &[char]) -> (Tape, Tape) {
     let (q, r) = l_divmod(&fold(n), &fold(d));
     (unfold(&q), unfold(&r))
 }
 
-fn modulo(n: &[char], d: &[char]) -> Tape {
+pub fn modulo(n: &[char], d: &[char]) -> Tape {
     unfold(&l_divmod(&fold(n), &fold(d)).1)
 }
 
@@ -647,17 +647,17 @@ fn isqrt(n: &[char]) -> Tape {
     trim(lo)
 }
 
-fn one() -> Tape {
+pub fn one() -> Tape {
     vec![EVALF]
 }
-fn two() -> Tape {
+pub fn two() -> Tape {
     vec![EVALT, EVALF]
 }
-fn zero(a: &[char]) -> bool {
+pub fn zero(a: &[char]) -> bool {
     trim(a.to_vec()) == [EVALT]
 }
 
-fn tape_u64(mut n: u64) -> Tape {
+pub fn tape_u64(mut n: u64) -> Tape {
     if n == 0 {
         return vec![EVALT];
     }

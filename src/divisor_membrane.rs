@@ -35,65 +35,12 @@ pub fn operator_words() -> String {
         op_word(OP_LOW), op_word(OP_HIGH), op_word(OP_BRIDGE), op_word(OP_JOIN), op_word(OP_FIX))
 }
 
+// One numeral kernel: the bit-register-folded arithmetic lives in
+// morphism_factor and is shared, so this membrane inherits the fold speedup and
+// there is a single copy of add/sub/mul/divmod across the crate.
+use crate::morphism_factor::{add, cmp, divmod, modulo, mul, one, sub, tape_u64, trim, two, zero};
 fn bit(m: char) -> bool { m == EVALF }
 fn mark(v: bool) -> char { if v { EVALF } else { EVALT } }
-fn trim(mut a: Tape) -> Tape {
-    while a.len() > 1 && a.last() == Some(&EVALT) { a.pop(); }
-    if a.is_empty() { a.push(EVALT); }
-    a
-}
-fn tape_u64(mut n: u64) -> Tape {
-    if n == 0 { return alloc::vec![EVALT]; }
-    let mut t = Vec::new();
-    while n != 0 { t.push(mark(n & 1 == 1)); n >>= 1; }
-    trim(t)
-}
-fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
-    let a = trim(a.to_vec()); let b = trim(b.to_vec());
-    if a.len() != b.len() { return a.len().cmp(&b.len()); }
-    for i in (0..a.len()).rev() {
-        if a[i] != b[i] { return bit(a[i]).cmp(&bit(b[i])); }
-    }
-    core::cmp::Ordering::Equal
-}
-fn add(a: &[char], b: &[char]) -> Tape {
-    let mut out = Vec::new(); let mut c = false;
-    for i in 0..a.len().max(b.len()) {
-        let x = a.get(i).copied().map(bit).unwrap_or(false);
-        let y = b.get(i).copied().map(bit).unwrap_or(false);
-        out.push(mark(x ^ y ^ c)); c = (x && y) || (x && c) || (y && c);
-    }
-    if c { out.push(EVALF); }
-    trim(out)
-}
-fn sub(a: &[char], b: &[char]) -> Tape {
-    let mut out = Vec::new(); let mut brw = false;
-    for i in 0..a.len() {
-        let x = bit(a[i]); let y = b.get(i).copied().map(bit).unwrap_or(false);
-        out.push(mark(x ^ y ^ brw)); brw = (!x && (y || brw)) || (y && brw);
-    }
-    trim(out)
-}
-fn mul(a: &[char], b: &[char]) -> Tape {
-    let mut acc = alloc::vec![EVALT];
-    for (i, &m) in b.iter().enumerate() {
-        if bit(m) { let mut row = alloc::vec![EVALT; i]; row.extend_from_slice(a); acc = add(&acc, &row); }
-    }
-    trim(acc)
-}
-fn divmod(n: &[char], d: &[char]) -> (Tape, Tape) {
-    debug_assert!(!zero(d), "divmod: division by the zero tape");
-    let mut q = alloc::vec![EVALT; n.len()]; let mut r = alloc::vec![EVALT];
-    for i in (0..n.len()).rev() {
-        r.insert(0, n[i]); r = trim(r);
-        if cmp(&r, d) != core::cmp::Ordering::Less { r = sub(&r, d); q[i] = EVALF; }
-    }
-    (trim(q), trim(r))
-}
-fn modulo(n: &[char], d: &[char]) -> Tape { divmod(n, d).1 }
-fn zero(a: &[char]) -> bool { trim(a.to_vec()) == [EVALT] }
-fn one() -> Tape { alloc::vec![EVALF] }
-fn two() -> Tape { alloc::vec![EVALT, EVALF] }
 /// Odd-tape test built from the same three primitives: a mod 2 != 0.
 fn is_odd_tape(a: &[char]) -> bool { !zero(&modulo(a, &two())) }
 fn pow2(k: u32) -> Tape { let mut t = alloc::vec![EVALT; (k as usize).saturating_add(1)]; if k < 64 { t[k as usize] = EVALF; } trim(t) }
