@@ -629,7 +629,7 @@ fn lucas_v(m: &[char], a: &[char], n: &[char]) -> Tape {
 
 /// Floor integer square root over numeral tapes, by binary search on the
 /// largest x with x*x <= n. Used to seed and test the square-frontier arm.
-fn isqrt(n: &[char]) -> Tape {
+pub fn isqrt(n: &[char]) -> Tape {
     if cmp(n, &two()) == core::cmp::Ordering::Less {
         return trim(n.to_vec());
     }

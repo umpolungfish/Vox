@@ -25,6 +25,7 @@ fn usage() {
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
     eprintln!("  vox construct-carrier <operator-word>        decompose a word into its factoring-morphism tower");
     eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
+    eprintln!("  vox factor-operator resolve|full <N>         the CL9NK moat resolver over folded tapes");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
@@ -1105,6 +1106,10 @@ fn main() {
         Some("verify") => {
             if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }
             else { match ::vox::morphism_factor::verify(&args[1], &args[2], &args[3]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
+        Some("factor-operator") => {
+            let rest: Vec<&str> = args[1..].iter().map(|x| x.as_str()).collect();
+            println!("{}", ::vox::factor_operator::repl_factor_operator(&rest)); 0
         }
         Some("construct-carrier") => {
             if args.len() != 2 { eprintln!("vox construct-carrier <operator-word>   decompose a word into its factoring-morphism tower"); 1 }
