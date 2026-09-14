@@ -23,6 +23,11 @@ const FIX: &[char] = &[VINIT, IMSCRIB, IFIX, TANCH];
 // phase, arithmetic, select and continue into a single boundary, which is what
 // makes the extractor a one-frame factorizer.
 const EXTRACT: &[char] = &[VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE, TANCH];
+// Pollard p-1: seed an accumulator (IMSCRIB), raise it through rising exponents
+// (ENGAGR), and take the gcd (CLINK) inside the frame. It catches a factor p
+// whenever p-1 is smooth, at any size and any gap, covering the slice the
+// frontier and rho arms miss.
+const P_MINUS: &[char] = &[VINIT, FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -223,6 +228,20 @@ fn rho_step(x: &[char], c: &[char], n: &[char]) -> Tape {
     mod_add(&mod_mul(x, x, n), c, n)
 }
 
+/// Modular exponentiation over numeral tapes: base^exp mod n, square and
+/// multiply over the exponent's own bits (least significant cell first).
+fn pow_mod(base: &[char], exp: &[char], n: &[char]) -> Tape {
+    let mut result = one();
+    let mut b = modulo(base, n);
+    for &e in exp {
+        if e == EVALF {
+            result = mod_mul(&result, &b, n);
+        }
+        b = mod_mul(&b, &b, n);
+    }
+    trim(result)
+}
+
 /// Floor integer square root over numeral tapes, by binary search on the
 /// largest x with x*x <= n. Used to seed and test the square-frontier arm.
 fn isqrt(n: &[char]) -> Tape {
@@ -262,6 +281,8 @@ struct State {
     phase: Tape,
     divisor: Tape,
     a: Tape,
+    pm_a: Tape,
+    pm_e: Tape,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -277,6 +298,7 @@ const SELECT_I: &[char] = &[FSPLIT, IMSCRIB, FFUSE];
 const CONTINUE_I: &[char] = &[AFWD, CLINK];
 const FIX_I: &[char] = &[IMSCRIB, IFIX];
 const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
+const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -287,6 +309,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == CONTINUE { "CONTINUE" }
     else if operator == FIX { "FIX" }
     else if operator == EXTRACT { "EXTRACT" }
+    else if operator == P_MINUS { "P_MINUS" }
     else { "?" }
 }
 
@@ -306,8 +329,9 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 7] = [
+    let motifs: [(&[char], &[char]); 8] = [
         (EXTRACT_I, EXTRACT),
+        (P_MINUS_I, P_MINUS),
         (PHASE_I, PHASE),
         (ARITHMETIC_I, ARITHMETIC),
         (BRANCH_I, BRANCH),
@@ -381,6 +405,8 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         phase: one(),
         divisor: one(),
         a: a_seed,
+        pm_a: two(),
+        pm_e: two(),
         exhausted: false,
         selected: None,
     };
@@ -486,6 +512,20 @@ fn apply_morphism(operator: &[char], state: &mut State) {
                 state.divisor = one();
             }
         }
+    } else if operator == P_MINUS {
+        // Pollard p-1: pm_a := pm_a^pm_e mod N, then gcd(pm_a - 1, N). A
+        // nontrivial gcd is a factor whose predecessor is smooth to this
+        // exponent. pm_e rises each round, so the smoothness bound grows.
+        state.pm_a = pow_mod(&state.pm_a, &state.pm_e, &state.n);
+        if cmp(&state.pm_a, &one()) == core::cmp::Ordering::Greater {
+            let g = gcd(sub(&state.pm_a, &one()), state.n.clone());
+            if cmp(&g, &one()) == core::cmp::Ordering::Greater
+                && cmp(&g, &state.n) == core::cmp::Ordering::Less
+            {
+                state.selected = Some(trim(g));
+            }
+        }
+        state.pm_e = add(&state.pm_e, &one());
     } else if operator == FIX {
         if let Some(value) = state.selected.take() {
             state.selected = Some(trim(value));
@@ -525,6 +565,8 @@ pub fn factor(word: &str) -> Result<String, String> {
         phase: one(),
         divisor: one(),
         a: a_seed,
+        pm_a: two(),
+        pm_e: two(),
         exhausted: false,
         selected: None,
     };
@@ -630,6 +672,21 @@ mod tests {
         // The frontier arm may return either factor of the pair; both are valid.
         let f = factor_with(w, &numeral(8051)).unwrap();
         assert!(f == numeral(83) || f == numeral(97));
+    }
+
+    #[test]
+    fn nested_p_minus_catches_a_far_large_smooth_predecessor_factor() {
+        // p = 39916801 (11!+1, prime; p-1 = 11! is smooth), q = 1000000007 far
+        // away. Frontier is dead on the gap, but the nested p-1 arm closes it.
+        // Carrier: EXTRACT -> P_MINUS -> FIX.
+        let p = 39916801u64;
+        let q = 1000000007u64;
+        let carrier = "⊢∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋⊙⊡⊣";
+        let names: Vec<&str> = construct_carrier(carrier)
+            .unwrap().iter().map(|t| morphism_name(t)).collect();
+        assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
+        let f = factor_with(carrier, &numeral(p * q)).unwrap();
+        assert!(f == numeral(p) || f == numeral(q));
     }
 
     #[test]
