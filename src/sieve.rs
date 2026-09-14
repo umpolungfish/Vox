@@ -293,28 +293,60 @@ pub fn qs(n: &Tape, b_bound: usize, m_interval: usize, extra: usize) -> Option<T
     if cmp(&mul(&root, &root), n) == core::cmp::Ordering::Less {
         root = add(&root, &one());
     }
-    // Integer log-sieve (bit-length weights) over the window [root, root + M),
-    // no_std having no float log. Each prime contributes floor(log2 p).
+    // Offsets: position i has p | (a^2 - N) iff i ≡ off (mod p) for off in offs[k].
     let flog2 = |x: u64| -> u32 { if x < 2 { 0 } else { 63 - x.leading_zeros() } };
+    let mut offs: Vec<(u64, u64)> = Vec::with_capacity(width);
+    for (k, &p) in base.iter().enumerate() {
+        let rootmod = n_mod_u64(&root, p) % p;
+        let (r1, r2) = roots[k];
+        let o1 = (r1 + p - rootmod) % p;
+        let o2 = if p == 2 { o1 } else { (r2 + p - rootmod) % p };
+        offs.push((o1, o2));
+    }
+    // Integer log-sieve (bit-length weights; no_std has no float log).
     let mut logs = vec![0u32; m_interval];
     for (k, &p) in base.iter().enumerate() {
         let lp = flog2(p);
-        let rootmod = n_mod_u64(&root, p) % p;
-        let (r1, r2) = roots[k];
-        for &r in &[r1, r2] {
-            let start = ((r + p - rootmod % p) % p) as usize;
-            let mut i = start;
+        let (o1, o2) = offs[k];
+        let os = if p == 2 || o1 == o2 { vec![o1] } else { vec![o1, o2] };
+        for o in os {
+            let mut i = o as usize;
             while i < m_interval {
                 logs[i] += lp;
                 i += p as usize;
-            }
-            if p == 2 {
-                break;
             }
         }
     }
     let bits_n = trim(n.clone()).len() as u32;
     let slack = 2 * (flog2(b_bound as u64) + 1) + 4;
+    // Resieve: for a candidate at i, divide the value only by the base primes
+    // whose root position hits i, as tape divmods, instead of trial-dividing the
+    // whole base. Smooth iff the residue reduces to 1.
+    let factor_at = |v: &Tape, i: usize| -> Option<Vec<u32>> {
+        let mut cur = trim(v.clone());
+        let mut exps = vec![0u32; width];
+        for (k, &p) in base.iter().enumerate() {
+            let (o1, o2) = offs[k];
+            let im = (i as u64) % p;
+            if im == o1 || im == o2 {
+                let pt = tape_u64(p);
+                loop {
+                    let (q, r) = divmod(&cur, &pt);
+                    if zero(&r) {
+                        exps[k] += 1;
+                        cur = q;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        if cur == vec![EVALF] {
+            Some(exps)
+        } else {
+            None
+        }
+    };
     let mut a_of: Vec<Tape> = Vec::new();
     let mut exp_of: Vec<Vec<u32>> = Vec::new();
     let need = width + extra;
@@ -322,14 +354,13 @@ pub fn qs(n: &Tape, b_bound: usize, m_interval: usize, extra: usize) -> Option<T
         if a_of.len() >= need {
             break;
         }
-        // log2(a^2 - N) ~ bits_n/2 + log2(i+1) + 1; accept within slack of it.
         let target = bits_n / 2 + flog2(i as u64 + 1) + 1;
         if logs[i] + slack < target {
             continue;
         }
         let a = add(&root, &tape_u64(i as u64));
-        let v = trim(sub(&mul(&a, &a), n)); // a^2 - N >= 0 for a >= ceil(sqrt N)
-        if let Some(exps) = smooth_over(&v, &base) {
+        let v = trim(sub(&mul(&a, &a), n));
+        if let Some(exps) = factor_at(&v, i) {
             a_of.push(a);
             exp_of.push(exps);
         }
@@ -341,8 +372,8 @@ pub fn qs(n: &Tape, b_bound: usize, m_interval: usize, extra: usize) -> Option<T
 /// square of the digit count, the window a few hundred thousand.
 pub fn sieve_params(n: &Tape) -> (usize, usize) {
     let bits = trim(n.clone()).len();
-    let bound = ((bits * bits) / 6 + 200).min(20_000);
-    let m = 600_000usize;
+    let bound = ((bits * bits) / 3 + 300).min(40_000);
+    let m = 1_500_000usize;
     (bound, m)
 }
 
