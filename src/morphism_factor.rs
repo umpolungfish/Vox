@@ -1418,9 +1418,7 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
             }
             None => {
                 // HARD: the sub-exponential sieve is the arm for this shape.
-                let bits = trim(c.clone()).len();
-                let bound = 200 + bits * 40;
-                match crate::sieve::dixon(&c, bound, 8, 2_000_000) {
+                match crate::sieve::sieve_factor(&c) {
                     Some(p)
                         if cmp(&p, &one()) == core::cmp::Ordering::Greater
                             && cmp(&p, &c) == core::cmp::Ordering::Less =>
