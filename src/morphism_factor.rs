@@ -34,6 +34,11 @@ const P_MINUS: &[char] = &[VINIT, FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE, TANCH];
 // slope. This is the sub-exponential arm for a factor that is large, far from
 // the root, and has no smooth predecessor.
 const ECM: &[char] = &[VINIT, FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE, TANCH];
+// Primality witness: a branch frame carrying the involution ∈⊤≺⊥∋. It runs a
+// strong probable-prime test once and, if N is prime, selects N at once. Nested
+// first, it spares the trial walk to sqrt(N) that certifying a prime otherwise
+// costs.
+const WITNESS: &[char] = &[VINIT, FSPLIT, EVALT, AREV, EVALF, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -248,6 +253,52 @@ fn pow_mod(base: &[char], exp: &[char], n: &[char]) -> Tape {
     trim(result)
 }
 
+/// Strong probable-prime test (Miller-Rabin) over numeral tapes against a fixed
+/// witness set, deterministic across the ranges this factorizer handles. A few
+/// modular powers decide primality, so a prime need not be walked out to its
+/// square root.
+fn miller_rabin(n: &[char]) -> bool {
+    use core::cmp::Ordering::{Equal, Less};
+    let n = trim(n.to_vec());
+    if cmp(&n, &two()) == Less {
+        return false;
+    }
+    if cmp(&n, &two()) == Equal {
+        return true;
+    }
+    if zero(&modulo(&n, &two())) {
+        return false;
+    }
+    let nm1 = trim(sub(&n, &one()));
+    let mut s = 0usize;
+    while s < nm1.len() && nm1[s] == EVALT {
+        s += 1;
+    }
+    let d = trim(nm1[s..].to_vec());
+    for &a in &[2u64, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37] {
+        let at = tape_u64(a);
+        if cmp(&at, &n) != Less {
+            continue;
+        }
+        let mut x = pow_mod(&at, &d, &n);
+        if cmp(&x, &one()) == Equal || cmp(&x, &nm1) == Equal {
+            continue;
+        }
+        let mut composite = true;
+        for _ in 0..s.saturating_sub(1) {
+            x = mod_mul(&x, &x, &n);
+            if cmp(&x, &nm1) == Equal {
+                composite = false;
+                break;
+            }
+        }
+        if composite {
+            return false;
+        }
+    }
+    true
+}
+
 /// Floor integer square root over numeral tapes, by binary search on the
 /// largest x with x*x <= n. Used to seed and test the square-frontier arm.
 fn isqrt(n: &[char]) -> Tape {
@@ -434,6 +485,7 @@ struct State {
     pm_e: Tape,
     ecm_seed: Tape,
     ecm_round: Tape,
+    witness_done: bool,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -451,6 +503,7 @@ const FIX_I: &[char] = &[IMSCRIB, IFIX];
 const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
+const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -463,6 +516,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == EXTRACT { "EXTRACT" }
     else if operator == P_MINUS { "P_MINUS" }
     else if operator == ECM { "ECM" }
+    else if operator == WITNESS { "WITNESS" }
     else { "?" }
 }
 
@@ -482,10 +536,11 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 9] = [
+    let motifs: [(&[char], &[char]); 10] = [
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
+        (WITNESS_I, WITNESS),
         (PHASE_I, PHASE),
         (ARITHMETIC_I, ARITHMETIC),
         (BRANCH_I, BRANCH),
@@ -564,6 +619,7 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         pm_e: two(),
         ecm_seed: two(),
         ecm_round: vec![EVALT],
+        witness_done: false,
         exhausted: false,
         selected: None,
     };
@@ -683,6 +739,16 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             }
         }
         state.pm_e = add(&state.pm_e, &one());
+    } else if operator == WITNESS {
+        // One strong probable-prime test, first thing. If N is prime, select it
+        // at once so the trial arm never walks to sqrt(N). One-shot: the verdict
+        // on a fixed N never changes.
+        if !state.witness_done {
+            state.witness_done = true;
+            if miller_rabin(&state.n) {
+                state.selected = Some(trim(state.n.clone()));
+            }
+        }
     } else if operator == ECM {
         // ECM is the costly arm, so it sits deeper: it fires one curve only on
         // rounds that are a power of two, letting the cheap arms (trial, rho,
@@ -742,6 +808,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         pm_e: two(),
         ecm_seed: two(),
         ecm_round: vec![EVALT],
+        witness_done: false,
         exhausted: false,
         selected: None,
     };
@@ -862,6 +929,23 @@ mod tests {
         assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
         let f = factor_with(carrier, &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
+    }
+
+    #[test]
+    fn witness_first_certifies_a_large_prime_without_the_sqrt_walk() {
+        // WITNESS nested first: a strong prime test selects N at once, so a
+        // large prime is not walked out to sqrt(N). Carrier
+        // WITNESS -> EXTRACT -> P_MINUS -> ECM -> FIX.
+        let carrier = "⊢∈⊤≺⊥∋∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋∈⊙≻⋈∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["WITNESS", "EXTRACT", "P_MINUS", "ECM", "FIX"]
+        );
+        // 2^31-1 is prime: selected as itself.
+        assert_eq!(factor_with(carrier, &numeral(2147483647)).unwrap(), numeral(2147483647));
+        // A composite still factors through the deeper arms.
+        let f = factor_with(carrier, &numeral(8051)).unwrap();
+        assert!(f == numeral(83) || f == numeral(97));
     }
 
     #[test]
