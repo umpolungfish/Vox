@@ -710,6 +710,7 @@ struct State {
     witness_done: bool,
     power_done: bool,
     squfof_done: bool,
+    round: Tape,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -860,11 +861,13 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         witness_done: false,
         power_done: false,
         squfof_done: false,
+        round: vec![EVALT],
         exhausted: false,
         selected: None,
     };
     let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
     loop {
+        state.round = add(&state.round, &one());
         execute_nested(&tower_refs, &mut state);
         if let Some(ref selected) = state.selected {
             return Ok(emit_numeral(selected));
@@ -966,6 +969,11 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             }
         }
     } else if operator == P_MINUS {
+        // Costly per-round arm: nested deeper on a stride so the cheap walk
+        // carries the rounds between. Its own exponent still rises per firing.
+        if tape_to_u64(&state.round) % 4 != 0 {
+            return;
+        }
         // Pollard p-1: pm_a := pm_a^pm_e mod N, then gcd(pm_a - 1, N). A
         // nontrivial gcd is a factor whose predecessor is smooth to this
         // exponent. pm_e rises each round, so the smoothness bound grows.
@@ -1007,6 +1015,9 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             }
         }
     } else if operator == P_PLUS {
+        if tape_to_u64(&state.round) % 4 != 1 {
+            return;
+        }
         // Williams p+1: V_M(A) mod N over a Lucas sequence, then gcd(V_M - 2, N).
         // A nontrivial gcd is a factor p whose successor p+1 is smooth. The base
         // A rises each round so a failed base is retried on the other side.
@@ -1020,14 +1031,20 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         }
         state.pp_base = add(&state.pp_base, &one());
     } else if operator == LEHMAN {
-        // One Lehman multiplier per round.
+        if tape_to_u64(&state.round) % 4 != 2 {
+            return;
+        }
+        // One Lehman multiplier per firing.
         if let Some(g) = lehman_step(&state.n, &state.lehman_k) {
             state.selected = Some(g);
         }
         state.lehman_k = add(&state.lehman_k, &one());
     } else if operator == SQUFOF {
-        // One square-forms cycle, one-shot.
-        if !state.squfof_done {
+        // Heavy fallback: its cycle bound grows like N^(1/4), so it is nested
+        // deep in time. It fires once, and only after the cheap arms have had a
+        // few hundred rounds to close an easy factor first. If they already did,
+        // the loop has returned and this never runs.
+        if !state.squfof_done && tape_to_u64(&state.round) >= 256 {
             state.squfof_done = true;
             if let Some(g) = squfof(&state.n) {
                 state.selected = Some(g);
@@ -1097,6 +1114,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         witness_done: false,
         power_done: false,
         squfof_done: false,
+        round: vec![EVALT],
         exhausted: false,
         selected: None,
     };
