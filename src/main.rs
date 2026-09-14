@@ -23,6 +23,8 @@ fn usage() {
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
+    eprintln!("  vox construct-carrier <operator-word>        decompose a word into its factoring-morphism tower");
+    eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
@@ -1103,6 +1105,21 @@ fn main() {
         Some("verify") => {
             if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }
             else { match ::vox::morphism_factor::verify(&args[1], &args[2], &args[3]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
+        Some("construct-carrier") => {
+            if args.len() != 2 { eprintln!("vox construct-carrier <operator-word>   decompose a word into its factoring-morphism tower"); 1 }
+            else { match ::vox::morphism_factor::construct_carrier(&args[1]) {
+                Ok(tower) => {
+                    let names: Vec<&str> = tower.iter().map(|t| ::vox::morphism_factor::morphism_name(t)).collect();
+                    println!("tower ({} morphisms): {}", names.len(), names.join(" -> "));
+                    0
+                }
+                Err(e) => { eprintln!("{}", e); 2 }
+            } }
+        }
+        Some("factor-with") => {
+            if args.len() != 3 { eprintln!("vox factor-with <operator-word> <n-word>   factor N on a carrier built from the operator word"); 1 }
+            else { match ::vox::morphism_factor::factor_with(&args[1], &args[2]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
         }
         Some("membrane") | Some("divisor-membrane") | Some("divisor_membrane") => {
             let rest: Vec<&str> = args[1..].iter().map(|x| x.as_str()).collect();

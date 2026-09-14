@@ -240,6 +240,121 @@ struct State {
     selected: Option<Tape>,
 }
 
+/// The interior of each operator motif (its marks between VINIT and TANCH).
+/// Dispatch in `apply_morphism` keys on the whole operator word; the carrier
+/// constructor recognises a motif by this interior wherever it appears inside
+/// a larger operator word.
+const PHASE_I: &[char] = &[FSPLIT, AFWD, EVALT, EVALF, FFUSE];
+const ARITHMETIC_I: &[char] = &[FSPLIT, CLINK, EVALT, EVALF, FFUSE];
+const BRANCH_I: &[char] = &[FSPLIT, EVALT, EVALF, FFUSE];
+const SELECT_I: &[char] = &[FSPLIT, IMSCRIB, FFUSE];
+const CONTINUE_I: &[char] = &[AFWD, CLINK];
+const FIX_I: &[char] = &[IMSCRIB, IFIX];
+
+/// Name of an operator motif, for reporting a constructed tower.
+pub fn morphism_name(operator: &[char]) -> &'static str {
+    if operator == PHASE { "PHASE" }
+    else if operator == ARITHMETIC { "ARITHMETIC" }
+    else if operator == BRANCH { "BRANCH" }
+    else if operator == SELECT { "SELECT" }
+    else if operator == CONTINUE { "CONTINUE" }
+    else if operator == FIX { "FIX" }
+    else { "?" }
+}
+
+/// Automated carrier constructor. Read an operator ob3ect word and decompose
+/// its interior into the ordered sequence of factoring morphisms it realises.
+/// Each recognised motif interior emits its whole operator word, so the result
+/// is a tower that `execute_nested` can drive exactly like the fixed one in
+/// `factor`. Marks the Grammar defines as carry rather than dispatch (AREV the
+/// involution, ENGAGR as hold, and a lone IMSCRIB seed) are carried across
+/// without emitting an operator. An interior mark that begins no motif and is
+/// not a carry mark is refused, naming the position.
+pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, String> {
+    let c: Vec<char> = operator_word.chars().collect();
+    if c.first() != Some(&VINIT) || c.last() != Some(&TANCH) {
+        return Err("operator word needs VINIT ⊢ and TANCH ⊣ interfaces".into());
+    }
+    let body = &c[1..c.len() - 1];
+    // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
+    // wins over a lone IMSCRIB carry.
+    let motifs: [(&[char], &[char]); 6] = [
+        (PHASE_I, PHASE),
+        (ARITHMETIC_I, ARITHMETIC),
+        (BRANCH_I, BRANCH),
+        (SELECT_I, SELECT),
+        (CONTINUE_I, CONTINUE),
+        (FIX_I, FIX),
+    ];
+    let mut tower: Vec<&'static [char]> = Vec::new();
+    let mut i = 0;
+    'scan: while i < body.len() {
+        for (interior, operator) in motifs.iter() {
+            if body[i..].starts_with(interior) {
+                tower.push(operator);
+                i += interior.len();
+                continue 'scan;
+            }
+        }
+        // Carry marks: carried across the register, they select no morphism.
+        if matches!(body[i], AREV) || body[i] == '⊞' || body[i] == IMSCRIB {
+            i += 1;
+            continue;
+        }
+        return Err(format!(
+            "operator mark {} at interior position {} begins no factoring morphism",
+            body[i], i
+        ));
+    }
+    Ok(tower)
+}
+
+/// Factor N using a carrier constructed from an arbitrary operator ob3ect word,
+/// rather than the fixed tower in `factor`. The operator word is decomposed by
+/// `construct_carrier`; the tower must be factoring-complete (able to advance a
+/// candidate, decide, continue, and fix) or the missing morphisms are named.
+pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> {
+    let tower = construct_carrier(operator_word)?;
+    let has = |op: &[char]| tower.iter().any(|t| *t == op);
+    let mut missing = Vec::new();
+    if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
+    if !has(SELECT) { missing.push("SELECT (decide)"); }
+    if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
+    if !has(FIX) { missing.push("FIX (latch)"); }
+    if !missing.is_empty() {
+        return Err(format!(
+            "operator word does not carry factoring; missing: {}",
+            missing.join(", ")
+        ));
+    }
+    let n = parse_numeral(n_word)?;
+    if cmp(&n, &two()) == core::cmp::Ordering::Less {
+        return Err("numeral has no non-trivial factor".into());
+    }
+    let (_, even) = divmod(&n, &two());
+    if zero(&even) {
+        return Ok(emit_numeral(&two()));
+    }
+    let mut state = State {
+        n,
+        candidate: add(&two(), &one()),
+        remainder: vec![EVALT],
+        x: two(),
+        y: two(),
+        phase: one(),
+        divisor: one(),
+        exhausted: false,
+        selected: None,
+    };
+    let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
+    loop {
+        execute_nested(&tower_refs, &mut state);
+        if let Some(ref selected) = state.selected {
+            return Ok(emit_numeral(selected));
+        }
+    }
+}
+
 fn apply_morphism(operator: &[char], state: &mut State) {
     // Dispatch is read from the operator word itself. Each operator therefore
     // remains both the boundary and the action performed at that boundary.
@@ -372,5 +487,41 @@ mod tests {
         let q = 1_000_000_009u64;
         let f = factor(&numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
+    }
+
+    // A single operator word whose interior is the six motif interiors in
+    // canonical order. The carrier constructor recovers the full tower.
+    const FULL: &str = "⊢∈≻⊤⊥∋∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
+
+    #[test]
+    fn constructor_recovers_the_full_tower() {
+        let tower = construct_carrier(FULL).unwrap();
+        let names: Vec<&str> = tower.iter().map(|t| morphism_name(t)).collect();
+        assert_eq!(names, ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]);
+    }
+
+    #[test]
+    fn constructed_carrier_factors_like_the_fixed_tower() {
+        let f = factor_with(FULL, &numeral(8051)).unwrap();
+        assert!(f == numeral(83) || f == numeral(97));
+        assert_eq!(f, factor(&numeral(8051)).unwrap());
+    }
+
+    #[test]
+    fn incomplete_operator_word_is_named_not_run() {
+        // BRANCH + SELECT + FIX but no advance/continue: refused, missing named.
+        let w = "⊢∈⊤⊥∋∈⊙∋⊙⊡⊣";
+        let err = factor_with(w, &numeral(8051)).unwrap_err();
+        assert!(err.contains("missing"));
+        assert!(err.contains("CONTINUE"));
+    }
+
+    #[test]
+    fn evaluate_frame_with_arev_is_not_a_factoring_morphism() {
+        // The instant semiprime extractor carries AREV ≺ inside its evaluate
+        // frame (∈≻⊤≺⊥…), which no factoring morphism has; the constructor
+        // names the exact obstruction rather than silently absorbing it.
+        let err = construct_carrier("⊢⊙∈≻⊤≺⊥⊞⋈∋⊙⊡⊣").unwrap_err();
+        assert!(err.contains("begins no factoring morphism"));
     }
 }

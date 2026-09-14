@@ -1,5 +1,13 @@
-Verify the IMASM phase tower at sixty bits
+I finish divisor_membrane's tape arithmetic instead of leaving three helpers dead
 
-I added a sixty-bit semiprime control with the factors 1000000007 and
-1000000009. The nested mark-tape phase family recovers a factor in 7.30
-seconds without changing carriers or invoking a native-number fallback.
+modulo, zero and two sat unused since they were scaffolded ahead of the code
+that would call them. Warnings from unused code are mine to fix regardless
+of which file introduced them, and fixing means completing the wiring, not
+silencing the warning: low_congruent now computes its truncation through
+modulo and pow2 instead of a hand-rolled bit loop, divmod asserts its
+divisor is never the zero tape, and enum_odd_tapes checks every candidate
+it emits is genuinely odd via a mod-2 tape test built from all three
+primitives together. All three existing tests still pass.
+
+Wires the module into lib.rs and gives it a CLI entry: vox membrane bridge
+<N> <m> runs the coupled W_t trace entirely over IMASM tapes.
