@@ -50,6 +50,10 @@ const P_PLUS: &[char] = &[VINIT, FSPLIT, IMSCRIB, AREV, CLINK, FFUSE, TANCH];
 // multiplier k, closing a factor between N^(1/3) and N^(2/3) that the near-root
 // frontier and the small-factor arms both miss.
 const LEHMAN: &[char] = &[VINIT, FSPLIT, AFWD, CLINK, EVALT, EVALF, FFUSE, TANCH];
+// Shanks square forms (SQUFOF): a square-form frame ∈⊤≺⊞⊥∋, the involution and
+// hold carrying the forward/reverse cycle. One-shot: it runs the principal-form
+// cycle once and selects a factor if the reverse phase closes one.
+const SQUFOF: &[char] = &[VINIT, FSPLIT, EVALT, AREV, '⊞', EVALF, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -290,6 +294,109 @@ fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
             }
         }
         a = add(&a, &one());
+    }
+    None
+}
+
+/// Shanks's square forms factorization over numeral tapes. Runs the forward
+/// cycle of the principal form until a square Q appears at an even step, then the
+/// reverse cycle until P stabilizes; gcd(P, N) is then a factor. Tries a few
+/// multipliers. The Q recurrence carries a real sign, tracked by branch since the
+/// tapes are unsigned.
+fn squfof(n: &[char]) -> Option<Tape> {
+    use core::cmp::Ordering::{Equal, Greater, Less};
+    for &k in &[1u64, 3, 5, 7, 11, 13, 15] {
+        let d = mul(n, &tape_u64(k));
+        let s = isqrt(&d);
+        // SQUFOF forward bound: 2*sqrt(2*sqrt(D)). If no square appears within
+        // it, this multiplier fails and the next is tried. A reverse cycle is
+        // bounded the same way.
+        let cap = tape_to_u64(&mul(&two(), &isqrt(&mul(&two(), &s))))
+            .saturating_mul(2)
+            .max(64);
+        if cmp(&mul(&s, &s), &d) == Equal {
+            let g = gcd(s.clone(), n.to_vec());
+            if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
+                return Some(trim(g));
+            }
+            continue;
+        }
+        // Q_{i+1} = Q_{i-1} + b*(P_{i-1} - P_i), sign-tracked.
+        let q_update = |q_prev: &[char], b: &[char], p_prev: &[char], p: &[char]| -> Option<Tape> {
+            let term = mul(b, &abs_diff(p_prev, p));
+            if cmp(p_prev, p) != Less {
+                Some(add(q_prev, &term))
+            } else if cmp(q_prev, &term) != Less {
+                Some(sub(q_prev, &term))
+            } else {
+                None
+            }
+        };
+        // Forward.
+        let mut p_prev = s.clone();
+        let mut q_prev = one();
+        let mut q = sub(&d, &mul(&s, &s));
+        if zero(&q) {
+            continue;
+        }
+        let mut r: Option<Tape> = None;
+        let mut i = 1u64;
+        while i <= cap {
+            // Q_i square at an even step, paired with P_{i-1} (= p_prev here).
+            if i % 2 == 0 {
+                if let Some(root) = is_square(&q) {
+                    r = Some(root);
+                    break;
+                }
+            }
+            let b = divmod(&add(&s, &p_prev), &q).0;
+            let p = sub(&mul(&b, &q), &p_prev);
+            let q_next = match q_update(&q_prev, &b, &p_prev, &p) {
+                Some(v) => v,
+                None => break,
+            };
+            q_prev = q;
+            q = q_next;
+            p_prev = p;
+            i += 1;
+        }
+        let r = match r {
+            Some(v) => v,
+            None => continue,
+        };
+        // Reverse: seed from the square, iterate until P stabilizes.
+        if cmp(&s, &p_prev) == Less {
+            continue;
+        }
+        let b0 = divmod(&sub(&s, &p_prev), &r).0;
+        let mut p = add(&p_prev, &mul(&b0, &r));
+        let mut q_prev = r.clone();
+        let mut q = divmod(&sub(&d, &mul(&p, &p)), &r).0;
+        let mut ok = false;
+        let mut j = 0u64;
+        while j <= cap {
+            let b = divmod(&add(&s, &p), &q).0;
+            let p_new = sub(&mul(&b, &q), &p);
+            if cmp(&p_new, &p) == Equal {
+                ok = true;
+                break;
+            }
+            let q_next = match q_update(&q_prev, &b, &p, &p_new) {
+                Some(v) => v,
+                None => break,
+            };
+            q_prev = q;
+            q = q_next;
+            p = p_new;
+            j += 1;
+        }
+        if !ok {
+            continue;
+        }
+        let g = gcd(trim(p), n.to_vec());
+        if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
+            return Some(trim(g));
+        }
     }
     None
 }
@@ -602,6 +709,7 @@ struct State {
     lehman_k: Tape,
     witness_done: bool,
     power_done: bool,
+    squfof_done: bool,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -623,6 +731,7 @@ const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
 const POWER_I: &[char] = &[FSPLIT, EVALT, '⊞', EVALF, FFUSE];
 const P_PLUS_I: &[char] = &[FSPLIT, IMSCRIB, AREV, CLINK, FFUSE];
 const LEHMAN_I: &[char] = &[FSPLIT, AFWD, CLINK, EVALT, EVALF, FFUSE];
+const SQUFOF_I: &[char] = &[FSPLIT, EVALT, AREV, '⊞', EVALF, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -639,6 +748,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == POWER { "POWER" }
     else if operator == P_PLUS { "P_PLUS" }
     else if operator == LEHMAN { "LEHMAN" }
+    else if operator == SQUFOF { "SQUFOF" }
     else { "?" }
 }
 
@@ -658,12 +768,13 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 13] = [
+    let motifs: [(&[char], &[char]); 14] = [
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
         (P_PLUS_I, P_PLUS),
         (LEHMAN_I, LEHMAN),
+        (SQUFOF_I, SQUFOF),
         (WITNESS_I, WITNESS),
         (POWER_I, POWER),
         (PHASE_I, PHASE),
@@ -748,6 +859,7 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         lehman_k: one(),
         witness_done: false,
         power_done: false,
+        squfof_done: false,
         exhausted: false,
         selected: None,
     };
@@ -913,6 +1025,14 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.selected = Some(g);
         }
         state.lehman_k = add(&state.lehman_k, &one());
+    } else if operator == SQUFOF {
+        // One square-forms cycle, one-shot.
+        if !state.squfof_done {
+            state.squfof_done = true;
+            if let Some(g) = squfof(&state.n) {
+                state.selected = Some(g);
+            }
+        }
     } else if operator == ECM {
         // ECM is the costly arm, so it sits deeper: it fires one curve only on
         // rounds that are a power of two, letting the cheap arms (trial, rho,
@@ -976,6 +1096,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         lehman_k: one(),
         witness_done: false,
         power_done: false,
+        squfof_done: false,
         exhausted: false,
         selected: None,
     };
@@ -1096,6 +1217,29 @@ mod tests {
         assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
         let f = factor_with(carrier, &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
+    }
+
+    #[test]
+    fn squfof_finds_factors() {
+        for &(nn, _a, _b) in &[
+            (8051u64, 83u64, 97u64),
+            (11111, 41, 271),
+            (2021, 43, 47),
+            (1234567, 127, 9721),
+            (2027651281, 44021, 46061),
+        ] {
+            let g = squfof(&tape_u64(nn)).expect("squfof found nothing");
+            let gv = tape_to_u64(&g);
+            assert!(gv > 1 && gv < nn && nn % gv == 0, "squfof({nn}) gave {gv}");
+        }
+        // SQUFOF wired as a morphism, nested with a complete arm.
+        let carrier = "⊢∈⊤≺⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["WITNESS", "EXTRACT", "SQUFOF", "FIX"]
+        );
+        let f = factor_with(carrier, &numeral(2027651281)).unwrap();
+        assert!(f == numeral(44021) || f == numeral(46061));
     }
 
     #[test]
