@@ -433,6 +433,7 @@ struct State {
     pm_a: Tape,
     pm_e: Tape,
     ecm_seed: Tape,
+    ecm_round: Tape,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -562,6 +563,7 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         pm_a: two(),
         pm_e: two(),
         ecm_seed: two(),
+        ecm_round: vec![EVALT],
         exhausted: false,
         selected: None,
     };
@@ -682,13 +684,21 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         }
         state.pm_e = add(&state.pm_e, &one());
     } else if operator == ECM {
-        // One elliptic curve per round, seeded by a rising counter. A factor
-        // appears when the group law meets a non-invertible slope (mod_inv Err).
-        let k = ecm_stage1_k();
-        if let Some(g) = ecm_curve(&state.n, tape_to_u64(&state.ecm_seed), &k) {
-            state.selected = Some(g);
+        // ECM is the costly arm, so it sits deeper: it fires one curve only on
+        // rounds that are a power of two, letting the cheap arms (trial, rho,
+        // frontier, p-1) carry every round in between. The curve count then
+        // grows with the logarithm of the round, so certifying a prime by the
+        // trial walk no longer drags a full curve behind every step, while the
+        // hard case still accumulates curves as the search deepens.
+        state.ecm_round = add(&state.ecm_round, &one());
+        let ones = state.ecm_round.iter().filter(|&&c| c == EVALF).count();
+        if ones == 1 {
+            let k = ecm_stage1_k();
+            if let Some(g) = ecm_curve(&state.n, tape_to_u64(&state.ecm_seed), &k) {
+                state.selected = Some(g);
+            }
+            state.ecm_seed = add(&state.ecm_seed, &one());
         }
-        state.ecm_seed = add(&state.ecm_seed, &one());
     } else if operator == FIX {
         if let Some(value) = state.selected.take() {
             state.selected = Some(trim(value));
@@ -731,6 +741,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         pm_a: two(),
         pm_e: two(),
         ecm_seed: two(),
+        ecm_round: vec![EVALT],
         exhausted: false,
         selected: None,
     };
