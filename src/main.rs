@@ -27,6 +27,7 @@ fn usage() {
     eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
     eprintln!("  vox factor-operator resolve|full <N>         the CL9NK moat resolver over folded tapes");
     eprintln!("  vox scout <N>                                read the shape of N and hand the factor");
+    eprintln!("  vox factor <N>                               shape-routed full factorization");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
@@ -1107,6 +1108,19 @@ fn main() {
         Some("verify") => {
             if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }
             else { match ::vox::morphism_factor::verify(&args[1], &args[2], &args[3]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
+        Some("factor") => {
+            let parsed: Option<Vec<char>> = if args.len() != 2 {
+                None
+            } else if args[1].starts_with('⊢') {
+                ::vox::morphism_factor::parse_numeral(&args[1]).ok()
+            } else {
+                ::vox::morphism_factor::decimal_to_tape(&args[1])
+            };
+            match parsed {
+                Some(n) => { println!("{}", ::vox::morphism_factor::repl_smart_factor(&n)); 0 }
+                None => { eprintln!("vox factor <N-word|decimal>   shape-routed full factorization"); 1 }
+            }
         }
         Some("scout") => {
             let parsed: Option<Vec<char>> = if args.len() != 2 {

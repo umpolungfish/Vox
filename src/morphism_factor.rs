@@ -1388,6 +1388,63 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
     (None, log)
 }
 
+/// The full nine-arm carrier word, the deepest routing in one string.
+pub const NINE_ARM: &str =
+    "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+
+/// Smart factorization: scout each piece for its shape and route it, recursing
+/// to a full prime multiset. A piece the scout labels HARD (large factor, far
+/// from the root, not smooth) is handed to the full nine-arm carrier, which
+/// carries the deeper arms (p-1, p+1, Lehman, ECM, SQUFOF). Returns the sorted
+/// prime factors and the shape log.
+pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
+    let mut factors: Vec<Tape> = Vec::new();
+    let mut log = String::new();
+    let mut stack = vec![trim(n_in.to_vec())];
+    while let Some(c) = stack.pop() {
+        if cmp(&c, &one()) != core::cmp::Ordering::Greater {
+            continue;
+        }
+        if miller_rabin(&c) {
+            factors.push(c);
+            continue;
+        }
+        let (res, l) = scout_factor(&c);
+        log.push_str(&l);
+        match res {
+            Some((p, q, _shape)) => {
+                stack.push(p);
+                stack.push(q);
+            }
+            None => {
+                // HARD: hand it to the full carrier, which has the deeper arms.
+                match factor_with(NINE_ARM, &emit_numeral(&c)) {
+                    Ok(fw) => match parse_numeral(&fw) {
+                        Ok(p)
+                            if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                                && cmp(&p, &c) == core::cmp::Ordering::Less =>
+                        {
+                            let q = divmod(&c, &p).0;
+                            stack.push(p);
+                            stack.push(q);
+                        }
+                        _ => factors.push(c),
+                    },
+                    Err(_) => factors.push(c),
+                }
+            }
+        }
+    }
+    factors.sort_by(|a, b| cmp(a, b));
+    (factors, log)
+}
+
+pub fn repl_smart_factor(n_in: &[char]) -> String {
+    let (factors, _log) = smart_factor(n_in);
+    let fs: Vec<String> = factors.iter().map(|f| dec_of(f)).collect();
+    format!("{} = {}", dec_of(n_in), fs.join(" x "))
+}
+
 pub fn repl_scout(n_in: &[char]) -> String {
     let (res, log) = scout_factor(n_in);
     let n = dec_of(n_in);
@@ -1400,6 +1457,17 @@ pub fn repl_scout(n_in: &[char]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn smart_factor_gives_full_multiset() {
+        let (fs, _) = smart_factor(&tape_u64(360));
+        let prod = fs.iter().fold(1u64, |a, f| {
+            let mut v = 0u64; for &c in trim(f.clone()).iter().rev() { v = (v << 1) | if c == EVALF { 1 } else { 0 }; } a * v
+        });
+        assert_eq!(prod, 360);
+        assert_eq!(fs.len(), 6); // 2^3 * 3^2 * 5
+        assert!(repl_smart_factor(&tape_u64(8051)).contains("83 x 97") || repl_smart_factor(&tape_u64(8051)).contains("97 x 83"));
+    }
 
     #[test]
     fn scout_reads_the_shape_and_routes() {
