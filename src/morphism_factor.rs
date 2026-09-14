@@ -349,7 +349,7 @@ fn abs_diff(a: &[char], b: &[char]) -> Tape {
     }
 }
 
-fn gcd(mut a: Tape, mut b: Tape) -> Tape {
+pub fn gcd(mut a: Tape, mut b: Tape) -> Tape {
     while !zero(&b) {
         let r = modulo(&a, &b);
         a = b;
@@ -1417,20 +1417,19 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 stack.push(q);
             }
             None => {
-                // HARD: hand it to the full carrier, which has the deeper arms.
-                match factor_with(NINE_ARM, &emit_numeral(&c)) {
-                    Ok(fw) => match parse_numeral(&fw) {
-                        Ok(p)
-                            if cmp(&p, &one()) == core::cmp::Ordering::Greater
-                                && cmp(&p, &c) == core::cmp::Ordering::Less =>
-                        {
-                            let q = divmod(&c, &p).0;
-                            stack.push(p);
-                            stack.push(q);
-                        }
-                        _ => factors.push(c),
-                    },
-                    Err(_) => factors.push(c),
+                // HARD: the sub-exponential sieve is the arm for this shape.
+                let bits = trim(c.clone()).len();
+                let bound = 200 + bits * 40;
+                match crate::sieve::dixon(&c, bound, 8, 2_000_000) {
+                    Some(p)
+                        if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                            && cmp(&p, &c) == core::cmp::Ordering::Less =>
+                    {
+                        let q = divmod(&c, &p).0;
+                        stack.push(p);
+                        stack.push(q);
+                    }
+                    _ => factors.push(c),
                 }
             }
         }

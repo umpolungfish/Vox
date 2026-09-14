@@ -1109,6 +1109,19 @@ fn main() {
             if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }
             else { match ::vox::morphism_factor::verify(&args[1], &args[2], &args[3]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
         }
+        Some("sieve") => {
+            let parsed: Option<Vec<char>> = if args.len() != 2 {
+                None
+            } else if args[1].starts_with('⊢') {
+                ::vox::morphism_factor::parse_numeral(&args[1]).ok()
+            } else {
+                ::vox::morphism_factor::decimal_to_tape(&args[1])
+            };
+            match parsed {
+                Some(n) => { println!("{}", ::vox::sieve::repl_sieve(&n)); 0 }
+                None => { eprintln!("vox sieve <N-word|decimal>   Dixon/QS for the HARD shape"); 1 }
+            }
+        }
         Some("factor") => {
             let parsed: Option<Vec<char>> = if args.len() != 2 {
                 None
