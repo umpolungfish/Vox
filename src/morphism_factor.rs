@@ -28,6 +28,12 @@ const EXTRACT: &[char] = &[VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK
 // whenever p-1 is smooth, at any size and any gap, covering the slice the
 // frontier and rho arms miss.
 const P_MINUS: &[char] = &[VINIT, FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE, TANCH];
+// Lenstra elliptic-curve method: seed a curve (IMSCRIB), advance a point under
+// the group law (AFWD) and combine (CLINK) inside the frame. Each round tries
+// one more curve; a factor falls out when the group law hits a non-invertible
+// slope. This is the sub-exponential arm for a factor that is large, far from
+// the root, and has no smooth predecessor.
+const ECM: &[char] = &[VINIT, FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -272,6 +278,149 @@ fn zero(a: &[char]) -> bool {
     trim(a.to_vec()) == [EVALT]
 }
 
+fn tape_u64(mut n: u64) -> Tape {
+    if n == 0 {
+        return vec![EVALT];
+    }
+    let mut t = Vec::new();
+    while n != 0 {
+        t.push(if n & 1 == 1 { EVALF } else { EVALT });
+        n >>= 1;
+    }
+    t
+}
+
+fn tape_to_u64(t: &[char]) -> u64 {
+    let mut v = 0u64;
+    for (i, &b) in t.iter().enumerate() {
+        if b == EVALF && i < 64 {
+            v |= 1u64 << i;
+        }
+    }
+    v
+}
+
+/// (a - b) mod n, for a and b already reduced into [0, n).
+fn mod_sub(a: &[char], b: &[char], n: &[char]) -> Tape {
+    let br = modulo(b, n);
+    modulo(&add(a, &sub(n, &br)), n)
+}
+
+/// Modular inverse of a mod n by the extended Euclidean algorithm, the
+/// coefficients kept reduced mod n so every tape stays non-negative. Ok is the
+/// inverse; Err is a nontrivial gcd, which is a factor of n. This Err is exactly
+/// the elliptic-curve method's factor-discovery event.
+fn mod_inv(a: &[char], n: &[char]) -> Result<Tape, Tape> {
+    let a = modulo(a, n);
+    if zero(&a) {
+        return Err(n.to_vec());
+    }
+    let mut r = n.to_vec();
+    let mut newr = a;
+    let mut t = vec![EVALT];
+    let mut newt = one();
+    while !zero(&newr) {
+        let (q, rem) = divmod(&r, &newr);
+        r = newr;
+        newr = rem;
+        let qt = mod_mul(&q, &newt, n);
+        let nt = mod_sub(&t, &qt, n);
+        t = newt;
+        newt = nt;
+    }
+    if cmp(&r, &one()) == core::cmp::Ordering::Greater {
+        return Err(trim(r));
+    }
+    Ok(trim(modulo(&t, n)))
+}
+
+/// A point on the curve, or the point at infinity (None). The curve is
+/// y^2 = x^3 + a x + b mod n; the group law needs only a, so b stays implicit.
+type Point = Option<(Tape, Tape)>;
+
+fn ec_double(p: &Point, a: &[char], n: &[char]) -> Result<Point, Tape> {
+    let (x, y) = match p {
+        Some(v) => v,
+        None => return Ok(None),
+    };
+    if zero(y) {
+        return Ok(None);
+    }
+    let num = mod_add(&mod_mul(&tape_u64(3), &mod_mul(x, x, n), n), a, n);
+    let den = mod_mul(&two(), y, n);
+    let inv = mod_inv(&den, n)?;
+    let lam = mod_mul(&num, &inv, n);
+    let lam2 = mod_mul(&lam, &lam, n);
+    let x3 = mod_sub(&lam2, &mod_mul(&two(), x, n), n);
+    let y3 = mod_sub(&mod_mul(&lam, &mod_sub(x, &x3, n), n), y, n);
+    Ok(Some((x3, y3)))
+}
+
+fn ec_add(p: &Point, q: &Point, a: &[char], n: &[char]) -> Result<Point, Tape> {
+    let (x1, y1) = match p {
+        Some(v) => v,
+        None => return Ok(q.clone()),
+    };
+    let (x2, y2) = match q {
+        Some(v) => v,
+        None => return Ok(p.clone()),
+    };
+    if cmp(x1, x2) == core::cmp::Ordering::Equal {
+        if cmp(y1, y2) == core::cmp::Ordering::Equal {
+            return ec_double(p, a, n);
+        }
+        return Ok(None);
+    }
+    let num = mod_sub(y2, y1, n);
+    let den = mod_sub(x2, x1, n);
+    let inv = mod_inv(&den, n)?;
+    let lam = mod_mul(&num, &inv, n);
+    let lam2 = mod_mul(&lam, &lam, n);
+    let x3 = mod_sub(&mod_sub(&lam2, x1, n), x2, n);
+    let y3 = mod_sub(&mod_mul(&lam, &mod_sub(x1, &x3, n), n), y1, n);
+    Ok(Some((x3, y3)))
+}
+
+fn ec_scalar(k: &[char], p: &Point, a: &[char], n: &[char]) -> Result<Point, Tape> {
+    let mut r: Point = None;
+    let mut addend = p.clone();
+    for &b in k {
+        if b == EVALF {
+            r = ec_add(&r, &addend, a, n)?;
+        }
+        addend = ec_double(&addend, a, n)?;
+    }
+    Ok(r)
+}
+
+/// Stage-1 scalar lcm(1..~47), built from prime powers, shared across curves.
+fn ecm_stage1_k() -> Tape {
+    let power_primes: [u64; 15] = [32, 27, 25, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+    let mut k = one();
+    for &pp in power_primes.iter() {
+        k = mul(&k, &tape_u64(pp));
+    }
+    trim(k)
+}
+
+/// One ECM curve seeded by `seed`: a = seed, start point (seed, seed+1), and
+/// the implied b. Multiply the point by the stage-1 scalar; a failed inverse
+/// during the group law surfaces a factor of n.
+fn ecm_curve(n: &[char], seed: u64, k: &[char]) -> Option<Tape> {
+    let a = modulo(&tape_u64(seed), n);
+    let p: Point = Some((modulo(&tape_u64(seed), n), modulo(&tape_u64(seed + 1), n)));
+    match ec_scalar(k, &p, &a, n) {
+        Ok(_) => None,
+        Err(g) => {
+            if cmp(&g, &one()) == core::cmp::Ordering::Greater && cmp(&g, n) == core::cmp::Ordering::Less {
+                Some(trim(g))
+            } else {
+                None
+            }
+        }
+    }
+}
+
 struct State {
     n: Tape,
     candidate: Tape,
@@ -283,6 +432,7 @@ struct State {
     a: Tape,
     pm_a: Tape,
     pm_e: Tape,
+    ecm_seed: Tape,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -299,6 +449,7 @@ const CONTINUE_I: &[char] = &[AFWD, CLINK];
 const FIX_I: &[char] = &[IMSCRIB, IFIX];
 const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
+const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -310,6 +461,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == FIX { "FIX" }
     else if operator == EXTRACT { "EXTRACT" }
     else if operator == P_MINUS { "P_MINUS" }
+    else if operator == ECM { "ECM" }
     else { "?" }
 }
 
@@ -329,9 +481,10 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 8] = [
+    let motifs: [(&[char], &[char]); 9] = [
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
+        (ECM_I, ECM),
         (PHASE_I, PHASE),
         (ARITHMETIC_I, ARITHMETIC),
         (BRANCH_I, BRANCH),
@@ -370,9 +523,10 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
     let tower = construct_carrier(operator_word)?;
     let has = |op: &[char]| tower.iter().any(|t| *t == op);
     let mut missing = Vec::new();
-    // EXTRACT is the instant frame: it folds advance, decide and continue into
-    // one boundary, so a tower carrying it needs only a FIX to be complete.
-    if !has(EXTRACT) {
+    // EXTRACT and ECM each fold advance, decide and continue into one boundary
+    // (EXTRACT over trial/frontier/rho, ECM over curves), so a tower carrying
+    // either needs only a FIX to be complete.
+    if !has(EXTRACT) && !has(ECM) {
         if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
         if !has(SELECT) { missing.push("SELECT (decide)"); }
         if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
@@ -407,6 +561,7 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         a: a_seed,
         pm_a: two(),
         pm_e: two(),
+        ecm_seed: two(),
         exhausted: false,
         selected: None,
     };
@@ -526,6 +681,14 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             }
         }
         state.pm_e = add(&state.pm_e, &one());
+    } else if operator == ECM {
+        // One elliptic curve per round, seeded by a rising counter. A factor
+        // appears when the group law meets a non-invertible slope (mod_inv Err).
+        let k = ecm_stage1_k();
+        if let Some(g) = ecm_curve(&state.n, tape_to_u64(&state.ecm_seed), &k) {
+            state.selected = Some(g);
+        }
+        state.ecm_seed = add(&state.ecm_seed, &one());
     } else if operator == FIX {
         if let Some(value) = state.selected.take() {
             state.selected = Some(trim(value));
@@ -567,6 +730,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         a: a_seed,
         pm_a: two(),
         pm_e: two(),
+        ecm_seed: two(),
         exhausted: false,
         selected: None,
     };
@@ -687,6 +851,27 @@ mod tests {
         assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
         let f = factor_with(carrier, &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
+    }
+
+    #[test]
+    fn ecm_arm_factors_and_nests() {
+        // ECM alone (curve method) finds a factor via curve-order smoothness,
+        // an independent condition from p-1's. Carrier ECM -> FIX.
+        let ecm = "⊢∈⊙≻⋈∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(ecm).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["ECM", "FIX"]
+        );
+        let f = factor_with(ecm, &numeral(8051)).unwrap();
+        assert!(f == numeral(83) || f == numeral(97));
+        // Nested with EXTRACT: EXTRACT -> ECM -> FIX composes and factors.
+        let nested = "⊢∈≻⊤≺⊥⊞⋈∋∈⊙≻⋈∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(nested).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["EXTRACT", "ECM", "FIX"]
+        );
+        let g = factor_with(nested, &numeral(100160063)).unwrap();
+        assert!(g == numeral(10007) || g == numeral(10009));
     }
 
     #[test]
