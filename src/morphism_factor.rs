@@ -39,6 +39,13 @@ const ECM: &[char] = &[VINIT, FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE, TANCH];
 // first, it spares the trial walk to sqrt(N) that certifying a prime otherwise
 // costs.
 const WITNESS: &[char] = &[VINIT, FSPLIT, EVALT, AREV, EVALF, FFUSE, TANCH];
+// Perfect-power test: a branch frame with a hold ∈⊤⊞⊥∋. Once, it checks whether
+// N is a perfect power a^b and if so selects the base a. Catches every prime
+// power in one shot, the slice the other arms only reach by search.
+const POWER: &[char] = &[VINIT, FSPLIT, EVALT, '⊞', EVALF, FFUSE, TANCH];
+// Williams p+1: like p-1 but over a Lucas sequence, the involution ≺ marking the
+// complementary side ∈⊙≺⋈∋. Catches a factor p whenever p+1 is smooth.
+const P_PLUS: &[char] = &[VINIT, FSPLIT, IMSCRIB, AREV, CLINK, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -299,6 +306,64 @@ fn miller_rabin(n: &[char]) -> bool {
     true
 }
 
+/// Integer power base^b over numeral tapes, b a small usize.
+fn ipow(base: &[char], b: usize) -> Tape {
+    let mut r = one();
+    for _ in 0..b {
+        r = mul(&r, base);
+    }
+    trim(r)
+}
+
+/// Floor integer b-th root over numeral tapes: the largest r with r^b <= n.
+/// The search range is bounded by 2^(bits(n)/b + 1) so the powers stay small.
+fn iroot(n: &[char], b: usize) -> Tape {
+    if b <= 1 || cmp(n, &two()) == core::cmp::Ordering::Less {
+        return trim(n.to_vec());
+    }
+    let bits = trim(n.to_vec()).len();
+    let k = bits / b + 2;
+    let mut hi = vec![EVALT; k];
+    hi.push(EVALF); // 2^k
+    let mut lo = one();
+    while cmp(&lo, &hi) == core::cmp::Ordering::Less {
+        let mid = divmod(&add(&add(&lo, &hi), &one()), &two()).0;
+        if cmp(&ipow(&mid, b), n) != core::cmp::Ordering::Greater {
+            lo = mid;
+        } else {
+            hi = sub(&mid, &one());
+        }
+    }
+    trim(lo)
+}
+
+/// Lucas V-sequence value V_m(a, 1) mod n, by a Montgomery ladder over the bits
+/// of m: V_0 = 2, V_1 = a, V_{2k} = V_k^2 - 2, V_{2k+1} = V_k V_{k+1} - a. This
+/// is the engine of the Williams p+1 arm.
+fn lucas_v(m: &[char], a: &[char], n: &[char]) -> Tape {
+    let m = trim(m.to_vec());
+    if zero(&m) {
+        return two();
+    }
+    let ar = modulo(a, n);
+    if m == [EVALF] {
+        return ar;
+    }
+    let h = m.len() - 1;
+    let mut v0 = ar.clone();
+    let mut v1 = mod_sub(&mod_mul(&ar, &ar, n), &two(), n);
+    for j in (0..h).rev() {
+        if m[j] == EVALF {
+            v0 = mod_sub(&mod_mul(&v0, &v1, n), &ar, n);
+            v1 = mod_sub(&mod_mul(&v1, &v1, n), &two(), n);
+        } else {
+            v1 = mod_sub(&mod_mul(&v0, &v1, n), &ar, n);
+            v0 = mod_sub(&mod_mul(&v0, &v0, n), &two(), n);
+        }
+    }
+    v0
+}
+
 /// Floor integer square root over numeral tapes, by binary search on the
 /// largest x with x*x <= n. Used to seed and test the square-frontier arm.
 fn isqrt(n: &[char]) -> Tape {
@@ -485,7 +550,9 @@ struct State {
     pm_e: Tape,
     ecm_seed: Tape,
     ecm_round: Tape,
+    pp_base: Tape,
     witness_done: bool,
+    power_done: bool,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -504,6 +571,8 @@ const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFU
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
+const POWER_I: &[char] = &[FSPLIT, EVALT, '⊞', EVALF, FFUSE];
+const P_PLUS_I: &[char] = &[FSPLIT, IMSCRIB, AREV, CLINK, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -517,6 +586,8 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == P_MINUS { "P_MINUS" }
     else if operator == ECM { "ECM" }
     else if operator == WITNESS { "WITNESS" }
+    else if operator == POWER { "POWER" }
+    else if operator == P_PLUS { "P_PLUS" }
     else { "?" }
 }
 
@@ -536,11 +607,13 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 10] = [
+    let motifs: [(&[char], &[char]); 12] = [
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
+        (P_PLUS_I, P_PLUS),
         (WITNESS_I, WITNESS),
+        (POWER_I, POWER),
         (PHASE_I, PHASE),
         (ARITHMETIC_I, ARITHMETIC),
         (BRANCH_I, BRANCH),
@@ -619,7 +692,9 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         pm_e: two(),
         ecm_seed: two(),
         ecm_round: vec![EVALT],
+        pp_base: tape_u64(3),
         witness_done: false,
+        power_done: false,
         exhausted: false,
         selected: None,
     };
@@ -749,6 +824,36 @@ fn apply_morphism(operator: &[char], state: &mut State) {
                 state.selected = Some(trim(state.n.clone()));
             }
         }
+    } else if operator == POWER {
+        // Perfect-power test, once: is N = a^b for some b >= 2? If so, select a.
+        if !state.power_done {
+            state.power_done = true;
+            let bits = trim(state.n.clone()).len();
+            let mut b = 2usize;
+            while b <= bits {
+                let r = iroot(&state.n, b);
+                if cmp(&r, &one()) == core::cmp::Ordering::Greater
+                    && cmp(&ipow(&r, b), &state.n) == core::cmp::Ordering::Equal
+                {
+                    state.selected = Some(trim(r));
+                    break;
+                }
+                b += 1;
+            }
+        }
+    } else if operator == P_PLUS {
+        // Williams p+1: V_M(A) mod N over a Lucas sequence, then gcd(V_M - 2, N).
+        // A nontrivial gcd is a factor p whose successor p+1 is smooth. The base
+        // A rises each round so a failed base is retried on the other side.
+        let m = ecm_stage1_k();
+        let v = lucas_v(&m, &state.pp_base, &state.n);
+        let g = gcd(mod_sub(&v, &two(), &state.n), state.n.clone());
+        if cmp(&g, &one()) == core::cmp::Ordering::Greater
+            && cmp(&g, &state.n) == core::cmp::Ordering::Less
+        {
+            state.selected = Some(trim(g));
+        }
+        state.pp_base = add(&state.pp_base, &one());
     } else if operator == ECM {
         // ECM is the costly arm, so it sits deeper: it fires one curve only on
         // rounds that are a power of two, letting the cheap arms (trial, rho,
@@ -808,7 +913,9 @@ pub fn factor(word: &str) -> Result<String, String> {
         pm_e: two(),
         ecm_seed: two(),
         ecm_round: vec![EVALT],
+        pp_base: tape_u64(3),
         witness_done: false,
+        power_done: false,
         exhausted: false,
         selected: None,
     };
@@ -929,6 +1036,37 @@ mod tests {
         assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
         let f = factor_with(carrier, &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
+    }
+
+    #[test]
+    fn power_and_lucas_helpers_are_exact() {
+        assert_eq!(ipow(&tape_u64(7), 3), tape_u64(343));
+        assert_eq!(iroot(&tape_u64(1000), 3), tape_u64(10));
+        assert_eq!(iroot(&tape_u64(1001), 3), tape_u64(10));
+        assert_eq!(iroot(&tape_u64(999), 3), tape_u64(9));
+        // Lucas V_4(a=3) = 47, mod a prime large enough that no reduction bites.
+        assert_eq!(lucas_v(&tape_u64(4), &tape_u64(3), &tape_u64(1_000_000_007)), tape_u64(47));
+    }
+
+    #[test]
+    fn full_membrane_certifies_factors_and_takes_perfect_powers() {
+        // WITNESS -> POWER -> EXTRACT -> P_MINUS -> P_PLUS -> ECM -> FIX
+        let carrier = "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋∈⊙≺⋈∋∈⊙≻⋈∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["WITNESS", "POWER", "EXTRACT", "P_MINUS", "P_PLUS", "ECM", "FIX"]
+        );
+        assert_eq!(factor_with(carrier, &numeral(2147483647)).unwrap(), numeral(2147483647));
+        let f = factor_with(carrier, &numeral(8051)).unwrap();
+        assert!(f == numeral(83) || f == numeral(97));
+        // POWER first (before EXTRACT) takes a prime square to its base.
+        let pw = "⊢∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(pw).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["POWER", "EXTRACT", "FIX"]
+        );
+        // 9973 is prime; POWER returns the base 9973 of 9973^2.
+        assert_eq!(factor_with(pw, &numeral(9973 * 9973)).unwrap(), numeral(9973));
     }
 
     #[test]
