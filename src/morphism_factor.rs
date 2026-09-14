@@ -527,7 +527,7 @@ fn pow_mod(base: &[char], exp: &[char], n: &[char]) -> Tape {
 /// witness set, deterministic across the ranges this factorizer handles. A few
 /// modular powers decide primality, so a prime need not be walked out to its
 /// square root.
-fn miller_rabin(n: &[char]) -> bool {
+pub fn miller_rabin(n: &[char]) -> bool {
     use core::cmp::Ordering::{Equal, Less};
     let n = trim(n.to_vec());
     if cmp(&n, &two()) == Less {

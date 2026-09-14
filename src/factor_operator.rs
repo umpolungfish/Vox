@@ -12,7 +12,7 @@
 //! Arithmetic is the shared bit-register-folded numeral kernel in
 //! morphism_factor, so the moat walk runs on folded tapes.
 
-use crate::morphism_factor::{cmp, isqrt, modulo, mul, parse_numeral, emit_numeral, trim};
+use crate::morphism_factor::{cmp, isqrt, miller_rabin, modulo, mul, parse_numeral, emit_numeral, trim};
 use crate::vox::{EVALF, EVALT};
 use alloc::format;
 use alloc::string::String;
@@ -67,30 +67,34 @@ pub fn resolve_moat(n: &[char], max_nodes: u64) -> (Option<(Tape, Tape)>, u64, b
         if k >= bits + 1 {
             continue;
         }
+        // Only p branches; q's bit k is wound, not searched. With p odd its low
+        // bit is 1, so bit k of p*q flips exactly with q_k, and the congruence
+        // p*q == N mod 2^{k+1} forces q_k = N_k XOR (p*q_low)_k. An even p leaves
+        // q_k unable to fix bit k, so its branch fails the match and is pruned.
         for pk in [false, true] {
-            for qk in [false, true] {
-                let p = with_bit(&plo, k, pk);
-                let q = with_bit(&qlo, k, qk);
-                nodes += 1;
-                let prod = mul(&p, &q);
-                if !low_bits_match(&prod, n, k) {
-                    continue;
-                }
-                if cmp(&prod, n) == core::cmp::Ordering::Equal && gt_one(&p) && gt_one(&q) {
-                    found = Some(if cmp(&p, &q) != core::cmp::Ordering::Greater {
-                        (p.clone(), q.clone())
-                    } else {
-                        (q.clone(), p.clone())
-                    });
-                }
-                // magnitude bound: the smaller factor cannot exceed sqrt(N).
-                if cmp(&p, &root) == core::cmp::Ordering::Greater
-                    && cmp(&q, &root) == core::cmp::Ordering::Greater
-                {
-                    continue;
-                }
-                stack.push((k + 1, p, q));
+            let p = with_bit(&plo, k, pk);
+            nodes += 1;
+            let prod0 = mul(&p, &qlo);
+            let nk = n.get(k).copied().unwrap_or(EVALT) == EVALF;
+            let p0k = prod0.get(k).copied().unwrap_or(EVALT) == EVALF;
+            let qk = nk ^ p0k;
+            let q = with_bit(&qlo, k, qk);
+            let prod = mul(&p, &q);
+            if !low_bits_match(&prod, n, k) {
+                continue;
             }
+            if cmp(&prod, n) == core::cmp::Ordering::Equal && gt_one(&p) && gt_one(&q) {
+                found = Some(if cmp(&p, &q) != core::cmp::Ordering::Greater {
+                    (p.clone(), q.clone())
+                } else {
+                    (q.clone(), p.clone())
+                });
+            }
+            // magnitude bound: p is the smaller factor, it cannot exceed sqrt(N).
+            if cmp(&p, &root) == core::cmp::Ordering::Greater {
+                continue;
+            }
+            stack.push((k + 1, p, q));
         }
     }
     let capped = nodes >= max_nodes;
@@ -129,6 +133,13 @@ pub fn full_resolve(n0: &[char], small_bound: u64, max_nodes: u64) -> (Vec<Tape>
             continue;
         }
         if cmp(&c, &sb2) == core::cmp::Ordering::Less {
+            factors.push(c);
+            continue;
+        }
+        // A cheap primality test is nested before the moat: a prime core has no
+        // pair, so crossing its whole moat just to conclude prime is the costly
+        // walk in the wrong place. Recognize it first and never moat it.
+        if miller_rabin(&c) {
             factors.push(c);
             continue;
         }
@@ -205,6 +216,9 @@ pub fn repl_factor_operator(args: &[&str]) -> String {
                 None => return String::from("bad N"),
             };
             let max_nodes = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(u64::MAX);
+            if gt_one(&n) && miller_rabin(&n) {
+                return format!("N={}\n  prime (witness, before the moat)", to_dec(&n));
+            }
             let (res, nodes, capped) = resolve_moat(&n, max_nodes);
             match res {
                 Some((p, q)) => format!(
