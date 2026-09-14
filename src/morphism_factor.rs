@@ -46,6 +46,10 @@ const POWER: &[char] = &[VINIT, FSPLIT, EVALT, '⊞', EVALF, FFUSE, TANCH];
 // Williams p+1: like p-1 but over a Lucas sequence, the involution ≺ marking the
 // complementary side ∈⊙≺⋈∋. Catches a factor p whenever p+1 is smooth.
 const P_PLUS: &[char] = &[VINIT, FSPLIT, IMSCRIB, AREV, CLINK, FFUSE, TANCH];
+// Lehman's method: a multiplier-Fermat frame ∈≻⋈⊤⊥∋. Each round sweeps one
+// multiplier k, closing a factor between N^(1/3) and N^(2/3) that the near-root
+// frontier and the small-factor arms both miss.
+const LEHMAN: &[char] = &[VINIT, FSPLIT, AFWD, CLINK, EVALT, EVALF, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -244,6 +248,50 @@ fn gcd(mut a: Tape, mut b: Tape) -> Tape {
 
 fn rho_step(x: &[char], c: &[char], n: &[char]) -> Tape {
     mod_add(&mod_mul(x, x, n), c, n)
+}
+
+/// If x is a perfect square, its root; else None.
+fn is_square(x: &[char]) -> Option<Tape> {
+    let r = isqrt(x);
+    if cmp(&mul(&r, &r), x) == core::cmp::Ordering::Equal {
+        Some(r)
+    } else {
+        None
+    }
+}
+
+/// One multiplier step of Lehman's method: for this k, sweep a from
+/// ceil(2*sqrt(k*N)) across a short window; when a*a - 4kN is a perfect square
+/// b*b, gcd(a+b, N) is a factor. Small factors are left to the trial arm; Lehman
+/// covers the mid-range factor between N^(1/3) and N^(2/3).
+fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
+    use core::cmp::Ordering::{Greater, Less};
+    let kn4 = mul(&tape_u64(4), &mul(k, n));
+    let mut a = isqrt(&kn4);
+    if cmp(&mul(&a, &a), &kn4) == Less {
+        a = add(&a, &one());
+    }
+    let sixth = iroot(n, 6);
+    let sk = {
+        let r = isqrt(k);
+        if zero(&r) { one() } else { r }
+    };
+    let width = divmod(&sixth, &mul(&tape_u64(4), &sk)).0;
+    let limit = add(&add(&a, &width), &one());
+    while cmp(&a, &limit) != Greater {
+        let asq = mul(&a, &a);
+        if cmp(&asq, &kn4) != Less {
+            let c = sub(&asq, &kn4);
+            if let Some(b) = is_square(&c) {
+                let g = gcd(add(&a, &b), n.to_vec());
+                if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
+                    return Some(trim(g));
+                }
+            }
+        }
+        a = add(&a, &one());
+    }
+    None
 }
 
 /// Modular exponentiation over numeral tapes: base^exp mod n, square and
@@ -551,6 +599,7 @@ struct State {
     ecm_seed: Tape,
     ecm_round: Tape,
     pp_base: Tape,
+    lehman_k: Tape,
     witness_done: bool,
     power_done: bool,
     exhausted: bool,
@@ -573,6 +622,7 @@ const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
 const POWER_I: &[char] = &[FSPLIT, EVALT, '⊞', EVALF, FFUSE];
 const P_PLUS_I: &[char] = &[FSPLIT, IMSCRIB, AREV, CLINK, FFUSE];
+const LEHMAN_I: &[char] = &[FSPLIT, AFWD, CLINK, EVALT, EVALF, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -588,6 +638,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == WITNESS { "WITNESS" }
     else if operator == POWER { "POWER" }
     else if operator == P_PLUS { "P_PLUS" }
+    else if operator == LEHMAN { "LEHMAN" }
     else { "?" }
 }
 
@@ -607,11 +658,12 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 12] = [
+    let motifs: [(&[char], &[char]); 13] = [
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
         (P_PLUS_I, P_PLUS),
+        (LEHMAN_I, LEHMAN),
         (WITNESS_I, WITNESS),
         (POWER_I, POWER),
         (PHASE_I, PHASE),
@@ -693,6 +745,7 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         ecm_seed: two(),
         ecm_round: vec![EVALT],
         pp_base: tape_u64(3),
+        lehman_k: one(),
         witness_done: false,
         power_done: false,
         exhausted: false,
@@ -854,6 +907,12 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.selected = Some(trim(g));
         }
         state.pp_base = add(&state.pp_base, &one());
+    } else if operator == LEHMAN {
+        // One Lehman multiplier per round.
+        if let Some(g) = lehman_step(&state.n, &state.lehman_k) {
+            state.selected = Some(g);
+        }
+        state.lehman_k = add(&state.lehman_k, &one());
     } else if operator == ECM {
         // ECM is the costly arm, so it sits deeper: it fires one curve only on
         // rounds that are a power of two, letting the cheap arms (trial, rho,
@@ -914,6 +973,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         ecm_seed: two(),
         ecm_round: vec![EVALT],
         pp_base: tape_u64(3),
+        lehman_k: one(),
         witness_done: false,
         power_done: false,
         exhausted: false,
@@ -1036,6 +1096,21 @@ mod tests {
         assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
         let f = factor_with(carrier, &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
+    }
+
+    #[test]
+    fn lehman_step_finds_a_mid_range_factor() {
+        // 8051 = 83 * 97; Lehman's first multiplier k=1 closes it.
+        let f = lehman_step(&tape_u64(8051), &one()).unwrap();
+        assert!(f == tape_u64(83) || f == tape_u64(97));
+        // Nested in a complete carrier it still factors.
+        let carrier = "⊢∈⊤≺⊥∋∈≻⊤≺⊥⊞⋈∋∈≻⋈⊤⊥∋⊙⊡⊣";
+        assert_eq!(
+            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            ["WITNESS", "EXTRACT", "LEHMAN", "FIX"]
+        );
+        let g = factor_with(carrier, &numeral(8051)).unwrap();
+        assert!(g == numeral(83) || g == numeral(97));
     }
 
     #[test]
