@@ -63,6 +63,7 @@ fn bit(mark: char) -> Result<bool, String> {
     }
 }
 
+#[allow(dead_code)]
 fn mark(v: bool) -> char {
     if v {
         EVALF
@@ -136,93 +137,200 @@ pub fn emit_numeral(tape: &[char]) -> String {
     out
 }
 
-fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
-    let a = trim(a.to_vec());
-    let b = trim(b.to_vec());
-    if a.len() != b.len() {
-        return a.len().cmp(&b.len());
+// Bit-register folding: the tape is the canonical numeral, but arithmetic runs
+// on it folded into 64-bit limbs and unfolds back at the boundary. Schoolbook
+// per-cell char arithmetic was O(bits^2) with a bit-serial division inside every
+// modular multiply; folded, a multiply is limb-by-limb with u128 products and a
+// division is one shift-subtract per bit over limbs, so every arm that routes
+// through mod_mul (Miller-Rabin, ECM, p-1, p+1, rho) speeds up together.
+type Limbs = Vec<u64>;
+
+fn fold(t: &[char]) -> Limbs {
+    let mut out = Limbs::with_capacity(t.len() / 64 + 1);
+    let mut cur = 0u64;
+    let mut b = 0u32;
+    for &c in t {
+        if c == EVALF {
+            cur |= 1u64 << b;
+        }
+        b += 1;
+        if b == 64 {
+            out.push(cur);
+            cur = 0;
+            b = 0;
+        }
     }
-    for i in (0..a.len()).rev() {
+    if b > 0 {
+        out.push(cur);
+    }
+    if out.is_empty() {
+        out.push(0);
+    }
+    l_trim(out)
+}
+
+fn unfold(l: &[u64]) -> Tape {
+    let mut out = Tape::with_capacity(l.len() * 64);
+    for &limb in l {
+        for b in 0..64 {
+            out.push(if (limb >> b) & 1 == 1 { EVALF } else { EVALT });
+        }
+    }
+    trim(out)
+}
+
+fn l_trim(mut a: Limbs) -> Limbs {
+    while a.len() > 1 && *a.last().unwrap() == 0 {
+        a.pop();
+    }
+    if a.is_empty() {
+        a.push(0);
+    }
+    a
+}
+
+fn l_is_zero(a: &[u64]) -> bool {
+    a.iter().all(|&x| x == 0)
+}
+
+fn l_cmp(a: &[u64], b: &[u64]) -> core::cmp::Ordering {
+    let la = { let mut n = a.len(); while n > 1 && a[n - 1] == 0 { n -= 1; } n };
+    let lb = { let mut n = b.len(); while n > 1 && b[n - 1] == 0 { n -= 1; } n };
+    if la != lb {
+        return la.cmp(&lb);
+    }
+    for i in (0..la).rev() {
         if a[i] != b[i] {
-            return bit(a[i]).unwrap().cmp(&bit(b[i]).unwrap());
+            return a[i].cmp(&b[i]);
         }
     }
     core::cmp::Ordering::Equal
 }
 
-fn add(a: &[char], b: &[char]) -> Tape {
-    let mut out = Vec::new();
-    let mut carry = false;
+fn l_add(a: &[u64], b: &[u64]) -> Limbs {
+    let mut out = Limbs::new();
+    let mut carry = 0u128;
     for i in 0..a.len().max(b.len()) {
-        let x = a
-            .get(i)
-            .copied()
-            .map(bit)
-            .transpose()
-            .unwrap()
-            .unwrap_or(false);
-        let y = b
-            .get(i)
-            .copied()
-            .map(bit)
-            .transpose()
-            .unwrap()
-            .unwrap_or(false);
-        out.push(mark(x ^ y ^ carry));
-        carry = (x && y) || (x && carry) || (y && carry);
+        let s = *a.get(i).unwrap_or(&0) as u128 + *b.get(i).unwrap_or(&0) as u128 + carry;
+        out.push(s as u64);
+        carry = s >> 64;
     }
-    if carry {
-        out.push(EVALF);
+    if carry != 0 {
+        out.push(carry as u64);
     }
-    trim(out)
+    l_trim(out)
+}
+
+// Assumes a >= b (every caller guards with a compare first).
+fn l_sub(a: &[u64], b: &[u64]) -> Limbs {
+    let mut out = Limbs::new();
+    let mut borrow = 0i128;
+    for i in 0..a.len() {
+        let mut d = a[i] as i128 - *b.get(i).unwrap_or(&0) as i128 - borrow;
+        if d < 0 {
+            d += 1i128 << 64;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        out.push(d as u64);
+    }
+    l_trim(out)
+}
+
+fn l_mul(a: &[u64], b: &[u64]) -> Limbs {
+    let mut out = vec![0u64; a.len() + b.len()];
+    for (i, &x) in a.iter().enumerate() {
+        let mut carry = 0u128;
+        for (j, &y) in b.iter().enumerate() {
+            let cur = out[i + j] as u128 + x as u128 * y as u128 + carry;
+            out[i + j] = cur as u64;
+            carry = cur >> 64;
+        }
+        let mut k = i + b.len();
+        while carry != 0 {
+            let cur = out[k] as u128 + carry;
+            out[k] = cur as u64;
+            carry = cur >> 64;
+            k += 1;
+        }
+    }
+    l_trim(out)
+}
+
+fn l_bits(a: &[u64]) -> usize {
+    let mut n = a.len();
+    while n > 1 && a[n - 1] == 0 {
+        n -= 1;
+    }
+    if a[n - 1] == 0 {
+        return 0;
+    }
+    (n - 1) * 64 + (64 - a[n - 1].leading_zeros() as usize)
+}
+
+fn l_bit(a: &[u64], i: usize) -> bool {
+    let (limb, off) = (i / 64, i % 64);
+    limb < a.len() && (a[limb] >> off) & 1 == 1
+}
+
+fn l_shl1(a: &[u64]) -> Limbs {
+    let mut out = Limbs::with_capacity(a.len() + 1);
+    let mut carry = 0u64;
+    for &x in a {
+        out.push((x << 1) | carry);
+        carry = x >> 63;
+    }
+    if carry != 0 {
+        out.push(carry);
+    }
+    l_trim(out)
+}
+
+// Long division by shift-and-subtract over limbs: one pass per bit of n.
+fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
+    if l_is_zero(d) || l_cmp(n, d) == core::cmp::Ordering::Less {
+        return (vec![0], l_trim(n.to_vec()));
+    }
+    let nb = l_bits(n);
+    let mut q = vec![0u64; nb / 64 + 1];
+    let mut r: Limbs = vec![0];
+    for i in (0..nb).rev() {
+        r = l_shl1(&r);
+        if l_bit(n, i) {
+            r[0] |= 1;
+        }
+        if l_cmp(&r, d) != core::cmp::Ordering::Less {
+            r = l_sub(&r, d);
+            q[i / 64] |= 1u64 << (i % 64);
+        }
+    }
+    (l_trim(q), l_trim(r))
+}
+
+fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
+    l_cmp(&fold(a), &fold(b))
+}
+
+fn add(a: &[char], b: &[char]) -> Tape {
+    unfold(&l_add(&fold(a), &fold(b)))
 }
 
 fn sub(a: &[char], b: &[char]) -> Tape {
-    let mut out = Vec::new();
-    let mut borrow = false;
-    for i in 0..a.len() {
-        let x = bit(a[i]).unwrap();
-        let y = b
-            .get(i)
-            .copied()
-            .map(bit)
-            .transpose()
-            .unwrap()
-            .unwrap_or(false);
-        out.push(mark(x ^ y ^ borrow));
-        borrow = (!x && (y || borrow)) || (y && borrow);
-    }
-    trim(out)
+    unfold(&l_sub(&fold(a), &fold(b)))
 }
 
 fn mul(a: &[char], b: &[char]) -> Tape {
-    let mut acc = vec![EVALT];
-    for (i, &m) in b.iter().enumerate() {
-        if bit(m).unwrap() {
-            let mut row = vec![EVALT; i];
-            row.extend_from_slice(a);
-            acc = add(&acc, &row);
-        }
-    }
-    trim(acc)
+    unfold(&l_mul(&fold(a), &fold(b)))
 }
 
 fn divmod(n: &[char], d: &[char]) -> (Tape, Tape) {
-    let mut q = vec![EVALT; n.len()];
-    let mut r = vec![EVALT];
-    for i in (0..n.len()).rev() {
-        r.insert(0, n[i]);
-        r = trim(r);
-        if cmp(&r, d) != core::cmp::Ordering::Less {
-            r = sub(&r, d);
-            q[i] = EVALF;
-        }
-    }
-    (trim(q), trim(r))
+    let (q, r) = l_divmod(&fold(n), &fold(d));
+    (unfold(&q), unfold(&r))
 }
 
 fn modulo(n: &[char], d: &[char]) -> Tape {
-    divmod(n, d).1
+    unfold(&l_divmod(&fold(n), &fold(d)).1)
 }
 
 fn mod_add(a: &[char], b: &[char], n: &[char]) -> Tape {
