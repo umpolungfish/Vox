@@ -1252,9 +1252,172 @@ pub fn verify(p_word: &str, q_word: &str, n_word: &str) -> Result<String, String
     ))
 }
 
+/// Parse an arbitrary-length decimal string to a tape (t = t*10 + digit over
+/// the folded kernel), so N is not capped at u128.
+pub fn decimal_to_tape(s: &str) -> Option<Tape> {
+    let s = s.trim();
+    if s.is_empty() || !s.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    let ten = tape_u64(10);
+    let mut t = vec![EVALT];
+    for ch in s.bytes() {
+        t = add(&mul(&t, &ten), &tape_u64((ch - b'0') as u64));
+    }
+    Some(trim(t))
+}
+
+/// Decimal string for a tape of any size, by repeated division by ten.
+fn dec_of(t: &[char]) -> String {
+    let mut b = trim(t.to_vec());
+    if zero(&b) {
+        return "0".into();
+    }
+    let ten = tape_u64(10);
+    let mut digits = Vec::new();
+    while !zero(&b) {
+        let (q, r) = divmod(&b, &ten);
+        let mut dv = 0u8;
+        for (i, &c) in trim(r).iter().enumerate() {
+            if c == EVALF {
+                dv |= 1 << i;
+            }
+        }
+        digits.push(b'0' + dv);
+        b = q;
+    }
+    digits.reverse();
+    String::from_utf8(digits).unwrap()
+}
+
+/// Shape scout: cheap probes, cheapest first, each of which reads one shape of N
+/// and, when it hits, hands the factor. The first hit both names the shape and
+/// gives the pair, so the width-heavy arms never run for a shape they do not
+/// fit. Returns the pair with the shape name, and a log of what each probe saw.
+/// A None with "prime" is a certified prime; a None with "HARD" is the
+/// random-equal-size-far-apart shape that wants the sub-exponential tier.
+pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, String) {
+    use core::cmp::Ordering::{Equal, Greater, Less};
+    let n = trim(n_in.to_vec());
+    let mut log = String::new();
+    if cmp(&n, &two()) == Less {
+        return (None, "shape: unit\n".into());
+    }
+    // even
+    if zero(&modulo(&n, &two())) {
+        let q = divmod(&n, &two()).0;
+        return (Some((two(), q, "even")), "shape: even (2-part)\n".into());
+    }
+    // prime
+    if miller_rabin(&n) {
+        return (None, "shape: prime (witness, no factor to find)\n".into());
+    }
+    // perfect power
+    let bits = n.len();
+    let mut b = 2usize;
+    while b <= bits {
+        let r = iroot(&n, b);
+        if cmp(&r, &one()) == Greater && cmp(&ipow(&r, b), &n) == Equal {
+            let q = divmod(&n, &r).0;
+            return (Some((r.clone(), q, "perfect-power")), format!("shape: perfect power, base {}\n", dec_of(&r)));
+        }
+        b += 1;
+    }
+    // small factor by trial to a cheap bound
+    let tb = tape_u64(100_000);
+    let mut d = tape_u64(3);
+    while cmp(&d, &tb) != Greater {
+        if zero(&modulo(&n, &d)) {
+            let q = divmod(&n, &d).0;
+            return (Some((d.clone(), q, "small-trial")), format!("shape: small factor {} (trial)\n", dec_of(&d)));
+        }
+        d = add(&d, &two());
+    }
+    log.push_str("probe: no factor <= 1e5\n");
+    // short frontier first: closes at once iff the factors sit near the root, so
+    // a near-root N never pays the width-heavy rho below.
+    {
+        let mut a = isqrt(&n);
+        if cmp(&mul(&a, &a), &n) == Less {
+            a = add(&a, &one());
+        }
+        let mut i = 0u64;
+        while i < 4096 {
+            let a2 = mul(&a, &a);
+            if cmp(&a2, &n) != Less {
+                let dl = sub(&a2, &n);
+                if let Some(bb) = is_square(&dl) {
+                    let p = sub(&a, &bb);
+                    if cmp(&p, &one()) == Greater {
+                        let q = divmod(&n, &p).0;
+                        return (Some((p.clone(), q, "frontier")), format!("shape: near-root, closed at frontier step {}\n", i));
+                    }
+                }
+            }
+            a = add(&a, &one());
+            i += 1;
+        }
+    }
+    log.push_str("probe: not near-root within 4096 frontier steps (factors far apart)\n");
+    // short rho: reaches a factor near the square root of the smaller prime
+    {
+        let mut x = two();
+        let mut y = two();
+        let mut c = one();
+        let mut i = 0u64;
+        while i < 200_000 {
+            x = mod_add(&mod_mul(&x, &x, &n), &c, &n);
+            let y1 = mod_add(&mod_mul(&y, &y, &n), &c, &n);
+            y = mod_add(&mod_mul(&y1, &y1, &n), &c, &n);
+            let diff = if cmp(&x, &y) != Less { sub(&x, &y) } else { sub(&y, &x) };
+            let g = gcd(trim(diff), n.clone());
+            if cmp(&g, &one()) == Greater && cmp(&g, &n) == Less {
+                let q = divmod(&n, &g).0;
+                return (Some((g.clone(), q, "rho")), format!("shape: factor {} by rho at step {}\n", dec_of(&g), i));
+            }
+            if cmp(&g, &n) == Equal {
+                c = add(&c, &one());
+                x = two();
+                y = two();
+            }
+            i += 1;
+        }
+    }
+    log.push_str("probe: rho found nothing in 2e5 steps (smaller factor is large)\n");
+    log.push_str("verdict: HARD — large factor, far from the root, not obviously smooth\n");
+    (None, log)
+}
+
+pub fn repl_scout(n_in: &[char]) -> String {
+    let (res, log) = scout_factor(n_in);
+    let n = dec_of(n_in);
+    match res {
+        Some((p, q, shape)) => format!("N={n}\n{log}  {n} = {} x {}  [{shape}]", dec_of(&p), dec_of(&q)),
+        None => format!("N={n}\n{log}"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scout_reads_the_shape_and_routes() {
+        // Each shape routes to its cheapest probe; the name is the reading.
+        let (r, _) = scout_factor(&tape_u64(8051));
+        assert_eq!(r.unwrap().2, "small-trial");
+        let (r, _) = scout_factor(&tape_u64(25));
+        assert_eq!(r.unwrap().2, "perfect-power");
+        let (r, log) = scout_factor(&tape_u64(999983));
+        assert!(r.is_none() && log.contains("prime"));
+        // near-root balanced: the frontier probe closes it.
+        let (r, _) = scout_factor(&tape_u64(1000003 * 1000033));
+        assert_eq!(r.unwrap().2, "frontier");
+        // a mid factor the trial bound misses but rho reaches.
+        let (r, _) = scout_factor(&tape_u64(1000003 * 1000000007));
+        assert_eq!(r.unwrap().2, "rho");
+    }
+
     fn numeral(mut n: u64) -> String {
         if n == 0 {
             return emit_numeral(&[EVALT]);
