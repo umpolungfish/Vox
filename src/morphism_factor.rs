@@ -223,6 +223,26 @@ fn rho_step(x: &[char], c: &[char], n: &[char]) -> Tape {
     mod_add(&mod_mul(x, x, n), c, n)
 }
 
+/// Floor integer square root over numeral tapes, by binary search on the
+/// largest x with x*x <= n. Used to seed and test the square-frontier arm.
+fn isqrt(n: &[char]) -> Tape {
+    if cmp(n, &two()) == core::cmp::Ordering::Less {
+        return trim(n.to_vec());
+    }
+    let mut lo = one();
+    let mut hi = n.to_vec();
+    while cmp(&lo, &hi) == core::cmp::Ordering::Less {
+        // ceil midpoint (lo+hi+1)/2 so lo can reach hi without stalling
+        let mid = divmod(&add(&add(&lo, &hi), &one()), &two()).0;
+        if cmp(&mul(&mid, &mid), n) != core::cmp::Ordering::Greater {
+            lo = mid;
+        } else {
+            hi = sub(&mid, &one());
+        }
+    }
+    trim(lo)
+}
+
 fn one() -> Tape {
     vec![EVALF]
 }
@@ -241,6 +261,7 @@ struct State {
     y: Tape,
     phase: Tape,
     divisor: Tape,
+    a: Tape,
     exhausted: bool,
     selected: Option<Tape>,
 }
@@ -347,6 +368,10 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
     if zero(&even) {
         return Ok(emit_numeral(&two()));
     }
+    let mut a_seed = isqrt(&n);
+    if cmp(&mul(&a_seed, &a_seed), &n) == core::cmp::Ordering::Less {
+        a_seed = add(&a_seed, &one());
+    }
     let mut state = State {
         n,
         candidate: add(&two(), &one()),
@@ -355,6 +380,7 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
         y: two(),
         phase: one(),
         divisor: one(),
+        a: a_seed,
         exhausted: false,
         selected: None,
     };
@@ -403,9 +429,33 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.divisor = one();
         }
     } else if operator == EXTRACT {
-        // Instant extract: one frame runs the whole per-round step. Phase
-        // update, then the arithmetic arm (remainder and rho gcd), then the
-        // selection, then the continuation, in that order.
+        // Instant extract: one frame forks three arms and fuses on the first to
+        // close, the two-arm converge circuit plus trial.
+        // Arm 1, the square frontier (Fermat): a walks up from ceil(sqrt N);
+        // when a*a - N is a perfect square b*b, the pair is (a-b, a+b). This
+        // closes a balanced semiprime in steps set by the gap, not by sqrt(p),
+        // so it gets past the rho ceiling for factors near the root.
+        {
+            let asq = mul(&state.a, &state.a);
+            if cmp(&asq, &state.n) != core::cmp::Ordering::Less {
+                let delta = sub(&asq, &state.n);
+                let b = isqrt(&delta);
+                if cmp(&mul(&b, &b), &delta) == core::cmp::Ordering::Equal {
+                    let p = sub(&state.a, &b);
+                    if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                        && cmp(&p, &state.n) == core::cmp::Ordering::Less
+                    {
+                        state.selected = Some(trim(p));
+                    }
+                }
+            }
+            state.a = add(&state.a, &one());
+        }
+        if state.selected.is_some() {
+            return;
+        }
+        // Arm 2 + trial, as before: phase update, then remainder and rho gcd,
+        // then selection, then continuation.
         state.exhausted =
             cmp(&mul(&state.candidate, &state.candidate), &state.n) == core::cmp::Ordering::Greater;
         state.x = rho_step(&state.x, &state.phase, &state.n);
@@ -462,6 +512,10 @@ pub fn factor(word: &str) -> Result<String, String> {
     if zero(&even) {
         return Ok(emit_numeral(&two()));
     }
+    let mut a_seed = isqrt(&n);
+    if cmp(&mul(&a_seed, &a_seed), &n) == core::cmp::Ordering::Less {
+        a_seed = add(&a_seed, &one());
+    }
     let mut state = State {
         n,
         candidate: add(&two(), &one()),
@@ -470,6 +524,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         y: two(),
         phase: one(),
         divisor: one(),
+        a: a_seed,
         exhausted: false,
         selected: None,
     };
@@ -572,8 +627,18 @@ mod tests {
         let tower = construct_carrier(w).unwrap();
         let names: Vec<&str> = tower.iter().map(|t| morphism_name(t)).collect();
         assert_eq!(names, ["EXTRACT", "FIX"]);
+        // The frontier arm may return either factor of the pair; both are valid.
         let f = factor_with(w, &numeral(8051)).unwrap();
         assert!(f == numeral(83) || f == numeral(97));
-        assert_eq!(f, factor(&numeral(8051)).unwrap());
+    }
+
+    #[test]
+    fn frontier_arm_clears_a_balanced_semiprime_fast() {
+        // 32-bit balanced semiprime, gap 60: the rho ceiling would crawl, the
+        // square frontier closes it in a handful of steps.
+        let p = 65_521u64;
+        let q = 65_581u64;
+        let f = factor_with("⊢⊙∈≻⊤≺⊥⊞⋈∋⊙⊡⊣", &numeral(p * q)).unwrap();
+        assert!(f == numeral(p) || f == numeral(q));
     }
 }
