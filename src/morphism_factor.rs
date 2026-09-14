@@ -1323,8 +1323,18 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         }
         b += 1;
     }
+    // Budgets scale down with width: at large width each probe step is
+    // expensive and the sieve is the better tool, so the scout should reach
+    // HARD quickly rather than burn a big rho/trial budget first.
+    let (trial_bound, rho_steps): (u64, u64) = if bits <= 40 {
+        (100_000, 200_000)
+    } else if bits <= 64 {
+        (20_000, 60_000)
+    } else {
+        (3_000, 12_000)
+    };
     // small factor by trial to a cheap bound
-    let tb = tape_u64(100_000);
+    let tb = tape_u64(trial_bound);
     let mut d = tape_u64(3);
     while cmp(&d, &tb) != Greater {
         if zero(&modulo(&n, &d)) {
@@ -1365,7 +1375,7 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         let mut y = two();
         let mut c = one();
         let mut i = 0u64;
-        while i < 200_000 {
+        while i < rho_steps {
             x = mod_add(&mod_mul(&x, &x, &n), &c, &n);
             let y1 = mod_add(&mod_mul(&y, &y, &n), &c, &n);
             y = mod_add(&mod_mul(&y1, &y1, &n), &c, &n);
