@@ -18,6 +18,11 @@ const BRANCH: &[char] = &[VINIT, FSPLIT, EVALT, EVALF, FFUSE, TANCH];
 const SELECT: &[char] = &[VINIT, FSPLIT, IMSCRIB, FFUSE, TANCH];
 const CONTINUE: &[char] = &[VINIT, AFWD, CLINK, TANCH];
 const FIX: &[char] = &[VINIT, IMSCRIB, IFIX, TANCH];
+// The instant extract morphism: one evaluate frame carrying the involution
+// (AREV ≺) and hold (ENGAGR ⊞) between the truth and falsity ports. It folds
+// phase, arithmetic, select and continue into a single boundary, which is what
+// makes the extractor a one-frame factorizer.
+const EXTRACT: &[char] = &[VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -250,6 +255,7 @@ const BRANCH_I: &[char] = &[FSPLIT, EVALT, EVALF, FFUSE];
 const SELECT_I: &[char] = &[FSPLIT, IMSCRIB, FFUSE];
 const CONTINUE_I: &[char] = &[AFWD, CLINK];
 const FIX_I: &[char] = &[IMSCRIB, IFIX];
+const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -259,6 +265,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == SELECT { "SELECT" }
     else if operator == CONTINUE { "CONTINUE" }
     else if operator == FIX { "FIX" }
+    else if operator == EXTRACT { "EXTRACT" }
     else { "?" }
 }
 
@@ -278,7 +285,8 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 6] = [
+    let motifs: [(&[char], &[char]); 7] = [
+        (EXTRACT_I, EXTRACT),
         (PHASE_I, PHASE),
         (ARITHMETIC_I, ARITHMETIC),
         (BRANCH_I, BRANCH),
@@ -317,9 +325,13 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
     let tower = construct_carrier(operator_word)?;
     let has = |op: &[char]| tower.iter().any(|t| *t == op);
     let mut missing = Vec::new();
-    if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
-    if !has(SELECT) { missing.push("SELECT (decide)"); }
-    if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
+    // EXTRACT is the instant frame: it folds advance, decide and continue into
+    // one boundary, so a tower carrying it needs only a FIX to be complete.
+    if !has(EXTRACT) {
+        if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
+        if !has(SELECT) { missing.push("SELECT (decide)"); }
+        if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
+    }
     if !has(FIX) { missing.push("FIX (latch)"); }
     if !missing.is_empty() {
         return Err(format!(
@@ -389,6 +401,40 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.x = two();
             state.y = two();
             state.divisor = one();
+        }
+    } else if operator == EXTRACT {
+        // Instant extract: one frame runs the whole per-round step. Phase
+        // update, then the arithmetic arm (remainder and rho gcd), then the
+        // selection, then the continuation, in that order.
+        state.exhausted =
+            cmp(&mul(&state.candidate, &state.candidate), &state.n) == core::cmp::Ordering::Greater;
+        state.x = rho_step(&state.x, &state.phase, &state.n);
+        state.y = rho_step(
+            &rho_step(&state.y, &state.phase, &state.n),
+            &state.phase,
+            &state.n,
+        );
+        if !state.exhausted {
+            state.remainder = trim(divmod(&state.n, &state.candidate).1);
+            state.divisor = gcd(abs_diff(&state.x, &state.y), state.n.clone());
+        }
+        if state.exhausted {
+            state.selected = Some(state.n.clone());
+        } else if cmp(&state.divisor, &one()) == core::cmp::Ordering::Greater
+            && cmp(&state.divisor, &state.n) == core::cmp::Ordering::Less
+        {
+            state.selected = Some(state.divisor.clone());
+        } else if zero(&state.remainder) {
+            state.selected = Some(state.candidate.clone());
+        }
+        if state.selected.is_none() {
+            state.candidate = add(&state.candidate, &two());
+            if cmp(&state.divisor, &state.n) == core::cmp::Ordering::Equal {
+                state.phase = add(&state.phase, &one());
+                state.x = two();
+                state.y = two();
+                state.divisor = one();
+            }
         }
     } else if operator == FIX {
         if let Some(value) = state.selected.take() {
@@ -517,11 +563,17 @@ mod tests {
     }
 
     #[test]
-    fn evaluate_frame_with_arev_is_not_a_factoring_morphism() {
-        // The instant semiprime extractor carries AREV ≺ inside its evaluate
-        // frame (∈≻⊤≺⊥…), which no factoring morphism has; the constructor
-        // names the exact obstruction rather than silently absorbing it.
-        let err = construct_carrier("⊢⊙∈≻⊤≺⊥⊞⋈∋⊙⊡⊣").unwrap_err();
-        assert!(err.contains("begins no factoring morphism"));
+    fn instant_extractor_decomposes_and_factors() {
+        // The instant semiprime extractor carries AREV ≺ and ENGAGR ⊞ inside
+        // its evaluate frame; that frame is the EXTRACT morphism, a one-frame
+        // fold of advance, decide and continue. The word decomposes to
+        // EXTRACT then FIX and factors on the carrier built from itself.
+        let w = "⊢⊙∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
+        let tower = construct_carrier(w).unwrap();
+        let names: Vec<&str> = tower.iter().map(|t| morphism_name(t)).collect();
+        assert_eq!(names, ["EXTRACT", "FIX"]);
+        let f = factor_with(w, &numeral(8051)).unwrap();
+        assert!(f == numeral(83) || f == numeral(97));
+        assert_eq!(f, factor(&numeral(8051)).unwrap());
     }
 }
