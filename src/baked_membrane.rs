@@ -15,6 +15,15 @@ pub fn numbers(word: Option<&str>) -> Result<Vec<u64>, String> {
     Ok(values)
 }
 
+pub fn numeral_words(word: Option<&str>) -> Result<Vec<Vec<char>>, String> {
+    let word = word.ok_or("Build with a baked IMASM numeral payload")?;
+    let values: Result<Vec<_>, _> = word.split_whitespace()
+        .map(vox::morphism_factor::parse_numeral).collect();
+    let values = values?;
+    if values.is_empty() { return Err("Empty membrane payload".into()); }
+    Ok(values)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

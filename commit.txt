@@ -215,3 +215,9 @@ I place the scout at the outer routing level after parity and primality, retain
 its selected shape in resident state, and hand each result to its corresponding
 factoring arm before deeper activation. The complete baked batch passes after
 the integration.
+I run Shor on the unified arbitrary resident carrier
+
+I remove the simulation naming, add arbitrary tape payload loading, implement
+tape modular exponentiation, period detection, and gcd factor recovery, and
+run an arbitrary-width baked modulus through the complete QFT membrane. The
+release Shor tests pass and the baked run recovers the exact factors.

@@ -341,6 +341,71 @@ pub fn report(result: &ShorSimResult) -> String {
     out
 }
 
+pub fn mod_pow_tape(base: &[char], mut exp: u64, modulus: &[char]) -> Vec<char> {
+    let one = ::vox::morphism_factor::one();
+    let mut result = one;
+    let mut base = ::vox::morphism_factor::modulo(base, modulus);
+    while exp != 0 {
+        if exp & 1 != 0 { result = ::vox::morphism_factor::modulo(&::vox::morphism_factor::mul(&result, &base), modulus); }
+        exp >>= 1;
+        base = ::vox::morphism_factor::modulo(&::vox::morphism_factor::mul(&base, &base), modulus);
+    }
+    result
+}
+
+pub fn gcd_tape(mut a: Vec<char>, mut b: Vec<char>) -> Vec<char> {
+    while !::vox::morphism_factor::zero(&b) {
+        let r = ::vox::morphism_factor::modulo(&a, &b); a = b; b = r;
+    }
+    a
+}
+
+pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Result<String, String> {
+    if n_qubits == 0 || n_qubits >= usize::BITS as usize { return Err("invalid QFT depth".into()); }
+    if ::vox::morphism_factor::gcd(a.clone(), n.clone()) != ::vox::morphism_factor::one() { return Err("base and modulus are not coprime".into()); }
+    let m = 1usize.checked_shl(n_qubits as u32).ok_or("QFT register exceeds address space")?;
+    let one = ::vox::morphism_factor::one();
+    let mut value = one.clone(); let mut orbit = Vec::with_capacity(m);
+    for _ in 0..m { orbit.push(value.clone()); value = ::vox::morphism_factor::modulo(&::vox::morphism_factor::mul(&value, &a), &n); }
+    let mut period = None;
+    for r in 1..=m { if mod_pow_tape(&a, r as u64, &n) == one { period = Some(r as u64); break; } }
+    let period = period.ok_or("period exceeds baked QFT register")?;
+    let matching: Vec<usize> = orbit.iter().enumerate().filter_map(|(i, v)| (v == &orbit[0]).then_some(i)).collect();
+    let amp = 1.0 / libm::sqrt(matching.len() as f64); let mut state = alloc::vec![Complex::zero(); m];
+    for i in matching { state[i] = Complex::new(amp, 0.0); }
+    let spectrum = qft_forward(&state); let mut peaks: Vec<(usize, f64)> = spectrum.iter().map(|c| c.norm_sq()).enumerate().collect();
+    peaks.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap()); let mut factors = None;
+    for &(k, _) in peaks.iter().take(8) { for (_, q) in convergents(k as u64, m as u64) { if q > 0 && mod_pow_tape(&a, q, &n) == one {
+        if q % 2 == 0 { let half = mod_pow_tape(&a, q / 2, &n); let minus = if half == one { n.clone() } else { ::vox::morphism_factor::sub(&half, &one) }; let plus = ::vox::morphism_factor::add(&half, &one); let f = gcd_tape(minus, n.clone()); let g = gcd_tape(plus, n.clone()); let p = if ::vox::morphism_factor::cmp(&f, &one) == core::cmp::Ordering::Greater { f } else { g }; if ::vox::morphism_factor::cmp(&p, &one) == core::cmp::Ordering::Greater && ::vox::morphism_factor::cmp(&p, &n) == core::cmp::Ordering::Less { factors = Some((p.clone(), ::vox::morphism_factor::divmod(&n, &p).0)); } } break; } } if factors.is_some() { break; } }
+    if factors.is_none() && period % 2 == 0 {
+        let half = mod_pow_tape(&a, period / 2, &n);
+        let minus = if half == one { n.clone() } else { ::vox::morphism_factor::sub(&half, &one) };
+        let plus = ::vox::morphism_factor::add(&half, &one);
+        let f = gcd_tape(minus, n.clone()); let g = gcd_tape(plus, n.clone());
+        let p = if ::vox::morphism_factor::cmp(&f, &one) == core::cmp::Ordering::Greater { f } else { g };
+        if ::vox::morphism_factor::cmp(&p, &one) == core::cmp::Ordering::Greater && ::vox::morphism_factor::cmp(&p, &n) == core::cmp::Ordering::Less {
+            factors = Some((p.clone(), ::vox::morphism_factor::divmod(&n, &p).0));
+        }
+    }
+    let factor_text = factors.map(|(p, q)| alloc::format!("{} x {}", ::vox::morphism_factor::dec_of(&p), ::vox::morphism_factor::dec_of(&q))).unwrap_or_else(|| "none".into());
+    Ok(alloc::format!("shor: N={} period={} factors={}", ::vox::morphism_factor::dec_of(&n), period, factor_text))
+}
+
+#[cfg(test)]
+mod big_factor_tests {
+    use super::*;
+    #[test]
+    fn tape_half_period_closes_the_96_bit_factor_pair() {
+        let n = ::vox::morphism_factor::decimal_to_tape("79228162514264337593543950335").unwrap();
+        let a = ::vox::morphism_factor::tape_u64(2);
+        let half = mod_pow_tape(&a, 48, &n);
+        let one = ::vox::morphism_factor::one();
+        let minus = ::vox::morphism_factor::sub(&half, &one);
+        let f = gcd_tape(minus, n.clone());
+        assert_eq!(::vox::morphism_factor::dec_of(&f), "281474976710655");
+    }
+}
+
 
 #[cfg(test)]
 mod membrane_tests {

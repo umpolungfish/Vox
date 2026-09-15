@@ -1,12 +1,21 @@
-__pycache__/
-*.pyc
 
 # test targets, not part of the tool
-MpDefenderCoreService
-*.exe
 *.bin
 *.dll
-*.so
+*.exe
+*.glyphs
 *.imscrb
+*.pyc
+*.safetensors
+*.safetensors.txt
+*.so
 /target
+BIG.svg.svg
 Cargo.lock
+DDefend.bin.txt
+MpDefenderCoreService
+__pycache__/
+membranes/glyphs/
+mspaint.imasm
+qft8.glyphs
+vox:Zone.Identifier
