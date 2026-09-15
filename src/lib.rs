@@ -27,6 +27,7 @@ pub mod imasm_vm;
 pub mod morphism_factor;
 pub mod factor_operator;
 pub mod sieve;
+pub mod perfect_membrane;
 pub mod divisor_membrane;
 pub mod loader;
 pub mod safetensors;

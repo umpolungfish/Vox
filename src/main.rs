@@ -4,6 +4,7 @@
 //! its own. Subcommands mirror the surface of the original vox.py.
 
 use ::vox::vox;
+mod circuit_cli;
 use ::vox::vox_decode;
 use ::vox::lanes;
 use ::vox::genetic;
@@ -20,6 +21,7 @@ fn usage() {
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
+    eprintln!("  vox circuit <module.imasm> [hex-mask[:feedback] ...]   prepare once, switch resident QFT gates");
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
@@ -958,6 +960,12 @@ fn main() {
             for (a,word) in &b { println!("  0x{:x}  {}", a, word); }
             std::process::exit(0);
         }
+        Some("circuit") => {
+            if let Err(error) = circuit_cli::run(&args[1..]) {
+                eprintln!("{error}");
+                1
+            } else { 0 }
+        }
         Some("run") => {
             // vox run <file> [--argv a,b]            — run it: real process, real
             //                                           argv/envp/auxv stack, real
@@ -1135,6 +1143,15 @@ fn main() {
                 None => { eprintln!("vox factor <N-word|decimal>   shape-routed full factorization"); 1 }
             }
         }
+        Some("perfect") => {
+            // Build the depth-n perfect membrane and read its closure with the
+            // auditor: T means mu∘delta = id holds by the matched circuitry.
+            let n = args.get(1).and_then(|a| a.parse::<usize>().ok()).unwrap_or(2);
+            let (v, surplus, w) = ::vox::perfect_membrane::report(n);
+            println!("depth {n}: verdict {v}  fork/fuse surplus {surplus}");
+            println!("{}", ::vox::vox::glyphs(&w));
+            0
+        }
         Some("numeral") => {
             // Encode a decimal to its IMASM numeral word. This is the
             // pre-compilation step: the decimal is consumed here, and the word it
@@ -1152,8 +1169,9 @@ fn main() {
             };
             match parsed {
                 Some(n) => {
-                    let (bound, _m) = ::vox::sieve::sieve_params(&n);
+                    let (bound0, _m) = ::vox::sieve::sieve_params(&n);
                     let mh = args.get(2).and_then(|a| a.parse::<usize>().ok()).unwrap_or(32_768);
+                    let bound = args.get(3).and_then(|a| a.parse::<usize>().ok()).unwrap_or(bound0);
                     match ::vox::sieve::mpqs(&n, bound, mh, 32) {
                         Some(f) => { println!("{} factor {}", ::vox::morphism_factor::dec_of(&n), ::vox::morphism_factor::dec_of(&f)); 0 }
                         None => { println!("mpqs: no factor (relations short of a dependency)"); 0 }
