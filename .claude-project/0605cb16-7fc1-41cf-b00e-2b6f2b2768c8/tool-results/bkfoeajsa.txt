@@ -1,0 +1,1992 @@
+══ FIRST PASS — the word's own orbit ═══════════════════════════
+── cycle ─────────────────────────────────────────────────────
+word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣   period 45
+     k  final  verdict  word
+     0  TF     T        ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+     1  TF     T        ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢
+     2  TF     T        ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻
+     3  TF     T        ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈
+     4  TF     T        ⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈
+     5  TF     T        ≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥
+     6  TF     T        ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺
+     7  TF     T        ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋
+     8  TF     T        ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻
+     9  TF     T        ∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈
+    10  TF     T        ⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈
+    11  TF     T        ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥
+    12  TF     T        ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋
+    13  TF     T        ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻
+    14  TF     T        ∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈
+    15  TF     T        ⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈
+    16  TF     T        ∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥
+    17  TF     T        ≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋
+    18  TF     T        ⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+    19  TF     T        ∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+    20  TF     T        ⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+    21  TF     T        ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥
+    22  TF     T        ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋
+    23  TF     T        ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+    24  TF     T        ∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+    25  TF     T        ⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+    26  TF     T        ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤
+    27  TF     T        ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋
+    28  TF     T        ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻
+    29  TF     T        ∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈
+    30  TF     T        ⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈
+    31  TF     T        ∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤
+    32  TF     T        ≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋
+    33  TF     T        ⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+    34  TF     T        ∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+    35  TF     T        ⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+    36  TF     T        ∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤
+    37  TF     T        ≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋
+    38  F      T        ⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+    39  F      T        ∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+    40  F      T        ⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+    41  T      T        ∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥
+    42  T      T        ⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋
+    43  T      T        ⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙
+    44  TF     T        ⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+
+  landing register by cut:
+    TF     at k = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 44
+    F      at k = 38, 39, 40
+    T      at k = 41, 42, 43
+  final register is PHASE-BEARING: 3 distinct landings
+
+auditing 45 distinct rotation(s) (brief: cheapest repair only)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=0   ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+│   movement:
+│      1 ⊢  CLEAR loses 0   (0 banked in frames)
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊥  deposit F   into depth 1
+│      6 ≺  CLEAR loses 1   (1 banked in frames)
+│      7 ∋  fuse restores 1
+│     10 ∈  open frame at depth 1
+│     11 ⊥  deposit F   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊥  deposit F   into depth 1
+│     17 ∋  fuse restores 0
+│     20 ∈  open frame at depth 1
+│     21 ⊥  deposit F   into depth 1
+│     22 ∋  fuse restores 0
+│     25 ∈  open frame at depth 1
+│     26 ⊤  deposit T   into depth 1
+│     27 ∋  fuse restores 0
+│     30 ∈  open frame at depth 1
+│     31 ⊤  deposit T   into depth 1
+│     32 ∋  fuse restores 0
+│     35 ∈  open frame at depth 1
+│     36 ⊤  deposit T   into depth 1
+│     37 ∋  fuse restores 0
+│     40 ∈  open frame at depth 1
+│     41 ⊥  deposit F   into depth 1
+│     42 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 1  inert 1
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣: 1440 candidate(s), cheapest below
+    Permutation(1, 7) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 0.00  edit distance 0  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=1   ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊥  deposit F   into depth 1
+│      5 ≺  CLEAR loses 1   (1 banked in frames)
+│      6 ∋  fuse restores 1
+│      9 ∈  open frame at depth 1
+│     10 ⊥  deposit F   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊥  deposit F   into depth 1
+│     16 ∋  fuse restores 0
+│     19 ∈  open frame at depth 1
+│     20 ⊥  deposit F   into depth 1
+│     21 ∋  fuse restores 0
+│     24 ∈  open frame at depth 1
+│     25 ⊤  deposit T   into depth 1
+│     26 ∋  fuse restores 0
+│     29 ∈  open frame at depth 1
+│     30 ⊤  deposit T   into depth 1
+│     31 ∋  fuse restores 0
+│     34 ∈  open frame at depth 1
+│     35 ⊤  deposit T   into depth 1
+│     36 ∋  fuse restores 0
+│     39 ∈  open frame at depth 1
+│     40 ⊥  deposit F   into depth 1
+│     41 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 1  inert 2
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢: 13 candidate(s), cheapest below
+    Substitution('⊣', 44) -> ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣
+    cost 1.07  edit distance 1  ΔS 0.0444  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=2   ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊥  deposit F   into depth 1
+│      4 ≺  CLEAR loses 1   (1 banked in frames)
+│      5 ∋  fuse restores 1
+│      8 ∈  open frame at depth 1
+│      9 ⊥  deposit F   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊥  deposit F   into depth 1
+│     15 ∋  fuse restores 0
+│     18 ∈  open frame at depth 1
+│     19 ⊥  deposit F   into depth 1
+│     20 ∋  fuse restores 0
+│     23 ∈  open frame at depth 1
+│     24 ⊤  deposit T   into depth 1
+│     25 ∋  fuse restores 0
+│     28 ∈  open frame at depth 1
+│     29 ⊤  deposit T   into depth 1
+│     30 ∋  fuse restores 0
+│     33 ∈  open frame at depth 1
+│     34 ⊤  deposit T   into depth 1
+│     35 ∋  fuse restores 0
+│     38 ∈  open frame at depth 1
+│     39 ⊥  deposit F   into depth 1
+│     40 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 0  inert 3
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻: 13 candidate(s), cheapest below
+    Substitution('⊣', 43) -> ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻
+    cost 1.07  edit distance 1  ΔS 0.0444  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=3   ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊥  deposit F   into depth 1
+│      3 ≺  CLEAR loses 1   (1 banked in frames)
+│      4 ∋  fuse restores 1
+│      7 ∈  open frame at depth 1
+│      8 ⊥  deposit F   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊥  deposit F   into depth 1
+│     14 ∋  fuse restores 0
+│     17 ∈  open frame at depth 1
+│     18 ⊥  deposit F   into depth 1
+│     19 ∋  fuse restores 0
+│     22 ∈  open frame at depth 1
+│     23 ⊤  deposit T   into depth 1
+│     24 ∋  fuse restores 0
+│     27 ∈  open frame at depth 1
+│     28 ⊤  deposit T   into depth 1
+│     29 ∋  fuse restores 0
+│     32 ∈  open frame at depth 1
+│     33 ⊤  deposit T   into depth 1
+│     34 ∋  fuse restores 0
+│     37 ∈  open frame at depth 1
+│     38 ⊥  deposit F   into depth 1
+│     39 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 0  inert 4
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈: 12 candidate(s), cheapest below
+    Substitution('⊣', 42) -> ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈
+    cost 1.07  edit distance 1  ΔS 0.0444  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=4   ⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈
+│   movement:
+│      1 ⊥  deposit F   into depth 0
+│      2 ≺  CLEAR loses 1   (0 banked in frames)
+│      4 ≻  SEED T into an empty register, no weight
+│      6 ∈  open frame at depth 1
+│      7 ⊥  deposit F   into depth 1
+│      8 ∋  fuse restores 0
+│     11 ∈  open frame at depth 1
+│     12 ⊥  deposit F   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊥  deposit F   into depth 1
+│     18 ∋  fuse restores 0
+│     21 ∈  open frame at depth 1
+│     22 ⊤  deposit T   into depth 1
+│     23 ∋  fuse restores 0
+│     26 ∈  open frame at depth 1
+│     27 ⊤  deposit T   into depth 1
+│     28 ∋  fuse restores 0
+│     31 ∈  open frame at depth 1
+│     32 ⊤  deposit T   into depth 1
+│     33 ∋  fuse restores 0
+│     36 ∈  open frame at depth 1
+│     37 ⊥  deposit F   into depth 1
+│     38 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 8  cleared 1  restored 0  seeded 1  inert 5
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈
+│   1 unit(s) cleared with nothing banked behind them:
+│     step 2 ≺ cleared 1 with nothing behind it
+│   open the region that HOLDS the result before the region that
+│   COMPUTES it, and close them in that order.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈   length 45
+│   exposed: 1 unit(s) cleared with nothing banked
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-41) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 8.00  edit distance 8  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=5   ≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥
+│   movement:
+│      1 ≺  CLEAR loses 0   (0 banked in frames)
+│      3 ≻  SEED T into an empty register, no weight
+│      5 ∈  open frame at depth 1
+│      6 ⊥  deposit F   into depth 1
+│      7 ∋  fuse restores 0
+│     10 ∈  open frame at depth 1
+│     11 ⊥  deposit F   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊥  deposit F   into depth 1
+│     17 ∋  fuse restores 0
+│     20 ∈  open frame at depth 1
+│     21 ⊤  deposit T   into depth 1
+│     22 ∋  fuse restores 0
+│     25 ∈  open frame at depth 1
+│     26 ⊤  deposit T   into depth 1
+│     27 ∋  fuse restores 0
+│     30 ∈  open frame at depth 1
+│     31 ⊤  deposit T   into depth 1
+│     32 ∋  fuse restores 0
+│     35 ∈  open frame at depth 1
+│     36 ⊥  deposit F   into depth 1
+│     37 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 7  cleared 0  restored 0  seeded 1  inert 6
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥
+│   VACUOUS — no clear ever fired against a live register
+│     7 deposit(s), 6 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥: 2 candidate(s), cheapest below
+    Rotation(-40) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 10.00  edit distance 10  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=6   ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊥  deposit F   into depth 1
+│      6 ∋  fuse restores 0
+│      9 ∈  open frame at depth 1
+│     10 ⊥  deposit F   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊥  deposit F   into depth 1
+│     16 ∋  fuse restores 0
+│     19 ∈  open frame at depth 1
+│     20 ⊤  deposit T   into depth 1
+│     21 ∋  fuse restores 0
+│     24 ∈  open frame at depth 1
+│     25 ⊤  deposit T   into depth 1
+│     26 ∋  fuse restores 0
+│     29 ∈  open frame at depth 1
+│     30 ⊤  deposit T   into depth 1
+│     31 ∋  fuse restores 0
+│     34 ∈  open frame at depth 1
+│     35 ⊥  deposit F   into depth 1
+│     36 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 7  cleared 0  restored 0  seeded 1  inert 7
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺
+│   VACUOUS — no clear ever fired against a live register
+│     7 deposit(s), 7 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺: 2 candidate(s), cheapest below
+    Rotation(-39) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 12.00  edit distance 12  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=7   ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊥  deposit F   into depth 1
+│      5 ∋  fuse restores 0
+│      8 ∈  open frame at depth 1
+│      9 ⊥  deposit F   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊥  deposit F   into depth 1
+│     15 ∋  fuse restores 0
+│     18 ∈  open frame at depth 1
+│     19 ⊤  deposit T   into depth 1
+│     20 ∋  fuse restores 0
+│     23 ∈  open frame at depth 1
+│     24 ⊤  deposit T   into depth 1
+│     25 ∋  fuse restores 0
+│     28 ∈  open frame at depth 1
+│     29 ⊤  deposit T   into depth 1
+│     30 ∋  fuse restores 0
+│     33 ∈  open frame at depth 1
+│     34 ⊥  deposit F   into depth 1
+│     35 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 7  cleared 0  restored 0  seeded 1  inert 8
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋
+│   VACUOUS — no clear ever fired against a live register
+│     7 deposit(s), 8 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋: 2 candidate(s), cheapest below
+    Rotation(-38) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 12.00  edit distance 12  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=8   ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊥  deposit F   into depth 1
+│      4 ∋  fuse restores 0
+│      7 ∈  open frame at depth 1
+│      8 ⊥  deposit F   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊥  deposit F   into depth 1
+│     14 ∋  fuse restores 0
+│     17 ∈  open frame at depth 1
+│     18 ⊤  deposit T   into depth 1
+│     19 ∋  fuse restores 0
+│     22 ∈  open frame at depth 1
+│     23 ⊤  deposit T   into depth 1
+│     24 ∋  fuse restores 0
+│     27 ∈  open frame at depth 1
+│     28 ⊤  deposit T   into depth 1
+│     29 ∋  fuse restores 0
+│     32 ∈  open frame at depth 1
+│     33 ⊥  deposit F   into depth 1
+│     34 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 7  cleared 0  restored 0  seeded 0  inert 9
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     7 deposit(s), 9 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻: 2 candidate(s), cheapest below
+    Rotation(-37) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 13.00  edit distance 13  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=9   ∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊥  deposit F   into depth 1
+│      3 ∋  fuse restores 0
+│      6 ∈  open frame at depth 1
+│      7 ⊥  deposit F   into depth 1
+│      8 ∋  fuse restores 0
+│     11 ∈  open frame at depth 1
+│     12 ⊥  deposit F   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊤  deposit T   into depth 1
+│     18 ∋  fuse restores 0
+│     21 ∈  open frame at depth 1
+│     22 ⊤  deposit T   into depth 1
+│     23 ∋  fuse restores 0
+│     26 ∈  open frame at depth 1
+│     27 ⊤  deposit T   into depth 1
+│     28 ∋  fuse restores 0
+│     31 ∈  open frame at depth 1
+│     32 ⊥  deposit F   into depth 1
+│     33 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 7  cleared 0  restored 0  seeded 0  inert 10
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     7 deposit(s), 10 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-36) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 14.00  edit distance 14  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=10  ⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈
+│   movement:
+│      1 ⊥  deposit F   into depth 0
+│      5 ∈  open frame at depth 1
+│      6 ⊥  deposit F   into depth 1
+│      7 ∋  fuse restores 0
+│     10 ∈  open frame at depth 1
+│     11 ⊥  deposit F   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊤  deposit T   into depth 1
+│     17 ∋  fuse restores 0
+│     20 ∈  open frame at depth 1
+│     21 ⊤  deposit T   into depth 1
+│     22 ∋  fuse restores 0
+│     25 ∈  open frame at depth 1
+│     26 ⊤  deposit T   into depth 1
+│     27 ∋  fuse restores 0
+│     30 ∈  open frame at depth 1
+│     31 ⊥  deposit F   into depth 1
+│     32 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×4
+│   deposits 7  cleared 0  restored 0  seeded 0  inert 11
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     7 deposit(s), 11 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-35) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 15.00  edit distance 15  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=11  ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊥  deposit F   into depth 1
+│      6 ∋  fuse restores 0
+│      9 ∈  open frame at depth 1
+│     10 ⊥  deposit F   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊤  deposit T   into depth 1
+│     16 ∋  fuse restores 0
+│     19 ∈  open frame at depth 1
+│     20 ⊤  deposit T   into depth 1
+│     21 ∋  fuse restores 0
+│     24 ∈  open frame at depth 1
+│     25 ⊤  deposit T   into depth 1
+│     26 ∋  fuse restores 0
+│     29 ∈  open frame at depth 1
+│     30 ⊥  deposit F   into depth 1
+│     31 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×3
+│   deposits 6  cleared 0  restored 0  seeded 1  inert 12
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥
+│   VACUOUS — no clear ever fired against a live register
+│     6 deposit(s), 12 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥: 2 candidate(s), cheapest below
+    Rotation(-34) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 15.00  edit distance 15  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=12  ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊥  deposit F   into depth 1
+│      5 ∋  fuse restores 0
+│      8 ∈  open frame at depth 1
+│      9 ⊥  deposit F   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊤  deposit T   into depth 1
+│     15 ∋  fuse restores 0
+│     18 ∈  open frame at depth 1
+│     19 ⊤  deposit T   into depth 1
+│     20 ∋  fuse restores 0
+│     23 ∈  open frame at depth 1
+│     24 ⊤  deposit T   into depth 1
+│     25 ∋  fuse restores 0
+│     28 ∈  open frame at depth 1
+│     29 ⊥  deposit F   into depth 1
+│     30 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×3
+│   deposits 6  cleared 0  restored 0  seeded 1  inert 13
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋
+│   VACUOUS — no clear ever fired against a live register
+│     6 deposit(s), 13 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋: 2 candidate(s), cheapest below
+    Rotation(-33) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 14.00  edit distance 14  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=13  ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊥  deposit F   into depth 1
+│      4 ∋  fuse restores 0
+│      7 ∈  open frame at depth 1
+│      8 ⊥  deposit F   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊤  deposit T   into depth 1
+│     14 ∋  fuse restores 0
+│     17 ∈  open frame at depth 1
+│     18 ⊤  deposit T   into depth 1
+│     19 ∋  fuse restores 0
+│     22 ∈  open frame at depth 1
+│     23 ⊤  deposit T   into depth 1
+│     24 ∋  fuse restores 0
+│     27 ∈  open frame at depth 1
+│     28 ⊥  deposit F   into depth 1
+│     29 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×3
+│   deposits 6  cleared 0  restored 0  seeded 0  inert 14
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     6 deposit(s), 14 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻: 2 candidate(s), cheapest below
+    Rotation(-32) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 15.00  edit distance 15  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=14  ∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊥  deposit F   into depth 1
+│      3 ∋  fuse restores 0
+│      6 ∈  open frame at depth 1
+│      7 ⊥  deposit F   into depth 1
+│      8 ∋  fuse restores 0
+│     11 ∈  open frame at depth 1
+│     12 ⊤  deposit T   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊤  deposit T   into depth 1
+│     18 ∋  fuse restores 0
+│     21 ∈  open frame at depth 1
+│     22 ⊤  deposit T   into depth 1
+│     23 ∋  fuse restores 0
+│     26 ∈  open frame at depth 1
+│     27 ⊥  deposit F   into depth 1
+│     28 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×3
+│   deposits 6  cleared 0  restored 0  seeded 0  inert 15
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     6 deposit(s), 15 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-31) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 16.00  edit distance 16  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=15  ⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈
+│   movement:
+│      1 ⊥  deposit F   into depth 0
+│      5 ∈  open frame at depth 1
+│      6 ⊥  deposit F   into depth 1
+│      7 ∋  fuse restores 0
+│     10 ∈  open frame at depth 1
+│     11 ⊤  deposit T   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊤  deposit T   into depth 1
+│     17 ∋  fuse restores 0
+│     20 ∈  open frame at depth 1
+│     21 ⊤  deposit T   into depth 1
+│     22 ∋  fuse restores 0
+│     25 ∈  open frame at depth 1
+│     26 ⊥  deposit F   into depth 1
+│     27 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×3
+│   deposits 6  cleared 0  restored 0  seeded 0  inert 16
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     6 deposit(s), 16 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-30) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=16  ∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊥  deposit F   into depth 1
+│      6 ∋  fuse restores 0
+│      9 ∈  open frame at depth 1
+│     10 ⊤  deposit T   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊤  deposit T   into depth 1
+│     16 ∋  fuse restores 0
+│     19 ∈  open frame at depth 1
+│     20 ⊤  deposit T   into depth 1
+│     21 ∋  fuse restores 0
+│     24 ∈  open frame at depth 1
+│     25 ⊥  deposit F   into depth 1
+│     26 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×2
+│   deposits 5  cleared 0  restored 0  seeded 1  inert 17
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥
+│   VACUOUS — no clear ever fired against a live register
+│     5 deposit(s), 17 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥: 2 candidate(s), cheapest below
+    Rotation(-29) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=17  ≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊥  deposit F   into depth 1
+│      5 ∋  fuse restores 0
+│      8 ∈  open frame at depth 1
+│      9 ⊤  deposit T   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊤  deposit T   into depth 1
+│     15 ∋  fuse restores 0
+│     18 ∈  open frame at depth 1
+│     19 ⊤  deposit T   into depth 1
+│     20 ∋  fuse restores 0
+│     23 ∈  open frame at depth 1
+│     24 ⊥  deposit F   into depth 1
+│     25 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×2
+│   deposits 5  cleared 0  restored 0  seeded 1  inert 18
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋
+│   VACUOUS — no clear ever fired against a live register
+│     5 deposit(s), 18 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋: 2 candidate(s), cheapest below
+    Rotation(-28) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 16.00  edit distance 16  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=18  ⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊥  deposit F   into depth 1
+│      4 ∋  fuse restores 0
+│      7 ∈  open frame at depth 1
+│      8 ⊤  deposit T   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊤  deposit T   into depth 1
+│     14 ∋  fuse restores 0
+│     17 ∈  open frame at depth 1
+│     18 ⊤  deposit T   into depth 1
+│     19 ∋  fuse restores 0
+│     22 ∈  open frame at depth 1
+│     23 ⊥  deposit F   into depth 1
+│     24 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×2
+│   deposits 5  cleared 0  restored 0  seeded 0  inert 19
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     5 deposit(s), 19 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻: 2 candidate(s), cheapest below
+    Rotation(-27) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=19  ∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊥  deposit F   into depth 1
+│      3 ∋  fuse restores 0
+│      6 ∈  open frame at depth 1
+│      7 ⊤  deposit T   into depth 1
+│      8 ∋  fuse restores 0
+│     11 ∈  open frame at depth 1
+│     12 ⊤  deposit T   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊤  deposit T   into depth 1
+│     18 ∋  fuse restores 0
+│     21 ∈  open frame at depth 1
+│     22 ⊥  deposit F   into depth 1
+│     23 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×2
+│   deposits 5  cleared 0  restored 0  seeded 0  inert 20
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     5 deposit(s), 20 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-26) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 18.00  edit distance 18  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=20  ⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+│   movement:
+│      1 ⊥  deposit F   into depth 0
+│      5 ∈  open frame at depth 1
+│      6 ⊤  deposit T   into depth 1
+│      7 ∋  fuse restores 0
+│     10 ∈  open frame at depth 1
+│     11 ⊤  deposit T   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊤  deposit T   into depth 1
+│     17 ∋  fuse restores 0
+│     20 ∈  open frame at depth 1
+│     21 ⊥  deposit F   into depth 1
+│     22 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×2
+│   deposits 5  cleared 0  restored 0  seeded 0  inert 21
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     5 deposit(s), 21 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-25) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=21  ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊤  deposit T   into depth 1
+│      6 ∋  fuse restores 0
+│      9 ∈  open frame at depth 1
+│     10 ⊤  deposit T   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊤  deposit T   into depth 1
+│     16 ∋  fuse restores 0
+│     19 ∈  open frame at depth 1
+│     20 ⊥  deposit F   into depth 1
+│     21 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×1
+│   deposits 4  cleared 0  restored 0  seeded 1  inert 22
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥
+│   VACUOUS — no clear ever fired against a live register
+│     4 deposit(s), 22 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥: 2 candidate(s), cheapest below
+    Rotation(-24) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=22  ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊤  deposit T   into depth 1
+│      5 ∋  fuse restores 0
+│      8 ∈  open frame at depth 1
+│      9 ⊤  deposit T   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊤  deposit T   into depth 1
+│     15 ∋  fuse restores 0
+│     18 ∈  open frame at depth 1
+│     19 ⊥  deposit F   into depth 1
+│     20 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×1
+│   deposits 4  cleared 0  restored 0  seeded 1  inert 23
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋
+│   VACUOUS — no clear ever fired against a live register
+│     4 deposit(s), 23 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋: 2 candidate(s), cheapest below
+    Rotation(-23) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 16.00  edit distance 16  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=23  ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊤  deposit T   into depth 1
+│      4 ∋  fuse restores 0
+│      7 ∈  open frame at depth 1
+│      8 ⊤  deposit T   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊤  deposit T   into depth 1
+│     14 ∋  fuse restores 0
+│     17 ∈  open frame at depth 1
+│     18 ⊥  deposit F   into depth 1
+│     19 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×1
+│   deposits 4  cleared 0  restored 0  seeded 0  inert 24
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     4 deposit(s), 24 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻: 2 candidate(s), cheapest below
+    Rotation(-22) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=24  ∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊤  deposit T   into depth 1
+│      3 ∋  fuse restores 0
+│      6 ∈  open frame at depth 1
+│      7 ⊤  deposit T   into depth 1
+│      8 ∋  fuse restores 0
+│     11 ∈  open frame at depth 1
+│     12 ⊤  deposit T   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊥  deposit F   into depth 1
+│     18 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×1
+│   deposits 4  cleared 0  restored 0  seeded 0  inert 25
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     4 deposit(s), 25 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-21) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 18.00  edit distance 18  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=25  ⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+│   movement:
+│      1 ⊤  deposit T   into depth 0
+│      5 ∈  open frame at depth 1
+│      6 ⊤  deposit T   into depth 1
+│      7 ∋  fuse restores 0
+│     10 ∈  open frame at depth 1
+│     11 ⊤  deposit T   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊥  deposit F   into depth 1
+│     17 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×1
+│   deposits 4  cleared 0  restored 0  seeded 0  inert 26
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     4 deposit(s), 26 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-20) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=26  ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊤  deposit T   into depth 1
+│      6 ∋  fuse restores 0
+│      9 ∈  open frame at depth 1
+│     10 ⊤  deposit T   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊥  deposit F   into depth 1
+│     16 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×2, F×1
+│   deposits 3  cleared 0  restored 0  seeded 1  inert 27
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤
+│   VACUOUS — no clear ever fired against a live register
+│     3 deposit(s), 27 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤: 2 candidate(s), cheapest below
+    Rotation(-19) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=27  ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊤  deposit T   into depth 1
+│      5 ∋  fuse restores 0
+│      8 ∈  open frame at depth 1
+│      9 ⊤  deposit T   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊥  deposit F   into depth 1
+│     15 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×2, F×1
+│   deposits 3  cleared 0  restored 0  seeded 1  inert 28
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋
+│   VACUOUS — no clear ever fired against a live register
+│     3 deposit(s), 28 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋: 2 candidate(s), cheapest below
+    Rotation(-18) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 16.00  edit distance 16  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=28  ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊤  deposit T   into depth 1
+│      4 ∋  fuse restores 0
+│      7 ∈  open frame at depth 1
+│      8 ⊤  deposit T   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊥  deposit F   into depth 1
+│     14 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×2, F×1
+│   deposits 3  cleared 0  restored 0  seeded 0  inert 29
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     3 deposit(s), 29 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻: 2 candidate(s), cheapest below
+    Rotation(-17) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 17.00  edit distance 17  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=29  ∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊤  deposit T   into depth 1
+│      3 ∋  fuse restores 0
+│      6 ∈  open frame at depth 1
+│      7 ⊤  deposit T   into depth 1
+│      8 ∋  fuse restores 0
+│     11 ∈  open frame at depth 1
+│     12 ⊥  deposit F   into depth 1
+│     13 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×2, F×1
+│   deposits 3  cleared 0  restored 0  seeded 0  inert 30
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     3 deposit(s), 30 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-16) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 18.00  edit distance 18  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=30  ⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈
+│   movement:
+│      1 ⊤  deposit T   into depth 0
+│      5 ∈  open frame at depth 1
+│      6 ⊤  deposit T   into depth 1
+│      7 ∋  fuse restores 0
+│     10 ∈  open frame at depth 1
+│     11 ⊥  deposit F   into depth 1
+│     12 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×2, F×1
+│   deposits 3  cleared 0  restored 0  seeded 0  inert 31
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     3 deposit(s), 31 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-15) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 16.00  edit distance 16  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=31  ∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊤  deposit T   into depth 1
+│      6 ∋  fuse restores 0
+│      9 ∈  open frame at depth 1
+│     10 ⊥  deposit F   into depth 1
+│     11 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×1, F×1
+│   deposits 2  cleared 0  restored 0  seeded 1  inert 32
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤
+│   VACUOUS — no clear ever fired against a live register
+│     2 deposit(s), 32 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤: 2 candidate(s), cheapest below
+    Rotation(-14) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 15.00  edit distance 15  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=32  ≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊤  deposit T   into depth 1
+│      5 ∋  fuse restores 0
+│      8 ∈  open frame at depth 1
+│      9 ⊥  deposit F   into depth 1
+│     10 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×1, F×1
+│   deposits 2  cleared 0  restored 0  seeded 1  inert 33
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋
+│   VACUOUS — no clear ever fired against a live register
+│     2 deposit(s), 33 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋: 2 candidate(s), cheapest below
+    Rotation(-13) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 14.00  edit distance 14  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=33  ⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊤  deposit T   into depth 1
+│      4 ∋  fuse restores 0
+│      7 ∈  open frame at depth 1
+│      8 ⊥  deposit F   into depth 1
+│      9 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×1, F×1
+│   deposits 2  cleared 0  restored 0  seeded 0  inert 34
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     2 deposit(s), 34 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻: 2 candidate(s), cheapest below
+    Rotation(-12) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 15.00  edit distance 15  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=34  ∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊤  deposit T   into depth 1
+│      3 ∋  fuse restores 0
+│      6 ∈  open frame at depth 1
+│      7 ⊥  deposit F   into depth 1
+│      8 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×1, F×1
+│   deposits 2  cleared 0  restored 0  seeded 0  inert 35
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     2 deposit(s), 35 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-11) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 16.00  edit distance 16  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=35  ⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+│   movement:
+│      1 ⊤  deposit T   into depth 0
+│      5 ∈  open frame at depth 1
+│      6 ⊥  deposit F   into depth 1
+│      7 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×1, F×1
+│   deposits 2  cleared 0  restored 0  seeded 0  inert 36
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     2 deposit(s), 36 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊤∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-10) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 14.00  edit distance 14  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=36  ∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤
+│   movement:
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊥  deposit F   into depth 1
+│      6 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: F×1
+│   deposits 1  cleared 0  restored 0  seeded 1  inert 37
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤
+│   VACUOUS — no clear ever fired against a live register
+│     1 deposit(s), 37 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤: 2 candidate(s), cheapest below
+    Rotation(-9) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 13.00  edit distance 13  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=37  ≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊥  deposit F   into depth 1
+│      5 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: F×1
+│   deposits 1  cleared 0  restored 0  seeded 1  inert 38
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋
+│   VACUOUS — no clear ever fired against a live register
+│     1 deposit(s), 38 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋: 2 candidate(s), cheapest below
+    Rotation(-8) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 12.00  edit distance 12  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=38  ⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊥  deposit F   into depth 1
+│      4 ∋  fuse restores 0
+│ 
+│   final    : F
+│   surviving: F×1
+│   deposits 1  cleared 0  restored 0  seeded 0  inert 39
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻
+│   VACUOUS — no clear ever fired against a live register
+│     1 deposit(s), 39 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻: 2 candidate(s), cheapest below
+    Rotation(-7) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 13.00  edit distance 13  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=39  ∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊥  deposit F   into depth 1
+│      3 ∋  fuse restores 0
+│ 
+│   final    : F
+│   surviving: F×1
+│   deposits 1  cleared 0  restored 0  seeded 0  inert 40
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈
+│   VACUOUS — no clear ever fired against a live register
+│     1 deposit(s), 40 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈: 2 candidate(s), cheapest below
+    Rotation(-6) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 12.00  edit distance 12  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=40  ⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+│   movement:
+│      1 ⊥  deposit F   into depth 0
+│ 
+│   final    : F
+│   surviving: F×1
+│   deposits 1  cleared 0  restored 0  seeded 0  inert 41
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈
+│   VACUOUS — no clear ever fired against a live register
+│     1 deposit(s), 41 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊥∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈: 2 candidate(s), cheapest below
+    Rotation(-5) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 10.00  edit distance 10  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=41  ∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥
+│   movement:
+│      2 ⊙  SEED T into an empty register, no weight
+│ 
+│   final    : T
+│   surviving: none
+│   deposits 0  cleared 0  restored 0  seeded 1  inert 42
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥
+│   VACUOUS — no clear ever fired against a live register
+│     0 deposit(s), 42 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ∋⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥: 2 candidate(s), cheapest below
+    Rotation(-4) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 8.00  edit distance 8  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=42  ⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋
+│   movement:
+│      1 ⊙  SEED T into an empty register, no weight
+│ 
+│   final    : T
+│   surviving: none
+│   deposits 0  cleared 0  restored 0  seeded 1  inert 43
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋
+│   VACUOUS — no clear ever fired against a live register
+│     0 deposit(s), 43 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊙⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋: 2 candidate(s), cheapest below
+    Rotation(-3) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 6.00  edit distance 6  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=43  ⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙
+│   movement:
+│     45 ⊙  SEED T into an empty register, no weight
+│ 
+│   final    : T
+│   surviving: none
+│   deposits 0  cleared 0  restored 0  seeded 1  inert 43
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙
+│   VACUOUS — no clear ever fired against a live register
+│     0 deposit(s), 43 step(s) inert after a fixation
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙   length 45
+│   vacuous: no clear ever fired, so nothing is at risk
+│   insertions that hold:
+│     none — no single glyph repairs this word without breaking tri-ancestral closure
+└─ repair ────────────────────────────────────────────────────
+  repair ⊡⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙: 2 candidate(s), cheapest below
+    Rotation(-2) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 4.00  edit distance 4  ΔS 0.0000  crystal 16389838
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cut k=44  ⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+│   movement:
+│      2 ⊢  CLEAR loses 0   (0 banked in frames)
+│      3 ≻  SEED T into an empty register, no weight
+│      5 ∈  open frame at depth 1
+│      6 ⊥  deposit F   into depth 1
+│      7 ≺  CLEAR loses 1   (1 banked in frames)
+│      8 ∋  fuse restores 1
+│     11 ∈  open frame at depth 1
+│     12 ⊥  deposit F   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊥  deposit F   into depth 1
+│     18 ∋  fuse restores 0
+│     21 ∈  open frame at depth 1
+│     22 ⊥  deposit F   into depth 1
+│     23 ∋  fuse restores 0
+│     26 ∈  open frame at depth 1
+│     27 ⊤  deposit T   into depth 1
+│     28 ∋  fuse restores 0
+│     31 ∈  open frame at depth 1
+│     32 ⊤  deposit T   into depth 1
+│     33 ∋  fuse restores 0
+│     36 ∈  open frame at depth 1
+│     37 ⊤  deposit T   into depth 1
+│     38 ∋  fuse restores 0
+│     41 ∈  open frame at depth 1
+│     42 ⊥  deposit F   into depth 1
+│     43 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 1  inert 0
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ⊣⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡: 13 candidate(s), cheapest below
+    Substitution('⊣', 1) -> ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+    cost 1.07  edit distance 1  ΔS 0.0444  crystal 16389838
+
+══ SECOND PASS — weight | banked | insert | repair on each repair ═
+5 distinct repaired word(s) from the first pass
+
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+repaired word: ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+│   movement:
+│      1 ⊢  CLEAR loses 0   (0 banked in frames)
+│      2 ≻  SEED T into an empty register, no weight
+│      4 ∈  open frame at depth 1
+│      5 ⊥  deposit F   into depth 1
+│      6 ≺  CLEAR loses 1   (1 banked in frames)
+│      7 ∋  fuse restores 1
+│     10 ∈  open frame at depth 1
+│     11 ⊥  deposit F   into depth 1
+│     12 ∋  fuse restores 0
+│     15 ∈  open frame at depth 1
+│     16 ⊥  deposit F   into depth 1
+│     17 ∋  fuse restores 0
+│     20 ∈  open frame at depth 1
+│     21 ⊥  deposit F   into depth 1
+│     22 ∋  fuse restores 0
+│     25 ∈  open frame at depth 1
+│     26 ⊤  deposit T   into depth 1
+│     27 ∋  fuse restores 0
+│     30 ∈  open frame at depth 1
+│     31 ⊤  deposit T   into depth 1
+│     32 ∋  fuse restores 0
+│     35 ∈  open frame at depth 1
+│     36 ⊤  deposit T   into depth 1
+│     37 ∋  fuse restores 0
+│     40 ∈  open frame at depth 1
+│     41 ⊥  deposit F   into depth 1
+│     42 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 1  inert 1
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣: 1440 candidate(s), cheapest below
+    Permutation(1, 7) -> ⊢≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+    cost 0.00  edit distance 0  ΔS 0.0000  crystal 16389838
+
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+repaired word: ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣
+│   movement:
+│      1 ≻  SEED T into an empty register, no weight
+│      3 ∈  open frame at depth 1
+│      4 ⊥  deposit F   into depth 1
+│      5 ≺  CLEAR loses 1   (1 banked in frames)
+│      6 ∋  fuse restores 1
+│      9 ∈  open frame at depth 1
+│     10 ⊥  deposit F   into depth 1
+│     11 ∋  fuse restores 0
+│     14 ∈  open frame at depth 1
+│     15 ⊥  deposit F   into depth 1
+│     16 ∋  fuse restores 0
+│     19 ∈  open frame at depth 1
+│     20 ⊥  deposit F   into depth 1
+│     21 ∋  fuse restores 0
+│     24 ∈  open frame at depth 1
+│     25 ⊤  deposit T   into depth 1
+│     26 ∋  fuse restores 0
+│     29 ∈  open frame at depth 1
+│     30 ⊤  deposit T   into depth 1
+│     31 ∋  fuse restores 0
+│     34 ∈  open frame at depth 1
+│     35 ⊤  deposit T   into depth 1
+│     36 ∋  fuse restores 0
+│     39 ∈  open frame at depth 1
+│     40 ⊥  deposit F   into depth 1
+│     41 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 1  inert 2
+├─ banked ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣: 1500 candidate(s), cheapest below
+    Permutation(0, 6) -> ≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣
+    cost 0.00  edit distance 0  ΔS 0.0000  crystal 16389838
+
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+repaired word: ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻
+│   movement:
+│      2 ∈  open frame at depth 1
+│      3 ⊥  deposit F   into depth 1
+│      4 ≺  CLEAR loses 1   (1 banked in frames)
+│      5 ∋  fuse restores 1
+│      8 ∈  open frame at depth 1
+│      9 ⊥  deposit F   into depth 1
+│     10 ∋  fuse restores 0
+│     13 ∈  open frame at depth 1
+│     14 ⊥  deposit F   into depth 1
+│     15 ∋  fuse restores 0
+│     18 ∈  open frame at depth 1
+│     19 ⊥  deposit F   into depth 1
+│     20 ∋  fuse restores 0
+│     23 ∈  open frame at depth 1
+│     24 ⊤  deposit T   into depth 1
+│     25 ∋  fuse restores 0
+│     28 ∈  open frame at depth 1
+│     29 ⊤  deposit T   into depth 1
+│     30 ∋  fuse restores 0
+│     33 ∈  open frame at depth 1
+│     34 ⊤  deposit T   into depth 1
+│     35 ∋  fuse restores 0
+│     38 ∈  open frame at depth 1
+│     39 ⊥  deposit F   into depth 1
+│     40 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 0  inert 3
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻: 1502 candidate(s), cheapest below
+    Permutation(0, 6) -> ⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻
+    cost 0.00  edit distance 0  ΔS 0.0000  crystal 16389838
+
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+repaired word: ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈
+│   movement:
+│      1 ∈  open frame at depth 1
+│      2 ⊥  deposit F   into depth 1
+│      3 ≺  CLEAR loses 1   (1 banked in frames)
+│      4 ∋  fuse restores 1
+│      7 ∈  open frame at depth 1
+│      8 ⊥  deposit F   into depth 1
+│      9 ∋  fuse restores 0
+│     12 ∈  open frame at depth 1
+│     13 ⊥  deposit F   into depth 1
+│     14 ∋  fuse restores 0
+│     17 ∈  open frame at depth 1
+│     18 ⊥  deposit F   into depth 1
+│     19 ∋  fuse restores 0
+│     22 ∈  open frame at depth 1
+│     23 ⊤  deposit T   into depth 1
+│     24 ∋  fuse restores 0
+│     27 ∈  open frame at depth 1
+│     28 ⊤  deposit T   into depth 1
+│     29 ∋  fuse restores 0
+│     32 ∈  open frame at depth 1
+│     33 ⊤  deposit T   into depth 1
+│     34 ∋  fuse restores 0
+│     37 ∈  open frame at depth 1
+│     38 ⊥  deposit F   into depth 1
+│     39 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 0  inert 4
+├─ banked ────────────────────────────────────────────────────
+│ word   : ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈: 1503 candidate(s), cheapest below
+    Permutation(0, 6) -> ∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣⊣≻⋈
+    cost 0.00  edit distance 0  ΔS 0.0000  crystal 16389838
+
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+repaired word: ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+┌─ weight ────────────────────────────────────────────────────
+│ word   : ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+│   movement:
+│      3 ≻  SEED T into an empty register, no weight
+│      5 ∈  open frame at depth 1
+│      6 ⊥  deposit F   into depth 1
+│      7 ≺  CLEAR loses 1   (1 banked in frames)
+│      8 ∋  fuse restores 1
+│     11 ∈  open frame at depth 1
+│     12 ⊥  deposit F   into depth 1
+│     13 ∋  fuse restores 0
+│     16 ∈  open frame at depth 1
+│     17 ⊥  deposit F   into depth 1
+│     18 ∋  fuse restores 0
+│     21 ∈  open frame at depth 1
+│     22 ⊥  deposit F   into depth 1
+│     23 ∋  fuse restores 0
+│     26 ∈  open frame at depth 1
+│     27 ⊤  deposit T   into depth 1
+│     28 ∋  fuse restores 0
+│     31 ∈  open frame at depth 1
+│     32 ⊤  deposit T   into depth 1
+│     33 ∋  fuse restores 0
+│     36 ∈  open frame at depth 1
+│     37 ⊤  deposit T   into depth 1
+│     38 ∋  fuse restores 0
+│     41 ∈  open frame at depth 1
+│     42 ⊥  deposit F   into depth 1
+│     43 ∋  fuse restores 0
+│ 
+│   final    : TF
+│   surviving: T×3, F×5
+│   deposits 8  cleared 1  restored 1  seeded 1  inert 0
+├─ banked ────────────────────────────────────────────────────
+│ word   : ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+│   OK — weight survived 1 live clear(s) by being banked
+│     up to 6 unit(s) of repeat deposit may be flattened by a
+│     fold between sibling regions: the fold keeps the larger,
+│     not the sum. Deposits in ONE region keep both.
+├─ insert ────────────────────────────────────────────────────
+│ word   : ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡   length 45
+│   already holds — nothing to repair
+└─ repair ────────────────────────────────────────────────────
+  repair ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡: 1496 candidate(s), cheapest below
+    Permutation(0, 1) -> ⊣⊣≻⋈∈⊥≺∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡
+    cost 0.00  edit distance 0  ΔS 0.0000  crystal 16389838
+

@@ -1,0 +1,5656 @@
+(imscrbgrmr) mrnob0dy666@devilsdevice:~/imsgct/p4rakernel/p4ramill$ vox Imscribing/Millennium/Erdos/Problems/Problem1135.lean
+Imscribing/Millennium/Erdos/Problems/Problem1135.lean  raw  entry 0x1000  8820 byte(s) of code
+  587 function(s), 2775 instruction(s)
+  claimed 88% of the image (7839 of 8820 bytes)
+
+  587 function(s) by descent, 169 more by fallback sweep
+  covered 94% of the image (8326 of 8820 bytes)
+  verdicts  T 0   B 295   N 461   F 0
+(imscrbgrmr) mrnob0dy666@devilsdevice:~/imsgct/p4rakernel/p4ramill$ vox imasm Imscribing/Millennium/Erdos/Problems/Problem1135.lean
+; ⊙ module (raw x86-64)
+; entry 0x1000
+; bits 64
+@0x1000
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x2074726f
+@0x1007
+⊞       popad
+@0x1009
+∈       e       i:0x1073
+@0x100c
+⊞       imul    r:esp   m:rdx::1:0x2e:4 i:0x61746144
+@0x1013
+⊞       popad
+@0x1016
+∈       e       i:0x1046
+@0x1018
+⊞       popad
+@0x101a
+∈       ae      i:0x1085
+@0x101c
+⋈       movsxd  r:rcx   m:rdx::1:0x0:4
+@0x101e
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x2074726f
+@0x1025
+⊞       popad
+@0x1027
+∈       e       i:0x1091
+@0x102a
+⊞       imul    r:esp   m:rdx::1:0x2e:4 i:0x74636154
+@0x1031
+⊞       imul    r:esp   m:rbx::1:0xa:4  i:0x6f706d69
+@0x1038
+∈       b       i:0x10ae
+@0x103a
+◻       and     m:rbp::1:0x61:1 r:cl
+@0x103d
+∈       e       i:0x10a7
+@0x1040
+⊞       imul    r:esp   m:rdx::1:0x2e:4 i:0x756f7247
+@0x1047
+∈       o       i:0x109d
+@0x1049
+⋈       push    i:0x79726f65
+@0x104e
+∈       b       i:0x10b6
+@0x1052
+∈       b       i:0x10a4
+@0x105c
+∈       e       i:0x1068
+@0x105e
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x2074726f
+@0x1065
+⊞       popad
+@0x1067
+∈       e       i:0x10d1
+@0x106a
+⊞       imul    r:esp   m:rdx::1:0x2e:4 i:0x61746144
+@0x1071
+⋈       pop     r:rdx
+@0x1075
+⊞       popad
+@0x1079
+∈       ae      i:0x10e4
+@0x107b
+⋈       movsxd  r:rcx   m:rdx::1:0x0:4
+@0x107d
+⊞       or      r:ch    m:rsi::1:0x61:1
+@0x1081
+∈       ae      i:0x10f4
+@0x1084
+⊞       popad
+@0x1085
+⋈       movsxd  r:rsp   m:rbp::1:0x20:4
+@0x1088
+∈       b       i:0x10ef
+@0x108c
+∈       ae      i:0x10bf
+@0x108e
+◻       xor     m:rbx::1:0x0:4  r:esi
+@0x1090
+⊞       xor     r:eax   i:0x706f0a0a
+@0x1097
+◻       and     m:rbx::1:0x63:1 r:dh
+@0x109b
+∈       o       i:0x1102
+@0x109d
+◻       and     m:rsi::1:0x61:1 r:cl
+@0x10a1
+∈       e       i:0x10ad
+@0x10a3
+⊞       or      r:ah    m:rbp::2:0x66:1
+@0x10a7
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x10ab
+◻       and     m:rax::1:0x0:1  r:ch
+@0x10ae
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x10b0
+⊞       and     r:dl    r:ah
+@0x10b2
+⊤       test    m:rbp::1:0x203a2029:1   r:dl
+@0x10b9
+⊤       test    m:rbp::1:0x203d3a20:1   r:dl
+@0x10bf
+⊞       imul    r:esp   m:rsi::1:0x20:4 i:0x6e657645
+@0x10c6
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x10c9
+∈       e       i:0x1133
+@0x10cd
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x10d1
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x10d3
+◻       and     m:rbp::1:0x6c:1 r:ah
+@0x10d6
+∈       ae      i:0x113d
+@0x10d8
+◻       and     m:rax::1:0x0:1  r:ch
+@0x10da
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x10dc
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x10df
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x10e1
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x10e3
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x10e6
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x10e8
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x10ee
+⊞       popad
+@0x10ef
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x10f3
+⋈       pop     r:rdi
+@0x10f4
+∈       be      i:0x115c
+@0x10f8
+◻       and     m:rbx::1:0x6e:1 r:bh
+@0x10fb
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x10fd
+⊞       and     r:dl    r:ah
+@0x10ff
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x1105
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1107
+◻       and     m:rbp::1:0x76:1 r:al
+@0x110c
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x110f
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1111
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1115
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1118
+⊤       cmp     r:eax   i:0x2f206e20
+@0x111d
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x111f
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1121
+⊤       cmp     r:eax   i:0xa796220
+@0x1126
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1128
+∈       ne      i:0x1198
+@0x112d
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1132
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1134
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x1137
+◻       and     m:rbx::1:0x69:1 r:bl
+@0x113a
+⋈       pop     r:rdi
+@0x113c
+∈       o       i:0x11ad
+@0x113e
+∈       ae      i:0x1160
+@0x1140
+⋈       push    i:0x6c0a0a5d
+@0x1148
+⊞       popad
+@0x1149
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x114d
+⋈       pop     r:rdi
+@0x114f
+◻       and     m:rbx::1:0x6e:1 r:bh
+@0x1154
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1156
+⊞       and     r:dl    r:ah
+@0x1158
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x115e
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1160
+⊞       and     r:dl    r:al
+@0x1163
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1168
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x116b
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x116d
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1171
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1174
+⊤       cmp     r:eax   i:0x20332820
+@0x1179
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x117c
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x117e
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1180
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1183
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1185
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1187
+⊤       cmp     r:eax   i:0xa796220
+@0x118c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x118e
+∈       ne      i:0x11fe
+@0x1193
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1198
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x119a
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x119d
+◻       and     m:rbx::1:0x69:1 r:bl
+@0x11a0
+⋈       pop     r:rdi
+@0x11a3
+◻       and     m:rax::1:0x5d:1 r:ch
+@0x11a8
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x11ae
+⊞       popad
+@0x11af
+◻       and     m:rax::1:0x61:1 r:ch
+@0x11b3
+⋈       pop     r:rdi
+@0x11b5
+∈       ae      i:0x121c
+@0x11bb
+∈       ae      i:0x11de
+@0x11be
+∈       np      i:0x122e
+@0x11c0
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x11c2
+⊞       and     r:dl    r:ah
+@0x11c4
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x11cb
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x11cd
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x11cf
+⊞       and     r:dl    r:ah
+@0x11d1
+⋈       mov     m:rax::1:0x3a20296e:4   r:esp
+@0x11d8
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x11dc
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x11de
+◻       and     m:rax::1:0x0:1  r:bh
+@0x11e2
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x11e4
+⊤       cmp     r:eax   i:0xa796220
+@0x11e9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x11eb
+∈       s       i:0x124f
+@0x11ee
+⋈       movsxd  r:rsi   m:rax::1:0x4e:4
+@0x11f2
+⊞       popad
+@0x11f3
+∈       e       i:0x1223
+@0x11f5
+⊞       imul    r:esi   m:rsi::1:0x5f:4 i:0x735f746c
+@0x11ff
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1203
+∈       ns      i:0x1225
+@0x1207
+⊞       popad
+@0x120a
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x120c
+◻       sub     m:rdx::1:0x79:1 r:ah
+@0x120f
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1212
+⊞       popad
+@0x1215
+◻       sub     m:rdx::1:0x0:4  r:ecx
+@0x1217
+⊞       or      r:ch    m:rbp::2:0x6d:1
+@0x121c
+⊞       popad
+@0x121d
+◻       and     m:rdi::1:0x64:1 r:ch
+@0x1220
+⋈       pop     r:rdi
+@0x1222
+∈       o       i:0x1293
+@0x1224
+∈       ae      i:0x128f
+@0x1226
+∈       e       i:0x1291
+@0x1228
+∈       be      i:0x128f
+@0x122a
+◻       and     m:rbx::1:0x6e:1 r:bh
+@0x122d
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x122f
+⊞       and     r:dl    r:ah
+@0x1231
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x1238
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x123a
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x123c
+⊞       and     r:dl    r:ah
+@0x123e
+⋈       mov     m:rax::1:0x3a20296e:4   r:esp
+@0x1245
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1247
+⊞       and     r:dl    r:ah
+@0x1249
+⋈       mov     m:rax::1:0x2a203328:4   r:esp
+@0x1250
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1253
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1255
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1257
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x1259
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x125b
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x125d
+⊤       cmp     r:eax   i:0xa796220
+@0x1262
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1266
+⊞       popad
+@0x1269
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x126f
+⊞       popad
+@0x1270
+◻       and     m:rsi::1:0x6f:1 r:ch
+@0x1273
+∈       e       i:0x12d4
+@0x1275
+∈       be      i:0x12dd
+@0x1279
+⋈       pop     r:rdi
+@0x127c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x127f
+⊞       and     r:dl    r:al
+@0x1282
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1287
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1289
+◻       xor     m:rax::1:0x0:4  r:esp
+@0x128b
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x128e
+⊤       test    m:rbp::1:0x3d3a2029:1   r:dl
+@0x1294
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x1297
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1299
+◻       and     m:rcx::1:0x6e:1 r:ch
+@0x129c
+∈       e       i:0x1310
+@0x129f
+◻       and     m:rax::1:0xa:1  r:ch
+@0x12a2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x12a4
+∈       b       i:0x1309
+@0x12a6
+⊞       popad
+@0x12a7
+∈       ae      i:0x130e
+@0x12a9
+∈       ae      i:0x12cb
+@0x12ab
+⋈       push    i:0x74697720
+@0x12b0
+⋈       push    i:-0x57601de0
+@0x12b5
+∈       b       i:0x12e3
+@0x12b7
+◻       and     m:rax::1:0x72:1 r:ch
+@0x12bc
+⊤       test    r:eax   i:0x6f20200a
+@0x12c2
+⊞       popad
+@0x12c5
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x12cb
+⊞       popad
+@0x12cc
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x12d0
+⋈       pop     r:rdi
+@0x12d3
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x12d6
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x12da
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x12dc
+◻       and     m:rip::1:0x3a203220:1   r:bh
+@0x12e2
+⊤       cmp     r:eax   i:0xa796220
+@0x12e7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x12e9
+∈       ne      i:0x1359
+@0x12ee
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x12f3
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x12f5
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x12f8
+◻       and     m:rbx::1:0x69:1 r:bl
+@0x12fb
+⋈       pop     r:rdi
+@0x12fe
+◻       and     m:rsi::1:0x6f:1 r:ch
+@0x1303
+∈       e       i:0x1364
+@0x1305
+∈       be      i:0x136d
+@0x1309
+⋈       pop     r:rdi
+@0x130c
+⋈       pop     r:rbp
+@0x130e
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1310
+◻       and     m:rsi::1:0x6f:1 r:ch
+@0x1313
+∈       b       i:0x1382
+@0x1315
+⋈       pop     r:rdi
+@0x1317
+∈       ne      i:0x1386
+@0x1319
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x131f
+⊞       popad
+@0x1320
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1324
+⋈       pop     r:rdi
+@0x1325
+∈       e       i:0x139e
+@0x1328
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x132a
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x132e
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1330
+◻       and     m:rip::1:0x3a203120:1   r:bh
+@0x1336
+⊤       cmp     r:eax   i:0xa796220
+@0x133b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x133d
+∈       ne      i:0x13ad
+@0x1342
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1347
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1349
+◻       and     m:rax::1:0x61:1 r:ch
+@0x134c
+∈       be      i:0x13b3
+@0x134e
+◻       and     m:rax::1:0x32:1 r:ch
+@0x1351
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1353
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1358
+◻       and     m:rax::1:0x0:1  r:ch
+@0x135a
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x135c
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x135f
+⊤       test    m:rbp::1:0x3d3a2029:1   r:dl
+@0x1365
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x1368
+◻       and     m:rsi::1:0x6f:1 r:ch
+@0x136b
+∈       b       i:0x13da
+@0x136d
+⋈       pop     r:rdi
+@0x136f
+∈       ne      i:0x13de
+@0x1371
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1373
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x1376
+◻       and     m:rbx::1:0x69:1 r:bl
+@0x1379
+⋈       pop     r:rdi
+@0x137b
+∈       o       i:0x13ec
+@0x137d
+∈       ae      i:0x139f
+@0x137f
+⋈       push    i:0x200a5d32
+@0x1384
+◻       and     m:rsi::1:0x6f:1 r:ch
+@0x1387
+∈       b       i:0x13f6
+@0x1389
+⋈       pop     r:rdi
+@0x138b
+∈       ne      i:0x13fa
+@0x138d
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1393
+⊞       popad
+@0x1394
+◻       and     m:rdx::1:0x65:1 r:dh
+@0x1397
+⊞       popad
+@0x1398
+⋈       movsxd  r:rbp   m:rax::1:0x65:4
+@0x139b
+∈       ae      i:0x13fc
+@0x139f
+⋈       pop     r:rdi
+@0x13a2
+⋈       pop     r:rdi
+@0x13a4
+∈       e       i:0x141d
+@0x13a7
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x13a9
+⊞       and     r:dl    r:ah
+@0x13ab
+⋈       mov     m:rbx::1:-0x1ddf94e0:1  r:al
+@0x13b1
+⋈       mov     m:rbp::1:0x202c3120:4   r:esp
+@0x13b7
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x13bb
+⋈       pop     r:rsi
+@0x13bc
+⋈       pop     r:rbx
+@0x13bd
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x13c1
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x13c3
+⊤       cmp     r:eax   i:0x3a203120
+@0x13c8
+⊤       cmp     r:eax   i:0xa796220
+@0x13cd
+◻       and     m:rax::1:0x0:1  r:ah
+@0x13cf
+∈       b       i:0x1436
+@0x13d1
+⊞       imul    r:bp    m:rsi::1:0x65:2 i:-0x1de0
+@0x13d8
+⊤       test    r:al    i:0x31
+@0x13da
+⊞       sub     r:al    i:0x20
+@0x13dd
+∈       ns      i:0x13ff
+@0x13e1
+∈       b       i:0x1450
+@0x13e3
+⋈       pop     r:rdi
+@0x13e5
+∈       ne      i:0x1454
+@0x13e7
+⊞       sub     r:al    i:0x20
+@0x13ea
+⋈       pop     r:rdi
+@0x13ed
+⊤       test    r:eax   i:0x7320200a
+@0x13f2
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x6f635b20
+@0x13fa
+⋈       pop     r:rdi
+@0x13fb
+∈       e       i:0x1474
+@0x13fe
+⋈       pop     r:rbp
+@0x13ff
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1405
+⊞       popad
+@0x1406
+◻       and     m:rdx::1:0x65:1 r:dh
+@0x1409
+⊞       popad
+@0x140a
+⋈       movsxd  r:rbp   m:rax::1:0x65:4
+@0x140d
+∈       ae      i:0x146e
+@0x1411
+⋈       pop     r:rdi
+@0x1414
+⋈       pop     r:rdi
+@0x1418
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x141b
+⊞       and     r:dl    r:ah
+@0x141d
+⋈       mov     m:rbx::1:-0x1ddf94e0:1  r:al
+@0x1423
+⋈       mov     m:rbp::1:0x202c3120:4   r:esp
+@0x1429
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x142d
+⋈       pop     r:rsi
+@0x142e
+⋈       pop     r:rbx
+@0x142f
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x1433
+◻       xor     m:rax::1:0x0:4  r:esp
+@0x1435
+⊤       cmp     r:eax   i:0x3a203120
+@0x143a
+⊤       cmp     r:eax   i:0xa796220
+@0x143f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1441
+∈       b       i:0x14a8
+@0x1443
+⊞       imul    r:bp    m:rsi::1:0x65:2 i:-0x1de0
+@0x144a
+⊤       test    r:al    i:0x32
+@0x144c
+⊞       sub     r:al    i:0x20
+@0x144f
+∈       ns      i:0x1471
+@0x1453
+∈       b       i:0x14c2
+@0x1455
+⋈       pop     r:rdi
+@0x1457
+∈       ne      i:0x14c6
+@0x1459
+⊞       sub     r:al    i:0x20
+@0x145c
+⋈       pop     r:rdi
+@0x145f
+⊤       test    r:eax   i:0x7320200a
+@0x1464
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x6f635b20
+@0x146c
+⋈       pop     r:rdi
+@0x146f
+⊞       sub     r:al    i:0x20
+@0x1472
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1475
+⋈       pop     r:rdi
+@0x1476
+∈       e       i:0x14ef
+@0x1479
+⋈       pop     r:rbp
+@0x147a
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1480
+⊞       popad
+@0x1481
+◻       and     m:rbx::1:0x74:1 r:dh
+@0x1484
+∈       o       i:0x14e6
+@0x1488
+⋈       pop     r:rdi
+@0x148a
+∈       b       i:0x14f1
+@0x148c
+⊞       popad
+@0x148d
+⋈       movsxd  r:rbp   m:rax::1:0x65:4
+@0x1490
+∈       ae      i:0x14b2
+@0x1492
+∈       np      i:0x1501
+@0x1494
+◻       and     m:rbx::1:0x20:1 r:ch
+@0x1497
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x149a
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x14a0
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x14a2
+◻       and     m:rax::1:0x0:1  r:ch
+@0x14a4
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x14a7
+⋈       pop     r:rsi
+@0x14a8
+⋈       pop     r:rbx
+@0x14a9
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x14ad
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x14b1
+◻       and     m:rbp::1:0x29:1 r:ch
+@0x14b4
+◻       and     m:rip::1:0x20293120:1   r:bh
+@0x14ba
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x14bc
+◻       and     m:rax::1:0x0:1  r:ah
+@0x14be
+◻       and     m:rax::1:0x0:1  r:ah
+@0x14c0
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x14c4
+⋈       pop     r:rsi
+@0x14c5
+⋈       pop     r:rbx
+@0x14c6
+⊞       imul    r:esp   m:rax::1:0x0:4  i:0x2b
+@0x14c9
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x14cb
+⋈       pop     r:rbp
+@0x14cc
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x14cf
+◻       and     m:rip::1:0x3a203120:1   r:bh
+@0x14d5
+⊤       cmp     r:eax   i:0xa796220
+@0x14da
+◻       and     m:rax::1:0x0:1  r:ah
+@0x14dc
+∈       b       i:0x1555
+@0x14de
+◻       and     m:rbx::1:0x46:1 r:bl
+@0x14e1
+∈       ne      i:0x1551
+@0x14e3
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x14e8
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x5f657461
+@0x14f1
+∈       ae      i:0x1568
+@0x14f3
+⋈       movsxd  r:rsp   m:rbx::1:0x5f:4
+@0x14f6
+⊞       popad
+@0x14f7
+∈       o       i:0x1569
+@0x14fa
+∈       ns      i:0x1523
+@0x14fc
+⋈       pop     r:rbp
+@0x14fd
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x14ff
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x1502
+⊞       popad
+@0x1503
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x1507
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1509
+⊞       sub     r:eax   i:0x644f202d
+@0x150e
+◻       and     m:rbx::1:0x74:1 r:dh
+@0x1512
+∈       o       i:0x1588
+@0x1515
+◻       and     m:rax::1:0x72:1 r:dh
+@0x1519
+∈       ne      i:0x157f
+@0x151c
+◻       and     m:rbp::1:0x76:1 r:ah
+@0x1522
+◻       and     m:rdx::1:0x65:1 r:dh
+@0x1525
+∈       ae      i:0x159c
+@0x1528
+∈       e       i:0x159d
+@0x152a
+◻       and     m:rdi::1:0x68:1 r:dh
+@0x152f
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1533
+⋈       mov     m:rcx::1:0x28203120:4   r:esp
+@0x153b
+◻       and     m:rcx:rbp:1:0x0:1       r:dh
+@0x153f
+⊞       or      r:ch    m:rbp::2:0x6d:1
+@0x1544
+⊞       popad
+@0x1545
+◻       and     m:rdi::1:0x64:1 r:ch
+@0x1548
+⋈       pop     r:rdi
+@0x154c
+⋈       pop     r:rdi
+@0x1550
+∈       ne      i:0x15c4
+@0x1552
+⋈       pop     r:rdi
+@0x1555
+⋈       pop     r:rdi
+@0x1557
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x7365696c
+@0x155e
+⋈       pop     r:rdi
+@0x155f
+∈       be      i:0x15c7
+@0x1563
+⋈       pop     r:rdi
+@0x1564
+∈       b       i:0x15cb
+@0x1566
+∈       ae      i:0x15dd
+@0x1569
+∈       e       i:0x158b
+@0x156b
+∈       np      i:0x15db
+@0x156d
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x156f
+⊞       and     r:dl    r:ah
+@0x1571
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x1577
+⋈       pop     r:rdi
+@0x1579
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x157d
+⊞       and     r:dl    r:al
+@0x1580
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1585
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x1588
+◻       and     m:rax::1:0x0:1  r:ch
+@0x158a
+⋈       push    i:0x646f6d5f
+@0x158f
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1591
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1594
+⊞       and     r:eax   i:0x3d203420
+@0x1599
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x159b
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x159d
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x159f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x15a1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x15a3
+∈       be      i:0x160b
+@0x15a7
+◻       and     m:rax::1:0x0:1  r:ch
+@0x15a9
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x15ab
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x15ad
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x15b0
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x15b2
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x15b4
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x15b6
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x15b8
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x15ba
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x15c0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x15c2
+⋈       push    i:0x20657661
+@0x15c7
+⋈       push    i:0x7669645f
+@0x15cc
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x15ce
+◻       and     m:rax::1:0x0:1  r:ch
+@0x15d0
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x15d2
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x15d5
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x15d7
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x15d9
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x15db
+⊞       and     r:eax   i:0x3d203420
+@0x15e0
+◻       and     m:rax::1:0x0:1  r:dh
+@0x15e2
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x15e4
+⊤       cmp     r:eax   i:0x20796220
+@0x15eb
+⊞       popad
+@0x15ee
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x15f0
+◻       and     m:rax::1:0x61:1 r:ch
+@0x15f3
+∈       be      i:0x165a
+@0x15f5
+◻       and     m:rax::1:0x34:1 r:ch
+@0x15f8
+⋈       pop     r:rdi
+@0x15f9
+∈       be      i:0x1660
+@0x15fc
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x15fe
+◻       and     m:rax::1:0x0:1  r:dh
+@0x1602
+⋈       mov     m:rbx::1:0x20332820:1   r:ah
+@0x1608
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x160b
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x160d
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x160f
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1611
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x1617
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1619
+◻       and     m:rax::1:0x0:1  r:ah
+@0x161b
+∈       b       i:0x1694
+@0x161d
+◻       and     m:rbx::1:0x4e:1 r:bl
+@0x1620
+⊞       popad
+@0x1621
+∈       e       i:0x1651
+@0x1623
+∈       be      i:0x168a
+@0x1626
+⋈       pop     r:rdi
+@0x1627
+⊞       imul    r:esp   m:rsi::1:0x66:4 i:0x646f6d5f
+@0x162e
+⋈       pop     r:rdi
+@0x162f
+∈       no      i:0x1691
+@0x1632
+∈       p       i:0x1699
+@0x1634
+∈       b       i:0x16a5
+@0x1636
+⋈       pop     r:rbp
+@0x1637
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1639
+◻       and     m:rax::1:0x0:1  r:ah
+@0x163b
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x163e
+⊞       popad
+@0x163f
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x1643
+⋈       pop     r:rdi
+@0x1644
+⊞       imul    r:esi   m:rsi::1:0xa:4  i:0x626f2020
+@0x164c
+∈       e       i:0x16af
+@0x164e
+⊞       imul    r:ebp   m:rsi::1:0x20:4 i:0x6ba89fe2
+@0x1655
+⊞       sub     r:al    i:0x20
+@0x1657
+⋈       push    i:-0x56601d95
+@0x165c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x165e
+⊤       cmp     r:eax   i:0x5f346820
+@0x1663
+∈       be      i:0x16ca
+@0x1666
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1668
+◻       and     m:rbp::1:0x73:1 r:dh
+@0x166b
+◻       and     m:rbx::1:0xa:1  r:ch
+@0x166f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1671
+∈       b       i:0x16ea
+@0x1673
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x1676
+⊞       imul    r:ebx   m:rbp::1:0xa:4  i:0x20
+@0x167a
+◻       and     m:rdx::1:0x69:1 r:dh
+@0x167e
+⋈       pop     r:rdi
+@0x1681
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1684
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1687
+⊞       popad
+@0x168a
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1690
+⊞       popad
+@0x1691
+◻       and     m:rdi::1:0x64:1 r:ch
+@0x1694
+⋈       pop     r:rdi
+@0x1698
+⋈       pop     r:rdi
+@0x169c
+∈       ne      i:0x1710
+@0x169e
+⋈       pop     r:rdi
+@0x169f
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x16a2
+∈       e       i:0x1716
+@0x16a4
+⊞       popad
+@0x16a5
+⋈       movsxd  r:rsi   m:rbx:rsi:2:0x20:4
+@0x16a9
+∈       np      i:0x1719
+@0x16ab
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x16ad
+⊞       and     r:dl    r:ah
+@0x16af
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x16b5
+⋈       pop     r:rdi
+@0x16b7
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x16bb
+⊞       and     r:dl    r:al
+@0x16be
+◻       and     m:rbp::1:0x76:1 r:al
+@0x16c3
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x16c6
+◻       and     m:rax::1:0x0:1  r:ch
+@0x16c8
+⋈       push    i:0x646f6d5f
+@0x16cd
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x16cf
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x16d2
+⊞       and     r:eax   i:0x3d203420
+@0x16d7
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x16d9
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x16db
+◻       sub     m:rax::1:0x6e:1 r:ch
+@0x16de
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x16e0
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x16e2
+◻       and     m:rax::1:0x0:1  r:bh
+@0x16e6
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x16e8
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x16ea
+◻       and     m:rax::1:0x0:1  r:ah
+@0x16ec
+◻       and     m:rax::1:0x0:1  r:ah
+@0x16ee
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x16f1
+◻       and     m:rax::1:0x0:1  r:ch
+@0x16f3
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x16f6
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x16f9
+◻       and     m:rax::1:0x0:1  r:bh
+@0x16fd
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x16ff
+⊤       cmp     r:eax   i:0xa796220
+@0x1704
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1706
+⋈       push    i:0x20657661
+@0x170b
+⋈       push    i:0x6576655f
+@0x1711
+⋈       pop     r:rdi
+@0x1712
+∈       b       i:0x1779
+@0x1714
+∈       ae      i:0x178b
+@0x1717
+∈       e       i:0x1739
+@0x1719
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x171b
+∈       be      i:0x1783
+@0x171f
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1721
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1724
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x1727
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1729
+⊤       cmp     r:eax   i:0xa796220
+@0x172e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1730
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1732
+∈       b       i:0x17ab
+@0x1734
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x1739
+⋈       pop     r:rdi
+@0x173b
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1741
+⋈       pop     r:rbp
+@0x1744
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1746
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1748
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x174b
+⊞       popad
+@0x174c
+⋈       movsxd  r:rsi   m:rax::1:0x6f:4
+@0x1750
+⋈       pop     r:rdi
+@0x1755
+⋈       pop     r:rdi
+@0x1759
+∈       ne      i:0x17cd
+@0x175b
+⋈       pop     r:rdi
+@0x175e
+⋈       pop     r:rdi
+@0x1760
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x7365696c
+@0x1767
+⋈       pop     r:rdi
+@0x1768
+∈       be      i:0x17d0
+@0x176c
+⋈       pop     r:rdi
+@0x176d
+∈       b       i:0x17d4
+@0x176f
+∈       ae      i:0x17e6
+@0x1772
+∈       e       i:0x1794
+@0x1774
+⋈       push    i:0x64646f5f
+@0x1779
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x177e
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1781
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1784
+∈       be      i:0x17eb
+@0x1786
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1789
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x178c
+⋈       pop     r:rdi
+@0x178d
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1790
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1792
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1796
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1798
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x179b
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x179e
+◻       and     m:rip::1:0x20332820:1   r:bh
+@0x17a4
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x17a7
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x17a9
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x17ab
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x17ae
+◻       and     m:rax::1:0x0:1  r:dh
+@0x17b1
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x17b7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x17b9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x17bb
+∈       b       i:0x1834
+@0x17bd
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x17c2
+⋈       pop     r:rdi
+@0x17c4
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x17ca
+⋈       pop     r:rbp
+@0x17cd
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x17cf
+◻       and     m:rax::1:0x0:1  r:ah
+@0x17d1
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x17d4
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x17d9
+⋈       pop     r:rdi
+@0x17da
+∈       be      i:0x1842
+@0x17de
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x17e1
+∈       be      i:0x1849
+@0x17e5
+⋈       pop     r:rdi
+@0x17e6
+∈       b       i:0x184d
+@0x17e8
+∈       ae      i:0x185f
+@0x17eb
+∈       e       i:0x184a
+@0x17ed
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x17ef
+◻       and     m:rax::1:0x0:1  r:ah
+@0x17f1
+◻       and     m:rax::1:0x61:1 r:ch
+@0x17f4
+∈       be      i:0x185b
+@0x17f6
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x17f8
+◻       and     m:rax::1:0x0:1  r:ch
+@0x17fa
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x17fc
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x17ff
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1801
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1803
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1805
+⊞       and     r:eax   i:0x3d203420
+@0x180a
+◻       and     m:rax::1:0x0:1  r:dh
+@0x180c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x180e
+⊤       cmp     r:eax   i:0xa796220
+@0x1813
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1815
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1817
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1819
+⋈       push    i:0x20657661
+@0x181e
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1821
+◻       and     m:rip::1:0x3d203420:1   r:ah
+@0x1827
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1829
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x182b
+⊤       cmp     r:eax   i:0x6d5f6820
+@0x1831
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1834
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1836
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1838
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x183b
+⊞       popad
+@0x183e
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1840
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1842
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1845
+⊞       popad
+@0x1848
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x184a
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x184d
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x1850
+⋈       pop     r:rdi
+@0x1851
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1854
+⋈       pop     r:rdi
+@0x1855
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1858
+⋈       pop     r:rbp
+@0x1859
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x185b
+◻       and     m:rax::1:0x61:1 r:ch
+@0x185e
+∈       be      i:0x18c5
+@0x1860
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1862
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1864
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x1866
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1869
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x186b
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x186d
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1870
+◻       and     m:rax::1:0x0:1  r:dh
+@0x1873
+⊤       cmp     r:al    i:0x20
+@0x1876
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1878
+⊤       cmp     r:eax   i:0xa796220
+@0x187d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x187f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1881
+⋈       push    i:0x20657661
+@0x1886
+⋈       push    i:0x7669645f
+@0x188b
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x188d
+◻       and     m:rax::1:0x0:1  r:dh
+@0x1891
+⋈       mov     m:rbx::1:0x20332820:1   r:ah
+@0x1897
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x189a
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x189c
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x189e
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x18a0
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x18a6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x18a8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x18aa
+◻       and     m:rax::1:0x0:1  r:ah
+@0x18ac
+⋈       push    i:0x20657661
+@0x18b1
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x18b4
+◻       and     m:rip::1:0x3d203420:1   r:ah
+@0x18ba
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x18bc
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x18be
+⊤       cmp     r:eax   i:0x6d5f6820
+@0x18c4
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x18c7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x18c9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x18cb
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x18ce
+⊞       popad
+@0x18d1
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x18d3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x18d5
+◻       and     m:rdi::1:0x62:1 r:ch
+@0x18d8
+∈       e       i:0x193b
+@0x18da
+⊞       imul    r:ebp   m:rsi::1:0x20:4 i:0x6ba89fe2
+@0x18e1
+⊞       sub     r:al    i:0x20
+@0x18e3
+⋈       push    i:-0x56601d95
+@0x18e8
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x18ea
+⊤       cmp     r:eax   i:0x645f6820
+@0x18ef
+⊞       imul    r:esi   m:rsi::1:0xa:4  i:0x20202020
+@0x18f6
+∈       b       i:0x196f
+@0x18f8
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x18fb
+⊞       imul    r:ebx   m:rbp::1:0xa:4  i:0x20
+@0x18ff
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1901
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1904
+⊞       popad
+@0x1907
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1909
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x190c
+⊞       popad
+@0x190d
+⋈       movsxd  r:rsi   m:rax::1:0x74:4
+@0x1911
+⋈       push    i:0xa0a7369
+@0x191a
+⊞       popad
+@0x191b
+◻       and     m:rbp::1:0x76:1 r:ah
+@0x1920
+⋈       pop     r:rdi
+@0x1921
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x1924
+∈       e       i:0x1998
+@0x1926
+⊞       popad
+@0x1927
+⋈       movsxd  r:rsi   m:rbx:rsi:2:0x20:4
+@0x192b
+∈       np      i:0x199b
+@0x192d
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x192f
+⊞       and     r:dl    r:ah
+@0x1931
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x1937
+⋈       pop     r:rdi
+@0x1938
+∈       be      i:0x19a0
+@0x193c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x193e
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1943
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x1946
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1948
+⋈       push    i:0x203a206e
+@0x194e
+◻       and     m:rsi::1:0x0:1  r:bh
+@0x1950
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1952
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1954
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1956
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1959
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x195c
+⊤       cmp     r:al    i:0x20
+@0x195f
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1961
+⊤       cmp     r:eax   i:0xa796220
+@0x1966
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1968
+∈       b       i:0x19e1
+@0x196a
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x196f
+⋈       pop     r:rdi
+@0x1970
+∈       be      i:0x19d8
+@0x1974
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1977
+∈       be      i:0x19df
+@0x197b
+⋈       pop     r:rbp
+@0x197c
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x197e
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1981
+∈       be      i:0x19e8
+@0x1983
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1986
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x198a
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x198c
+⊞       and     r:dl    r:ah
+@0x198e
+⋈       mov     m:rax::1:0x3d3a206e:4   r:esp
+@0x1995
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x1998
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x199b
+⊞       popad
+@0x199e
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x19a0
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x19a3
+⊞       popad
+@0x19a4
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x19a8
+⊞       popad
+@0x19aa
+⋈       pop     r:rdi
+@0x19ac
+∈       ae      i:0x1a13
+@0x19b2
+∈       ae      i:0x19d5
+@0x19b5
+⋈       push    i:0xa65675f
+@0x19ba
+⊞       or      r:ch    m:rbp::2:0x6d:1
+@0x19bf
+⊞       popad
+@0x19c0
+◻       and     m:rbp::1:0x6f:1 r:ch
+@0x19c3
+⋈       pop     r:rdi
+@0x19c5
+⊞       xor     r:al    i:0x5f
+@0x19c7
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x19ca
+∈       ae      i:0x19ed
+@0x19cd
+∈       np      i:0x1a3d
+@0x19cf
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x19d1
+⊞       and     r:dl    r:ah
+@0x19d3
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x19d9
+⋈       pop     r:rdi
+@0x19db
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x19df
+⊞       and     r:dl    r:al
+@0x19e2
+◻       and     m:rbp::1:0x76:1 r:al
+@0x19e7
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x19ea
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x19ec
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x19ee
+◻       and     m:rax::1:0x0:1  r:ah
+@0x19f0
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x19f3
+⊞       and     r:eax   i:0x3d203420
+@0x19f8
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x19fa
+⊞       and     r:dl    r:ah
+@0x19fc
+⋈       mov     m:rax::1:0x25206e20:1   r:ch
+@0x1a02
+◻       and     m:rax::1:0x0:1  r:dh
+@0x1a05
+⊤       cmp     r:eax   i:0x3a203320
+@0x1a0a
+⊤       cmp     r:eax   i:0xa796220
+@0x1a0f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1a11
+⋈       push    i:0x20657661
+@0x1a16
+⋈       push    i:0x203a2032
+@0x1a1c
+◻       and     m:rip::1:0x3d203220:1   r:ah
+@0x1a22
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1a24
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1a26
+⊤       cmp     r:eax   i:0x20796220
+@0x1a2d
+⊞       popad
+@0x1a30
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1a32
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1a35
+⊞       popad
+@0x1a38
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1a3e
+⊞       popad
+@0x1a3f
+◻       and     m:rdi::1:0x64:1 r:ch
+@0x1a42
+⋈       pop     r:rdi
+@0x1a46
+⋈       pop     r:rdi
+@0x1a48
+⊞       xor     r:ebx   m:rdi::1:0x6d:4
+@0x1a4c
+⋈       pop     r:rdi
+@0x1a4e
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x1a50
+∈       np      i:0x1ac0
+@0x1a52
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1a54
+⊞       and     r:dl    r:ah
+@0x1a56
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x1a5c
+⋈       pop     r:rdi
+@0x1a5e
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1a62
+⊞       and     r:dl    r:al
+@0x1a65
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1a6a
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x1a6d
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1a6f
+⋈       push    i:0x646f6d5f
+@0x1a74
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1a76
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1a79
+⊞       and     r:eax   i:0x3d203420
+@0x1a7e
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x1a80
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1a82
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x1a84
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1a86
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1a89
+◻       and     m:rip::1:0x3d203820:1   r:ah
+@0x1a8f
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x1a91
+⊞       and     r:dl    r:ah
+@0x1a93
+⋈       mov     m:rax::1:0x25206e20:1   r:ch
+@0x1a99
+◻       and     m:rax::1:0x0:1  r:bh
+@0x1a9b
+◻       and     m:rip::1:0x3a203720:1   r:bh
+@0x1aa1
+⊤       cmp     r:eax   i:0xa796220
+@0x1aa6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1aaa
+⊞       popad
+@0x1aad
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x1ab3
+⊞       popad
+@0x1ab4
+◻       and     m:rsi::1:0x5f:1 r:ch
+@0x1ab9
+⋈       pop     r:rdi
+@0x1abb
+⊤       cmp     m:rdi::1:0x69:1 r:bl
+@0x1abe
+∈       ae      i:0x1b1f
+@0x1ac0
+⊞       xor     r:ebx   m:rdi::1:0x63:4
+@0x1ac5
+∈       e       i:0x1b39
+@0x1ac7
+⊞       popad
+@0x1ac8
+⋈       movsxd  r:rsi   m:rax::1:0x7b:4
+@0x1acd
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1acf
+⊞       and     r:dl    r:ah
+@0x1ad1
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x1ad7
+⋈       pop     r:rdi
+@0x1ad9
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1add
+⊞       and     r:dl    r:al
+@0x1ae0
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1ae5
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x1ae8
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1aea
+⋈       push    i:0x646f6d5f
+@0x1aef
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1af1
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1af4
+⊞       and     r:eax   i:0x3d203820
+@0x1af9
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x1afb
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1afd
+◻       sub     m:rax::1:0x6e:1 r:ch
+@0x1b00
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1b02
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1b05
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1b08
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1b0a
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x1b0c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1b0e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1b11
+⋈       mov     m:rbx::1:0x202c6b20:1   r:al
+@0x1b17
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x1b1b
+⋈       pop     r:rsi
+@0x1b1c
+⋈       pop     r:rbx
+@0x1b1d
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x1b22
+◻       and     m:rax::1:0x0:1  r:bh
+@0x1b26
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1b28
+⊤       cmp     r:eax   i:0xa796220
+@0x1b2d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1b2f
+⊞       sub     r:eax   i:0x206e202d
+@0x1b35
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x1b3d
+◻       and     m:rax::1:0x0:1  r:bh
+@0x1b40
+◻       sub     m:rdx::1:0x0:4  r:edi
+@0x1b42
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1b46
+◻       sub     m:rsi::1:0x29:1 r:ch
+@0x1b49
+◻       and     m:rip::1:0x6e332820:1   r:bh
+@0x1b4f
+⊞       sub     r:esi   m:rcx::1:0x0:4
+@0x1b51
+◻       sub     m:rdi::1:0x0:4  r:ebp
+@0x1b53
+⊞       xor     r:ch    m:rax::1:0x0:1
+@0x1b56
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1b59
+⋈       pop     r:rsi
+@0x1b5a
+⊞       xor     r:ch    m:rax::1:0x0:1
+@0x1b5d
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1b5f
+⊤       cmp     r:eax   i:0x6e392820
+@0x1b64
+⊞       sub     r:esi   m:rip::1:0xa342f29:4
+@0x1b6a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1b6c
+⊞       sub     r:eax   i:0x6f46202d
+@0x1b71
+∈       b       i:0x1b93
+@0x1b74
+⊞       and     r:dl    r:ah
+@0x1b76
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x1b7e
+◻       and     m:rax::1:0x0:1  r:bh
+@0x1b81
+◻       sub     m:rax::1:0x0:4  r:ebp
+@0x1b84
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x1b87
+⊞       sub     r:esi   m:rip::1:0x20342f29:4
+@0x1b8d
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x6e657665
+@0x1b94
+⊞       sub     r:al    i:0x20
+@0x1b96
+∈       ae      i:0x1c07
+@0x1b98
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x1b9c
+⋈       pop     r:rsi
+@0x1b9d
+⊞       xor     r:ebp   m:rax::1:0x0:4
+@0x1ba0
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1ba2
+⊤       cmp     r:eax   i:0x6e392820
+@0x1ba7
+⊞       sub     r:esi   m:rip::1:0xa382f29:4
+@0x1bad
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1baf
+⊞       sub     r:eax   i:0x6e41202d
+@0x1bb4
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1bb7
+⊤       cmp     m:rsi::1:0x2b:4 r:ebp
+@0x1bba
+⊞       xor     r:eax   i:0x20382f29
+@0x1bbf
+⊤       cmp     r:al    i:0x20
+@0x1bc2
+◻       and     m:rdi::1:0x68:1 r:dh
+@0x1bc7
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1bca
+◻       and     m:rip::1:0x2d20200a:1   r:dh
+@0x1bd1
+⊞       sub     r:eax   i:0x726f4620
+@0x1bd6
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1bd9
+⊤       cmp     r:eax   i:0x203a3320
+@0x1bde
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1be1
+⋈       pop     r:rsi
+@0x1be2
+⊞       xor     r:eax   i:0x20293328
+@0x1be7
+⊤       cmp     r:eax   i:0x3c203120
+@0x1bec
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x1bee
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1bf0
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1bf3
+∈       be      i:0x1c5a
+@0x1bf5
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1bf8
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1bfb
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1bfd
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1bff
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1c02
+⋈       pop     r:rsi
+@0x1c03
+⋈       pop     r:rbx
+@0x1c04
+⊞       xor     r:ebx   m:rbp::1:0x29:4
+@0x1c07
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1c0a
+⊤       cmp     r:eax   i:0x20392820
+@0x1c0f
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1c12
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1c14
+◻       and     m:rip::1:0x202f2029:1   r:dh
+@0x1c1a
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x1c1c
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x1c22
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1c24
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1c26
+∈       b       i:0x1c9f
+@0x1c28
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x1c2d
+⋈       pop     r:rdi
+@0x1c2f
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1c35
+⋈       pop     r:rbp
+@0x1c38
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1c3a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1c3c
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x1c43
+◻       sub     m:rsi::1:0x29:1 r:ch
+@0x1c46
+◻       and     m:rip::1:0x6e332820:1   r:bh
+@0x1c4c
+⊞       sub     r:esi   m:rcx::1:0x0:4
+@0x1c4e
+◻       sub     m:rdi::1:0x0:4  r:ebp
+@0x1c50
+⊞       xor     r:ch    m:rax::1:0x0:1
+@0x1c53
+∈       a       i:0x1cbd
+@0x1c55
+⊞       imul    r:esp   m:rbx::1:0x68:4 i:0x20736920
+@0x1c5d
+◻       and     m:rbx::1:0x69:1 r:dh
+@0x1c63
+⋈       movsxd  r:rsp   m:rbp::1:0x20:4
+@0x1c67
+⊞       and     r:dl    r:ah
+@0x1c69
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x1c71
+◻       and     m:rcx:rbp:1:0x0:1       r:dh
+@0x1c75
+◻       and     m:rcx::1:0x6d:1 r:ch
+@0x1c78
+∈       o       i:0x1ce6
+@0x1c7a
+⊞       imul    r:esp   m:rbp::1:0x73:4 i:0x6e332820
+@0x1c81
+⊞       sub     r:esi   m:rcx::1:0x0:4
+@0x1c83
+◻       sub     m:rdi::1:0x0:4  r:ebp
+@0x1c85
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x1c87
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0xa64646f
+@0x1c8e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1c90
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1c92
+⋈       push    i:0x20657661
+@0x1c97
+⋈       push    i:0x64646f5f
+@0x1c9c
+⋈       pop     r:rdi
+@0x1c9d
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1ca0
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1ca2
+⊞       and     r:dl    r:al
+@0x1ca5
+◻       and     m:rbp::1:0x76:1 r:al
+@0x1caa
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1cac
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1cae
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1cb0
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1cb3
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1cb5
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1cb7
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x1cb9
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1cbb
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1cbd
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x1cc3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1cc5
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1cc7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1cc9
+⋈       push    i:0x20657661
+@0x1cce
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1cd0
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1cd2
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1cd4
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1cd7
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1cd9
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1cdb
+◻       and     m:rip::1:0x3d203420:1   r:ah
+@0x1ce1
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1ce3
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1ce5
+⊤       cmp     r:eax   i:0x20796220
+@0x1cec
+⊞       popad
+@0x1cef
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1cf1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1cf3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1cf5
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1cf8
+∈       be      i:0x1d5f
+@0x1cfa
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1cfc
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1cfe
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1d00
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1d02
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1d05
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1d07
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1d09
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x1d0b
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1d0d
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1d0f
+⊞       and     r:eax   i:0x3d203220
+@0x1d14
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1d16
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1d18
+⊤       cmp     r:eax   i:0xa796220
+@0x1d1d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d1f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d21
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d23
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d25
+⋈       push    i:0x20657661
+@0x1d2a
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1d2c
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1d2e
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1d30
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1d33
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1d35
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1d37
+◻       and     m:rip::1:0x3d203420:1   r:ah
+@0x1d3d
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1d3f
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1d41
+⊤       cmp     r:eax   i:0x20796220
+@0x1d48
+⊞       popad
+@0x1d4b
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1d4d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d4f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d51
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d53
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1d56
+⊞       popad
+@0x1d59
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1d5b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d5d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d5f
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x1d62
+◻       and     m:rbx::1:0x4e:1 r:bl
+@0x1d65
+⊞       popad
+@0x1d66
+∈       e       i:0x1d96
+@0x1d69
+⋈       pop     r:rdi
+@0x1d6c
+⊞       imul    r:esp   m:rsi::1:0x66:4 i:0x20200a5d
+@0x1d73
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d75
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d77
+∈       s       i:0x1ddb
+@0x1d7a
+⋈       movsxd  r:rsi   m:rax::1:0x74:4
+@0x1d7e
+⋈       push    i:0x200a7369
+@0x1d83
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1d85
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x1d88
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x1d8d
+⋈       pop     r:rdi
+@0x1d8f
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1d95
+⋈       pop     r:rdi
+@0x1d98
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x1d9b
+⋈       pop     r:rbp
+@0x1d9c
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1d9e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1da0
+◻       and     m:rip::1:0x3328202d:1   r:ch
+@0x1da6
+⊞       sub     r:ch    m:rax::1:0x0:1
+@0x1da8
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1dab
+⊞       sub     r:esi   m:rcx::1:0x0:4
+@0x1dad
+◻       sub     m:rdi::1:0x0:4  r:ebp
+@0x1daf
+⊞       xor     r:ch    m:rcx::1:0x0:1
+@0x1db1
+⊞       sub     r:esi   m:rcx::1:0x0:4
+@0x1db3
+◻       sub     m:rdi::1:0x0:4  r:ebp
+@0x1db5
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x1db7
+⊤       cmp     r:eax   i:0x6e392820
+@0x1dbc
+⊞       sub     r:esi   m:rip::1:0xa342f29:4
+@0x1dc2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1dc4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1dc6
+⋈       push    i:0x20657661
+@0x1dcb
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1dcd
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1dcf
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1dd1
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1dd4
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1dd6
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1dd8
+◻       and     m:rip::1:0x3d203220:1   r:ah
+@0x1dde
+◻       and     m:rax::1:0x0:1  r:dh
+@0x1de0
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1de2
+⊤       cmp     r:eax   i:0x20796220
+@0x1de9
+⊞       popad
+@0x1dec
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1dee
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1df0
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1df3
+∈       be      i:0x1e5a
+@0x1df5
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1df7
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1df9
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x1dfb
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1dfd
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1dff
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1e01
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1e04
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1e06
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1e08
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x1e0a
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1e0c
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1e0e
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1e10
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1e12
+⊞       and     r:eax   i:0x3d203420
+@0x1e17
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1e19
+⊤       cmp     m:rax::1:0x0:4  r:esp
+@0x1e1b
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1e1e
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1e20
+◻       and     m:rip::1:0x20252029:1   r:dh
+@0x1e26
+⊞       xor     r:al    i:0x20
+@0x1e28
+⊤       cmp     r:bh    m:rip::1:0x20796220:1
+@0x1e30
+⊞       popad
+@0x1e33
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1e35
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1e37
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1e3a
+∈       be      i:0x1ea1
+@0x1e3c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1e3e
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1e40
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x1e42
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1e44
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x1e46
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1e48
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1e4b
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1e4d
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x1e4f
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x1e51
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1e53
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1e55
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x1e57
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x1e5a
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1e5c
+◻       and     m:rip::1:0x20392820:1   r:bh
+@0x1e62
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1e65
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1e67
+◻       and     m:rip::1:0x202f2029:1   r:dh
+@0x1e6d
+⊞       xor     r:al    i:0x20
+@0x1e6f
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x1e75
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1e77
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1e79
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1e7b
+⋈       push    i:0x20657661
+@0x1e80
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1e82
+⊞       xor     r:al    i:0x20
+@0x1e85
+⋈       mov     m:rbx::1:0x20392820:1   r:ah
+@0x1e8b
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1e8e
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1e90
+◻       and     m:rip::1:0x3d3a2029:1   r:dh
+@0x1e96
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x1e99
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1e9c
+⊞       popad
+@0x1e9f
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1ea1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1ea3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1ea5
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1ea8
+⊞       popad
+@0x1eab
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1ead
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1eaf
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x1eb2
+◻       and     m:rbx::1:0x74:1 r:bl
+@0x1eb5
+⋈       push    i:0xa5d7369
+@0x1eba
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1ebc
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1ebe
+⊞       sub     r:eax   i:0x6f4e202d
+@0x1ec3
+∈       a       i:0x1ee5
+@0x1ec5
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x1ec8
+⊞       sub     r:esi   m:rip::1:0x2e342f29:4
+@0x1ece
+◻       and     m:rsi::1:0x6f:1 r:al
+@0x1ed1
+∈       b       i:0x1ef3
+@0x1ed4
+⊞       and     r:dl    r:ah
+@0x1ed6
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x1ede
+◻       and     m:rax::1:0x0:1  r:bh
+@0x1ee1
+◻       sub     m:rax::1:0x0:4  r:ebp
+@0x1ee4
+⊤       cmp     m:rsi::1:0x2b:4 r:ebp
+@0x1ee7
+⊞       xor     r:eax   i:-0x5e761de0
+@0x1eec
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x1eef
+⊞       sub     r:esi   m:rip::1:0x33203d20:4
+@0x1ef5
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x1ef8
+⋈       mov     m:rcx::1:0x28203020:4   r:esp
+@0x1f00
+◻       and     m:rax::1:0x0:1  r:bh
+@0x1f03
+◻       sub     m:rax::1:0x0:4  r:ebp
+@0x1f06
+∈       ae      i:0x1f77
+@0x1f08
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1f0a
+⊤       cmp     m:rsi::1:0x2b:4 r:ebp
+@0x1f0d
+⊞       xor     r:eax   i:0x20342f29
+@0x1f12
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x6e657665
+@0x1f19
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1f1b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1f1d
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1f20
+∈       be      i:0x1f87
+@0x1f22
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x1f25
+∈       be      i:0x1f8d
+@0x1f29
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x1f2b
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1f2d
+∈       be      i:0x1f95
+@0x1f31
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1f33
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x1f35
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1f37
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1f3a
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1f3c
+⊞       xor     r:eax   i:0x202f2029
+@0x1f41
+⊞       xor     r:al    i:0x29
+@0x1f43
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1f45
+⊤       cmp     r:eax   i:0xa796220
+@0x1f4a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1f4c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1f4e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1f50
+⋈       push    i:0x20657661
+@0x1f55
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1f57
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x1f59
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1f5b
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1f5e
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1f60
+⊞       xor     r:eax   i:0x20252029
+@0x1f65
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x1f67
+⊤       cmp     r:eax   i:0x3a203020
+@0x1f6c
+⊤       cmp     r:eax   i:0x20796220
+@0x1f73
+⊞       popad
+@0x1f76
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1f78
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1f7a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1f7c
+◻       and     m:rax::1:0x61:1 r:ch
+@0x1f7f
+∈       be      i:0x1fe6
+@0x1f81
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1f83
+◻       and     m:rax::1:0x0:1  r:ch
+@0x1f85
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x1f87
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x1f89
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x1f8c
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x1f8e
+⊞       xor     r:eax   i:0x202f2029
+@0x1f93
+⊞       xor     r:al    i:0x29
+@0x1f95
+◻       and     m:rip::1:0x3d203220:1   r:ah
+@0x1f9b
+◻       and     m:rax::1:0x0:1  r:dh
+@0x1f9d
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x1f9f
+⊤       cmp     r:eax   i:0xa796220
+@0x1fa4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fa6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fa8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1faa
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fac
+⋈       push    i:0x20657661
+@0x1fb1
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x1fb3
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x1fb6
+⋈       mov     m:rbx::1:0x20392820:1   r:ah
+@0x1fbc
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x1fbf
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x1fc1
+◻       and     m:rip::1:0x3d3a2029:1   r:dh
+@0x1fc7
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x1fca
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1fcd
+⊞       popad
+@0x1fd0
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1fd2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fd4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fd6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fd8
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x1fdb
+⊞       popad
+@0x1fde
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x1fe0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fe2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fe4
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x1fe7
+◻       and     m:rbx::1:0x4e:1 r:bl
+@0x1fea
+⊞       popad
+@0x1feb
+∈       e       i:0x201b
+@0x1fed
+∈       be      i:0x2055
+@0x1ff1
+⋈       pop     r:rdi
+@0x1ff2
+⊞       imul    r:esp   m:rsi::1:0x66:4 i:0x20200a5d
+@0x1ff9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1ffb
+◻       and     m:rax::1:0x0:1  r:ah
+@0x1fff
+⊞       popad
+@0x2002
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2004
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2006
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x2009
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x200e
+⋈       pop     r:rdi
+@0x200f
+∈       be      i:0x2077
+@0x2013
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2016
+∈       be      i:0x207e
+@0x201a
+⊞       xor     r:bl    m:rbp::1:0xa:1
+@0x201d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x201f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2021
+⊞       sub     r:eax   i:0x6f63202d
+@0x2027
+⋈       pop     r:rsi
+@0x2028
+⊞       xor     r:ebp   m:rax::1:0x0:4
+@0x202b
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x202d
+⊤       cmp     r:eax   i:0x6e392820
+@0x2032
+⊞       sub     r:esi   m:rip::1:0xa382f29:4
+@0x2038
+◻       and     m:rax::1:0x0:1  r:ah
+@0x203a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x203c
+⋈       push    i:0x20657661
+@0x2041
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2043
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x2045
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x2047
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x204a
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x204c
+⊞       xor     r:eax   i:0x20252029
+@0x2051
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x2053
+⊤       cmp     r:eax   i:0x3a203020
+@0x2058
+⊤       cmp     r:eax   i:0x20796220
+@0x205f
+⊞       popad
+@0x2062
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2064
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2066
+◻       and     m:rax::1:0x61:1 r:ch
+@0x2069
+∈       be      i:0x20d0
+@0x206b
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x206d
+◻       and     m:rax::1:0x0:1  r:ch
+@0x206f
+◻       sub     m:rcx::1:0x0:1  r:bh
+@0x2071
+◻       and     m:rdx::1:0x0:1  r:ch
+@0x2073
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2076
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x2078
+⊞       xor     r:eax   i:0x202f2029
+@0x207d
+⊞       xor     r:al    i:0x29
+@0x207f
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x2081
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x2083
+◻       and     m:rip::1:0x20392820:1   r:bh
+@0x2089
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x208c
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x208e
+◻       and     m:rip::1:0x202f2029:1   r:dh
+@0x2094
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x2096
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x209c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x209e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20a0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20a2
+⋈       push    i:0x20657661
+@0x20a7
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x20a9
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x20ac
+⋈       mov     m:rbx::1:0x20392820:1   r:ah
+@0x20b2
+⊞       sub     r:ah    m:rax::1:0x0:1
+@0x20b5
+◻       and     m:rbx::1:0x0:1  r:ch
+@0x20b7
+◻       and     m:rip::1:0x3d3a2029:1   r:dh
+@0x20bd
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x20c0
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x20c3
+⊞       popad
+@0x20c6
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x20c8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20ca
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20cc
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x20cf
+⊞       popad
+@0x20d2
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x20d4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20d6
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x20d9
+◻       and     m:rbx::1:0x74:1 r:bl
+@0x20dc
+⋈       push    i:0xa5d7369
+@0x20e1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20e3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x20e5
+∈       b       i:0x214d
+@0x20e8
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x20ea
+◻       and     m:rip::1:0x3928202d:1   r:ch
+@0x20f1
+⊞       sub     r:esi   m:rip::1:0x20382f29:4
+@0x20f7
+⊤       cmp     r:al    i:0x20
+@0x20fa
+◻       and     m:rcx::1:0x66:1 r:ch
+@0x20fd
+◻       and     m:rcx::1:0x0:1  r:bh
+@0x2101
+⊞       sub     r:esi   m:rip::1:0x38203c20:4
+@0x2108
+◻       and     m:rcx::1:0x66:1 r:ch
+@0x210b
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x210f
+⊤       cmp     r:al    i:0x20
+@0x2111
+⊞       sub     r:eax   i:0x77202c35
+@0x2116
+⋈       push    i:0x20686369
+@0x211b
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x534c4146
+@0x2122
+◻       and     m:r14::1:0x6f:1 r:r12b
+@0x2126
+∈       b       i:0x2148
+@0x2129
+◻       and     m:rsi::1:0x0:1  r:bh
+@0x212b
+◻       and     m:rax::1:0x0:1  r:dh
+@0x212d
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x212f
+◻       and     m:rip::1:0x6f53202d:1   r:ch
+@0x2135
+◻       and     m:rax:rbp:2:0x69:1      r:dh
+@0x2139
+∈       ae      i:0x215b
+@0x213b
+⊞       popad
+@0x213c
+∈       o       i:0x21ae
+@0x213e
+∈       b       i:0x21af
+@0x2140
+⊞       popad
+@0x2141
+⋈       movsxd  r:rbp   m:rax::1:0x20:4
+@0x2146
+∈       ae      i:0x21b7
+@0x214a
+∈       e       i:0x216c
+@0x214c
+⊞       imul    r:esi   m:rdx::1:0x65:4 i:0x796c7463
+@0x2154
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x2158
+∈       e       i:0x21cc
+@0x215a
+⊞       popad
+@0x215b
+⋈       movsxd  r:rsi   m:rax::1:0x66:4
+@0x2160
+∈       b       i:0x2182
+@0x2163
+⊞       popad
+@0x2164
+∈       b       i:0x21cd
+@0x2166
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x216b
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x2173
+◻       and     m:rax::1:0x0:1  r:bh
+@0x2176
+◻       sub     m:rdx::1:0x0:4  r:ecx
+@0x2178
+◻       and     m:rax::1:0x0:1  r:ah
+@0x217a
+⊞       sub     r:eax   i:0x6557202d
+@0x217f
+◻       and     m:rsi::1:0x65:1 r:ch
+@0x2182
+◻       and     m:rcx::1:0x20:1 r:ah
+@0x2187
+⊞       imul    r:esp   m:rsi::1:0x66:4 i:0x6e657265
+@0x218f
+∈       e       i:0x21b1
+@0x2191
+⊞       popad
+@0x2192
+∈       b       i:0x21fb
+@0x2194
+∈       ne      i:0x2203
+@0x2198
+∈       e       i:0x21c8
+@0x219a
+◻       and     m:rsi::1:0x6f:1 r:al
+@0x219d
+∈       b       i:0x21bf
+@0x21a0
+◻       and     m:rip::1:0x73203320:1   r:bh
+@0x21a6
+∈       o       i:0x220d
+@0x21a8
+⋈       movsxd  r:rbp   m:rcx::1:0x66:4
+@0x21ab
+⊞       imul    r:esp   m:rbx::1:0x61:4 i:0x2c796c6c
+@0x21b2
+◻       and     m:rcx::1:0x74:1 r:ch
+@0x21b5
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x21b9
+∈       e       i:0x222d
+@0x21bb
+⊞       popad
+@0x21bc
+⋈       movsxd  r:rsi   m:rbx:rsi:2:0x2e:4
+@0x21c0
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x21c2
+◻       and     m:rcx::1:0x66:1 r:ch
+@0x21c5
+◻       and     m:rax::1:0x6e:1 r:ch
+@0x21c8
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x21ca
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x21cd
+◻       and     m:rip::1:0x74203320:1   r:bh
+@0x21d3
+⋈       push    i:0x200a6e65
+@0x21d8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x21da
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x21dd
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x21e1
+⊞       xor     r:ebx   m:rbp::1:0xa:4
+@0x21e4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x21e6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x21e8
+∈       ne      i:0x225d
+@0x21ea
+◻       and     m:rip::1:0x2020200a:1   r:dh
+@0x21f1
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x21f8
+∈       o       i:0x226f
+@0x21fa
+∈       e       i:0x2261
+@0x21fc
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x2200
+⋈       pop     r:rsi
+@0x2201
+⊞       xor     r:eax   i:0x20293328
+@0x2206
+⊤       cmp     r:eax   i:0x200a3120
+@0x220b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x220d
+◻       and     m:rip::1:0x2033202d:1   r:ch
+@0x2214
+⋈       xchg    m:rdx::1:-0x1ddfcae0:1  r:dl
+@0x221a
+⋈       xchg    m:rdx::1:-0x1ddfc7e0:1  r:dl
+@0x2220
+⋈       xchg    m:rdx::1:-0x1ddfcbe0:1  r:dl
+@0x2226
+⋈       xchg    m:rdx::1:-0x1ddfcde0:1  r:dl
+@0x222c
+⋈       xchg    m:rdx::1:0x200a3120:1   r:dl
+@0x2232
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2234
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x223b
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x223d
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x223f
+⊤       cmp     r:eax   i:0x2a332820
+@0x2244
+⊞       xor     r:ebp   m:rbx::1:0x0:4
+@0x2246
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x2249
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x224b
+⊤       cmp     r:eax   i:0x200a3520
+@0x2250
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2252
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x2259
+◻       sub     m:rip::1:0x203d2029:1   r:dh
+@0x225f
+◻       sub     m:rbx::1:0x0:1  r:dh
+@0x2261
+⊞       sub     r:dh    m:rip::1:0x2f29312b:1
+@0x2267
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x2269
+⊤       cmp     r:eax   i:0x200a3820
+@0x226e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2270
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x2277
+◻       sub     m:rax::1:0x0:1  r:bh
+@0x2279
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x227b
+⊤       cmp     r:eax   i:0x200a3420
+@0x2280
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2282
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x2289
+◻       sub     m:rcx:rbp:1:0x0:1       r:dh
+@0x228c
+◻       and     m:rip::1:0x200a3220:1   r:bh
+@0x2292
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2294
+◻       and     m:rip::1:0x6f63202d:1   r:ch
+@0x229b
+◻       sub     m:rdx::1:0x0:1  r:dh
+@0x229d
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x229f
+⊤       cmp     r:eax   i:0x200a3120
+@0x22a4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x22a6
+◻       and     m:rip::1:0x6f53202d:1   r:ch
+@0x22ac
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x22b0
+⋈       pop     r:rsi
+@0x22b1
+⊞       xor     r:eax   i:0x20293328
+@0x22b6
+⊤       cmp     r:eax   i:0x3c203120
+@0x22bb
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x22bd
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x22bf
+◻       and     m:rax::1:0x0:1  r:ah
+@0x22c1
+◻       and     m:rdx::1:0x66:1 r:dh
+@0x22c5
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x22c7
+◻       and     m:rbp::1:0x6c:1 r:ah
+@0x22ca
+∈       ae      i:0x2331
+@0x22cc
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x22ce
+◻       and     m:rax::1:0x0:1  r:ah
+@0x22d0
+◻       and     m:rip::1:0x6f46202d:1   r:ch
+@0x22d6
+∈       b       i:0x22f8
+@0x22d9
+⊞       and     r:dl    r:ah
+@0x22db
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x22e3
+◻       and     m:rax::1:0x0:1  r:bh
+@0x22e6
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x22e8
+⊞       popad
+@0x22ea
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x22ee
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x22f1
+⊞       sub     r:al    i:0x20
+@0x22f3
+∈       a       i:0x235a
+@0x22f5
+◻       and     m:rsi::1:0x65:1 r:ch
+@0x22f8
+◻       and     m:rax:rbp:2:0x65:1      r:dh
+@0x22fe
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x2300
+⊞       sub     r:eax   i:0x63696461
+@0x2305
+◻       and     m:rsi::1:0x61:1 r:dh
+@0x2309
+∈       ne      i:0x236c
+@0x230b
+∈       e       i:0x2376
+@0x230f
+◻       and     m:rcx::1:0x72:1 r:ah
+@0x2312
+∈       ne      i:0x2382
+@0x2317
+∈       e       i:0x2323
+@0x2319
+◻       and     m:rax::1:0x0:1  r:ah
+@0x231b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x231d
+⊞       sub     r:eax   i:0x6341202d
+@0x2322
+∈       e       i:0x2399
+@0x2324
+⊞       popad
+@0x2327
+∈       ns      i:0x2355
+@0x2329
+◻       and     m:rbp::2:0x74:1 r:ch
+@0x232e
+∈       ae      i:0x2350
+@0x2330
+∈       e       i:0x23a4
+@0x2332
+∈       ns      i:0x2354
+@0x2335
+⊞       and     r:dl    r:ah
+@0x2337
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x233f
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x2342
+◻       sub     m:rdx::1:0x0:4  r:edi
+@0x2345
+◻       and     m:rax:rbp:2:0x65:1      r:dh
+@0x234a
+◻       and     m:rcx::1:0x0:1  r:bh
+@0x234d
+⊞       sub     r:esi   m:rip::1:-0x5e761de0:4
+@0x2353
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x2356
+⊞       sub     r:esi   m:rip::1:0x33203d20:4
+@0x235c
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x235f
+⋈       mov     m:rcx::1:0x28203020:4   r:esp
+@0x2367
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x236a
+◻       sub     m:rdx::1:0x0:4  r:ecx
+@0x236d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x236f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2371
+⊞       sub     r:eax   i:0x6f53202d
+@0x2376
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2378
+⊤       cmp     m:rsi::1:0x2b:4 r:ebp
+@0x237b
+⊞       xor     r:eax   i:0x20382f29
+@0x2381
+⋈       mov     m:rcx::1:0x28203220:4   r:esp
+@0x2389
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x238c
+◻       sub     m:rax::1:0x0:4  r:ebp
+@0x2390
+⊞       popad
+@0x2393
+⊞       imul    r:ebp   m:rsi::1:0x67:4 i:0x6e392820
+@0x239a
+⊞       sub     r:esi   m:rip::1:0x20382f29:4
+@0x23a0
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x6e657665
+@0x23a7
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x23a9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x23ab
+◻       and     m:rip::1:0x6854202d:1   r:ch
+@0x23b3
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x23b7
+⋈       pop     r:rsi
+@0x23b8
+⊞       xor     r:al    i:0x28
+@0x23bb
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x23bd
+⊤       cmp     r:eax   i:0x6e392820
+@0x23c2
+⊞       sub     r:esi   m:rip::1:0x36312f29:4
+@0x23c8
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x23ca
+◻       and     m:rax::1:0x0:1  r:ah
+@0x23cc
+◻       and     m:rip::1:0x6e41202d:1   r:ch
+@0x23d2
+◻       and     m:rax::1:0x0:1  r:ch
+@0x23d5
+⊤       cmp     m:rsi::1:0x2b:4 r:ebp
+@0x23d8
+⊞       xor     r:eax   i:0x36312f29
+@0x23dd
+◻       and     m:rax::1:0x0:1  r:bh
+@0x23e1
+◻       and     m:rdi::1:0x68:1 r:dh
+@0x23e6
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x23e9
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x23ec
+⊞       xor     r:dh    m:rip::1:-0x1ddfc8d1:1
+@0x23f2
+⋈       mov     m:rax::1:0x2e373120:4   r:ecx
+@0x23f8
+⊤       cmp     m:rsi::1:0x0:1  r:dh
+@0x23fa
+⊞       sub     r:al    i:0x20
+@0x23fc
+∈       a       i:0x2466
+@0x23fe
+⊞       imul    r:esp   m:rbx::1:0x68:4 i:0x6c6f6820
+@0x2405
+∈       ae      i:0x2428
+@0x240a
+∈       b       i:0x242c
+@0x240d
+⊞       and     r:dl    r:ah
+@0x240f
+⋈       mov     m:rbp::1:0xa383120:4    r:esp
+@0x2415
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2417
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2419
+⊞       sub     r:eax   i:0x6f46202d
+@0x241e
+∈       b       i:0x2440
+@0x2421
+⊞       and     r:dl    r:ah
+@0x2423
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x242b
+◻       and     m:rax::1:0x0:1  r:bh
+@0x242e
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x2430
+∈       a       i:0x249b
+@0x2432
+∈       e       i:0x249c
+@0x2434
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x2436
+◻       and     m:rax::1:0x0:1  r:bh
+@0x243a
+◻       and     m:rax::1:0x0:1  r:bh
+@0x243d
+◻       xor     m:rax::1:0x0:4  r:edi
+@0x243f
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2442
+◻       and     m:rip::1:0xa313120:1    r:bh
+@0x2448
+◻       and     m:rax::1:0x0:1  r:ah
+@0x244a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x244c
+⊞       imul    r:esp   m:rsi::1:0x20:4 i:0x31316e68
+@0x2453
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2455
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2458
+⊤       cmp     r:eax   i:0x20313120
+@0x245d
+∈       e       i:0x24c7
+@0x2461
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2463
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2465
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2467
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x246a
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x246e
+◻       xor     m:rcx::1:0x0:4  r:esi
+@0x2470
+⋈       pop     r:rbp
+@0x2471
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2473
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2475
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2477
+◻       and     m:rbp::1:0x73:1 r:dh
+@0x247a
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x247d
+◻       xor     m:rdx::1:0x0:1  r:cl
+@0x247f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2481
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2483
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2485
+⊞       sub     r:eax   i:0x6f63202d
+@0x248b
+⋈       pop     r:rsi
+@0x248c
+◻       xor     m:rax::1:0x0:4  r:esi
+@0x248e
+◻       sub     m:rcx::1:0x0:1  r:dh
+@0x2490
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x2492
+◻       and     m:rip::1:0x3c203120:1   r:bh
+@0x2498
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x249a
+◻       xor     m:rdx::1:0x0:4  r:ecx
+@0x249c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x249e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x24a0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x24a2
+⊞       sub     r:eax   i:0x3131202d
+@0x24a7
+⊞       and     r:dl    r:ah
+@0x24a9
+⋈       xchg    m:rdx::1:0x20373120:1   r:dl
+@0x24b0
+⋈       xchg    m:rdx::1:0x20363220:1   r:dl
+@0x24b7
+⋈       xchg    m:rdx::1:0x20333120:1   r:dl
+@0x24be
+⋈       xchg    m:rdx::1:0x20303220:1   r:dl
+@0x24c5
+⋈       xchg    m:rdx::1:0x20303120:1   r:dl
+@0x24cc
+⋈       xchg    m:rdx::1:-0x1ddfcae0:1  r:dl
+@0x24d2
+⋈       xchg    m:rdx::1:-0x1ddfc7e0:1  r:dl
+@0x24d8
+⋈       xchg    m:rdx::1:-0x1ddfcbe0:1  r:dl
+@0x24de
+⋈       xchg    m:rdx::1:-0x1ddfcde0:1  r:dl
+@0x24e4
+⋈       xchg    m:rdx::1:0x200a3120:1   r:dl
+@0x24ea
+◻       and     m:rax::1:0x0:1  r:ah
+@0x24ec
+◻       and     m:rax::1:0x0:1  r:ah
+@0x24ee
+◻       and     m:rdx::1:0x66:1 r:dh
+@0x24f2
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x24f4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x24f6
+◻       and     m:rbp::1:0x6c:1 r:ah
+@0x24f9
+∈       ae      i:0x2560
+@0x24fb
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x24fd
+◻       and     m:rax::1:0x0:1  r:ah
+@0x24ff
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2501
+◻       and     m:rip::1:0x6f46202d:1   r:ch
+@0x2507
+∈       b       i:0x2529
+@0x250a
+⊞       popad
+@0x250b
+∈       b       i:0x2574
+@0x250d
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2512
+⋈       mov     m:rcx::1:0x28203320:4   r:esp
+@0x251a
+◻       and     m:rax::1:0x0:1  r:bh
+@0x251d
+◻       sub     m:rax::1:0x0:4  r:ebp
+@0x2520
+∈       ne      i:0x2595
+@0x2522
+◻       and     m:rax:rbp:2:0x65:1      r:dh
+@0x2527
+◻       and     m:rbp::2:0x73:1 r:ah
+@0x252b
+⋈       movsxd  r:rsp   m:rbp::1:0x6e:4
+@0x252e
+∈       e       i:0x2550
+@0x2530
+∈       e       i:0x259a
+@0x2532
+∈       b       i:0x25a3
+@0x2534
+∈       ne      i:0x259d
+@0x2536
+⋈       push    i:0x67696820
+@0x253b
+⋈       push    i:0x76207265
+@0x2540
+⊞       popad
+@0x2542
+∈       ne      i:0x25a5
+@0x2544
+∈       e       i:0x25af
+@0x2548
+∈       ae      i:0x2554
+@0x254a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x254c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x254e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2550
+⊞       sub     r:eax   i:0x6854202d
+@0x2555
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x77207369
+@0x255c
+⋈       push    i:0x20657265
+@0x2561
+∈       e       i:0x25cb
+@0x2563
+◻       and     m:rsi::1:0x75:1 r:ah
+@0x2569
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x256b
+⊞       sub     r:eax   i:0x63696461
+@0x2570
+◻       and     m:rcx::1:0x72:1 r:ah
+@0x2573
+∈       ne      i:0x25e3
+@0x2578
+∈       e       i:0x259a
+@0x257a
+⊞       popad
+@0x257b
+∈       o       i:0x25ed
+@0x257e
+⊞       imul    r:esp   m:rbp::1:0x73:4 i:0x2020200a
+@0x2585
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2587
+◻       and     m:rip::1:0x6854202d:1   r:ch
+@0x258d
+◻       and     m:rbx::1:0x65:1 r:ch
+@0x2591
+∈       ns      i:0x25b3
+@0x2597
+⊞       popad
+@0x2598
+◻       and     m:rdi::1:0x65:1 r:dh
+@0x259b
+◻       and     m:rsi::1:0x65:1 r:ch
+@0x259e
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x25a4
+∈       b       i:0x25c6
+@0x25a6
+⊞       popad
+@0x25a8
+∈       ns      i:0x25ca
+@0x25ab
+◻       and     m:rsi::1:0x0:1  r:bh
+@0x25ad
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x25af
+◻       and     m:rdi::1:0x64:1 r:ch
+@0x25b2
+⊞       sub     r:al    i:0x20
+@0x25b5
+∈       e       i:0x261f
+@0x25b7
+∈       b       i:0x261f
+@0x25ba
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x25bd
+⊞       imul    r:esi   m:rbx::1:0x74:4 i:0x206b2073
+@0x25c4
+∈       ae      i:0x263b
+@0x25c6
+⋈       movsxd  r:rbp   m:rax::1:0x20:4
+@0x25c9
+∈       e       i:0x2633
+@0x25cb
+⊞       popad
+@0x25cc
+∈       e       i:0x25ee
+@0x25ce
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x25d1
+⋈       pop     r:rsi
+@0x25d2
+⊞       imul    r:ebp   m:rax::1:0x0:4  i:0x6e
+@0x25d5
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x25d7
+⊤       cmp     r:al    i:0x20
+@0x25da
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x25dc
+◻       and     m:rax::1:0x0:1  r:ah
+@0x25de
+◻       and     m:rax::1:0x0:1  r:ah
+@0x25e0
+◻       and     m:rip::1:0x6854202d:1   r:ch
+@0x25e6
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x6c6c6f66
+@0x25ee
+∈       a       i:0x2663
+@0x25f0
+◻       and     m:rsi::1:0x72:1 r:ah
+@0x25f5
+◻       and     m:rax:rbp:2:0x65:1      r:dh
+@0x25f9
+◻       and     m:rsi::1:0x61:1 r:ah
+@0x25fc
+⋈       movsxd  r:rsi   m:rax::1:0x74:4
+@0x2600
+⋈       push    i:0x74207461
+@0x2605
+⋈       push    i:0x2d322065
+@0x260a
+⊞       popad
+@0x260b
+⊞       imul    r:esp   m:rbx::1:0x20:4 i:0x756c6176
+@0x2613
+⊞       popad
+@0x2614
+∈       e       i:0x267f
+@0x2618
+◻       and     m:rdi::1:0x66:1 r:ch
+@0x261b
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x261e
+⊞       sub     r:esi   m:rcx::1:0x0:4
+@0x2620
+◻       and     m:rcx::1:0x73:1 r:ch
+@0x2623
+◻       and     m:rbp::1:0x6e:1 r:dh
+@0x2628
+∈       ne      i:0x2698
+@0x262a
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x262f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2631
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2633
+◻       and     m:rip::1:0x6c61202d:1   r:ch
+@0x263b
+◻       and     m:rax:rbp:2:0x65:1      r:dh
+@0x2640
+◻       and     m:rdx:rsi:2:0x61:1      r:dh
+@0x2644
+⋈       push    i:0x65
+@0x2646
+⋈       movsxd  r:rsi   m:rdi:rbp:2:0x72:4
+@0x264a
+∈       ns      i:0x2678
+@0x264c
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x2651
+⊞       imul    r:ebp   m:rsi::1:0x65:4 i:0x69772064
+@0x2658
+∈       e       i:0x26c2
+@0x265a
+◻       and     m:rax:rbp:2:0x65:1      r:dh
+@0x265e
+◻       and     m:rdi::1:0x72:1 r:ch
+@0x2661
+∈       b       i:0x2685
+@0x2666
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x2669
+◻       and     m:rdx::1:0x65:1 r:ah
+@0x266c
+⊞       imul    r:ebp   m:rsi::1:0x67:4 i:0x7b5e3220
+@0x2673
+⊞       imul    r:ebp   m:rip::1:0x6d207d32:4   i:0x6f
+@0x267a
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x267d
+⋈       pop     r:rsi
+@0x267e
+⊞       imul    r:ecx   m:rdx::1:0x0:4  i:0x20
+@0x2681
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2683
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2685
+◻       and     m:rax::1:0x61:1 r:ch
+@0x2688
+∈       be      i:0x26ef
+@0x268a
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x268d
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x2690
+∈       e       i:0x2704
+@0x2692
+⊞       popad
+@0x2693
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x2698
+∈       ae      i:0x26f9
+@0x269a
+∈       ae      i:0x2709
+@0x269c
+⊞       popad
+@0x269f
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x26a1
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x26a5
+⋈       mov     m:rax::1:0x20303031:4   r:esp
+@0x26ac
+⊤       cmp     r:bh    m:rip::1:0x20796220:1
+@0x26b4
+⊞       popad
+@0x26b7
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x26b9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x26bb
+◻       and     m:rax::1:0x0:1  r:ah
+@0x26bd
+◻       and     m:rip::1:0x6f46202d:1   r:ch
+@0x26c3
+∈       b       i:0x26e5
+@0x26c5
+⋈       movsxd  r:rbp   m:rdi::1:0x6d:4
+@0x26c8
+∈       o       i:0x273f
+@0x26ca
+∈       e       i:0x272d
+@0x26cc
+∈       e       i:0x2737
+@0x26d0
+⊞       popad
+@0x26d2
+◻       and     m:rbx::1:0x61:1 r:ah
+@0x26d5
+∈       ae      i:0x273c
+@0x26d7
+∈       ae      i:0x2705
+@0x26d9
+◻       and     m:rsi::1:0x65:1 r:dh
+@0x26dc
+∈       b       i:0x2747
+@0x26de
+∈       ns      i:0x2701
+@0x26e1
+⊞       imul    r:esi   m:rdx::1:0x65:4 i:0x796c7463
+@0x26e9
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x26eb
+◻       and     m:rax::1:0x0:1  r:ah
+@0x26ed
+◻       and     m:rax::1:0x0:1  r:ah
+@0x26ef
+◻       and     m:rcx::1:0x6e:1 r:ch
+@0x26f2
+∈       e       i:0x2759
+@0x26f4
+∈       b       i:0x276c
+@0x26f6
+⊞       popad
+@0x26f8
+⋈       pop     r:rdi
+@0x26f9
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x26fc
+∈       ae      i:0x271f
+@0x2700
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2702
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2704
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2706
+◻       and     m:rcx::1:0x6c:1 r:ah
+@0x270a
+⋈       pop     r:rdi
+@0x270d
+⊞       popad
+@0x270f
+∈       ae      i:0x2731
+@0x2713
+⊞       popad
+@0x2716
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2718
+◻       and     m:rax::1:0x0:1  r:ah
+@0x271a
+◻       and     m:rdx::1:0x0:1  r:cl
+@0x2720
+⊞       popad
+@0x2721
+◻       and     m:rsi::1:0x5f:1 r:ch
+@0x2726
+⋈       pop     r:rdi
+@0x2728
+⊤       cmp     m:rdi::1:0x69:1 r:bl
+@0x272b
+∈       ae      i:0x278c
+@0x272e
+⋈       pop     r:rdi
+@0x272f
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x2732
+∈       e       i:0x27a6
+@0x2734
+⊞       popad
+@0x2735
+⋈       movsxd  r:rsi   m:rax::1:0x7b:4
+@0x273a
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x273c
+⊞       and     r:dl    r:ah
+@0x273e
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x2744
+⋈       pop     r:rdi
+@0x2746
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x274a
+⊞       and     r:dl    r:al
+@0x274d
+◻       and     m:rbp::1:0x76:1 r:al
+@0x2752
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x2755
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2757
+⋈       push    i:0x646f6d5f
+@0x275c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x275e
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2761
+⊞       and     r:eax   i:0x3d203820
+@0x2766
+◻       and     m:rdi::1:0x0:1  r:dh
+@0x2768
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x276a
+◻       sub     m:rax::1:0x6e:1 r:ch
+@0x276d
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x276f
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2772
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x2775
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x2777
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x2779
+◻       and     m:rax::1:0x0:1  r:ah
+@0x277b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x277e
+⋈       mov     m:rbx::1:0x202c6b20:1   r:al
+@0x2784
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2788
+⋈       pop     r:rsi
+@0x2789
+⋈       pop     r:rbx
+@0x278a
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x278f
+◻       and     m:rax::1:0x0:1  r:bh
+@0x2793
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2795
+⊤       cmp     r:eax   i:0xa796220
+@0x279a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x279c
+⊞       sub     r:eax   i:0x206e202d
+@0x27a2
+⋈       mov     m:rcx::1:0x28203720:4   r:esp
+@0x27aa
+◻       and     m:rax::1:0x0:1  r:bh
+@0x27ad
+◻       sub     m:rdx::1:0x0:4  r:edi
+@0x27af
+◻       and     m:rbx::1:0x69:1 r:dh
+@0x27b3
+⊞       imul    r:ebp   m:rcx::2:0x72:4 i:0x616e6120
+@0x27bc
+∈       ns      i:0x2831
+@0x27be
+⊞       imul    r:esi   m:rbx::1:0xa:4  i:0x6e692020
+@0x27c5
+∈       e       i:0x282c
+@0x27c7
+∈       b       i:0x283f
+@0x27c9
+⊞       popad
+@0x27cb
+⋈       pop     r:rdi
+@0x27cc
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x27cf
+∈       ae      i:0x27f2
+@0x27d3
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x27d5
+◻       and     m:rcx::1:0x6c:1 r:ah
+@0x27d9
+⋈       pop     r:rdi
+@0x27dc
+⊞       popad
+@0x27de
+∈       ae      i:0x2800
+@0x27e2
+⊞       popad
+@0x27e5
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x27eb
+⊞       popad
+@0x27ec
+◻       and     m:rdi::1:0x64:1 r:ch
+@0x27ef
+⋈       pop     r:rdi
+@0x27f2
+⋈       pop     r:rdi
+@0x27f5
+⋈       pop     r:rdi
+@0x27f7
+⊞       xor     r:ebx   m:rdi::1:0x63:4
+@0x27fc
+∈       e       i:0x2870
+@0x27fe
+⊞       popad
+@0x27ff
+⋈       movsxd  r:rsi   m:rax::1:0x7b:4
+@0x2804
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2806
+⊞       and     r:dl    r:ah
+@0x2808
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x280e
+⋈       pop     r:rdi
+@0x2810
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2814
+⊞       and     r:dl    r:al
+@0x2817
+◻       and     m:rbp::1:0x76:1 r:al
+@0x281c
+◻       and     m:rsi::1:0x29:1 r:ch
+@0x281f
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2821
+⋈       push    i:0x646f6d5f
+@0x2826
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2828
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x282b
+⊞       and     r:eax   i:0x3d203420
+@0x2830
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x2832
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x2834
+◻       sub     m:rax::1:0x6e:1 r:ch
+@0x2837
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2839
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x283c
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x283f
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x2841
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x2843
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2845
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2848
+⋈       mov     m:rbx::1:0x202c6b20:1   r:al
+@0x284e
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2852
+⋈       pop     r:rsi
+@0x2853
+⋈       pop     r:rbx
+@0x2854
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2859
+◻       and     m:rax::1:0x0:1  r:bh
+@0x285d
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x285f
+⊤       cmp     r:eax   i:0xa796220
+@0x2864
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2866
+⋈       push    i:0x20657661
+@0x286b
+⋈       push    i:0x7361635f
+@0x2870
+∈       ae      i:0x2893
+@0x2873
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2876
+◻       and     m:rip::1:0x3d203820:1   r:ah
+@0x287c
+◻       and     m:rbx::1:0x0:1  r:dh
+@0x287e
+⊞       and     r:dl    r:ah
+@0x2880
+⋈       mov     m:rax::1:0x25206e20:1   r:ch
+@0x2886
+◻       and     m:rax::1:0x0:1  r:bh
+@0x2888
+◻       and     m:rip::1:0x3a203720:1   r:bh
+@0x288e
+⊤       cmp     r:eax   i:0xa796220
+@0x2893
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2895
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2897
+∈       s       i:0x28fb
+@0x289a
+⋈       movsxd  r:rsi   m:rax::1:0x6f:4
+@0x289e
+⋈       pop     r:rdi
+@0x28a3
+⋈       pop     r:rdi
+@0x28a5
+⊞       xor     r:ebx   m:rdi::1:0x6d:4
+@0x28a9
+⋈       pop     r:rdi
+@0x28ab
+⊤       cmp     m:rax::1:0x0:1  r:ah
+@0x28ad
+⋈       push    i:0x64646f5f
+@0x28b2
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x28b7
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x28ba
+◻       and     m:rbx::1:0x61:1 r:ah
+@0x28bd
+∈       ae      i:0x2924
+@0x28bf
+∈       ae      i:0x28e1
+@0x28c1
+⋈       push    i:0x7361635f
+@0x28c6
+∈       ae      i:0x28e9
+@0x28c9
+∈       a       i:0x2934
+@0x28cb
+∈       e       i:0x2935
+@0x28cd
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x28cf
+◻       and     m:rax::1:0x69:1 r:bh
+@0x28d5
+◻       and     m:rax::1:0x33:1 r:ch
+@0x28d8
+◻       and     m:rip::1:0x20200a3e:1   r:bh
+@0x28de
+◻       and     m:rax::1:0x0:1  r:ah
+@0x28e0
+∈       s       i:0x2944
+@0x28e3
+⋈       movsxd  r:rsi   m:rax::1:0x6e:4
+@0x28e7
+⋈       pop     r:rdi
+@0x28ea
+⋈       pop     r:rdi
+@0x28ec
+⊤       cmp     m:rdi::1:0x69:1 r:bl
+@0x28ef
+∈       ae      i:0x2950
+@0x28f1
+⊞       xor     r:ebx   m:rdi::1:0x63:4
+@0x28f6
+∈       e       i:0x296a
+@0x28f8
+⊞       popad
+@0x28f9
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x28fd
+⋈       pop     r:rdi
+@0x28ff
+◻       and     m:rax::1:0x33:1 r:ch
+@0x2904
+◻       and     m:rax::1:0x6e:1 r:ch
+@0x2907
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2909
+◻       and     m:rax::1:0x69:1 r:bh
+@0x290e
+∈       b       i:0x2930
+@0x2910
+⋈       push    i:0x3e3d2037
+@0x2915
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2917
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2919
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x291c
+⊞       popad
+@0x291d
+⋈       movsxd  r:rsi   m:rax::1:0x6e:4
+@0x2921
+⋈       pop     r:rdi
+@0x2924
+⋈       pop     r:rdi
+@0x2926
+⊤       cmp     m:rdi::1:0x69:1 r:bl
+@0x2929
+∈       ae      i:0x298a
+@0x292c
+⋈       pop     r:rdi
+@0x292d
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x2930
+∈       e       i:0x29a4
+@0x2932
+⊞       popad
+@0x2933
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x2937
+⋈       pop     r:rdi
+@0x2939
+◻       and     m:rax::1:0x37:1 r:ch
+@0x293e
+◻       and     m:rax::1:0x6e:1 r:ch
+@0x2941
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x2947
+⊞       popad
+@0x2948
+◻       and     m:rbx::1:0x74:1 r:dh
+@0x294c
+∈       o       i:0x29be
+@0x294e
+⊞       imul    r:ebp   m:rsi::1:0x67:4 i:0x6d69745f
+@0x2955
+⋈       pop     r:rdi
+@0x2957
+∈       s       i:0x29c3
+@0x295a
+∈       ae      i:0x29d0
+@0x295c
+∈       ae      i:0x297e
+@0x295e
+∈       np      i:0x29ce
+@0x2960
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2962
+⊞       and     r:dl    r:ah
+@0x2964
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x296b
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x296d
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2970
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x2973
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x2975
+⊤       cmp     r:cl    m:rdx::1:0x0:1
+@0x2977
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2979
+◻       and     m:rax::1:0x0:1  r:ah
+@0x297c
+⋈       mov     m:rbx::1:0x202c6b20:1   r:al
+@0x2982
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2986
+⋈       pop     r:rsi
+@0x2987
+⋈       pop     r:rbx
+@0x2988
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x298d
+◻       and     m:rax::1:0x0:1  r:bh
+@0x2991
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2993
+⊤       cmp     r:eax   i:0xa796220
+@0x2998
+◻       and     m:rax::1:0x0:1  r:ah
+@0x299b
+∈       ns      i:0x29fc
+@0x299d
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x29a0
+∈       ae      i:0x29c3
+@0x29a3
+⋈       push    i:0x6576655f
+@0x29a9
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x29ab
+◻       and     m:rbp::1:0x76:1 r:al
+@0x29b0
+◻       and     m:rsi::1:0xa:1  r:ch
+@0x29b3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x29b5
+⊣       ret     i:0x20b7
+@0x29b8
+∈       s       i:0x2a1c
+@0x29bb
+⋈       movsxd  r:rsi   m:rax::1:-0x1e:4
+@0x29c0
+⊤       test    r:al    i:0x31
+@0x29c2
+⊞       sub     r:al    i:0x20
+@0x29c5
+∈       ns      i:0x29e7
+@0x29c7
+∈       b       i:0x2a40
+@0x29c9
+◻       and     m:rbx::1:0x46:1 r:bl
+@0x29cc
+∈       ne      i:0x2a3c
+@0x29ce
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x29d3
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x5f657461
+@0x29dc
+∈       ae      i:0x2a53
+@0x29de
+⋈       movsxd  r:rsp   m:rbx::1:0x5f:4
+@0x29e1
+⊞       popad
+@0x29e2
+∈       o       i:0x2a54
+@0x29e5
+∈       ns      i:0x2a0e
+@0x29e7
+⊞       sub     r:al    i:0x20
+@0x29e9
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x29ec
+⋈       pop     r:rdi
+@0x29ed
+∈       be      i:0x2a55
+@0x29f1
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x29f4
+∈       be      i:0x2a5c
+@0x29f8
+⋈       pop     r:rbp
+@0x29f9
+⊤       cmp     r:esp   m:rax::1:0x0:4
+@0x29fb
+∈       s       i:0x2a5f
+@0x29fe
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x2a02
+⊞       popad
+@0x2a04
+⋈       pop     r:rdi
+@0x2a06
+∈       ae      i:0x2a6d
+@0x2a0c
+∈       ae      i:0x2a2f
+@0x2a0f
+◻       sub     m:rdx::1:0x79:1 r:ah
+@0x2a12
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x2a15
+⊞       popad
+@0x2a18
+⊞       sub     r:edx   r:esp
+@0x2a1b
+⊤       test    r:eax   i:-0x3ddfdff6
+@0x2a20
+⋈       mov     r:bh    i:0x20
+@0x2a22
+⋈       push    i:0x20657661
+@0x2a27
+⋈       push    i:0x646f6d5f
+@0x2a2c
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2a2e
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2a31
+⊞       and     r:eax   i:0x3d203420
+@0x2a36
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x2a38
+⊞       and     r:dl    r:ah
+@0x2a3a
+⋈       mov     m:rax::1:0x25206e20:1   r:ch
+@0x2a40
+◻       and     m:rax::1:0x0:1  r:dh
+@0x2a43
+⊤       cmp     r:eax   i:0x3a203320
+@0x2a48
+⊤       cmp     r:eax   i:0x646f6d20
+@0x2a4d
+⋈       pop     r:rdi
+@0x2a4e
+⊞       xor     r:al    i:0x5f
+@0x2a50
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x2a53
+∈       ae      i:0x2a76
+@0x2a56
+⋈       push    i:0x6576655f
+@0x2a5c
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2a5e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2a60
+◻       and     m:rbx::1:0x61:1 r:ah
+@0x2a63
+∈       ae      i:0x2aca
+@0x2a65
+∈       ae      i:0x2a87
+@0x2a67
+⋈       push    i:0x646f6d5f
+@0x2a6c
+◻       and     m:rdi::1:0x69:1 r:dh
+@0x2a6f
+∈       e       i:0x2ad9
+@0x2a71
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2a73
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2a75
+◻       and     m:rax::1:0x69:1 r:bh
+@0x2a7b
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2a80
+⋈       pop     r:rdi
+@0x2a82
+◻       xor     m:rax::1:0x0:4  r:esp
+@0x2a84
+⊤       cmp     r:eax   i:0x200a203e
+@0x2a89
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2a8b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2a8d
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x2a90
+⊞       popad
+@0x2a91
+⋈       movsxd  r:rsi   m:rax::1:-0x1e:4
+@0x2a96
+⊤       test    r:al    i:0x32
+@0x2a98
+⊞       sub     r:al    i:0x20
+@0x2a9b
+∈       ns      i:0x2abd
+@0x2a9d
+∈       b       i:0x2b16
+@0x2a9f
+◻       and     m:rbx::1:0x46:1 r:bl
+@0x2aa2
+∈       ne      i:0x2b12
+@0x2aa4
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x2aa9
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x5f657461
+@0x2ab2
+∈       ae      i:0x2b29
+@0x2ab4
+⋈       movsxd  r:rsp   m:rbx::1:0x5f:4
+@0x2ab7
+⊞       popad
+@0x2ab8
+∈       o       i:0x2b2a
+@0x2abb
+∈       ns      i:0x2ae4
+@0x2abd
+⊞       sub     r:al    i:0x20
+@0x2abf
+∈       ne      i:0x2b30
+@0x2ac2
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x2ac7
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x5f657461
+@0x2ad0
+∈       ae      i:0x2b47
+@0x2ad2
+⋈       movsxd  r:rsp   m:rbx::1:0x5f:4
+@0x2ad5
+⊞       popad
+@0x2ad6
+∈       o       i:0x2b48
+@0x2ad9
+∈       ns      i:0x2b02
+@0x2adb
+⊞       sub     r:al    i:0x20
+@0x2add
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2adf
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ae1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ae3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ae5
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ae7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ae9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2aeb
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2aed
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2aef
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2af1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2af3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2af5
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x2af9
+⋈       pop     r:rdi
+@0x2afb
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2b00
+∈       be      i:0x2b68
+@0x2b04
+⊞       sub     r:al    i:0x20
+@0x2b06
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x2b09
+⋈       pop     r:rdi
+@0x2b0a
+∈       be      i:0x2b72
+@0x2b0e
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2b11
+⋈       pop     r:rdi
+@0x2b16
+⋈       pop     r:rdi
+@0x2b1a
+∈       ne      i:0x2b8e
+@0x2b1c
+⋈       pop     r:rdi
+@0x2b1f
+⋈       pop     r:rdi
+@0x2b21
+⊞       imul    r:ebp   m:rbp::1:0x70:4 i:0x7365696c
+@0x2b28
+⋈       pop     r:rdi
+@0x2b29
+∈       be      i:0x2b91
+@0x2b2d
+⋈       pop     r:rdi
+@0x2b2e
+∈       b       i:0x2b95
+@0x2b30
+∈       ae      i:0x2ba7
+@0x2b33
+∈       e       i:0x2b55
+@0x2b35
+⋈       push    i:0x6576655f
+@0x2b3b
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2b40
+⋈       pop     r:rdi
+@0x2b42
+◻       xor     m:rcx::1:0x0:4  r:ebp
+@0x2b44
+⋈       pop     r:rbp
+@0x2b45
+⊤       cmp     r:esp   m:rax::1:0x0:4
+@0x2b47
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2b49
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b4b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b4d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b4f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b51
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b53
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b55
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2b57
+∈       s       i:0x2bbb
+@0x2b5a
+⋈       movsxd  r:rsi   m:rax::1:0x6f:4
+@0x2b5e
+⋈       pop     r:rdi
+@0x2b63
+⋈       pop     r:rdi
+@0x2b67
+∈       ne      i:0x2bdb
+@0x2b69
+⋈       pop     r:rdi
+@0x2b6a
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x2b6d
+∈       e       i:0x2be1
+@0x2b6f
+⊞       popad
+@0x2b70
+⋈       movsxd  r:rsi   m:rbx:rsi:2:0x20:4
+@0x2b74
+⋈       push    i:0x6576655f
+@0x2b7a
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2b7f
+⋈       pop     r:rdi
+@0x2b81
+◻       xor     m:rax::1:0x0:4  r:esp
+@0x2b83
+◻       sub     m:rdx::1:0x79:1 r:ah
+@0x2b86
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x2b89
+⊞       popad
+@0x2b8c
+⊞       sub     r:edx   r:esp
+@0x2b8f
+⊤       test    r:eax   i:0x2020200a
+@0x2b94
+◻       and     m:rax::1:0x69:1 r:bh
+@0x2b99
+∈       b       i:0x2bbb
+@0x2b9b
+⋈       push    i:0x646f6d5f
+@0x2ba0
+⋈       pop     r:rdi
+@0x2ba1
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x2ba3
+⊤       cmp     r:eax   i:0x20200a3e
+@0x2ba8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2baa
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2bac
+∈       s       i:0x2c10
+@0x2baf
+⋈       movsxd  r:rsi   m:rax::1:0x6f:4
+@0x2bb3
+⋈       pop     r:rdi
+@0x2bb7
+⋈       pop     r:rdi
+@0x2bba
+⋈       pop     r:rdi
+@0x2bbc
+⊞       xor     r:ebx   m:rdi::1:0x63:4
+@0x2bc1
+∈       e       i:0x2c35
+@0x2bc3
+⊞       popad
+@0x2bc4
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x2bc8
+⋈       pop     r:rdi
+@0x2bc9
+∈       be      i:0x2c31
+@0x2bcd
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2bd2
+⋈       pop     r:rdi
+@0x2bd4
+⊞       xor     r:esp   m:rax::1:0x0:4
+@0x2bd6
+⋈       push    i:0x6c0a0a6e
+@0x2bde
+⊞       popad
+@0x2bdf
+◻       and     m:rax::1:0x6f:1 r:dh
+@0x2be2
+∈       ae      i:0x2c43
+@0x2be4
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x206e7b20
+@0x2bec
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2bef
+⊤       test    m:rbp::1:0x6828207d:1   r:dl
+@0x2bf6
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2bf8
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2bfc
+⋈       mov     m:rbp::1:0x20293120:4   r:esp
+@0x2c02
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2c05
+⋈       mov     m:rax::1:0x202c6b20:1   r:al
+@0x2c0b
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2c0f
+⋈       pop     r:rsi
+@0x2c10
+⋈       pop     r:rbx
+@0x2c11
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2c16
+⊞       and     r:dl    r:ah
+@0x2c18
+⋈       mov     m:rbp::1:0x3a203120:4   r:esp
+@0x2c1e
+⊤       cmp     r:eax   i:0xa796220
+@0x2c23
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2c25
+⊞       imul    r:ebp   m:rsi::1:0x74:4 i:0x6b206f72
+@0x2c2c
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2c2e
+◻       and     m:rcx::1:0x6e:1 r:ch
+@0x2c31
+∈       ne      i:0x2c97
+@0x2c34
+∈       e       i:0x2c9f
+@0x2c38
+◻       and     m:rbx::1:0x20:1 r:ch
+@0x2c3b
+∈       a       i:0x2ca6
+@0x2c3d
+∈       e       i:0x2ca7
+@0x2c3f
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2c41
+◻       and     m:rax::1:0x7a:1 r:bh
+@0x2c45
+∈       b       i:0x2cb7
+@0x2c48
+◻       and     m:rip::1:0x6973203e:1   r:bh
+@0x2c4f
+∈       o       i:0x2c5b
+@0x2c51
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2c53
+∈       l       i:0x2c75
+@0x2c55
+∈       ae      i:0x2ccc
+@0x2c57
+⋈       movsxd  r:rsp   m:rbx::1:0x20:4
+@0x2c5a
+⊞       imul    r:esp   m:rax::1:0x0:4  i:0x69
+@0x2c5d
+⋈       push    i:0xa3e3d20
+@0x2c62
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2c64
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2c66
+∈       b       i:0x2cdf
+@0x2c68
+◻       and     m:rbx::1:0x46:1 r:bl
+@0x2c6b
+∈       ne      i:0x2cdb
+@0x2c6d
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x2c72
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x5f657461
+@0x2c7b
+∈       ae      i:0x2cf2
+@0x2c7d
+⋈       movsxd  r:rsp   m:rbx::1:0x5f:4
+@0x2c80
+⊞       popad
+@0x2c81
+∈       o       i:0x2cf3
+@0x2c84
+∈       ns      i:0x2cad
+@0x2c86
+⋈       pop     r:rbp
+@0x2c87
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2c89
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2c8b
+◻       and     m:rax::1:0x61:1 r:ch
+@0x2c8e
+∈       be      i:0x2cf5
+@0x2c90
+◻       and     m:rax::1:0x6e:1 r:ch
+@0x2c94
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2c96
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2c98
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x2c9b
+⋈       pop     r:rsi
+@0x2c9c
+⋈       pop     r:rbx
+@0x2c9d
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2ca2
+⊞       and     r:dl    r:ah
+@0x2ca4
+⋈       mov     m:rbp::1:0x3a203120:4   r:esp
+@0x2caa
+⊤       cmp     r:eax   i:0xa686920
+@0x2caf
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2cb1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2cb4
+∈       ns      i:0x2d15
+@0x2cb6
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x2cb9
+∈       ae      i:0x2cdc
+@0x2cbc
+⋈       push    i:0x6576655f
+@0x2cc2
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2cc4
+◻       and     m:rbp::1:0x76:1 r:al
+@0x2cc9
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2ccb
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2ccf
+⋈       pop     r:rsi
+@0x2cd0
+⋈       pop     r:rbx
+@0x2cd1
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2cd6
+◻       sub     m:rdx::1:0x0:4  r:ecx
+@0x2cd8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2cda
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2cdc
+⊣       ret     i:0x20b7
+@0x2cdf
+∈       b       i:0x2d58
+@0x2ce1
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x2ce6
+⋈       pop     r:rdi
+@0x2ce7
+∈       be      i:0x2d4f
+@0x2ceb
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2cee
+∈       be      i:0x2d56
+@0x2cf2
+⋈       pop     r:rbp
+@0x2cf3
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2cf5
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2cf7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2cf9
+◻       and     m:rax::1:0x61:1 r:ch
+@0x2cfc
+∈       be      i:0x2d63
+@0x2cfe
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2d00
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2d02
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x2d05
+⋈       pop     r:rsi
+@0x2d06
+⋈       pop     r:rbx
+@0x2d07
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2d0c
+◻       and     m:rdi::1:0x0:1  r:ch
+@0x2d0e
+◻       and     m:rdx::1:0x0:1  r:dh
+@0x2d10
+⊞       and     r:dl    r:ah
+@0x2d12
+⋈       mov     m:rbp::1:0x3a203120:4   r:esp
+@0x2d18
+⊤       cmp     r:eax   i:0xa796220
+@0x2d1d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d1f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d21
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d23
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d25
+⋈       push    i:0x20657661
+@0x2d2a
+⋈       push    i:0x65675f6e
+@0x2d2f
+⊞       xor     r:ah    m:rax::1:0x0:1
+@0x2d31
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2d33
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2d37
+⋈       pop     r:rsi
+@0x2d38
+⋈       pop     r:rbx
+@0x2d39
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2d3e
+⊞       and     r:dl    r:ah
+@0x2d40
+⋈       mov     m:rbp::1:0x3a203220:4   r:esp
+@0x2d46
+⊤       cmp     r:eax   i:0xa796220
+@0x2d4b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d4d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d4f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d51
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d53
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d56
+∈       ns      i:0x2db7
+@0x2d58
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x2d5b
+∈       e       i:0x2dcf
+@0x2d5d
+⊞       popad
+@0x2d5e
+◻       and     m:rax::1:0xa:1  r:ch
+@0x2d61
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d63
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d65
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d67
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d69
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d6b
+⋈       push    i:0x20657661
+@0x2d70
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2d72
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2d76
+⋈       pop     r:rsi
+@0x2d77
+⋈       pop     r:rbx
+@0x2d78
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2d7d
+⊞       and     r:dl    r:ah
+@0x2d7f
+⋈       mov     m:rax::1:0x3d3a2031:4   r:esp
+@0x2d86
+◻       and     m:rdx::1:0x79:1 r:ah
+@0x2d89
+◻       and     m:rdi::1:0x6d:1 r:ch
+@0x2d8c
+⊞       popad
+@0x2d8f
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2d91
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d93
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d95
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d97
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2d99
+◻       and     m:rax::1:0x61:1 r:ch
+@0x2d9c
+∈       be      i:0x2e03
+@0x2d9e
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x2da0
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2da2
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x2da5
+⋈       pop     r:rsi
+@0x2da6
+⋈       pop     r:rbx
+@0x2da7
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2dac
+◻       and     m:rip::1:-0x1ddfcfe0:1  r:bh
+@0x2db2
+⋈       mov     m:rax::1:0x6f632820:1   r:ch
+@0x2db9
+⋈       pop     r:rsi
+@0x2dba
+⋈       pop     r:rbx
+@0x2dbb
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2dc0
+◻       and     m:rip::1:0x3a203120:1   r:bh
+@0x2dc6
+⊤       cmp     r:eax   i:0x20796220
+@0x2dcd
+⊞       popad
+@0x2dd0
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2dd2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2dd4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2dd6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2dd8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2dda
+◻       and     m:rbx::1:0x61:1 r:ah
+@0x2ddd
+∈       ae      i:0x2e44
+@0x2ddf
+∈       ae      i:0x2e01
+@0x2de1
+∈       e       i:0x2e4b
+@0x2de3
+⊞       imul    r:esi   m:rbx::1:0x20:4 i:0x68746977
+@0x2dea
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2dec
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2dee
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2df0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2df2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2df4
+◻       and     m:rax::1:0x69:1 r:bh
+@0x2dfa
+◻       and     m:rax::1:-0x1e:1        r:ch
+@0x2dfe
+◻       and     m:rax::1:0x0:4  i:0x6f203e3d
+@0x2e05
+⊞       popad
+@0x2e08
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2e0a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e0c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e0e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e10
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e12
+◻       and     m:rax::1:0x69:1 r:bh
+@0x2e17
+∈       b       i:0x2e39
+@0x2e19
+⋈       push    i:0x208182e2
+@0x2e1e
+⊤       cmp     r:eax   i:0x20200a3e
+@0x2e23
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e25
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e27
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e29
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e2b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e2d
+⋈       push    i:0x20657661
+@0x2e32
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x2e34
+⊣       ret     i:0x45ac
+@0x2e37
+∈       be      i:0x2e9e
+@0x2e3a
+◻       and     m:rax::1:0x0:1  r:ch
+@0x2e3c
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2e40
+⋈       pop     r:rsi
+@0x2e41
+⋈       pop     r:rbx
+@0x2e42
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2e47
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x2e49
+⊤       cmp     r:bh    m:rip::1:0xa796220:1
+@0x2e4f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e51
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e53
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e55
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e57
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e59
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e5b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e5d
+∈       b       i:0x2ed6
+@0x2e5f
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x2e64
+◻       sbb     m:rbp::1:0xa:4  i:0x20202020
+@0x2e6b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e6d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e6f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e71
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e73
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e77
+∈       b       i:0x2ee6
+@0x2e79
+⋈       pop     r:rdi
+@0x2e7b
+∈       ne      i:0x2eea
+@0x2e7d
+◻       and     m:rbx::1:0x4e:1 r:bl
+@0x2e80
+⊞       popad
+@0x2e81
+∈       e       i:0x2eb1
+@0x2e83
+∈       be      i:0x2eeb
+@0x2e87
+⋈       pop     r:rdi
+@0x2e88
+⊞       imul    r:esp   m:rsi::1:0x66:4 i:0x20200a5d
+@0x2e8f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e91
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e93
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e95
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e97
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2e99
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x2e9c
+∈       e       i:0x2f10
+@0x2e9e
+⊞       popad
+@0x2e9f
+⊞       imul    r:esp   m:rbx::1:0x74:4 i:0xa6e6f69
+@0x2ea7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ea9
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2eab
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ead
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2eb1
+⊞       popad
+@0x2eb4
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2eb6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2eb8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2eba
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x2ebd
+⊞       popad
+@0x2ebe
+⋈       movsxd  r:rsi   m:rax::1:0x74:4
+@0x2ec2
+⋈       push    i:0x200a7369
+@0x2ec7
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ec9
+⊞       and     r:dl    r:al
+@0x2ecb
+⋈       mov     r:bh    i:0x20
+@0x2ecd
+∈       b       i:0x2f46
+@0x2ecf
+◻       and     m:rbx::1:0x63:1 r:bl
+@0x2ed4
+⋈       pop     r:rdi
+@0x2ed6
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2edb
+∈       be      i:0x2f43
+@0x2edf
+⋈       pop     r:rbp
+@0x2ee0
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2ee2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ee4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ee6
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x2ee9
+⊞       popad
+@0x2eea
+⋈       movsxd  r:rsi   m:rax::1:0x6f:4
+@0x2eee
+⋈       pop     r:rdi
+@0x2ef1
+∈       o       i:0x2f62
+@0x2ef3
+∈       ae      i:0x2f5e
+@0x2ef5
+∈       e       i:0x2f60
+@0x2ef7
+∈       be      i:0x2f5e
+@0x2ef9
+◻       and     m:rax::1:0x6e:1 r:ch
+@0x2efd
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x2eff
+∈       e       i:0x2f69
+@0x2f03
+∈       b       i:0x2f6a
+@0x2f06
+◻       and     m:rbp::1:0x72:1 r:ah
+@0x2f0b
+∈       ae      i:0x2f6c
+@0x2f0d
+∈       o       i:0x2f81
+@0x2f14
+⋈       pop     r:rdi
+@0x2f15
+◻       xor     m:rcx::1:0x0:4  r:esi
+@0x2f17
+⊞       xor     r:esi   m:rip::1:0x200a3a20:4
+@0x2f1d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2f1f
+⊞       and     r:dl    r:ah
+@0x2f21
+⋈       mov     m:rax::1:-0x1ddf92e0:1  r:al
+@0x2f27
+⋈       mov     m:rbp::1:0x202c3120:4   r:esp
+@0x2f2e
+⋈       mov     m:rbx::1:-0x1ddf94e0:1  r:al
+@0x2f34
+⋈       mov     m:rbp::1:0x202c3120:4   r:esp
+@0x2f3a
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2f3e
+⋈       pop     r:rsi
+@0x2f3f
+⋈       pop     r:rbx
+@0x2f40
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2f45
+◻       and     m:rip::1:0x3a203120:1   r:bh
+@0x2f4b
+⊤       cmp     r:eax   i:0xa796220
+@0x2f50
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2f52
+⊞       imul    r:ebp   m:rsi::1:0x74:4 i:0x6d206f72
+@0x2f59
+◻       and     m:rax::1:0x6d:1 r:ch
+@0x2f5c
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2f5e
+◻       and     m:rax::1:0x61:1 r:ch
+@0x2f61
+∈       be      i:0x2fc8
+@0x2f63
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x2f67
+⊞       popad
+@0x2f68
+⊞       imul    r:ebp   m:rsi::1:0x20:4 i:-0x771ddfc6
+@0x2f6f
+◻       and     m:rax::1:0x0:1  i:0x6e
+@0x2f72
+⊞       and     r:dl    r:ah
+@0x2f74
+⋈       mov     m:rbp::1:0x202c3120:4   r:esp
+@0x2f7b
+⋈       mov     m:rbx::1:-0x1ddf94e0:1  r:al
+@0x2f81
+⋈       mov     m:rbp::1:0x202c3120:4   r:esp
+@0x2f87
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x2f8b
+⋈       pop     r:rsi
+@0x2f8c
+⋈       pop     r:rbx
+@0x2f8d
+⊞       imul    r:ebx   m:rbp::1:0x29:4 i:0x20
+@0x2f92
+◻       and     m:rip::1:0x3a203120:1   r:bh
+@0x2f98
+⊤       cmp     r:eax   i:0xa796220
+@0x2f9d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2f9f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2fa1
+⊞       imul    r:ebp   m:rsi::1:0x74:4 i:0x6e206f72
+@0x2fa8
+◻       and     m:rax::1:0x6e:1 r:ch
+@0x2fab
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2fad
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2faf
+◻       and     m:rcx::1:0x6e:1 r:ch
+@0x2fb2
+∈       ne      i:0x3018
+@0x2fb5
+∈       e       i:0x3020
+@0x2fb9
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2fbc
+∈       ne      i:0x3031
+@0x2fbe
+⊞       imul    r:ebp   m:rsi::1:0x67:4 i:0x74614e20
+@0x2fc5
+∈       ae      i:0x303c
+@0x2fc8
+∈       b       i:0x3039
+@0x2fcb
+⋈       pop     r:rdi
+@0x2fcd
+⊞       imul    r:ebp   m:rsi::1:0x64:4 i:0x69746375
+@0x2fd6
+⋈       pop     r:rdi
+@0x2fd9
+◻       and     m:rdi::1:0x69:1 r:dh
+@0x2fdc
+∈       e       i:0x3046
+@0x2fde
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x2fe0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2fe2
+◻       and     m:rax::1:0x68:1 r:bh
+@0x2fe6
+◻       and     m:rsi::1:0x20:1 r:ch
+@0x2fe9
+⊞       imul    r:ebp   m:rax::1:0x20:4 i:0x200a3e3d
+@0x2ff0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ff2
+◻       and     m:rax::1:0x0:1  r:ah
+@0x2ff4
+◻       and     m:rbx::1:0x61:1 r:ah
+@0x2ff7
+∈       ae      i:0x305e
+@0x2ff9
+∈       ae      i:0x301b
+@0x2ffc
+◻       and     m:rdi::1:0x69:1 r:dh
+@0x2fff
+∈       e       i:0x3069
+@0x3001
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x3003
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3005
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3007
+◻       and     m:rax::1:0x7a:1 r:bh
+@0x300b
+∈       b       i:0x307d
+@0x300e
+◻       and     m:rip::1:0x6f63203e:1   r:bh
+@0x3015
+∈       e       i:0x3089
+@0x3017
+⊞       popad
+@0x3018
+⊞       imul    r:esp   m:rbx::1:0x74:4 i:0xa6e6f69
+@0x3020
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3022
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3024
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3026
+∈       l       i:0x3048
+@0x3028
+∈       ae      i:0x309f
+@0x302a
+⋈       movsxd  r:rsp   m:rbx::1:0x20:4
+@0x302f
+◻       and     m:rip::1:0x20200a3e:1   r:bh
+@0x3035
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3037
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3039
+◻       and     m:rax::1:0x0:1  r:ah
+@0x303b
+⋈       movsxd  r:rsp   m:rcx::1:0x73:4
+@0x303e
+∈       ae      i:0x3061
+@0x3043
+◻       and     m:rdi::1:0x69:1 r:dh
+@0x3046
+∈       e       i:0x30b0
+@0x3048
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x304a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x304c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x304e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3050
+◻       and     m:rax::1:0x7a:1 r:bh
+@0x3054
+∈       b       i:0x30c6
+@0x3057
+◻       and     m:rip::1:0x20200a3e:1   r:bh
+@0x305d
+◻       and     m:rax::1:0x0:1  r:ah
+@0x305f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3061
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3063
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3065
+∈       s       i:0x30c9
+@0x3068
+⋈       movsxd  r:rsi   m:rax::1:-0x1e:4
+@0x306d
+⊤       test    r:al    i:0x32
+@0x306f
+⊞       sub     r:al    i:0x20
+@0x3072
+∈       ns      i:0x3094
+@0x3076
+∈       b       i:0x30e5
+@0x3078
+⋈       pop     r:rdi
+@0x307a
+∈       ne      i:0x30e9
+@0x307c
+⊞       sub     r:al    i:0x20
+@0x307f
+∈       ns      i:0x30a1
+@0x3081
+∈       ae      i:0x30ec
+@0x3084
+∈       o       i:0x30a6
+@0x3086
+⋈       pop     r:rbx
+@0x3087
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x308a
+⋈       pop     r:rdi
+@0x308d
+⊞       sub     r:al    i:0x20
+@0x3090
+⋈       movsxd  r:rbp   m:rdi::1:0x6c:4
+@0x3093
+⋈       pop     r:rdi
+@0x3094
+∈       e       i:0x310d
+@0x3097
+⋈       pop     r:rbp
+@0x309a
+⊤       test    r:eax   i:0x2020200a
+@0x309f
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30a1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30a3
+◻       and     m:rax::1:0x73:1 r:bh
+@0x30a7
+∈       ne      i:0x310c
+@0x30a9
+⋈       movsxd  r:rsp   m:rax::1:0x0:4
+@0x30ae
+◻       and     m:rip::1:0x20200a3e:1   r:bh
+@0x30b4
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30b6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30b8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30ba
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30bc
+⋈       push    i:0x20657661
+@0x30c1
+⋈       push    i:0x74675f6e
+@0x30c6
+◻       xor     m:rax::1:0x0:4  r:esp
+@0x30c8
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x30cb
+◻       and     m:rsi::1:0x0:1  r:bh
+@0x30cd
+◻       and     m:rcx::1:0x0:1  r:dh
+@0x30cf
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x30d1
+⊤       cmp     r:eax   i:0x20796220
+@0x30d8
+⊞       popad
+@0x30db
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x30dd
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30df
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30e1
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30e3
+◻       and     m:rax::1:0x0:1  r:ah
+@0x30e5
+◻       and     m:rax::1:0x61:1 r:ch
+@0x30e8
+∈       be      i:0x314f
+@0x30ea
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x30ed
+⋈       movsxd  r:rbp   m:rdi::1:0x6e:4
+@0x30f0
+∈       e       i:0x3164
+@0x30f2
+⊞       popad
+@0x30f3
+⋈       movsxd  r:rsi   m:rax::1:0x3a:4
+@0x30f7
+⊞       and     r:dl    r:ah
+@0x30f9
+⋈       mov     m:rbx::1:0x202c6a20:1   r:al
+@0x30ff
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x3103
+⋈       pop     r:rsi
+@0x3104
+⋈       pop     r:rbx
+@0x3105
+⋈       push    i:0x5d
+@0x3107
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x310a
+◻       and     m:rax::1:0x0:1  r:bh
+@0x310e
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x3110
+⊤       cmp     r:eax   i:0x6f747320
+@0x3115
+∈       o       i:0x3187
+@0x3117
+⊞       imul    r:ebp   m:rsi::1:0x67:4 i:0x6d69745f
+@0x311e
+⋈       pop     r:rdi
+@0x3120
+∈       s       i:0x318c
+@0x3123
+∈       ae      i:0x3199
+@0x3125
+∈       ae      i:0x3147
+@0x3127
+⋈       push    i:0x74675f6e
+@0x312c
+◻       xor     m:rdx::1:0x0:4  r:ecx
+@0x312e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3130
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3132
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3134
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3136
+◻       and     m:rax::1:0x0:1  r:ah
+@0x313a
+∈       e       i:0x319d
+@0x313c
+⊞       imul    r:ebp   m:rsi::1:0x20:4 i:0x6aa89fe2
+@0x3143
+⊞       sub     r:al    i:0x20
+@0x3145
+⋈       push    i:-0x56601d96
+@0x314a
+◻       and     m:rdx::1:0x0:1  r:bh
+@0x314c
+⊤       cmp     r:eax   i:0x635f6820
+@0x3153
+∈       e       i:0x31c7
+@0x3155
+⊞       popad
+@0x3156
+⋈       movsxd  r:rsi   m:rdx:rcx:1:0x20:4
+@0x315a
+◻       and     m:rax::1:0x0:1  r:ah
+@0x315c
+◻       and     m:rax::1:0x0:1  r:ah
+@0x315e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3160
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3162
+◻       and     m:rax::1:0x61:1 r:ch
+@0x3165
+∈       be      i:0x31cc
+@0x3167
+◻       and     m:rax::1:0x5f:1 r:ch
+@0x316a
+∈       o       i:0x31db
+@0x316c
+∈       ae      i:0x318e
+@0x316e
+⊤       cmp     r:ah    m:rax::1:0x0:1
+@0x3170
+◻       sub     m:rbx::1:0x6f:1 r:ah
+@0x3174
+⋈       pop     r:rsi
+@0x3175
+⋈       pop     r:rbx
+@0x3176
+⋈       push    i:0x5d
+@0x3178
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x317b
+⊞       and     r:dl    r:ah
+@0x317d
+⋈       mov     m:rbp::1:0x3a203120:4   r:esp
+@0x3183
+⊤       cmp     r:eax   i:0x736f7020
+@0x3188
+⋈       pop     r:rdi
+@0x3189
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x206e6820
+@0x3191
+⋈       push    i:0xa
+@0x3193
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3195
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3197
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3199
+◻       and     m:rax::1:0x0:1  r:ah
+@0x319b
+◻       and     m:rax::1:0x0:1  r:ah
+@0x319f
+∈       e       i:0x3202
+@0x31a1
+⊞       imul    r:ebp   m:rsi::1:0x20:4 i:0x6ba89fe2
+@0x31a8
+⊞       sub     r:al    i:0x20
+@0x31aa
+⋈       push    i:0x6f705f6b
+@0x31af
+∈       ae      i:0x31dd
+@0x31b1
+◻       and     m:rax::1:0x6b:1 r:ch
+@0x31b6
+⊤       test    r:eax   i:0x203d3a20
+@0x31bb
+⊞       imul    r:ebp   m:rax::1:0x20:4 i:0x6f632828
+@0x31c3
+⋈       pop     r:rsi
+@0x31c4
+⋈       pop     r:rbx
+@0x31c5
+⋈       push    i:0x5d
+@0x31c7
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x31ca
+◻       sub     m:rax::1:0x0:4  r:esp
+@0x31cc
+⋈       push    i:0x736f705f
+@0x31d1
+◻       and     m:rax::1:0x6a:1 r:ch
+@0x31d4
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x31d6
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31d8
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31da
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31dc
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31de
+◻       and     m:rbp::1:0x73:1 r:dh
+@0x31e1
+◻       and     m:rdx::1:0x20:1 r:ch
+@0x31e5
+⊞       sub     r:esp   m:rax::1:0x0:4
+@0x31e7
+⊞       imul    r:ecx   m:rdx::1:0x0:4  i:0x20
+@0x31ea
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31ec
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31ee
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31f0
+◻       and     m:rax::1:0x0:1  r:ah
+@0x31f2
+◻       and     m:rbx::1:0x6f:1 r:ah
+@0x31f6
+∈       ae      i:0x326c
+@0x31f8
+∈       b       i:0x326f
+@0x31fa
+⋈       movsxd  r:rsi   m:rdi:rbp:2:0x72:4
+@0x31fe
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x3200
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3202
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3204
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3206
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3208
+⊞       and     r:dl    r:al
+@0x320a
+⋈       mov     r:bh    i:0x20
+@0x320e
+⊞       popad
+@0x3211
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x3213
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3215
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3217
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3219
+◻       and     m:rax::1:0x0:1  r:ah
+@0x321b
+⊞       and     r:dl    r:al
+@0x321d
+⋈       mov     r:bh    i:0x20
+@0x321f
+∈       b       i:0x3298
+@0x3221
+◻       and     m:rbx::1:-0x1e:1        r:bl
+@0x3224
+⋈       xchg    m:rax::1:0x6e754620:1   r:dl
+@0x322a
+⋈       movsxd  r:rsi   m:rcx:rbp:2:0x6f:4
+@0x322f
+⊞       imul    r:esi   m:rbp::2:0x72:4 i:0x5f657461
+@0x3238
+⊞       popad
+@0x3239
+⋈       pop     r:rbp
+@0x323c
+⊞       or      r:ah    m:rax::1:0x0:1
+@0x323e
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3240
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3242
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3244
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3246
+◻       and     m:rax::1:0x0:1  r:ah
+@0x3248
+◻       and     m:rdx::1:0x77:1 r:dh
+@0x324b
+◻       and     m:rbx::1:0x68:1 r:bl
+@0x324e
+⊞       imul    r:ebx   m:rbp::1:0xa:4  i:0x20
+@0x3252
+◻       and     m:rbp::1:0x78:1 r:ah
+@0x3255
+⊞       popad
+@0x3256
+⋈       movsxd  r:rsi   m:rax::1:0x68:4
+@0x325a
+⋈       pop     r:rdi
+@0x325c
+⊞       popad
+@0x325d
+⊞       imul    r:ebp   m:rsi::1:0x20:4 i:0x6d68206d
+@0x3264
+⊞       or      r:cl    m:rdx::1:0x0:1
+@0x3268
+◻       and     m:rbp::1:0x72:1 r:al
+@0x326e
+∈       ae      i:0x32a1
+@0x3270
+◻       xor     m:rbx::1:0x0:4  r:esi

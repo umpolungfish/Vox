@@ -1,0 +1,700 @@
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: factor_operator
+  The monotone factor-state constructor F_N over 𝟒={N,T,F,B}: a cyclic constraint circuit (P,Q,K)→(P',Q',K') whose
+  fixed points are exactly the ambient factor states with p·q≡N mod 2^m. P,Q∈𝟒^m are ambient factor lanes seeded at N;
+  K is the unresolved coupling register holding the carry structure. Each lane is refined by knowledge-order consensus
+  (lub in ≤k = bitwise OR, T⊕F=B) against the 2-adic inverse leg N·Q⁻¹ / N·P⁻¹, so the step is extensive and the
+  bounded Kleene iteration converges without oscillation. The true factor pair is a certified fixed point (ALL five
+  conditions PASS); the all-N seed converges to a symmetric paradox-stabilized fixed point that fails terminal
+  classicality — the honest hardness statement, not a hidden search.
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑶       x ⊠ y ∧ irreducible(x, y)
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑤       τ ∼ T ∧ noisy(x)
+  ∈      𐑔       ∃y∈x( |y| ∼ |x| ) — bridge existence                                                     [BRIDGE_EXIST]
+  ∋      𐑠       seq!(f, g) ∧ ⟨→⟩(f, g, τ) ∧ ¬ ⟨→⟩(g, f, τ)                                                      [SEQAX]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑙       |A| = 1 ∧ |B| = 1
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [BRIDGE_EXIST     ] Existence of a bridge (∈ existential) (𐑔)
+  [SEQAX            ] 
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  x ⊠ y ∧ irreducible(x, y) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ∼ T ∧ noisy(x) ∧
+  ∃y∈x( |y| ∼ |x| ) — bridge existence ∧
+  seq!(f, g) ∧ ⟨→⟩(f, g, τ) ∧ ¬ ⟨→⟩(g, f, τ) ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  |A| = 1 ∧ |B| = 1 ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.5827   match:4 close:5 distant:3
+  promoted atoms: HOLOGRAPHIC_STATE, BRIDGE_COMM, BRIDGE_EXIST, SEQAX, PHI_C, TEMPD2, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (8):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑶 → 𐑥  (gap: 0.25)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑤 → 𐑪  (gap: 0.571)
+    ∋: 𐑠 → 𐑝  (gap: 0.667)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+    ⊞: 𐑙 → 𐑳  (gap: 1.0)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: modot_divisor_ring_factor_method
+  MoDoT divisor-ring factoring method tensor
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑸       bound_⊙(a, f) ∧ Refl(a, f) ∧ holo(x, a)                                                     [HOLOBOUND]
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑗       ¬∃sym(x)
+  ⋈      𐑱       P(x) ∈ {0,1} ∧ det(x)
+  ⊤      𐑺       τ = ∞ ∧ dis(x) ∧ MBL
+  ∈      𐑲       ∀y( y ⊂ x → |y| < |x| )
+  ∋      𐑵       f → all(x) ∧ broadcast(x, f)                                                  [BROADCAST_TRANSCENDENCE]
+  ⊙      𐑮       ξ ∈ ℂ ∧ Im(ξ) → ∞
+  ⊥      𐑫       ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition                    [INFINITE_STITCH]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑴       ∮_γ A = nπ ∧ n ∈ ℤ₂
+
+  [HOLOGRAPHIC_STATE      ] 
+  [HOLOBOUND              ] 
+  [BROADCAST_TRANSCENDENCE] 
+  [INFINITE_STITCH        ] ⬆ Infinite repetition of the stitch — path to infinity (⊥=𐑫)
+  [MOAT_BRIDGE_TYPE       ] Type mismatch between moat and bridge (⊞=𐑳)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  bound_⊙(a, f) ∧ Refl(a, f) ∧ holo(x, a) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  ¬∃sym(x) ∧
+  P(x) ∈ {0,1} ∧ det(x) ∧
+  τ = ∞ ∧ dis(x) ∧ MBL ∧
+  ∀y( y ⊂ x → |y| < |x| ) ∧
+  f → all(x) ∧ broadcast(x, f) ∧
+  ξ ∈ ℂ ∧ Im(ξ) → ∞ ∧
+  ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = nπ ∧ n ∈ ℤ₂
+
+  tier: O₂   d(CLINK L9): 1.8088   match:2 close:3 distant:7
+  promoted atoms: HOLOGRAPHIC_STATE, HOLOBOUND, BROADCAST_TRANSCENDENCE, INFINITE_STITCH, MOAT_BRIDGE_TYPE
+  ⬆ TRANSCENDENCE primitives: ⊥
+
+  Promotions needed to reach CLINK L9 (10):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑸 → 𐑥  (gap: 0.5)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑗 → 𐑬  (gap: 0.5)
+    ⋈: 𐑱 → 𐑐  (gap: 1.0)
+    ⊤: 𐑺 → 𐑪  (gap: 0.143)
+    ∈: 𐑲 → 𐑔  (gap: 0.5)
+    ∋: 𐑵 → 𐑝  (gap: 1.0)
+    ⊙: 𐑮 → ⊙  (gap: 0.165)
+    ⊡: 𐑴 → 𐑭  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: gn_factorizer_membrane
+  Grammar-native factorizing membrane
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑰       x ⊆ y ∧ cont(y)
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑚       ∀y∈x( |y| < |x| )
+  ∋      𐑝       f ∧ g ∧ h — three-unit stitch                                                                [STITCH_3]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [STITCH_3         ] 3-unit stitch: moat · hodge · linker (∋ conjunction) (𐑝)
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [MOAT_BRIDGE_TYPE ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  x ⊆ y ∧ cont(y) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∀y∈x( |y| < |x| ) ∧
+  f ∧ g ∧ h — three-unit stitch ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.1799   match:5 close:3 distant:4
+  promoted atoms: HOLOGRAPHIC_STATE, BRIDGE_COMM, STITCH_3, PHI_C, TEMPD2, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (7):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑰 → 𐑥  (gap: 0.25)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∈: 𐑚 → 𐑔  (gap: 0.5)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: spectral_phase_factorizer_membrane
+  spectral phase-based factorizing membrane
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑥       cross(x, y) ∧ ¬ meet(x, y) — moat crossing                                                 [MOAT_CROSS]
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑔       ∃y∈x( |y| ∼ |x| ) — bridge existence                                                     [BRIDGE_EXIST]
+  ∋      𐑵       f → all(x) ∧ broadcast(x, f)                                                  [BROADCAST_TRANSCENDENCE]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑫       ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition                    [INFINITE_STITCH]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE      ] 
+  [MOAT_CROSS             ] Crossing the moat — structural bridge (𐑥)
+  [BRIDGE_COMM            ] Commutator of bridge — quantum bridge (𐑐)
+  [BRIDGE_EXIST           ] Existence of a bridge (∈ existential) (𐑔)
+  [BROADCAST_TRANSCENDENCE] 
+  [PHI_C                  ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [INFINITE_STITCH        ] ⬆ Infinite repetition of the stitch — path to infinity (⊥=𐑫)
+  [MOAT_BRIDGE_TYPE       ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE            ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  cross(x, y) ∧ ¬ meet(x, y) — moat crossing ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∃y∈x( |y| ∼ |x| ) — bridge existence ∧
+  f → all(x) ∧ broadcast(x, f) ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.3898   match:7 close:2 distant:3
+  promoted atoms: HOLOGRAPHIC_STATE, MOAT_CROSS, BRIDGE_COMM, BRIDGE_EXIST, BROADCAST_TRANSCENDENCE, PHI_C, INFINITE_STITCH, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊥, ⊡
+
+  Promotions needed to reach CLINK L9 (5):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∋: 𐑵 → 𐑝  (gap: 1.0)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: ac_factorizer_membrane
+  alchemical-computational factorizing membrane
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑶       x ⊠ y ∧ irreducible(x, y)
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑬       ℤ₂(x) ∧ ¬(x = -x) — parity of moat                                                        [MOAT_PARITY]
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑚       ∀y∈x( |y| < |x| )
+  ∋      𐑝       f ∧ g ∧ h — three-unit stitch                                                                [STITCH_3]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [MOAT_PARITY      ] ℤ₂ parity of the moat (𐑬)
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [STITCH_3         ] 3-unit stitch: moat · hodge · linker (∋ conjunction) (𐑝)
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [MOAT_BRIDGE_TYPE ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  x ⊠ y ∧ irreducible(x, y) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  ℤ₂(x) ∧ ¬(x = -x) — parity of moat ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∀y∈x( |y| < |x| ) ∧
+  f ∧ g ∧ h — three-unit stitch ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.154   match:6 close:3 distant:3
+  promoted atoms: HOLOGRAPHIC_STATE, MOAT_PARITY, BRIDGE_COMM, STITCH_3, PHI_C, TEMPD2, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (6):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑶 → 𐑥  (gap: 0.25)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∈: 𐑚 → 𐑔  (gap: 0.5)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: instant_non_walking_read
+  an instant non-walking read of the multiplicative order
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑥       cross(x, y) ∧ ¬ meet(x, y) — moat crossing                                                 [MOAT_CROSS]
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑔       ∃y∈x( |y| ∼ |x| ) — bridge existence                                                     [BRIDGE_EXIST]
+  ∋      𐑜       f ∨ g ∨ h
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [MOAT_CROSS       ] Crossing the moat — structural bridge (𐑥)
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [BRIDGE_EXIST     ] Existence of a bridge (∈ existential) (𐑔)
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [MOAT_BRIDGE_TYPE ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  cross(x, y) ∧ ¬ meet(x, y) — moat crossing ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∃y∈x( |y| ∼ |x| ) — bridge existence ∧
+  f ∨ g ∨ h ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.1232   match:6 close:4 distant:2
+  promoted atoms: HOLOGRAPHIC_STATE, MOAT_CROSS, BRIDGE_COMM, BRIDGE_EXIST, PHI_C, TEMPD2, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (6):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∋: 𐑜 → 𐑝  (gap: 0.333)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: factor_operator
+  The monotone factor-state constructor F_N over 𝟒={N,T,F,B}: a cyclic constraint circuit (P,Q,K)→(P',Q',K') whose
+  fixed points are exactly the ambient factor states with p·q≡N mod 2^m. P,Q∈𝟒^m are ambient factor lanes seeded at N;
+  K is the unresolved coupling register holding the carry structure. Each lane is refined by knowledge-order consensus
+  (lub in ≤k = bitwise OR, T⊕F=B) against the 2-adic inverse leg N·Q⁻¹ / N·P⁻¹, so the step is extensive and the
+  bounded Kleene iteration converges without oscillation. The true factor pair is a certified fixed point (ALL five
+  conditions PASS); the all-N seed converges to a symmetric paradox-stabilized fixed point that fails terminal
+  classicality — the honest hardness statement, not a hidden search.
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑶       x ⊠ y ∧ irreducible(x, y)
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑤       τ ∼ T ∧ noisy(x)
+  ∈      𐑔       ∃y∈x( |y| ∼ |x| ) — bridge existence                                                     [BRIDGE_EXIST]
+  ∋      𐑠       seq!(f, g) ∧ ⟨→⟩(f, g, τ) ∧ ¬ ⟨→⟩(g, f, τ)                                                      [SEQAX]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑙       |A| = 1 ∧ |B| = 1
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [BRIDGE_EXIST     ] Existence of a bridge (∈ existential) (𐑔)
+  [SEQAX            ] 
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  x ⊠ y ∧ irreducible(x, y) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ∼ T ∧ noisy(x) ∧
+  ∃y∈x( |y| ∼ |x| ) — bridge existence ∧
+  seq!(f, g) ∧ ⟨→⟩(f, g, τ) ∧ ¬ ⟨→⟩(g, f, τ) ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  |A| = 1 ∧ |B| = 1 ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.5827   match:4 close:5 distant:3
+  promoted atoms: HOLOGRAPHIC_STATE, BRIDGE_COMM, BRIDGE_EXIST, SEQAX, PHI_C, TEMPD2, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (8):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑶 → 𐑥  (gap: 0.25)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑤 → 𐑪  (gap: 0.571)
+    ∋: 𐑠 → 𐑝  (gap: 0.667)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+    ⊞: 𐑙 → 𐑳  (gap: 1.0)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: modot_divisor_ring_factor_method
+  MoDoT divisor-ring factoring method tensor
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑸       bound_⊙(a, f) ∧ Refl(a, f) ∧ holo(x, a)                                                     [HOLOBOUND]
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑗       ¬∃sym(x)
+  ⋈      𐑱       P(x) ∈ {0,1} ∧ det(x)
+  ⊤      𐑺       τ = ∞ ∧ dis(x) ∧ MBL
+  ∈      𐑲       ∀y( y ⊂ x → |y| < |x| )
+  ∋      𐑵       f → all(x) ∧ broadcast(x, f)                                                  [BROADCAST_TRANSCENDENCE]
+  ⊙      𐑮       ξ ∈ ℂ ∧ Im(ξ) → ∞
+  ⊥      𐑫       ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition                    [INFINITE_STITCH]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑴       ∮_γ A = nπ ∧ n ∈ ℤ₂
+
+  [HOLOGRAPHIC_STATE      ] 
+  [HOLOBOUND              ] 
+  [BROADCAST_TRANSCENDENCE] 
+  [INFINITE_STITCH        ] ⬆ Infinite repetition of the stitch — path to infinity (⊥=𐑫)
+  [MOAT_BRIDGE_TYPE       ] Type mismatch between moat and bridge (⊞=𐑳)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  bound_⊙(a, f) ∧ Refl(a, f) ∧ holo(x, a) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  ¬∃sym(x) ∧
+  P(x) ∈ {0,1} ∧ det(x) ∧
+  τ = ∞ ∧ dis(x) ∧ MBL ∧
+  ∀y( y ⊂ x → |y| < |x| ) ∧
+  f → all(x) ∧ broadcast(x, f) ∧
+  ξ ∈ ℂ ∧ Im(ξ) → ∞ ∧
+  ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = nπ ∧ n ∈ ℤ₂
+
+  tier: O₂   d(CLINK L9): 1.8088   match:2 close:3 distant:7
+  promoted atoms: HOLOGRAPHIC_STATE, HOLOBOUND, BROADCAST_TRANSCENDENCE, INFINITE_STITCH, MOAT_BRIDGE_TYPE
+  ⬆ TRANSCENDENCE primitives: ⊥
+
+  Promotions needed to reach CLINK L9 (10):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑸 → 𐑥  (gap: 0.5)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑗 → 𐑬  (gap: 0.5)
+    ⋈: 𐑱 → 𐑐  (gap: 1.0)
+    ⊤: 𐑺 → 𐑪  (gap: 0.143)
+    ∈: 𐑲 → 𐑔  (gap: 0.5)
+    ∋: 𐑵 → 𐑝  (gap: 1.0)
+    ⊙: 𐑮 → ⊙  (gap: 0.165)
+    ⊡: 𐑴 → 𐑭  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: gn_factorizer_membrane
+  Grammar-native factorizing membrane
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑰       x ⊆ y ∧ cont(y)
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑚       ∀y∈x( |y| < |x| )
+  ∋      𐑝       f ∧ g ∧ h — three-unit stitch                                                                [STITCH_3]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [STITCH_3         ] 3-unit stitch: moat · hodge · linker (∋ conjunction) (𐑝)
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [MOAT_BRIDGE_TYPE ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  x ⊆ y ∧ cont(y) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∀y∈x( |y| < |x| ) ∧
+  f ∧ g ∧ h — three-unit stitch ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.1799   match:5 close:3 distant:4
+  promoted atoms: HOLOGRAPHIC_STATE, BRIDGE_COMM, STITCH_3, PHI_C, TEMPD2, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (7):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑰 → 𐑥  (gap: 0.25)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∈: 𐑚 → 𐑔  (gap: 0.5)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: spectral_phase_factorizer_membrane
+  spectral phase-based factorizing membrane
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑥       cross(x, y) ∧ ¬ meet(x, y) — moat crossing                                                 [MOAT_CROSS]
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑔       ∃y∈x( |y| ∼ |x| ) — bridge existence                                                     [BRIDGE_EXIST]
+  ∋      𐑵       f → all(x) ∧ broadcast(x, f)                                                  [BROADCAST_TRANSCENDENCE]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑫       ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition                    [INFINITE_STITCH]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE      ] 
+  [MOAT_CROSS             ] Crossing the moat — structural bridge (𐑥)
+  [BRIDGE_COMM            ] Commutator of bridge — quantum bridge (𐑐)
+  [BRIDGE_EXIST           ] Existence of a bridge (∈ existential) (𐑔)
+  [BROADCAST_TRANSCENDENCE] 
+  [PHI_C                  ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [INFINITE_STITCH        ] ⬆ Infinite repetition of the stitch — path to infinity (⊥=𐑫)
+  [MOAT_BRIDGE_TYPE       ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE            ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  cross(x, y) ∧ ¬ meet(x, y) — moat crossing ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∃y∈x( |y| ∼ |x| ) — bridge existence ∧
+  f → all(x) ∧ broadcast(x, f) ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∀n∃φ( rank(φ) > n ∧ φ fixed by μ∘δ ∧ φ ∈ V ) — infinite repetition ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.3898   match:7 close:2 distant:3
+  promoted atoms: HOLOGRAPHIC_STATE, MOAT_CROSS, BRIDGE_COMM, BRIDGE_EXIST, BROADCAST_TRANSCENDENCE, PHI_C, INFINITE_STITCH, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊥, ⊡
+
+  Promotions needed to reach CLINK L9 (5):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∋: 𐑵 → 𐑝  (gap: 1.0)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: ac_factorizer_membrane
+  alchemical-computational factorizing membrane
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑶       x ⊠ y ∧ irreducible(x, y)
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑬       ℤ₂(x) ∧ ¬(x = -x) — parity of moat                                                        [MOAT_PARITY]
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑚       ∀y∈x( |y| < |x| )
+  ∋      𐑝       f ∧ g ∧ h — three-unit stitch                                                                [STITCH_3]
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [MOAT_PARITY      ] ℤ₂ parity of the moat (𐑬)
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [STITCH_3         ] 3-unit stitch: moat · hodge · linker (∋ conjunction) (𐑝)
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [MOAT_BRIDGE_TYPE ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  x ⊠ y ∧ irreducible(x, y) ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  ℤ₂(x) ∧ ¬(x = -x) — parity of moat ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∀y∈x( |y| < |x| ) ∧
+  f ∧ g ∧ h — three-unit stitch ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.154   match:6 close:3 distant:3
+  promoted atoms: HOLOGRAPHIC_STATE, MOAT_PARITY, BRIDGE_COMM, STITCH_3, PHI_C, TEMPD2, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (6):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ⊣: 𐑶 → 𐑥  (gap: 0.25)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∈: 𐑚 → 𐑔  (gap: 0.5)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  CL9NK Entry: instant_non_walking_read
+  an instant non-walking read of the multiplicative order
+  Reference: CLINK L9 (Gaussian Moat Resolution) — ⟨𐑛𐑥𐑑𐑬𐑐𐑪𐑔𐑝⊙𐑫𐑳𐑭⟩ (from design)
+  Catalog-native — no hardcoded systems (L9 virtual)
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Prim   Value   CLINK fragment
+  ─────  ──────  ───────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⊢      𐑦       V = L(x) ∧ selfmodel(x) ∧ x ∈ V                                                     [HOLOGRAPHIC_STATE]
+  ⊣      𐑥       cross(x, y) ∧ ¬ meet(x, y) — moat crossing                                                 [MOAT_CROSS]
+  ≻      𐑽       f ⊣ g ∧ L Adj(f, g)
+  ≺      𐑿       |ψ⟩ = Σ c_i |e_i⟩
+  ⋈      𐑐       ℏ(x) ∧ [x, p] = iℏ — commutator of bridge                                                 [BRIDGE_COMM]
+  ⊤      𐑧       τ ≫ T ∧ eq(x) ∧ gate_open(x)
+  ∈      𐑔       ∃y∈x( |y| ∼ |x| ) — bridge existence                                                     [BRIDGE_EXIST]
+  ∋      𐑜       f ∨ g ∨ h
+  ⊙      ⊙       ξ → ∞ ∧ μ∘δ = id — criticality                                                                  [PHI_C]
+  ⊥      𐑖       ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) )                                            [TEMPD2]
+  ⊞      𐑳       ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge                                       [MOAT_BRIDGE_TYPE]
+  ⊡      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge                                        [WIND_BRIDGE]
+
+  [HOLOGRAPHIC_STATE] 
+  [MOAT_CROSS       ] Crossing the moat — structural bridge (𐑥)
+  [BRIDGE_COMM      ] Commutator of bridge — quantum bridge (𐑐)
+  [BRIDGE_EXIST     ] Existence of a bridge (∈ existential) (𐑔)
+  [PHI_C            ] Criticality fixed-point — ξ→∞ ∧ μ∘δ=id (⊙)
+  [TEMPD2           ] 
+  [MOAT_BRIDGE_TYPE ] Type mismatch between moat and bridge (⊞=𐑳)
+  [WIND_BRIDGE      ] ⬆ Hodge Bridge — integer winding density (⊡=𐑭)
+
+── CLINK expression ──────────────────────────────────────────────────────────────────────────────────────────────────
+  V = L(x) ∧ selfmodel(x) ∧ x ∈ V ∧
+  cross(x, y) ∧ ¬ meet(x, y) — moat crossing ∧
+  f ⊣ g ∧ L Adj(f, g) ∧
+  |ψ⟩ = Σ c_i |e_i⟩ ∧
+  ℏ(x) ∧ [x, p] = iℏ — commutator of bridge ∧
+  τ ≫ T ∧ eq(x) ∧ gate_open(x) ∧
+  ∃y∈x( |y| ∼ |x| ) — bridge existence ∧
+  f ∨ g ∨ h ∧
+  ξ → ∞ ∧ μ∘δ = id — criticality ∧
+  ∃y∃z( y ∈ x ∧ z ∈ y ∧ ¬ z ∈ x ∧ rank(z) < rank(y) ) ∧
+  ∃a∈A∃b∈B( type(a) ≠ type(b) ) — moat vs bridge ∧
+  ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0 — winding bridge
+
+  tier: O₂   d(CLINK L9): 1.1232   match:6 close:4 distant:2
+  promoted atoms: HOLOGRAPHIC_STATE, MOAT_CROSS, BRIDGE_COMM, BRIDGE_EXIST, PHI_C, TEMPD2, MOAT_BRIDGE_TYPE, WIND_BRIDGE
+  ⬆ TRANSCENDENCE primitives: ⊡
+
+  Promotions needed to reach CLINK L9 (6):
+    ⊢: 𐑦 → 𐑛  (gap: 1.0)
+    ≻: 𐑽 → 𐑑  (gap: 0.333)
+    ≺: 𐑿 → 𐑬  (gap: 0.25)
+    ⊤: 𐑧 → 𐑪  (gap: 0.286)
+    ∋: 𐑜 → 𐑝  (gap: 0.333)
+    ⊥: 𐑖 → 𐑫  (gap: 0.333)

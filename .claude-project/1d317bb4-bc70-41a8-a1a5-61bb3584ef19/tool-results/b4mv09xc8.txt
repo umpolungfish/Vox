@@ -1,0 +1,909 @@
+===== git repos under imsgct =====
+### ./imscribing_grammar
+955fb83 Add mcp_agent_server.py — MCP stdio wrapper for TrueAgenticAgent (registered as ig-agent at user scope via claude mcp add)
+8733836 Add mcp_agent_server.py — MCP stdio wrapper for TrueAgenticAgent (registered as ig-agent at user scope via claude mcp add)
+a8a0aac SNS_PRIME notation audit — fix old notation in two published sources
+c595edd SNS_PRIME notation audit — fix old notation in two published sources
+bcffba6 IG_catalog.json: replaced stub (36 entries) with full catalog (2808 entries)
+5ad519e imscribing_grammar root cleanup
+9ce314a imscribing_grammar root cleanup
+b0cc352 imscribing_grammar root cleanup
+3f48fba operatoroid.py: ⊙perator as autonomous amoebic screen agent — blob + pseudopodia + vision + xdotool IG_AXIOMATIC_SPECIFICATION.md: §16 IMASM (507L) — 12 opcodes, 4 families, bootstrap, 12 arrangement classes, Vessel Principle, crystal mapping, classification theorem, meta-loop red-hot_rebis: Homo arboreus (treople) — organism_treople + rb-treople alias; 6 primitive deltas; arc complete red-hot_rebis: Homo sapiens photosynthetic variant — organism_human_photosynthetic + rb-human-photo alias red-hot_rebis: Homo sapiens gill variant — organism_human_gills + rb-human-gills alias
+0118c38 red-hot_rebis: Homo sapiens gill variant — organism_human_gills + rb-human-gills alias
+9cd1288 PR: Make Claude Agent SDK Truly Agentic via Structural Promotion
+### ./red-hot_rebis
+bb702e0 Full framework test pass (2026-06-24)
+b200f9d PDB format robustness — 2026-06-24
+80be2be PDB format robustness — 2026-06-24
+21dd005 Repo consolidation: backup purge, file layout, version dedup — 2026-06-24
+996cf8a rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+3912c16 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+063e336 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+9070f72 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+59c8036 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+c7bda67 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+68afed8 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+1848423 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+0c7af8c rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+d876dff rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+7e8e02f rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+a055c18 rebis.py: dynamic CLI + p4ramill_py→rhr_p4rky mass fix (2026-06-20)
+### ./exOS
+40bf5aa docs: add duplicate entries for holographic_monitor and coupling_destruction in USAGE.md
+78fb61c docs: add holographic self-encoding and coupling destruction theorems to README and USAGE
+0abdc58 feat: implement holographic self-encoding monitor and coupling destruction axiom
+### ./sdk/xai-sdk-python
+bf580f1 Update .pre-commit-config.yaml (#12)
+### ./sdk/client-python
+52d614f chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK [speakeasy/mistralai-sdk-26525785297-1] 2.4.8 (#556)
+091c57f chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK [speakeasy/mistralai-sdk-26292816554-1] 2.4.7 (#550)
+59f1bf7 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-AZURE MISTRALAI-AZURE-SDK [speakeasy/mistralai-azure-sdk-26292833044-1] 2.1.0 (#549)
+66b2945 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-GOOGLE-CLOUD MISTRALAI-GCP-SDK [speakeasy/mistralai-gcp-sdk-26292830187-1] 2.1.0 (#548)
+37d843a Use msgpack for compressed workflow payloads (#546)
+c78d437 Keep workflow compression payloads self-describing (#534)
+7ebe84b chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK [speakeasy-sdk-regen-25492313905] 2.4.5 (#518)
+99fb677 feat: support per-instance OpenTelemetry TracerProvider via set_tracer_provider (#517)
+adeff87 feat: support per-instance OpenTelemetry TracerProvider via set_tracer_provider
+40ed8dc ## Python SDK Changes: (#506)
+362e8a6 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.4.3 (#503)
+19e24ee chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.4.2 (#501)
+ed26a8a chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.4.1 (#498)
+1c8b035 fix: remove duplicated deferred-response block in conversations.py
+c821946 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.4.0 (#491)
+0441625 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.4.0rc2 (#489)
+2d01b47 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.4.0rc1 (#487)
+fe8a503 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.3.2 (#484)
+5c4d2ca fix: remove typehint causing ci error (#483)
+c24a9a8 fix: remove typehint causing ci error
+87fdfa4 feat: add Human-in-the-Loop (HITL) deferred tool calls support
+f0969ad chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.3.1 (#477)
+eee98b9 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.3.0 (#469)
+777cd60 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.2.0 (#461)
+6087465 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.2.0rc3 (#458)
+c28d33d chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.2.0rc2 (#457)
+8d1ddf4 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.2.0rc1 (#456)
+c3bf896 fix(otel): require semconv 0.61b0
+06f680e fix(otel): relax semconv dependency range
+8dd088e fix(otel): satisfy pyright for cached token usage
+b6cce3d fix(otel): address cached token review feedback
+7e585f6 fix(otel): record cached prompt tokens in spans
+9a4c1ba chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.1.3 (#447)
+ec0e7c4 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.1.2 (#444)
+325c500 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.1.1 (#442)
+86e592f chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.1.0 (#439)
+b2428fd chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.5 (#434)
+3d9eb57 feat(otel): read gen_ai.conversation.id from OTEL baggage and set as span attribute (#429)
+1f25e81 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.4 (#426)
+93b9b7a chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.3 (#424)
+ed25660 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.2 (#423)
+c1614e7 fix: harden CI publish guard and improve prepare_readme script
+c3b4c5a docs: fix broken links, typos, and syntax errors across all documentation
+8da1e18 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.1 (#421)
+d12d367 docs: update README to reflect v2 as latest PyPI release (#416)
+facfc29 docs: update README to reflect v2 as latest PyPI release
+54def72 Fix rec_strict_json_schema to handle numeric constraint keywords (#302)
+168700c chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-AZURE MISTRALAI-AZURE-SDK 2.0.0 (#411)
+0803fb3 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-GOOGLE-CLOUD MISTRALAI-GCP-SDK 2.0.0 (#410)
+7a6c927 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.0 (#409)
+d6f1994 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-AZURE MISTRALAI-AZURE-SDK 2.0.0rc1 (#397)
+40dc890 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-GOOGLE-CLOUD MISTRALAI-GCP-SDK 2.0.0rc1 (#396)
+79b53d8 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.0rc1 (#394)
+15eb16b feat: enable Speakeasy contract testing for all 3 SDK targets
+3eaedb4 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-AZURE MISTRALAI-AZURE-SDK 2.0.0b1 (#374)
+4b7ac55 chore: 🐝 Update SDK - Generate MISTRAL-PYTHON-SDK-GOOGLE-CLOUD MISTRALAI-GCP-SDK 2.0.0b1 (#373)
+19f29d1 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 2.0.0b1 (#372)
+081ab82 revert: restore run_examples.sh to main version
+077c5af fix: add google.* to root mypy ignore_missing_imports
+49b5b08 chore: remove internal gen-yaml-diff.md from PR
+bd255c9 fix: address review findings across SDK, config, scripts, and tests
+529e6e6 feat: add UX improvements to Azure/GCP SDKs
+065fb3f fix: correct gen-yaml-diff.md to match actual gen.yaml values
+8eebd75 fix: align Azure/GCP docs, examples and configs with v2 SDK
+c3f22d3 fix: change constFieldCasing from upper to normal (#361)
+10440db ## Python SDK Changes: (#365)
+ec35f0b ## Python SDK Changes: (#362)
+075db71 test: add exhaustive parity and integration tests for Azure/GCP v2
+b6825b3 feat: migrate Azure/GCP SDKs to PEP 420 namespace packages
+01e7b82 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK [v1] 1.12.3 (#353)
+346dc75 PEP 420 namespace support, widen otel upper bound (#346)
+5fb625c PEP 420 namespace support, widen otel upper bound
+cb3622c chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK [v1] 1.12.2 (#348)
+7970744 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK [v1] 1.12.1 (#344)
+b8f7287 ## Python SDK Changes: (#330)
+eb85b6c ## SDK Changes Detected: (#328)
+c5b6051 ## SDK Changes Detected: (#321)
+79cf7f5 ## SDK Changes Detected: (#320)
+65d8a04 Update src/mistralai/extra/run/tools.py
+992b0cb ci: regenerated with OpenAPI Doc , Speakeasy CLI 1.606.10 (#277)
+824187d Update Speakeasy SDKs to version 1.606.10 (#275)
+806e91d ci: regenerated with OpenAPI Doc , Speakeasy CLI 1.568.2 (#268)
+16d470c chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.9.8 (#266)
+d4c691d chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.9.3 (#251)
+3990f94 ci: regenerated with OpenAPI Doc , Speakeasy CLI 1.517.3 (#224)
+be02ba7 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.7.1 (#220)
+bc4adf3 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.7.0 (#214)
+fde481b chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.6.0 (#209)
+f027a7d ci: regenerated with OpenAPI Doc , Speakeasy CLI 1.477.0 (#206)
+1741021 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.5.2-rc.1 (#202)
+6f80af2 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.5.1 (#188)
+bcc7748 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.5.0 (#184)
+2611c82 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.4.0 (#183)
+a117be8 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.3.0 (#173)
+d14559a chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.2.6 (#169)
+329ce8c ci: regenerated with OpenAPI Doc , Speakeasy CLI 1.451.1 (#166)
+0fd4241 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.2.3 (#157)
+ab11009 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.2.2 (#155)
+a53f0d1 chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.2.1 (#154)
+cc2a09a chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.2.0 (#153)
+d8ba2ef chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.1.0 (#145)
+f62530a chore: 🐝 Update SDK - Generate MISTRALAI MISTRALAI-SDK 1.0.2 (#137)
+55b92b1 ci: regenerated with OpenAPI Doc , Speakeasy CLI 1.357.4 (#129)
+821aa40 publish 1.0.0 (#125)
+af48070 feat: model deletion
+f1012d6 Update .github/ISSUE_TEMPLATE/bug_report_client.yml
+d469f2a Remove setting of the _root_ logger level as this is best done by the end user. (#86)
+### ./sdk/generative-ai-python
+61867f6 Bump tj-actions/changed-files from 44 to 46 in /.github/workflows (#721)
+45bd243 Fix function_calling.sh example (#679)
+d415d1a Add the migration guide. (#672)
+b8772ed fix: Pass along model version in GenerateContentResponse (#621)
+aae0caf watermark (#603)
+c8eadc4 feat: add py.typed (#509)
+8f77cc6 Removing OAuth from tuning for REST (#579)
+b50341e Stream file upload (#556)
+d5103eb Search grounding (#558)
+6c8dad1 fix: preserve quality and optimize transfer of prompt images (#570)
+7342a62 Remove DiscussService and TextService (#512)
+8a29017 REST for tuned models (#496)
+42d952a Ce rest (#495)
+74d67ac Code execution for shell (#491)
+84db061 Caching cURL sample (#455)
+032f78f Adding JSON schema curl samples (#434)
+b19fc8c Add function calling REST example (#443)
+695ee95 add audio streaming & pdf examples (#483)
+d3ca154 `text_generation` samples for shell (#430)
+0f8f139 Using the `GEMINI_API_KEY` by default instead of the `GOOGLE_API_KEY` one (#418)
+950a666 Chat REST samples (#449)
+0d51b26 Add code execution python sample (#451)
+85ee8c1 Fix Model dataclass (#439)
+90d0cdb fix bug passing single-string safety settings. (#417)
+9282959 Cleanup files.py (#402)
+45fcbdf Add REST sample for listing and getting models  (#421)
+e113a27 Add safety_settings sample (#415)
+aa2a88f Add create_audio and create_text to `samples/files.py` (#414)
+23ce3bd Add cache_from_name and cache_chat (#413)
+630318b Rename json_mode.py and create function calling sample (#406)
+81aaf35 Add samples for chat (#408)
+7f1ad45 change argument name to model_name (#394)
+7bd2daa Caching samples (#399)
+4960f78 Remove extra new line. (#400)
+63a140b Code execution (#396)
+23b81d7 Explicit Caching patch (#377)
+5412d24 Explicit Caching (#355)
+f08c789 Add genai.protos (#354)
+2e62fae Update __init__.py to use the latest model (#362)
+30337c2 Improve request_options (#297)
+51d806d Fix bugs, improve code clarity, and enhance overall reliability across several files. (#339)
+1b1d883 Restrict Harm category to the sublist only Gemini support (#295)
+a96feda Add response_schema parameter (#302)
+1efbcef Return full file details at the end of create. (#314)
+8d8e410 Extend permissions service support to Tuned Models  (#219)
+3a9c286 Copy test cases over for new responder.py (#303)
+9e6767b Add JSON mode (#274)
+ba6b439 System instruction (#270)
+6b281da Finish Semantic Retriever. (#230)
+a187374 Add additional functionalities with files SDK (#260)
+8f79698 Update README.md (#256)
+d894807 Automatic function calling. (#201)
+c3c90f8 Add ability to configure timeouts (#204)
+bcec1b5 Match docs (#197)
+5e9ff4f Implement __repr__ for GenerateContentResponse and ChatSession (#202)
+b3fa336 Updated naming regex, made naming process simpler. (#191)
+1b2597e Adding AQA (GenerateAnswer). (#169)
+85bfe21 Added create time and update time fields to Corpus, Document, and Chu… (#187)
+6fe8c12 Semantic retriever (#168)
+ad0e9f2 More readable error message (#163)
+bad9517 fix: lock google-auth version to fix #114 (#115)
+04dbd5f Import typeddict from typing_extentions (#104)
+a1e4e16 Update tutorial comments in class GenerativeModel (#116)
+b23546f fix: handle empty string in ChatSession.send_message (#134)
+0a9596f Fix: List Index out out range with empty parts [] (#138)
+8f05227 aiter, anext not exist error (#127)
+0cd555b Update README.md (#107)
+0988543 Update to include the generative service. (#105)
+837d237 Addition of docstrings to the files (#61)
+7cd3d52 Add missing packages to unblock pytype (#41)
+62671ec Check format with black. (#31)
+e1d67a8 Add description to count_message_tokens (#28)
+d2402eb First commit: Push everyone's code.
+### ./sdk/openai-python
+94c88b80 release: 2.33.0 (#3119)
+f9d2d135 fix(api): correct prompt_cache_retention enum value from in-memory to in_memory (#1822)
+2936d2fc Pin setup-rye in GitHub workflows
+5be95364 feat(client): add support for short-lived tokens (#1608)
+0a4ca536 release: 2.27.0 (#2938)
+15afa21e release: 2.26.0 (#2932)
+9b1bb6ee release: 2.25.0 (#2891)
+656e3cab release: 2.24.0 (#2890)
+a7a60166 release: 2.18.0 (#2846)
+74b1e6f9 chore(ci): add CI job to detect breaking changes with the Agents SDK (#1436)
+ef002168 release: 2.10.0 (#2767)
+513ae762 release: 2.5.0 (#2694)
+85a91ade chore(package): bump jiter to >=0.10.0 to support Python 3.14 (#2618)
+0d85ca08 release: 1.108.0 (#2635)
+4756247c release: 1.107.2 (#2624)
+847ff0b8 release: 1.107.1 (#2619)
+0296375f release: 1.107.0 (#2613)
+25d16be1 feat(client): support callable api_key (#2588)
+4e28a424 release: 1.101.0 (#2577)
+a3315d9f release: 1.98.0 (#2503)
+48188cc8 release: 1.97.2 (#2494)
+db5c3504 release: 1.95.0 (#2456)
+1a85f249 release: 1.92.2 (#2431)
+18e0b36a release: 1.92.0 (#2424)
+0673da62 release: 1.91.0 (#2423)
+e6892165 release: 1.90.0 (#2420)
+cc2c1fc1 release: 1.87.0 (#2410)
+eed877fd release: 1.86.0 (#2405)
+56540b32 release: 1.84.0 (#2395)
+cca09707 release: 1.83.0 (#2393)
+f588695f release: 1.82.0 (#2372)
+71058dd6 release: 1.81.0 (#2368)
+4a81b4ed release: 1.80.0 (#2367)
+b3f0daf3 fix(parsing): handle whitespace only strings (#2007)
+6a2dfbb8 fix(pydantic v1): more robust `ModelField.annotation` check (#2163)
+bff8da95 release: 1.66.5 (#2223)
+db0aa22c docs(readme): add missing asyncio import (#1858)
+c814354f fix(cli/audio): handle non-json response format (#1557)
+5cfb125a release: 1.14.2 (#1244)
+bcc54ea9 Add Picture API file example to  the Examples Folder (#977)
+d468f301 fix(errors): properly assign APIError.body (#949)
+f6f38a9b fix(client): correct base_url setter implementation (#919)
+08b8179a V1 (#677)
+96225bdb Add note to readme about new beta (#634)
+e389823b Update the wandb logger (#590)
+6e159bf0 Support for Azure Dall-e (#439)
+91a63f2c Fixed CLI streamed chat completions. (#319)
+6fb0efde fix error messages mentioning support@ (#427)
+6572ef4f Add proxy argument support for openai client (#313)
+88b267b9 fix(download): Fix download url by reverting change (#197)
+63490159 Improve error message in case of a misformatted file (#158) (#190)
+e5b7d1a2 [openai-python] Change request logs to debug level (#152) (#178)
+ede08829 Make `numpy` and `pandas` optional for ~7 times smaller deps (#153)
+0abf6413 Add async support (#146)
+3c00e856 Add Moderation endpoint to readme (#151) (#138)
+3edecbee Hallacy/v23 (#116)
+4d2cab10 Fix http reuse connections (#94)
+63cc289e (Version 0.15.0) Add support for edit call (#82)
+b39bddd9 Hallacy/11 4 release (#54)
+7febb755 Boris/examples and cli (#32)
+fc1d9dbc minor fixes to tools prepare_data validators (#47) (#26)
+d92502f1 Cli fixes and improvements (#25)
+2e23b277 bugfix
+7ddcba1a Lots of CLI changes (#22)
+40c32f9f Remove support for py <3.6, mypy, lots of cleanup (#19)
+7b0f97ec Update interface (#16)
+### ./sdk/python-genai
+5d0dff8 chore(main): release 2.7.0 (#2501)
+a682e6a chore(main): release 2.6.0 (#2485)
+161f8e4 chore(main): release 2.5.0 (#2473)
+610059b chore(main): release 2.4.0 (#2446)
+f907d4b chore(main): release 2.3.0 (#2421)
+6fa256f chore(main): release 2.2.0 (#2419)
+eb8714d chore(main): release 2.1.0 (#2410)
+b5cdc50 chore(main): release 2.0.1 (#2403)
+e64fc2a chore(main): release 2.0.0 (#2380)
+6a909f0 chore(main): release 1.75.0 (#2365)
+860c041 chore(main): release 1.74.0 (#2285)
+0598bab fix(retry): retry on httpx.TimeoutException with HttpRetryOptions (#2345)
+6066cca chore(main): release 1.73.1 (#2276)
+069e223 chore(main): release 1.73.0 (#2260)
+f7257b0 chore(main): release 1.72.0 (#2252)
+456c0c6 chore(main): release 1.71.0 (#2234)
+42e6504 chore(main): release 1.70.0 (#2222)
+7cc2acc chore(main): release 1.69.0 (#2184)
+8404ae2 chore(main): release 1.68.0 (#2157)
+9a4fd39 fix: Python 3.10-3.11 breakage caused by https://github.com/googleapis/python-genai/pull/2131
+3442105 chore(main): release 1.67.0 (#2125)
+8b10efb fix: forward http_options in async_request_streamed to enable retry support (#2097)
+267f9ff chore(main): release 1.66.0 (#2108)
+b2be501 chore(main): release 1.65.0 (#2075)
+61aec34 fix: handle non-list response_stream in HttpResponse.json property (#1903)
+cff95b4 chore(main): release 1.64.0 (#2054)
+e15ad64 chore(main): release 1.63.0 (#2028)
+544d8fe chore(main): release 1.62.0 (#2015)
+2639363 chore(main): release 1.61.0 (#1994)
+c9851d6 chore(main): release 1.60.0 (#1966)
+111032c chore(main): release 1.59.0 (#1963)
+a484746 chore(main): release 1.58.0 (#1927)
+28bd0e8 chore(main): release 1.57.0 (#1878)
+7d92395 chore(main): release 1.56.0 (#1850)
+5946b40 chore(main): release 1.55.0 (#1830)
+a8d2f62 chore(main): release 1.54.0 (#1810)
+ef8f7a5 chore(main): release 1.53.0 (#1796)
+4b5720a chore(main): release 1.52.0 (#1727)
+8e45441 chore(main): release 1.51.0 (#1677)
+1301baf chore(main): release 1.50.1 (#1674)
+51a107e chore(main): release 1.50.0 (#1631)
+a02cd0e chore(main): release 1.49.0 (#1611)
+6fb4c7b chore(main): release 1.48.0 (#1599)
+7c5cf56 Copybara import of the project:
+5936664 chore(main): release 1.47.0 (#1558)
+23d37b7 chore(main): release 1.46.0 (#1526)
+d4da4c5 chore(main): release 1.45.0 (#1520)
+df09def chore(main): release 1.44.0 (#1507)
+8b53e88 chore(main): release 1.43.0 (#1498)
+88b76d3 chore(main): release 1.42.0 (#1472)
+d7fb199 chore(main): release 1.41.0 (#1462)
+8d1d000 chore(main): release 1.40.0 (#1445)
+5c4d7ee chore(main): release 1.39.1 (#1433)
+71bc167 chore(main): release 1.39.0 (#1392)
+4151615 chore(main): release 1.38.0 (#1383)
+2362ea5 chore(main): release 1.37.0 (#1370)
+eb0d7ec chore(main): release 1.36.0 (#1354)
+9b7ac94 chore(main): release 1.35.0 (#1352)
+9f7673d chore(main): release 1.34.0 (#1346)
+4ac3eb8 chore(main): release 1.33.0 (#1312)
+9ebf30a chore(main): release 1.32.0 (#1282)
+6a8c5ad chore(main): release 1.31.0 (#1263)
+10f07cc chore(main): release 1.30.0 (#1227)
+378c61e chore(main): release 1.29.0 (#1192)
+cb810b9 chore(main): release 1.28.0 (#1171)
+efbe769 chore(main): release 1.27.0 (#1139)
+6964978 chore(main): release 1.26.0 (#1112)
+c7d325e chore(main): release 1.25.0 (#1072)
+0cd9615 chore(main): release 1.24.0 (#1055)
+38bb8cb chore(main): release 1.23.0 (#1037)
+b87d6b5 chore(main): release 1.22.0 (#1012)
+843fd1c Copybara import of the project:
+374e127 chore(main): release 1.21.1 (#997)
+5462ceb chore(main): release 1.21.0 (#965)
+172d532 chore(main): release 1.20.0 (#936)
+bd85e3d chore(main): release 1.19.0 (#914)
+903e072 chore(main): release 1.18.0 (#891)
+8a726d0 chore(main): release 1.17.0 (#842)
+3968dfe chore(main): release 1.16.1 (#828)
+646528f chore(main): release 1.16.0 (#806)
+c77135f chore(main): release 1.15.0 (#781)
+957722e chore(main): release 1.14.0 (#754)
+87dba44 chore(main): release 1.13.0 (#743)
+8f390cf feat: support using the passed credentials in AsyncLive::connect (#738)
+568cfd2 feat: support using the passed credentials in AsyncLive::connect (#738)
+e378ca9 chore(main): release 1.12.1 (#726)
+54f6515 chore(main): release 1.12.0 (#720)
+79bfaf6 chore(main): release 1.11.0 (#658)
+369385c chore(main): release 1.10.0 (#607)
+bfa0a8d chore(main): release 1.9.0 (#587)
+44aff06 chore(main): release 1.8.0 (#542)
+2efd6f2 chore(main): release 1.7.0 (#524)
+ee9c87f chore(main): release 1.6.0 (#461)
+6712fa5 chore(main): release 1.5.0 (#448)
+4b685bc chore(main): release 1.4.0 (#399)
+aa45c26 chore(main): release 1.3.0 (#394)
+08a260d chore(main): release 1.2.0 (#307)
+da2ed71 chore(main): release 1.1.0 (#296)
+2a7ffb1 chore(main): release 1.0.0 (#234)
+baffbbf chore(main): release 0.8.0 (#219)
+7ad2a01 chore(main): release 0.7.0 (#165)
+bfa4675 chore(main): release 0.6.0 (#125)
+c1b2857 chore(main): release 0.5.0 (#110)
+8136173 chore(main): release 0.4.0 (#96)
+b0e46b7 fix: FunctionCallCancellation ids type.
+e77af32 Project import generated by Copybara. (#26)
+1d57271 Project import generated by Copybara. (#24)
+cf3c476 Project import generated by Copybara. (#13)
+5860265 Project import generated by Copybara. (#5)
+### ./sdk/cohere-python
+6a49b0b [fern-generated] Update SDK (#768)
+eaf7d15 [fern-generated] Update SDK (#767)
+b751bc1 [fern-generated] Update SDK (#765)
+2598c9a SDK regeneration (#755)
+21f2e86 feat: Add memory-efficient embed_stream method for large datasets (#698)
+160dd05 :herb: Fern Regeneration -- April 8, 2026 (#751)
+dcd81d8 SDK regeneration (#747)
+7eda2dc SDK regeneration (#745)
+3320b54 SDK regeneration (#742)
+9a27a2b feat: auto-detect aiohttp transport for async client
+b8c5c2a ci: Skip only the flaky test_langchain_tool_calling_agent test
+a470877 ci: Skip flaky langchain-cohere integration tests
+ece5822 fix: Patch deprecated model in langchain-cohere CI tests
+4b28959 fix: Add type: ignore for optional oci import to match AWS pattern
+7fa464f docs: Fix OCI README to use OciClientV2 and correct model names
+5ae9e08 fix: Regenerate poetry.lock to include optional oci dependency
+e2a6e76 test: Add unit tests for model normalization and request transformation
+d34435b feat: Emit message-start and content-start events in OCI streaming
+02c65b4 fix: Improve error handling for response extensions and session tokens
+115468d fix: Guard _event_hook with descriptive error handling
+0d26484 fix: Reject unknown endpoints in get_oci_url instead of silent fallback
+ecb3ad4 fix: Validate private key is provided for direct OCI credentials
+27a05ae fix: Improve streaming error handling in OCI client
+4bff87f fix: Update lazy_oci error message to reference only OciClientV2
+fd9d389 fix: Remove stale is_v2 argument from transformation tests
+06f88a3 fix: Port V1 OciClient test classes to V2
+bc31c1e feat: Add OciClientV2 only, drop V1 OCI client
+27e4a7b SDK regeneration (#731)
+1cab6aa fix: resolve AWS client SigV4 signing, forced SageMaker dep, and missing embed params (#728)
+b36875e SDK regeneration (#727)
+0a7eac9 Fix generate_stream error in ClientV2 (#725)
+0d97d48 SDK regeneration (#716)
+986682e SDK regeneration (#712)
+a5150ad :herb: Fern Regeneration -- November 10, 2025 (#709)
+570cd2e :herb: Fern Regeneration -- October 15, 2025 (#703)
+db36582 SDK regeneration (#695)
+e393e7d SDK regeneration (#691)
+444e04b SDK regeneration (#688)
+6af2c21 SDK regeneration (#687)
+9a52a66 :herb: Fern Regeneration -- August 4, 2025 (#684)
+e47e143 :herb: Fern Regeneration -- July 9, 2025 (#679)
+1a002c3 :herb: Fern Regeneration -- July 9, 2025 (#678)
+9db3c51 :herb: Fern Regeneration -- May 30, 2025 (#666)
+2a8dd89 :herb: Fern Regeneration -- April 15, 2025 (#660)
+b07e74c :herb: Fern Regeneration -- April 2, 2025 (#657)
+b9ae563 :herb: Fern Regeneration -- March 28, 2025 (#656)
+fcc9567 :herb: Fern Regeneration -- February 28, 2025 (#654)
+7d87482 :herb: Fern Regeneration -- February 6, 2025 (#648)
+d144668 :herb: Fern Regeneration -- January 21, 2025 (#644)
+e2c6a07 :herb: Fern Regeneration -- January 21, 2025 (#642)
+15c4c47 :herb: Fern Regeneration -- January 20, 2025 (#637)
+e04d233 :herb: Fern Regeneration -- January 13, 2025 (#633)
+c53ed10 :herb: Fern Regeneration -- January 10, 2025 (#631)
+c3d7a3d :herb: Fern Regeneration -- January 7, 2025 (#629)
+27094af :herb: Fern Regeneration -- January 6, 2025 (#627)
+47e54c7 :herb: Fern Regeneration -- January 3, 2025 (#626)
+bb92887 :herb: Fern Regeneration -- December 20, 2024 (#624)
+2d87683 :herb: Fern Regeneration -- December 5, 2024 (#620)
+36d0e18 :herb: Fern Regeneration -- December 4, 2024 (#615)
+5f7c580 :herb: Fern Regeneration -- December 3, 2024 (#612)
+3bc93c0 :herb: Fern Regeneration -- December 2, 2024 (#610)
+b1dbf95 :herb: Fern Regeneration -- November 27, 2024 (#608)
+756515a create endpoint with InferenceAmiVersion (#602)
+044344f :herb: Fern Regeneration -- November 15, 2024 (#601)
+2a7f5c0 :herb: Fern Regeneration -- October 30, 2024 (#597)
+8a9b556 :herb: Fern Regeneration -- October 28, 2024 (#595)
+5160d82 :herb: Fern Regeneration -- October 18, 2024 (#594)
+349c5ab :herb: Fern Regeneration -- September 25, 2024 (#587)
+18c45e6 :herb: Fern Regeneration -- September 19, 2024 (#586)
+cdd01e4 :herb: Fern Regeneration -- September 19, 2024 (#583)
+d85de98 :herb: Fern Regeneration -- September 13, 2024 (#576)
+6ceb338 :herb: Fern Regeneration -- September 4, 2024 (#569)
+c21dde9 :herb: Fern Regeneration -- August 30, 2024 (#566)
+12f543f :herb: Fern Regeneration -- August 15, 2024 (#562)
+5402078 :herb: Fern Regeneration -- August 7, 2024 (#558)
+f4c61e9 :herb: Fern Regeneration -- July 29, 2024 (#553)
+616defe SDK regeneration (#549)
+e4b2e7d :herb: Fern Regeneration -- July 22, 2024 (#543)
+e10ef08 :herb: Fern Regeneration -- July 16, 2024 (#540)
+b13f5c5 Add tests for langchain (#533)
+f7c268f SDK regeneration (#530)
+0fc77bc :herb: Fern Regeneration -- June 10, 2024 (#524)
+2de2ee2 :herb: Fern Regeneration -- June 7, 2024 (#521)
+33b0e70 SDK regeneration (#511)
+457f5d7 SDK regeneration (#509)
+07896b4 :herb: Fern Regeneration -- May 22, 2024 (#506)
+ee899df :herb: Fern Regeneration -- May 14, 2024 (#499)
+15204a0 :herb: Fern Regeneration -- May 9, 2024 (#496)
+59a1821 :herb: Fern Regeneration -- May 8, 2024 (#495)
+7aea2b2 :herb: Fern Regeneration -- April 23, 2024 (#485)
+0d1871a :herb: Fern Regeneration -- April 17, 2024 (#480)
+c56b135 SDK regeneration (#479)
+09f7d04 :herb: Fern Regeneration -- April 15, 2024 (#478)
+82d477d :herb: Fern Regeneration -- April 10, 2024 (#471)
+8502147 :herb: Fern Regeneration -- April 8, 2024 (#467)
+5a4e732 SDK regeneration (#465)
+2c493eb SDK regeneration (#460)
+69e3b6c Fallback to tokens API if local tokenizer fails (#457)
+9f4d4ea :herb: Fern Regeneration -- April 3, 2024 (#453)
+1844eed Add local tokenizers (#408)
+856a4c3 :herb: Fern Regeneration -- March 28, 2024 (#447)
+6fdfe5c SDK regeneration (#444)
+e0fed57 SDK regeneration (#442)
+88134c1 SDK regeneration (#441)
+189ce39 Fix bug when partial embeddings by type requested (#440)
+86d5a64 SDK regeneration (#438)
+bc2b61f SDK regeneration (#436)
+b6b5090 SDK regeneration (#433)
+405c456 :herb: Fern Regeneration -- March 22, 2024 (#432)
+67620c3 SDK regeneration (#425)
+96f29a9 SDK regeneration (#421)
+372a9e9 :herb: Fern Regeneration -- March 20, 2024 (#414)
+6e03581 Bump jinja2 from 3.1.2 to 3.1.3 (#364)
+6630e61 Daniel/pts 5565 CRUD for connectors (#351)
+09b5e86 Bump aiohttp from 3.8.5 to 3.8.6 (#343)
+05b32ea Raphael/fin 239 support dataset api in the python sdk (#309)
+d6c9d60 change chat log to chat history (string -> list of dictionaries) (#313)
+f60bd70 add base model option to custom model (#276)
+19c7065 Expose GetFinetuneMetrics endpoint for finetunes (#255)
+f7b8504 convert client payload error (#249)
+80431ab Add chat params - p, k and logit bias (#245)
+80a2571 Chat - add token count to the response (#242)
+95ee516 Delete finetune get_by_name test. (#244)
+cef3db4 finetune sdk (#237)
+16454c5 Support model param in de/tokenize (#232)
+9db24e8 Chat - deprecate reply (#223)
+62312e8 Chat - Add chat_history (#220)
+d53fb6b Update Compressed embeddings indices names (#219)
+78fb585 Update README.md
+e928d09 Update README.md
+7047d9f Chat and Cluster - Update params and fix tests (#212)
+20d1d40 Generation & Chat streaming (#169)
+78a81e7 SDK 4.0: AsyncClient, Sphinx docs, refactor (#160)
+dca2112 Add support for co.feedback (#111)
+be1c186 use json parameter to requests (#118)
+67e2021 Make co.generate call async (#74)
+a2d7c5d Add default for 'examples' param in Client.classify method. (#72)
+95bd3aa fix: classifications confidence object was improperly formatted (#58)
+040090f version 1.3.1 (#54)
+1e736cd feat: Co.classify Python SDK (#52)
+7a10160 Remove similarity (#39)
+c4db2cb Support new truncate parameter (#38)
+14fe771 Start the CHANGELOG (#29)
+c6b25b7 Rename ChooseBest output `likelihoods` to `scores` (#21)
+### ./sdk/claude-agent-sdk-python
+ebecbbc Port session_store path to anyio so it works under trio (#990)
+9970096 docs: update changelog for v0.2.87
+3471a9f Use workload identity federation for Claude auth in CI workflows (#984)
+095a8b3 docs: update changelog for v0.2.86
+2a3720d docs: update changelog for v0.2.85
+9694412 docs: update changelog for v0.2.84
+524f23a docs: update changelog for v0.2.83
+054b75f docs: update changelog for v0.2.82
+9d2c650 fix(transcript_mirror): handle CancelledError in eager-flush done callback (#931)
+687e22f docs(types): clarify hooks dispatch is concurrent, not sequential (#956)
+5a1f94d test(transcript_mirror): stabilize eager-flush tests with deterministic wait (#933)
+fd8213b deps: bump mcp lower bound to 1.23.0 for GHSA-9h52-p55h-vw2f (#927)
+5ce669c fix(types): tighten permission_suggestions type in SDKControlPermissionRequest (#955)
+6bbad5f fix(transport): isolate stderr callback failures, continue reading lines (#932)
+fc7a6de Export EffortLevel type alias (#951)
+bdb8e39 docs: update changelog for v0.1.81
+694e4f3 docs: update changelog for v0.1.80
+5005816 docs: update changelog for v0.1.79
+29729b0 docs: update changelog for v0.1.78
+e41cbdd docs: update changelog for v0.1.77
+9aafd84 fix(query): suppress redundant ProcessError after error result (#918)
+a727f82 docs: deprecate "Skill" in allowed_tools in favor of skills option (#924)
+2ab740a docs: update changelog for v0.1.76
+b80d244 feat: surface api_error_status on ResultMessage (#923)
+bdb3291 docs: update changelog for v0.1.75
+9ee37f3 docs: update changelog for v0.1.74
+c1182a4 feat: add include_hook_events option (#917)
+04a39ac feat(types): add "xhigh" to effort Literal (#914)
+3caf665 feat: forward decision_reason and permission-display fields to ToolPermissionContext (#909)
+42971da docs(types): clarify can_use_tool fires only on 'ask' decisions (#912)
+b0b652f feat(types): add updatedToolOutput to PostToolUseHookSpecificOutput (#911)
+91998d3 fix(query): close receive stream on disconnect to stop ResourceWarning (#908)
+f2389ec feat: terminate live CLI subprocesses on parent exit (#916)
+32bcc4e feat: add strict_mcp_config option (#915)
+99479bc fix(sessions): scan head for created_at timestamp, not just first line (#907)
+39f600f docs: update changelog for v0.1.73
+0a69e94 feat(session_store): add session_store_flush option for eager mirroring (#905)
+b512f25 docs: update changelog for v0.1.72
+e10b11c docs: update changelog for v0.1.71
+49eed4f docs: update changelog for v0.1.70
+8f8f7f4 fix(deps): require mcp>=1.19.0 for in-process SDK MCP tools (#891)
+3600dd0 ci(triage): migrate to claude-code-action (#884)
+9ee52df fix(transport): use spawn_detached for stderr reader (trio nursery corruption) (#885)
+e21b457 docs: update changelog for v0.1.69
+8348d1f Add docstrings to ClaudeAgentOptions fields (#873)
+4a4fd74 docs: update changelog for v0.1.68
+82aada8 docs: update changelog for v0.1.67
+62c8bfd fix(query): restore trio compatibility via sniffio dispatch (#870)
+c1eb34e docs: update changelog for v0.1.66
+1def066 docs: update changelog for v0.1.65
+95413fd feat(session_store): add import_session_to_store() for local→store replay (#858)
+a7a5ead sdk(session_store): bounded retry on mirror append + uuid idempotency docs (#857)
+32f09c1 feat: forward thinking.display to --thinking-display CLI flag (#830)
+fb54ccd docs: fix dontAsk and auto permission_mode descriptions (#863)
+eeff81f transport: drop --debug-to-stderr detection (prep for CLI flag removal) (#860)
+6ab97b4 fix: parse server_tool_use and advisor_tool_result content blocks (#836)
+aa3d023 feat: SessionStore.list_session_summaries — batch summary fetch for list-all (#847)
+a05af6b docs: update changelog for v0.1.64
+2d7df08 feat(examples): S3, Redis, Postgres SessionStore reference adapters (#842)
+6e3d54f feat: SessionStore adapter — TS parity (protocol, mirror, resume, helpers) (#837)
+7ca64f6 docs: update changelog for v0.1.63
+75cfe30 docs: update changelog for v0.1.62
+1c26bd3 feat(types): add top-level `skills` option to ClaudeAgentOptions (#804)
+b70e7e1 docs: update changelog for v0.1.61
+a0fbd14 docs: update changelog for v0.1.60
+e621929 fix: pass --setting-sources for empty list to disable filesystem settings (#822)
+ebc06f2 feat: add list_subagents and get_subagent_messages session helpers (#825)
+bbec84d feat: propagate W3C trace context (TRACEPARENT) to CLI subprocess (#821)
+86d0ba2 docs: update changelog for v0.1.59
+1f47add docs: update changelog for v0.1.58
+51adfc7 docs: update changelog for v0.1.57
+3bf8fd5 Add exclude_dynamic_sections to SystemPromptPreset for cross-user caching (#797)
+841ee87 Add 'auto' to PermissionMode type (#785)
+13f65c8 docs: update changelog for v0.1.56
+67718a7 docs: update changelog for v0.1.55
+e94a74d fix(mcp): forward maxResultSizeChars via _meta to bypass Zod annotation stripping (#756)
+b63e8f1 docs: update changelog for v0.1.53
+ab9bcab Fix: omit --setting-sources flag when setting_sources is empty or unset (#778)
+566e41f docs: update changelog for v0.1.52
+9d467b7 fix: send string prompt in connect() instead of silently dropping it (#769)
+ac900bd feat: add get_context_usage() method to ClaudeSDKClient (#764)
+5656d20 feat: add session_id option to ClaudeAgentOptions (#750)
+cfcf586 docs: update changelog for v0.1.51
+7612575 fix: use typing_extensions.TypedDict on Python 3.10 for NotRequired support (#761)
+028d591 feat(types): add disallowedTools, maxTurns, initialPrompt to AgentDefinition (#759)
+dec0ecb feat: add fork_session, delete_session, and offset pagination (#744)
+3e2d44d fix: convert TypedDict input_schema to proper JSON Schema in SDK MCP tools (#736)
+2e60cec Add task_budget option for token budget management (#747)
+76cb292 fix: pass initialize_timeout from env var in query() (#743)
+19e1f53 fix: defer CLI discovery to connect() to avoid blocking async event loops (#722)
+e30c742 fix(types): add missing dontAsk permission mode (#719)
+5839ff9 fix: filter CLAUDECODE env var from subprocess environment (#732)
+b642400 fix: add SIGKILL fallback when SIGTERM handler blocks in close() (#729)
+6384c69 fix: remove duplicate version warning and include CLI path (#720)
+d3d71fb fix: handle resource_link and embedded resource content types in SDK MCP tools (#725)
+c3d96cb fix: remove stdin timeout for hooks and SDK MCP servers (#731)
+c290bbf fix: skip non-JSON lines on CLI stdout to prevent buffer corruption (#723)
+24b9b68 feat(types): preserve dropped fields on AssistantMessage and ResultMessage (#718)
+582cdf7 fix: propagate is_error flag from SDK MCP tool results (#717)
+139b815 Add SystemPromptFile support for --system-prompt-file CLI flag (#591)
+30c5b42 fix: extract TypedDict field types into JSON Schema for SDK MCP tools
+85275d4 fix(build): retry install.sh fetch on 429 with pipefail + jitter (#708)
+a7fd631 docs: update changelog for v0.1.50
+13e119a ci: add daily PyPI storage quota monitoring (#705)
+117cffa ci: harden PyPI publish against partial-upload failures (#700)
+f144dcc feat: add tag/created_at to SDKSessionInfo + get_session_info (#667)
+40cc6f5 fix: wait for graceful subprocess shutdown before SIGTERM (#642)
+6d77aef fix: use default-if-absent for CLAUDE_CODE_ENTRYPOINT to match TS SDK (#686)
+2d5c3cb feat: add typed RateLimitEvent message (#648)
+81f9d18 docs: clarify allowed_tools as permission allowlist and update doc links (#649)
+21560e3 Revert "fix: enable fine-grained tool streaming when include_partial_messages=True" (#644) (#671)
+d6f0352 docs: update changelog for v0.1.48
+a3c3a01 fix: enable fine-grained tool streaming when include_partial_messages=True (#644)
+f7e5955 docs: update changelog for v0.1.47
+6f227de docs: update changelog for v0.1.46
+2f1fd38 Add agent_id/agent_type to tool-lifecycle hook inputs (#628)
+2c418f7 feat: add list_sessions and get_session_messages top-level functions (#622)
+28f9b4b feat: add MCP control methods and typed McpServerStatus (#620)
+d9fe709 docs: update changelog for v0.1.45
+7f68cac docs: update changelog for v0.1.44
+9d758dd docs: update changelog for v0.1.43
+a6facdb docs: update changelog for v0.1.42
+943332c docs: update changelog for v0.1.40
+146e3d6 fix: handle unknown message types gracefully instead of crashing (#598)
+d36db81 docs: update changelog for v0.1.39
+0e9397e docs: update changelog for v0.1.38
+161c3bf docs: update changelog for v0.1.37
+4d74748 docs: update changelog for v0.1.36
+1671b6c feat: add ThinkingConfig types and effort option (#565)
+4703cae docs: update changelog for v0.1.35
+a969042 docs: update changelog for v0.1.34
+ea81d41 chore: update Claude model to opus-4-6 in CI workflows (#556)
+97de454 docs: update changelog for v0.1.33
+8a7c0a7 fix: send agent definitions via initialize request matching TypeScript SDK (#468)
+451f2f4 feat: add MCP tool annotations support (#551)
+1a832b8 feat: add missing hook events and fix existing hook fields (#545)
+94eaf75 Fix: Properly populate AssistantMessage error field (#506)
+09b166b ci: simplify release flow and add RELEASING.md (#539)
+1bf665c test: enforce sequential tool execution in MCP e2e test (#538)
+e514a88 ci: pin CI to Python 3.13, remove version matrix (#537)
+b069c5b test: add debug output and model to MCP e2e tests (#536)
+abf5fae feat: add PostToolUseFailure hook event type (#535)
+5f0dcbd docs: update changelog for v0.1.24
+ef4149d docs: update changelog for v0.1.23
+f5823c6 feat: add public get_mcp_status() method to ClaudeSDKClient (#516)
+6a0140a chore: release v0.1.22 (#512)
+e8cd527 fix: set SSH remote URL before pushing in auto-release workflow (#511)
+773ddfc feat: add tool_use_result field to UserMessage (#495)
+d23afd9 fix: read error field from top-level data, not message object
+bfd2869 fix: add permissions to release job in auto-release workflow (#504)
+fc56943 refactor: extract build-and-publish workflow into reusable component (#488)
+31899e9 chore: release v0.1.21 (#503)
+6fff967 Hide subprocess terminal window on Windows
+04da88d chore: release v0.1.20 (#486)
+4d9f7b0 fix: raise API errors as exceptions instead of text messages (#472)
+bb0174a fix: add timeout to Query.close() to prevent CPU hang (#378)
+f70b572 ci: update claude-code actions from @beta to @v1 (#467)
+85cd743 Update Claude Agent SDK documentation link (#442)
+29c12cd chore: release v0.1.19 (#465)
+9ad88cd fix: add debugging and search for claude.exe on Windows
+b63e746 fix: improve Windows Claude Code installation in CI workflow
+23c9df3 ci: skip jobs requiring secrets when running from forks (#451)
+0434749 fix: resolve YAML syntax error in create-release-tag workflow (#429)
+a3df944 chore: release v0.1.18 (#428)
+5724537 docs: add Tool Permission Callbacks section to README
+edbb81d docs: add comprehensive MCP server configuration guide
+a0ce44a Add Docker-based test infrastructure for e2e tests (#424)
+062af27 refactor: consolidate release automation
+904c2ec chore: use CHANGELOG.md content for GitHub release notes (#420)
+eba5675 chore: release v0.1.17 (#419)
+a1c3387 chore: release v0.1.16 (#412)
+ad08ac0 fix: prevent command injection in download_cli.py
+3cbb9e5 fix: parse error field in AssistantMessage to enable rate limit detection (#405)
+5b91296 chore: release v0.1.15 (#408)
+53482d8 feat: add file checkpointing and rewind_files support (#395)
+b5447d9 chore: release v0.1.14 (#398)
+bd62996 feat: add subagent execution control and improve HookMatcher docs
+5625286 fix: move fetch-depth to publish job and use claude-opus-4-5 for changelog (#394)
+cf6b85f chore: release v0.1.13 (#393)
+69a310c fix: propagate CLI errors to pending control requests (#388)
+6791efe fix: add McpServer runtime placeholder for Pydantic 2.12+ compatibility (#385)
+00332f3 chore: release v0.1.12 (#392)
+ea0ef25 feat: add tools option to ClaudeAgentOptions (#389)
+4e56cb1 feat: add SDK beta support with SdkBeta type and betas option (#390)
+9809fb6 chore: release v0.1.11 (#383)
+6e1769f feat: bundle claude code CLI for linux arm64 (#373)
+a2f24a3 fix: wait for first result before closing stdin if SDK MCP present (#380)
+49482e1 fix: correct mypy type ignore error codes for MCP decorators (#379)
+f21f63e Create sandbox adapter interface for Python SDK (#363)
+e2f8d81 chore: release v0.1.10 (#369)
+493f49f Added slack issue notifier for new opened issues (#356)
+7a5b413 Fix: Fix `HookMatcher.timeout` type to `float` (#357)
+41ceacd Use CLAUDE_CODE_STREAM_CLOSE_TIMEOUT (if present) to override initialize() timeout (#354)
+f446e3e chore: release v0.1.9 (#353)
+aa437fd fix: improve concurrent write test
+a914f05 fix: add lock to serialize concurrent stdin writes
+b0fb5b0 Add AssistantMessageError type (#352)
+84edd73 feat: add timeout parameter to HookMatcher (#351)
+bf528a1 refactor: source CLI version from code in publish workflow (#350)
+d5dc615 chore: release v0.1.8 (#346)
+bab98e7 fix: install wheel package for retagging platform-specific wheels (#345)
+ddc37c7 fix: disable artifact compression to prevent wheel corruption (#344)
+58cfffc fix: use PowerShell installer for Windows CLI download (#343)
+35dd5b4 fix: remove emojis from build_wheel.py for Windows compatibility (#342)
+ce99e9d feat: bundle Claude Code CLI in pip package (#283)
+6f20907 chore: release v0.1.7 (#341)
+50d6840 feat: add structured output support (#340)
+ff425b2 Add fallback model handling for parity with TypeScript SDK (#317)
+44c6f55 feat: add tool_choice support
+5a4cc2f feat: add support for Claude CLI at ~/.claude/local/claude (#302)
+c30ffbe chore: release v0.1.6 (#301)
+edad138 Limit CI examples to Python 3.13 only (#299)
+ae800c5 feat: add max_budget_usd option to Python SDK (#293)
+7be296f feat: add max_thinking_tokens option to ClaudeAgentOptions (#298)
+fd4e33d feat: add /generate-changelog slash command (#287)
+68eb68b chore: release v0.1.5 (#286)
+c595763 feat: add plugin support to Python SDK (#285)
+5656aea chore: release v0.1.4 (#260)
+9b85761 fix: fetch all git history including tags in publish workflow (#284)
+41e220c fix: handle Windows command line length limit for --agents option (#245)
+923d3d4 feat: add CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK env var (#257)
+f27c4ab feat: Added base64 image handling to sdk_mcp_server tool calling (#175)
+e15e3f8 fix: preserve is_error attribute from MCP tool output in ToolResultBlock
+f896cd6 feat: add pre-push hook for lint checks (#254)
+aebcf9d feat: add cli_path support to ClaudeAgentOptions (#235)
+20c1b89 chore: release v0.1.3 (#242)
+1f08074 Revert "chore: temporarily disable Windows CI in test-e2e workflow" (#241)
+d754e5c feat: add strongly-typed hook inputs with TypedDict (#240)
+48b62a0 fix: convert Python-safe field names (async_, continue_) to CLI format (#239)
+7777057 Add contributors section with git joke to README
+67e77e9 chore: release v0.1.2 (#236)
+e8d7e71 Add missing hook output fields to match TypeScript SDK (#226)
+5bea2dc chore: temporarily disable Windows CI in test-e2e workflow (#234)
+d05b45a Pin Windows Claude Code installation to version 2.0.11
+5eca073 feat: add contributor jokes section to README
+dcd51c9 fix #227: Fix PermissionResultAllow conversion to control_response (#232)
+71a85ac feat: automate changelog updates in release workflow (#231)
+c2b72f1 Add CHANGELOG entry for version 0.1.1 (#229)
+9dd6fe5 Fix Windows subprocess stdin buffering issue causing ClaudeSDKClient hangs (#208)
+4e01cad feat: automate changelog generation in release workflow
+804c8df Refactor FizzBuzz to use generator-based implementation
+6793e40 Add Windows support to test workflows (#222)
+4308e36 Add FizzBuzz implementation with comprehensive tests
+479d162 Add fallback model support to Python SDK
+de41979 Add canUseTool permission support to Python SDK
+333491e chore: bump version to 0.1.1 (#210)
+24408f9 update PermissionResult to match latest control protocol (#209)
+7035858 Add minimum Claude Code version check (2.0.0+) (#206)
+2a9693e Update model references to claude-sonnet-4-5 (#198)
+2831edf chore: bump version to 0.0.25
+d7c3368 docs: mark package as deprecated in favor of claude-agent-sdk
+c6a8024 feat: add deprecation warnings for Claude Code SDK to Claude Agent SDK migration (#194)
+af87062 changelog update (#192)
+d9dd841 feat: ClaudeSDKClient supports custom transport. (#187)
+9d4659c chore: bump version to 0.1.0 (#191)
+d86c47f refactor: remove unnecessary node installation check (#189)
+b3656b1 Rename claude_code to claude_agent (#188)
+180d648 feat: add stderr callback to capture CLI debug output (#170)
+62289d2 feat: add dynamic permission mode and model switching to ClaudeSDKClient (#171)
+0d2404e Rename ClaudeCodeOptions to ClaudeAgentOptions (#185)
+dbb153b feat: refactor system_prompt to support preset and append options (#183)
+507e22c feat: add agents and setting sources support (#182)
+233cefa feat: add version environment variable (#184)
+cfdd28a feat: add fork_session option for resuming sessions (#179)
+12fdca9 feat: improve GitHub release notes generation (#173)
+e8832f1 chore: bump version to 0.0.23 (#172)
+f550c21 Add support for streaming partial messages via include_partial_messages option (#168)
+fd98d12 feat: allow claude code process to run as a custom user (#133) (#134)
+3010aaf chore: bump version to 0.0.22 (#163)
+0aab45b Remove max thinking tokens (#144)
+8393004 Add custom tool callbacks and e2e tests (#157)
+d3190f1 Add PostToolUse hook for automatic ruff formatting (#158)
+9377faa Standardize GitHub workflow triggers (#155)
+73f8612 Add CI workflow for Claude Code SDK e2e testing (#154)
+ff4fe89 chore: bump version to 0.0.21 (#152)
+e4feaf2 Remove unstable public APIs from SDK (#151)
+99d1371 feat: Enable real-time debug output via debug-to-stderr flag (#150)
+6457045 feat: Add debug_stderr parameter for flexible debug output routing
+c23acae feat: Enable real-time debug output via debug-to-stderr flag
+681f46c fix: Convert camelCase to snake_case for Python naming conventions (#146)
+7b0938a fix: Convert camelCase to snake_case for Python naming conventions
+68f0d7a feat: Add tool permission and hook callbacks support (#143)
+9ef5785 feat: Add in-process SDK MCP server support (#142)
+4f78e10 refactor: Align with TypeScript SDK naming conventions
+fe5141c refactor: Make MCP a required dependency
+dec66a2 fix: Remove MCP SDK type dependencies to fix CI
+a774031 feat: Add tool permission and hook callbacks support
+22fa9f4 Implement control protocol support for Python SDK (#139)
+baee8ba Reorganize imports in client.py
+9a64bc3 fix: propagate user cwd to subprocess environment (#136)
+ea7e867 add `end of command options` to sanitize user prompt (#130)
+f794e17 Add support for custom env vars (#131)
+30df222 Move thinking block parsing from user to assistant messages (#119)
+bc01cd7 feat: enable custom transports (#91)
+91315e3 chore: bump version to 0.0.20 (#121)
+f1e6dda fix: add support for thinking content blocks (#28)
+58b5a41 allow claude gh action to lint, typecheck, and run tests (#115)
+f233df1 teach ClaudeCodeOptions.mcp_servers to accept a filepath (#114)
+9fc8300 Add extra_args field to ClaudeCodeOptions for forward compatibility (#111)
+aecba20 Add extra_args field to ClaudeCodeOptions for forward compatibility
+8f4b777 remove mcp_tools field from ClaudeCodeOptions (#110)
+6255850 chore: bump version to 0.0.19 (#105)
+fbda510 Fix subprocess deadlock with MCP servers via stderr redirection (#103)
+0de87a2 chore: bump version to 0.0.18 (#102)
+27b49bc Fix subprocess deadlock with MCP servers by redirecting stderr to temp file
+fa3962d Improve UserMessage types to include `ToolResultBlock` (#101)
+df94948 Add settings option to ClaudeCodeOptions (#100)
+b1c106b Add settings option to ClaudeCodeOptions
+472aa23 chore: bump version to 0.0.17 (#88)
+5f8351f Make streaming implementation trio-compatible (#84)
+1d8ba02 chore: bump version to 0.0.16 (#83)
+a54c4dd chore: bump version to 0.0.0.dev20250121
+3b56577 CLAUDE.md
+783c0f4 feat: add strict_mcp_config option to Python SDK
+5a4f617 Merge pull request #49 from anthropics/add-claude-issue-triage
+7a9f606 Add Claude issue triage workflow
+1c792f1 chore: bump version to 0.0.14
+2acb0a6 Fix bypassPermissions silent failure (Issue #30)
+4460dfb Improve FastAPI SSE streaming fix with safety limits
+404c50b Fix FastAPI SSE streaming compatibility (fixes #4)
+1791031 chore: Remove obvious comments from code
+3ab62b6 fix: Pass proper Exception to CLIJSONDecodeError
+2429541 fix: handle JSON messages split across multiple stream reads
+91e02f1 chore: bump version to 0.0.13
+7610791 Apply ruff formatting
+ecad93a Apply ruff linting fixes
+3f25c3b Fix test to use anyio.run() pattern and add edge case tests
+eebb665 Apply ruff linting fixes
+b54f5df Fix test to use anyio.run() pattern and add edge case tests
+52cc0db Merge pull request #40 from anthropics/dickson/mcp
+242c719 Update MCP types to align with what Claude Code expects
+7efa8b3 Merge pull request #19 from anthropics/add-claude-workflow
+7d488f4 Add Claude Code GitHub Workflow
+b3448f4 Fix tests to match updated ResultMessage type
+4da3934 Claude Code Review workflow
+6f65eb9 Claude PR Assistant workflow
+6cc5b34 Fix: Remove cost_usd field and handle GeneratorExit
+### ./p4rakernel
+7e01a1b doc: document release notes process and add guard check
+### ./ig-docs
+de9b9628 Backup copy of all remaining md/tex/pdf files: 362 files copied from 26 repos
+aec1bd8a Backup copy of all remaining md/tex/pdf files: 362 files copied from 26 repos
+b44765e8 Full migration: all .md/.pdf from ~/imsgct/ repos into ig-docs
+f7a330b4 Full migration: all .md/.pdf from ~/imsgct/ repos into ig-docs
+===== done git sweep =====
+===== docs / files mentioning the trailer or attribution =====
+ig-docs/tool_catalog_2026.md:8:- 🤖 = Entry point (if __name__ + main() / CLI)
+ig-docs/tool_catalog_2026.md:19:| 1 | `ars_anima/cli.py` | **`ag`** | 🤖 | CLI entry point (`ag` command). Ars Animaglyphica: grammar of animal forms. |
+ig-docs/tool_catalog_2026.md:30:| 5 | `ars_astrologica/cli.py` | **`aa`** | 🤖 | CLI entry point (`aa`). Ars Astrologica: grammar of the celestial frame. |
+ig-docs/tool_catalog_2026.md:39:| 7 | `ars_fungiglyphica/cli.py` | **`fg`** | 🤖 | CLI entry point (`fg`). Ars Fungiglyphica: grammar of fungal forms. |
+ig-docs/tool_catalog_2026.md:52:| 13 | `ars_geometrica/cli.py` | **`ageo`** | 🤖 | CLI entry point (`ageo`). Ars Geometrica: grammar of geometric forms. |
+ig-docs/tool_catalog_2026.md:61:| 15 | `ars_grammatica/cli.py` | **`ag`** | 🤖 | CLI entry point (`ag`). Ars Grammatica: grammar of linguistic forms. |
+ig-docs/tool_catalog_2026.md:70:| 17 | `ars_phytoglyphica/cli.py` | **`ap`** | 🤖 | CLI entry point (`ap`). Ars Phytoglyphica: grammar of plant forms. |
+ig-docs/tool_catalog_2026.md:86:| 26 | `ars_therapeutica/cli.py` | **`at`** | 🤖 | CLI entry point (`at`). Ars Therapeutica: grammar of therapeutic forms. |
+ig-docs/tool_catalog_2026.md:95:| 28 | `linear_analytica/cli.py` | **`la`** | 🤖 | CLI entry point (`la`). Linear Analytica: CLI for Linear A script grammar engine. |
+ig-docs/tool_catalog_2026.md:97:| 30 | `programs/compiler.py` | compiler | 🤖 | Linear A token compiler — parses tablets into structural tokens. |
+ig-docs/tool_catalog_2026.md:98:| 31 | `programs/runtime.py` | runtime | 🤖 | Linear A VM runtime — executes compiled token programs. |
+ig-docs/tool_catalog_2026.md:99:| 32 | `programs/callgraph.py` | callgraph | 🤖 | Generate call/connectivity graphs from Linear A programs. |
+ig-docs/tool_catalog_2026.md:100:| 33 | `programs/sectional.py` | sectional | 🤖 | Sectional analysis of Linear A tablet corpora. |
+ig-docs/tool_catalog_2026.md:102:| 35 | `programs/ig_bridge.py` | ig_bridge | 🤖 | Bridge: Linear A types ↔ Imscribing Grammar catalog. |
+ig-docs/tool_catalog_2026.md:103:| 36 | `programs/animated_cfg_corpus.py` | animated_cfg_corpus | 🤖 | Animated CFG corpus browser for Linear A tablets. |
+ig-docs/tool_catalog_2026.md:104:| 37 | `programs/bootstrap_explorer.py` | bootstrap_explorer | 🤖 | Bootstrap explorer — runs the grammar bootstrap on Linear A. |
+ig-docs/tool_catalog_2026.md:105:| 38 | `programs/plot_cfg_document.py` | plot_cfg_document | 🤖 | Plot CFG structure as a rendered document/graph. |
+ig-docs/tool_catalog_2026.md:106:| 39 | `programs/run_all.py` | run_all | 🤖 | Run all Linear A programs sequentially. |
+ig-docs/tool_catalog_2026.md:107:| 40 | `programs/tablet_comparator.py` | tablet_comparator | 🤖 | Compare Linear A tablets by distance. |
+ig-docs/tool_catalog_2026.md:115:| 41 | `rohonc_cartographia/cli.py` | **`rc`** | 🤖 | CLI entry point (`rc`). Rohonc Cartographia: CLI for Rohonc Codex grammar engine. |
+===== commit.txt current =====
+commit.txt clean

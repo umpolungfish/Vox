@@ -1,0 +1,6 @@
+{"type":"mode","mode":"normal","sessionId":"eae5e495-199d-4a92-a117-c9f2bb15ece7"}
+{"type":"permission-mode","permissionMode":"auto","sessionId":"eae5e495-199d-4a92-a117-c9f2bb15ece7"}
+{"type":"file-history-snapshot","messageId":"50fe6740-cf5d-4084-9dd8-792edd52772a","snapshot":{"messageId":"50fe6740-cf5d-4084-9dd8-792edd52772a","trackedFileBackups":{},"timestamp":"2026-09-01T21:25:04.487Z"},"isSnapshotUpdate":false}
+{"parentUuid":null,"isSidechain":false,"type":"system","subtype":"informational","content":"Remote Control disconnected — Session creation failed — see debug log — run /remote-control to reconnect","isMeta":false,"timestamp":"2026-09-01T21:25:33.001Z","uuid":"53ad0bd4-bc27-47c4-92f9-67ceb32434b7","level":"warning","userType":"external","entrypoint":"cli","cwd":"/home/mrnob0dy666/imsgct","sessionId":"eae5e495-199d-4a92-a117-c9f2bb15ece7","version":"2.1.257","gitBranch":"HEAD"}
+{"type":"last-prompt","leafUuid":"53ad0bd4-bc27-47c4-92f9-67ceb32434b7","sessionId":"eae5e495-199d-4a92-a117-c9f2bb15ece7"}
+{"type":"cost-state","sessionId":"eae5e495-199d-4a92-a117-c9f2bb15ece7","totalCostUSD":0,"totalAPIDuration":0,"totalAPIDurationWithoutRetries":0,"totalToolDuration":0,"totalLinesAdded":0,"totalLinesRemoved":0,"totalDuration":239808,"startTime":1788297900854,"modelUsage":{},"hasUnknownModelCost":false}

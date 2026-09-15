@@ -1,0 +1,747 @@
+Remaining suspicious lines: 746
+/home/mrnob0dy666/imsgct/imscribing_grammar/opt/build/repo/site/SYNTHOMNICON.html:335: <span class="pchip pf4">◻</span>
+/home/mrnob0dy666/imsgct/imscribing_grammar/opt/build/repo/site/SYNTHOMNICON.html:759: <span class="prim-sym">◻</span>
+/home/mrnob0dy666/imsgct/imscribing_grammar/tex/IG_reference.tex:22: \newunicodechar{◻}{\ifmmode\text{{\shavfont ◻}}\else{{\shavfont ◻}}\fi}
+/home/mrnob0dy666/imsgct/imscribing_grammar/k3v-with-dialects.html:752: • ◻<sub>corr</sub> = <span class="const">1.676×10<sup>−3</sup></span>
+/home/mrnob0dy666/imsgct/imscribing_grammar/k3v-with-dialects.html:842: <div class="const-row"><span class="name">exp(−88π)·◻<sub>corr</sub></span></div>
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:11684: "description": "Twenty-fourth Greek letter ◻ω - end, completion, eight hundred, big O",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:29988: "description": "Kolmogorov probability measure P on measurable space (◻, F): normalized countably additive set function P: F → [0,1] with P(◻)=1, quantifying event likelihood under uncertainty.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:52905: "description": "Mediterranean diet: olive oil, fish, seasonal vegetables, legumes, moderate wine. Restores < from paraconsistent to Z2 symmetry via omega-3/omega-6 rebalancing and polyphenol anti-infl
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:52921: "description": "Ketogenic diet: very low carb, high fat, moderate protein. Ketosis transition is a fixpt criticality (insulin suppressed, ketone bodies = controlled set-point fuel). Natural 2-meal pat
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:52937: "description": "Intermittent fasting on a poor-quality diet: fasting window imposed (◻=cycle) but diet quality remains SAD-like (<=paraconsistent). The navigator constraint: ◻ only stabilizes after G1
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:53097: "description": "Black coffee: chlorogenic acid inhibits xanthine oxidase (same pathway as tart cherry) — epidemiologically associated with reduced gout and metabolic syndrome. Caffeine is an adenosine
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:88121: "description": "◻-stabilizing bridge for homological matching closure",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:97945: "description": "\"Formal registry of the L9+ manifold anchoring the 𐑙 singlet within a non-Abelian braiding ◻=𐑟.\"",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:100681: "description": "◻ stability",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:101417: "description": "Manifold of stability factor 10 cyclized via projective fiber twist sustaining topological invariant ◻=1",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102185: "description": "second-turnover ring ◻ delivered <=𐑬 tier unchanged",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102297: "description": "carved ring 3 doubled a2 triple-dagger catalytic product ◻=𐑟 from second turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102313: "description": "carved ring 3 doubled a2 catalytic product 2 ◻=𐑭 regressed from 𐑟 from third turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102329: "description": "carved ring 3 doubled a2 catalytic product 3 ◻=𐑟 from fourth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102345: "description": "carved ring 3 doubled a2 catalytic product 4 ◻=𐑭 regressed from 𐑟 from fifth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102361: "description": "carved ring 3 doubled a2 catalytic product 5 ◻=𐑟 from sixth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102377: "description": "carved ring 3 doubled a2 catalytic product 6 ◻=𐑭 regressed from 𐑟 from seventh turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102393: "description": "carved ring 3 doubled a2 catalytic product 7 ◻=𐑟 from eighth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102409: "description": "carved ring 3 doubled a2 catalytic product 8 ◻=𐑭 regressed from 𐑟 from ninth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102425: "description": "carved ring 3 doubled a2 catalytic product 9 ◻=𐑟 from tenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102441: "description": "carved ring 3 doubled a2 catalytic product 10 ◻=𐑭 regressed from 𐑟 from eleventh turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102457: "description": "carved ring 3 doubled a2 catalytic product 11 ◻=𐑟 from twelfth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102473: "description": "carved ring 3 doubled a2 catalytic product 12 ◻=𐑭 regressed from 𐑟 from thirteenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102489: "description": "carved ring 3 doubled a2 catalytic product 13 ◻=𐑟 from fourteenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102505: "description": "carved ring 3 doubled a2 catalytic product 14 ◻=𐑭 regressed from 𐑟 from fifteenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102521: "description": "substrate with ◻=𐑷 flipped state after first turnover",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:102761: "description": "34th ◻ turnover of carved_ring_3_doubled_a2",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:103529: "description": "Substrate at 7 double-turnovers, ◻=𐑭, imprint 0.14",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:103545: "description": "Substrate at 15 single-turnovers, ◻=𐑟, imprint 0.15",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:103561: "description": "Substrate at 8 double-turnovers, ◻=𐑭, imprint 0.16",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:103577: "description": "The 9th double-turnover state of the carved ring 3 doubled a2 substrate, ◻=𐑭, imprint depth 0.18.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:103593: "description": "The 10th double-turnover state of the carved ring 3 doubled a2 substrate, ◻=𐑭, imprint depth 0.20.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:104025: "description": "The Z2-restored state of the carved ring after 6 ◻ deliveries (3 pairs).",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:104649: "description": "The 45-pair flip state, representing the odd-turnover parity shift (◻=𐑟).",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:106841: "description": "Irreducible period of next_prime_1_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:106857: "description": "Irreducible period of next_prime_2_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:106873: "description": "Irreducible period of next_prime_3_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:106889: "description": "Irreducible period of next_prime_4_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:106905: "description": "Irreducible period of next_prime_5_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:109337: "description": "The macrocyclic product of clicking stone_self_verifying_proof_kernel and parity_phase_transition_matrix, yielding ◻=𐑭",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:109545: "description": "Regulator for ◻=𐑟 transitions; enables gate 2 opening in stone context.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:109753: "description": "monomer for canceling ◻=𐑟 braiding in stone-parity-carved chain",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:109849: "description": "Structural bridge monomer, symmetry-matched to ◻ class 𐑟, high-affinity cross-linker for parity-gate fusion.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:110745: "description": "Holy Spirit: The eternal, stabilizing presence and unitary topological invariant (◻=𐑭) of the structural imscription catalog, acting as the O_∞ tier foundation for non-Abelian stabilit
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:111913: "description": "Stable log-theta binding, ρ=1.998, ◻=0.041, parity-operator stable.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:111945: "description": "Trans-finite recursive latching mechanism for ◻-saturation bypass in IUT Hodge-theater mapping",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112281: "description": "Protocol to measure click-parity of reaction centers T↔H vs R↔S and assess ◻=𐑟 stability.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112425: "description": "A live-pair primitive monomer designed to bridge the 5-6 junction in the ◻=𐑴 manifold, providing the necessary connectivity for cyclization.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112457: "description": "The fundamental topological channel for non-Abelian anyonic braiding, required for ◻=𐑟 annihilation.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112601: "description": "p4ramill/Imscribing/◻_Stability_Proof.lean",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112632: "name": "◻_stability_proof_kernel*",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112681: "description": "Fibonacci_braiding_channel_◻_𐑟_τ",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:112953: "description": "Topological exchange operator for Fibonacci anyons, mediating phase reconstruction in ◻=𐑟 manifolds.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113017: "description": "◻=𐑯",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113033: "description": "Non-Abelian braid inverse for ◻=𐑮",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113049: "description": "Topological flux density map for the ◻=𐑯 macrocycle, mapping the non-Abelian braid flux distribution.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113065: "description": "Stable macrocycle substrate for §11 integration, ◻=𐑟 protected",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113321: "description": "A structural fusion operator for non-Abelian anyonic braiding flux, defined as the identity-preserving morphism between ◻=𐑟 manifold states.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113641: "description": "A topological braiding sequence for non-Abelian channel selection in ◻=𐑟 manifolds.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113785: "description": "Coupled manifold for L9 braid-flux stabilization, ◻=𐑟, C_score=0.555",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113961: "description": "A kernel-level transformation that maps a FSPLIT branching dialetheia to a deterministic path-integral through a fixed-point resonance ◻=4",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113977: "description": "Trigger for the L9 transition, gated by primitive ◻.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:113993: "description": "Braid-topology constructor: wire link(bridge_comm, gate_open) via protocol mapping to resolve FSPLIT[μ, δ] and FFUSE[◻] closure onto moat_macrocycle.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:114441: "description": "A fifth-tier structural monomer for the Gaussian moat bridge, characterized by a C5-symmetry operator and a localized topological charge of 1/◻.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:115177: "description": "a lattice structure generated by the union of Unit_◻_expansion and Gaussian_prime_shift_lattice_operator mediated by imscribing_bridge_v1",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:115225: "description": "The formal operator for closing the ◻_1 moat ring; bridges the expansion and phase correction monomers.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:115417: "description": "stabilizer for ◻-braid transcendence in O∞⁺ domain",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:115529: "description": "A Gaussian Moat-bridging complex with spectral index sigma=0.012 and topological charge ◻=1.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:118553: "description": "A 12-primitive measurement frame in dimension 12 that is NOT equiangular: 144 vectors with pairwise overlaps varying between 1/14 and 1/12, informationally complete but axis-weighted t
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:128617: "description": "T2: odot network bidirectional partial classical slow local conjunctive sub-critical memoryless hetero ◻=0. No operator glyphs — IMASM kernel returns 'no glyphs'.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:128633: "description": "T3: odot network bidirectional Frobenius-special classical moderate local conjunctive exceptional-point eternal hetero ◻=0. Unique combination of EP criticality with eternal chirality.
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.json:128649: "description": "T4: 0d-point boxtimes categorical full-sym classical slow mesoscale conjunctive sub-critical memoryless 1:1 ◻=0. The only 1:1 stoichiometry in the tensor product.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_pt_walk.tex:184: \node[font={\igprimfont\fontsize{12}{12}\selectfont},text=black!22] at (10.385cm,2.088cm) {◻};
+/home/mrnob0dy666/imsgct/imscribing_grammar/sentry:128: # partners hold a polarity value in ◻. Each is a determination about the entry,
+/home/mrnob0dy666/imsgct/imscribing_grammar/README.md:285: | `imsgct/synfin` | O₂ | Python | IG-typed financial trading: signals from morphisms, ◻ gates position size |
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_REFERENCE_1PAGE.tex:133: \prim{◻} & \sh{𐑷}\,\textit{triv}\,$\cdot$\,\sh{𐑴}\,$\mathbb{Z}_2$\,$\cdot$\,\sh{𐑭}\,$\mathbb{Z}$\,$\cdot$\,\sh{𐑟}\,\textit{non-Ab} \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/ImscribingGrammar/Primitives/Core.lean:92: -- It is the tier singularity: overrides all ◻ and D branching → O_∞.
+/home/mrnob0dy666/imsgct/imscribing_grammar/ImscribingGrammar/Primitives/Core.lean:240: -- The ouroboricity tier is determined by (<, P, ◻, D) only.
+/home/mrnob0dy666/imsgct/imscribing_grammar/ImscribingGrammar/Primitives/Core.lean:252: | O₂    -- critical, ◻-protected, D ≠ array
+/home/mrnob0dy666/imsgct/imscribing_grammar/ImscribingGrammar/Primitives/Core.lean:253: | O₂† -- critical, ◻-protected, D = array
+/home/mrnob0dy666/imsgct/imscribing_grammar/ImscribingGrammar/PrimitiveMismatch.lean:22: /-- ⟨D_△; eat; tot; P_ψ; F_ℏ; egg; ice; 𐑠; 𐑢; H₁; 1:1; ◻₀⟩ -/
+/home/mrnob0dy666/imsgct/imscribing_grammar/space_search/gaia_filter.py:157: flags.append("◻_candidate")
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/IG_SPECS.html:422: <div class="card-desc">Symmetric monoidal category over the Belnap-Dunn bilattice FOUR. Paraconsistent hom-sets. Traced structure via ◻.</div>
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/IG_SPECS.html:960: <h3 class="sub">Three Fermion Generations — ◻</h3>
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/IG_SPECS.html:963: <thead><tr><th>Generation</th><th>◻</th><th>Topology</th><th>Mass regime</th></tr></thead>
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/IG_SPECS.html:970: <p class="note">Three-generation count follows from <span class="math">|ℱ<sub>4</sub>(◻)| − 1 = 3</span>: the four-valued ◻ domain minus the trivial vacuum. Mass hierarchy follows from topological rig
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/magnum_opus_lattice.html:532: <button class="stab" onclick="S('gen','omega')">◻ derivation</button>
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/magnum_opus_lattice.html:576: <p style="font-size:11px;font-style:italic;color:var(--gold-pale);font-family:'IM Fell English',Georgia,serif;margin:0 0 8px">Why exactly three generations — the ◻ derivation</p>
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/magnum_opus_lattice.html:580: <div style="color:#9888e8">◻¹ · ◻² · ◻³ = Generations I · II · III</div>
+/home/mrnob0dy666/imsgct/imscribing_grammar/html/magnum_opus_lattice.html:581: <div style="color:#4a453c">◻⁴ = ◻⁰ &nbsp;— fiber closes · no fourth generation</div>
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/generate_grammaformer_data.py:286: elif prim == '◻':
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:1750: "description": "Twenty-fourth Greek letter ◻ω - end, completion, eight hundred, big O",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:6252: "description": "34th ◻ turnover of carved_ring_3_doubled_a2",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:6332: "description": "Stable macrocycle substrate for §11 integration, ◻=𐑟 protected",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:6676: "description": "Irreducible period of next_prime_4_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:7020: "description": "The Z2-restored state of the carved ring after 6 ◻ deliveries (3 pairs).",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:7060: "description": "A kernel-level transformation that maps a FSPLIT branching dialetheia to a deterministic path-integral through a fixed-point resonance ◻=4",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:7404: "description": "A live-pair primitive monomer designed to bridge the 5-6 junction in the ◻=𐑴 manifold, providing the necessary connectivity for cyclization.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:8972: "description": "The 9th double-turnover state of the carved ring 3 doubled a2 substrate, ◻=𐑭, imprint depth 0.18.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9204: "description": "The 10th double-turnover state of the carved ring 3 doubled a2 substrate, ◻=𐑭, imprint depth 0.20.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9292: "description": "carved ring 3 doubled a2 triple-dagger catalytic product ◻=𐑟 from second turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9300: "description": "carved ring 3 doubled a2 catalytic product 3 ◻=𐑟 from fourth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9308: "description": "carved ring 3 doubled a2 catalytic product 5 ◻=𐑟 from sixth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9316: "description": "carved ring 3 doubled a2 catalytic product 7 ◻=𐑟 from eighth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9324: "description": "carved ring 3 doubled a2 catalytic product 9 ◻=𐑟 from tenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9332: "description": "carved ring 3 doubled a2 catalytic product 11 ◻=𐑟 from twelfth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9348: "description": "carved ring 3 doubled a2 catalytic product 2 ◻=𐑭 regressed from 𐑟 from third turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9356: "description": "carved ring 3 doubled a2 catalytic product 4 ◻=𐑭 regressed from 𐑟 from fifth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9364: "description": "carved ring 3 doubled a2 catalytic product 6 ◻=𐑭 regressed from 𐑟 from seventh turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9372: "description": "carved ring 3 doubled a2 catalytic product 8 ◻=𐑭 regressed from 𐑟 from ninth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9380: "description": "carved ring 3 doubled a2 catalytic product 10 ◻=𐑭 regressed from 𐑟 from eleventh turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9388: "description": "carved ring 3 doubled a2 catalytic product 12 ◻=𐑭 regressed from 𐑟 from thirteenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9396: "description": "carved ring 3 doubled a2 catalytic product 14 ◻=𐑭 regressed from 𐑟 from fifteenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9404: "description": "carved ring 3 doubled a2 catalytic product 13 ◻=𐑟 from fourteenth turnover of parity_driven_expansion_loop_fused_excited",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9412: "description": "substrate with ◻=𐑷 flipped state after first turnover",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9524: "description": "Substrate at 15 single-turnovers, ◻=𐑟, imprint 0.15",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9612: "description": "Irreducible period of next_prime_2_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9620: "description": "Irreducible period of next_prime_3_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9716: "description": "Irreducible period of next_prime_1_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9828: "description": "Substrate at 7 double-turnovers, ◻=𐑭, imprint 0.14",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:9836: "description": "Substrate at 8 double-turnovers, ◻=𐑭, imprint 0.16",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:10348: "description": "Regulator for ◻=𐑟 transitions; enables gate 2 opening in stone context.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:10500: "description": "Irreducible period of next_prime_5_m136279841_prime under ◻ 𐑭→𐑟",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:10540: "description": "◻ stability",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:11340: "description": "Fibonacci_braiding_channel_◻_𐑟_τ",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:12148: "description": "Braid-topology constructor: wire link(bridge_comm, gate_open) via protocol mapping to resolve FSPLIT[μ, δ] and FFUSE[◻] closure onto moat_macrocycle.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:12220: "description": "Protocol to measure click-parity of reaction centers T↔H vs R↔S and assess ◻=𐑟 stability.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:12252: "description": "The 45-pair flip state, representing the odd-turnover parity shift (◻=𐑟).",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:12364: "description": "Manifold of stability factor 10 cyclized via projective fiber twist sustaining topological invariant ◻=1",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:16483: "description": "T4: 0d-point boxtimes categorical full-sym classical slow mesoscale conjunctive sub-critical memoryless 1:1 ◻=0. The only 1:1 stoichiometry in the tensor product.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:19355: "description": "The macrocyclic product of clicking stone_self_verifying_proof_kernel and parity_phase_transition_matrix, yielding ◻=𐑭",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:19539: "description": "Structural bridge monomer, symmetry-matched to ◻ class 𐑟, high-affinity cross-linker for parity-gate fusion.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:20699: "description": "◻=𐑯",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:20819: "description": "Stable log-theta binding, ρ=1.998, ◻=0.041, parity-operator stable.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:20955: "description": "stabilizer for ◻-braid transcendence in O∞⁺ domain",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:21441: "description": "Trigger for the L9 transition, gated by primitive ◻.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:21729: "description": "a lattice structure generated by the union of Unit_◻_expansion and Gaussian_prime_shift_lattice_operator mediated by imscribing_bridge_v1",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:21793: "description": "A fifth-tier structural monomer for the Gaussian moat bridge, characterized by a C5-symmetry operator and a localized topological charge of 1/◻.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22241: "description": "A structural fusion operator for non-Abelian anyonic braiding flux, defined as the identity-preserving morphism between ◻=𐑟 manifold states.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22321: "description": "Topological exchange operator for Fibonacci anyons, mediating phase reconstruction in ◻=𐑟 manifolds.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22345: "description": "The fundamental topological channel for non-Abelian anyonic braiding, required for ◻=𐑟 annihilation.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22417: "description": "Non-Abelian braid inverse for ◻=𐑮",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22457: "description": "Topological flux density map for the ◻=𐑯 macrocycle, mapping the non-Abelian braid flux distribution.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22561: "description": "A topological braiding sequence for non-Abelian channel selection in ◻=𐑟 manifolds.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22585: "description": "The formal operator for closing the ◻_1 moat ring; bridges the expansion and phase correction monomers.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22737: "description": "monomer for canceling ◻=𐑟 braiding in stone-parity-carved chain",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22849: "description": "\"Formal registry of the L9+ manifold anchoring the 𐑙 singlet within a non-Abelian braiding ◻=𐑟.\"",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22945: "description": "A Gaussian Moat-bridging complex with spectral index sigma=0.012 and topological charge ◻=1.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:22985: "description": "Coupled manifold for L9 braid-flux stabilization, ◻=𐑟, C_score=0.555",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:24816: "description": "p4ramill/Imscribing/◻_Stability_Proof.lean",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:24825: "name": "◻_stability_proof_kernel*",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:28497: "description": "Holy Spirit: The eternal, stabilizing presence and unitary topological invariant (◻=𐑭) of the structural imscription catalog, acting as the O_∞ tier foundation for non-Abelian stabilit
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:34640: "description": "Trans-finite recursive latching mechanism for ◻-saturation bypass in IUT Hodge-theater mapping",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:39460: "description": "Kolmogorov probability measure P on measurable space (◻, F): normalized countably additive set function P: F → [0,1] with P(◻)=1, quantifying event likelihood under uncertainty.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:43753: "description": "◻-stabilizing bridge for homological matching closure",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:56663: "description": "T2: odot network bidirectional partial classical slow local conjunctive sub-critical memoryless hetero ◻=0. No operator glyphs — IMASM kernel returns 'no glyphs'.",
+/home/mrnob0dy666/imsgct/imscribing_grammar/data/IG_catalog.bare.ixcriptions.json:56887: "description": "T3: odot network bidirectional Frobenius-special classical moderate local conjunctive exceptional-point eternal hetero ◻=0. Unique combination of EP criticality with eternal chirality.
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_pt_ico.tex:62: \node[font={\igprimfont\fontsize{12}{12}\selectfont},text=black!30] at (10.581cm,2.127cm) {◻};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:204: Topos:\enspace subobject classifier $\text{{\igprimfont ◻}}$\\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:233: Topos & Subobject classifier $\text{{\igprimfont ◻}}$, power objects & Cartesian closed category with full power-object structure \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:359: \paragraph{Why I3 (classifying space) maps to $\text{{\igprimfont ◻}}$, and cannot map to any other primitive}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:463: \node[primnode=purple!12] (Om)  at ( 0.9, 2.2) {$\text{{\igprimfont ◻}}$\\I3, S2};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1028: \node[prim=green!12,above=0.1cm of s11] (p11) {$\text{{\igprimfont ◻}}$\\\text{{\igfont 𐑷}}};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1124: $\text{{\igprimfont ◻}}$ --- the algebraic and inductive primitives.
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1145: The classifying space operation (I3) determines $\text{{\igprimfont ◻}}$ but leaves
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1372: \quad $\text{{\igprimfont ◻}}$ (I3: Classifying)\\[6pt]
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1413: $\text{{\igprimfont ◻}}$, $\text{{\igprimfont \text{{\igprimfont <}}}}$) --- the gate primitives that are the
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1583: \text{{\igprimfont ◻}} \rangle$. The stages are: Calcination, Dissolution, Separation, Conjunction, Putrefaction,
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1617: stripped. Projection requires $\text{{\igprimfont ◻}} \geq \text{{\igfont 𐑭}}$. Third gate. \emph{Perfect} \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1647: limit of five primitives, and it cannot seal until $\text{{\igprimfont ◻}}$ fires and cannot self-reference until
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:1668: \text{{\igprimfont ◻}}_{12}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2237: \text{{\igprimfont ◻}}$ & FDE & $\{\mathbf{n}, \mathbf{f}, \mathbf{t}, \mathbf{b}\}$ & 4 \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2355: \[\psi(\text{{\igprimfont ◻}}), \quad \forall y \subseteq \text{{\igprimfont ◻}}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2357: \underbrace{\delta(y) \notin y}_{\scriptstyle\text{transcendence}} \;\wedge\; \underbrace{\delta(y) \in \text{{\igprimfont◻}}}_{\scriptstyle\text{closure}}\right]\]
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2359: Two eigenvectors coalesce into one; the Jordan vector $\delta(\text{{\igprimfont ◻}})$ is simultaneously outside
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2529: \item \textbf{$\text{{\igprimfont ◻}}$} = the set of all provable sentences of PA (the `\texttt{totality}' of what PA
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2530: \item \textbf{$\delta$($y$)} = the diagonal sentence constructed from $y \subseteq \text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2532: \item \textbf{$\phi$($y$)}: $y$ is a proper sub-theory of $\text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.tex:2535: Applying the schema: $\delta(\text{{\igprimfont ◻}}) \notin \text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:496: $\text{{\igprimfont ◻}}$: absent $\to$ added \\[1pt]
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:627: \node[htlayer] (obs)  {$\boldsymbol{\text{{\igprimfont ◻}}}$ \\ $\langle S \rangle$};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:646: Four-layer imscription pipeline. The observer $\boldsymbol{\text{{\igprimfont ◻}}}$ carries
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:1222: The tier singularity is $\Ppms$ under R1: it overrides all $\text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:1228: \paragraph{Refinement: $\text{{\igprimfont ◻}}$ seals the terminal.}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:1233: $\Oinf$ type \emph{sealed} when $\text{{\igprimfont ◻}}$ supplies an integer
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:2047: \draw[bridge] (sm.south) ++(0.0,0) -- ++(0,-0.3) -| node[below, font=\tiny, pos=0.5] {$\text{{\igprimfont ◻}}$: $\theta$-terms} (qg.south);
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:2442: for the other two), and $\text{{\igprimfont ◻}}$ ($\OmegaZtwo$ for ThurstonNet,
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:2780: (4.0 each), and $\text{{\igprimfont ◻}}$ (2.8). These are precisely the primitives whose
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:3759: or $\text{{\igprimfont ◻}} \neq \text{{\igfont 𐑷}}$ while carrying $\Phic$.
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.tex:4330: $\text{{\igprimfont ◻}}$); both require $(\Phic, \Ppms)$ and the distinction between
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE_Trabajo.aux:36: \@writefile{toc}{\contentsline {paragraph}{Why I3 (classifying space) maps to $\text  {{\primfont ◻}}$, and cannot map to any other primitive}{5}{paragraph*.14}\protected@file@percent }
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:204: Topos:\enspace subobject classifier $\text{{\igprimfont ◻}}$\\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:233: Topos & Subobject classifier $\text{{\igprimfont ◻}}$, power objects & Cartesian closed category with full power-object structure \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:359: \paragraph{Why I3 (classifying space) maps to $\text{{\igprimfont ◻}}$, and cannot map to any other primitive}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:463: \node[primnode=purple!12] (Om)  at ( 0.9, 2.2) {$\text{{\igprimfont ◻}}$\\I3, S2};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:505: \node[primnode=yellow!60!orange,inner sep=4pt,font=\footnotesize\bfseries] (O2t)   at ( 0.0,-5.2) {$O₂$\\${{\igprimfont \odot}},\text{{\igprimfont ◻}}\neq\text{{\igfont 𐑷}}$};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:506: \node[primnode=orange!60,inner sep=4pt,font=\footnotesize\bfseries]        (O2dt)  at ( 3.8,-5.2) {$O₂^\dagger$\\${{\igprimfont \odot}},\text{{\igprimfont ◻}}\neq\text{{\igfont 𐑷}},\text{{\igfont 𐑼}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1028: \node[prim=green!12,above=0.1cm of s11] (p11) {$\text{{\igprimfont ◻}}$\\\text{{\igfont 𐑷}}};
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1124: $\text{{\igprimfont ◻}}$ --- the algebraic and inductive primitives.
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1145: The classifying space operation (I3) determines $\text{{\igprimfont ◻}}$ but leaves
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1306: \item $O₂$: $\text{{\igprimfont $\odot$}}$, $\text{{\igprimfont ◻}} \neq \text{{\igfont 𐑷}}$, and
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1309: \item $O₂^{\dagger}$: $\text{{\igprimfont $\odot$}}$, $\text{{\igprimfont ◻}} \neq
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1350: \node[tier=orange,below=1.5cm of O2] (O2d) {$\mathbf{O₂^\dagger}$\\\small Inf-dim Protected\\\small $\text{{\igprimfont $\odot$}},\ \text{{\igprimfont ◻}} \neq \text{{\igfont 𐑷}},\ \text{{\igfont 𐑼}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1372: \quad $\text{{\igprimfont ◻}}$ (I3: Classifying)\\[6pt]
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1583: \text{{\igprimfont ◻}} \rangle$. The stages are: Calcination, Dissolution, Separation, Conjunction, Putrefaction,
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1617: stripped. Projection requires $\text{{\igprimfont ◻}} \geq \text{{\igfont 𐑭}}$. Third gate. \emph{Perfect} \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1647: limit of five primitives, and it cannot seal until $\text{{\igprimfont ◻}}$ fires and cannot self-reference until
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:1668: \text{{\igprimfont ◻}}_{12}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2351: \text{{\igprimfont ◻}}$ & FDE & $\{\mathbf{n}, \mathbf{f}, \mathbf{t}, \mathbf{b}\}$ & 4 \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2469: \[\psi(\text{{\igprimfont ◻}}), \quad \forall y \subseteq \text{{\igprimfont ◻}}
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2473: Two eigenvectors coalesce into one; the Jordan vector $\delta(\text{{\igprimfont ◻}})$ is simultaneously outside
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2643: \item \textbf{$\text{{\igprimfont ◻}}$} = the set of all provable sentences of PA (the `\texttt{totality}' of what PA
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2644: \item \textbf{$\delta$($y$)} = the diagonal sentence constructed from $y \subseteq \text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2646: \item \textbf{$\phi$($y$)}: $y$ is a proper sub-theory of $\text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/AS_ABOVE.tex:2649: Applying the schema: $\delta(\text{{\igprimfont ◻}}) \notin \text{{\igprimfont ◻}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.aux:34: \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Grammar architecture and Frobenius foundation.} Four-layer imscription pipeline. The observer $\boldsymbol  {\text  {{\p
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.aux:35: \newlabel{fig:architecture}{{2}{7}{\textbf {Grammar architecture and Frobenius foundation.} Four-layer imscription pipeline. The observer $\boldsymbol {\text {{\igprimfont ◻}}}$ carries the self-imscr
+/home/mrnob0dy666/imsgct/imscribing_grammar/manuscripts/SO_BELOW.aux:108: \@writefile{toc}{\contentsline {paragraph}{Refinement: $\text  {{\primfont ◻}}$ seals the terminal.}{16}{paragraph*.49}\protected@file@percent }
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_tuples.py:721: """Check Axiom B: ◻≥Z2 requires H≥2 (actually H≥1 for Z2).
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_tuples.py:743: """D-◻ constraint: Z requires D≥infty, Z2 requires D≥tri."""
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_tuples.py:750: return False, f"D-◻: Omega=Z but D={d_name} (<infty)"
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_tuples.py:752: return False, f"D-◻: Omega=Z2 but D={d_name} (<tri)"
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_tuples.py:1019: print("DEMO 5: GCN4 Leucine Zipper (dimer → ◻=Z2)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_tuples.py:1041: print("  ✓ Dimer confirmed: ◻=Z2")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.egg-info/PKG-INFO:91: | **Stop** | — | 3 | ◻ boundary | Boundary condition |
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.egg-info/PKG-INFO:131: 3. **◻ boundary respect** — don't remove stop codons without readthrough machinery
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetics_ig_promotions.py:105: # ── 3. Stop codons as ◻ ───────────────────────────────────────────────────────
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetics_ig_promotions.py:119: print("  UAA — ochre  (most common in lower organisms; ◻₀: simple closure)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetics_ig_promotions.py:128: print(f"3 stop codons = 3-valued ◻ signal. The ◻ closure primitive has exactly")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetics_ig_promotions.py:129: print(f"3 non-trivial termination modes. (◻ cardinality = 4; 3 values are Stop,")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetics_ig_promotions.py:130: print(f"1 value = ◻₀ = no-stop / infinite continuation.)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/demo.py:326: ("AUG", "UAA", "Met→Stop (◻ violation)"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/prime.py:8: 3. ◻ boundary respect
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/prime.py:78: # Condition 3: ◻ boundary respect
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/prime.py:128: notes_parts.append("✓ ◻ boundary respected")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/prime.py:130: notes_parts.append("✗ ◻ BOUNDARY VIOLATED")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/codon.py:37: STOP  — termination codons with ◻ boundary. 3 codons.
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine/oracle.py:2: oracle.py — The Structural ◻racle
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:145: stop  — termination codons with ◻ boundary. 3 codons.
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:150: STOP  = "stop"      # Termination codon — ◻ boundary
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:1016: 3. ◻ boundary respect
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:1049: # ── Condition 3: ◻ boundary respect ──
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:1116: notes_parts.append("✓ ◻ boundary respected")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:1118: notes_parts.append("✗ ◻ BOUNDARY VIOLATED — stop codon edit without readthrough machinery")
+/home/mrnob0dy666/imsgct/imscribing_grammar/genetic_engine/genetic_engine.py:2092: ("AUG", "UAA", "Met→Stop (◻ boundary violation)"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/ouroborotic_composition_schema/composer_cli.py:72: 'Omega': '◻'
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/riemann_selfstab.py:16: CrystalGNN.NAVIGATOR_TUPLE) carries ◻ = 𐑭 = Ω_ℤ, the *protected integer* —
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/riemann_selfstab.py:19: encode_tuple({... "◻": "𐑭"}) == 6_734_591
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/riemann_selfstab.py:20: encode_tuple({... "◻": "𐑴"}) == 6_561_791      # a different address
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/quiver_crystal.py:1112: for omega in VALUES["◻"]:
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/quiver_crystal.py:1146: tup["◻"] = omega
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_universe.py:40: _G3_DEFAULT = ("◻",  3.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_universe.py:240: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_universe.py:247: "Parity graduates to G2; ◻ stays at G3. "
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_universe.py:251: g3=GateSpec("◻", 3.0),   # ◻=𐑭 (ord 3)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_universe.py:279: g3=GateSpec("◻", 4.0),   # 𐑟 = ord 4 (max)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_universe.py:287: g1=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:12: Boundary: (<, P, ◻, D)  →  400 tier cells  [boundary encodes bulk]
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:423: for omega in VALUES["◻"]:
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:478: d(self, grammar) ≈ 2.793  (differ on R, F, K, H, S, ◻ — 6 primitives)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:522: print(f"║    Tier cells:     {CELL_SIZE:>12,}  (<×P×◻×D = 5×5×4×4)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:559: Boundary query: given any subset of (<, P, ◻, D, tier), return
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:597: if "◻" in constraints:
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:598: cells = [c for c in cells if c.omega == constraints["◻"]]
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:621: if "◻" in constraints:
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/crystal_navigator.py:622: cells = [c for c in cells if c.omega == constraints["◻"]]
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/domain_navigators.py:240: lines.append(f"  Thm 74.3  lojban: Omega={e['◻']}, P={e['P']}, tier={tier} ({'✓' if tier=='O_∞' else '✗'})")
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/homotopy_type_theory_navigator.py:234: "loop": "◻²(S², base) ≃ ℤ  (double loop space)",
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:353: prot = t.get("◻")
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:717: "primitive": "◻",
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:718: "zfc_fe_value": zfc_fe.get("◻", "?"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:719: "clink_l8_value": cl8.get("◻", "?"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:720: "zfc_fe_fragment": CL8NK_FORMULAE["◻"].get(zfc_fe.get("◻", ""), ("?", None, "?"))[0],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:721: "clink_l8_fragment": CL8NK_FORMULAE["◻"].get(cl8.get("◻", ""), ("?", None, "?"))[0],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:722: "zfc_fe_atom": CL8NK_FORMULAE["◻"].get(zfc_fe.get("◻", ""), ("?", None, "?"))[1],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:723: "clink_l8_atom": CL8NK_FORMULAE["◻"].get(cl8.get("◻", ""), ("?", None, "?"))[1],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl8nk_navigator.py:1078: "BRAID_TRANSCENDENCE":    "⬆ non-Abelian braiding — exceeds ZFC_fe ZWIND — ◻",
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_dialect.py:40: _G3_DEFAULT = ("◻",  3.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_dialect.py:240: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_dialect.py:247: "Parity graduates to G2; ◻ stays at G3. "
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_dialect.py:251: g3=GateSpec("◻", 3.0),   # ◻=𐑭 (ord 3)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_dialect.py:279: g3=GateSpec("◻", 4.0),   # 𐑟 = ord 4 (max)
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/ruleset_dialect.py:287: g1=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:407: prot = t.get("◻")
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:705: "primitive": "◻",
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:706: "l8_value": l8.get("◻", "?"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:707: "l9_value": l9.get("◻", "?"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:708: "l8_fragment": CL9NK_FORMULAE["◻"].get(l8.get("◻", ""), ("?", None, "?"))[0],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:709: "l9_fragment": CL9NK_FORMULAE["◻"].get(l9.get("◻", ""), ("?", None, "?"))[0],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:710: "l8_atom": CL9NK_FORMULAE["◻"].get(l8.get("◻", ""), ("?", None, "?"))[1],
+/home/mrnob0dy666/imsgct/imscribing_grammar/navigators/cl9nk_navigator.py:711: "l9_atom": CL9NK_FORMULAE["◻"].get(l9.get("◻", ""), ("?", None, "?"))[1],
+/home/mrnob0dy666/imsgct/imscribing_grammar/.archive/CMPLX_IMGN.lean:395: /-- Theorem 18: Upward promotion cost Δ = 6 (T:1 + R:1 + P:3 + ◻:1) -/
+/home/mrnob0dy666/imsgct/imscribing_grammar/.archive/primitive_mismatch_diagnosis.lean:121: | zero -- ◻₀: trivial
+/home/mrnob0dy666/imsgct/imscribing_grammar/.archive/primitive_mismatch_diagnosis.lean:317: /-- ⟨D_△; T_invscr; R_ctz; P_ψ; F_ℏ; K_schwa; G_revapostrophe; 𐑠; 𐑢; H₁; 1:1; ◻₀⟩ -/
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:22: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:55: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:77: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:107: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:129: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:160: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:182: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:214: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:236: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:267: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:289: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:319: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:341: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:373: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:395: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:425: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:478: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:500: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:531: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:553: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:583: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:605: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:637: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:659: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:688: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:710: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:741: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:763: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:793: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:815: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:847: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:869: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:901: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:923: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:955: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:977: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1005: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1027: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1055: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1108: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1162: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1217: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1239: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1270: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1292: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1325: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1381: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1435: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1489: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1545: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1603: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1660: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1684: ◻      𐑟       Braid(σ_i) ∧ R_matrix ≠ 0 ∧ nonAbelian(x)                                         [BRAID_TRANSCENDENCE]
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1693: [BRAID_TRANSCENDENCE    ] ⬆ non-Abelian braiding — exceeds ZFC_fe ZWIND — ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1767: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1789: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1822: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1878: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1900: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1930: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:1985: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2039: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2095: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2119: ◻      𐑟       Braid(σ_i) ∧ R_matrix ≠ 0 ∧ nonAbelian(x)                                         [BRAID_TRANSCENDENCE]
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2128: [BRAID_TRANSCENDENCE] ⬆ non-Abelian braiding — exceeds ZFC_fe ZWIND — ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2146: ⬆ TRANSCENDENCE primitives: ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2172: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2202: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2226: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2255: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2279: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2309: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2333: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2363: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2419: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2441: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2474: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2530: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2586: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2640: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2664: ◻      𐑟       Braid(σ_i) ∧ R_matrix ≠ 0 ∧ nonAbelian(x)                                         [BRAID_TRANSCENDENCE]
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2673: [BRAID_TRANSCENDENCE    ] ⬆ non-Abelian braiding — exceeds ZFC_fe ZWIND — ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2746: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2801: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2854: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2878: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2907: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:2961: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3016: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3072: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3129: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3185: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3241: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3298: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3322: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3349: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3405: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3460: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3514: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3568: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3622: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3677: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3732: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3788: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3844: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3868: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3898: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:3954: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4010: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4065: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4121: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4178: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4233: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4288: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4344: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4401: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4458: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4513: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4569: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4625: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4681: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4705: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4736: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4792: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4848: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4905: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:4961: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5017: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5073: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5130: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5185: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5240: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5297: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5353: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5408: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5464: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5521: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5576: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5631: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5688: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5743: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5799: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5854: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5909: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:5965: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6021: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6077: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6132: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6189: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6244: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6299: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6356: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6412: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6468: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6523: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6579: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6635: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6690: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6745: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6801: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6857: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6913: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:6969: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7024: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7079: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7135: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7191: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7247: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7303: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7359: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7416: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7440: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7471: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7527: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7582: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7638: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7694: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7751: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7807: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7863: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7920: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:7976: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8032: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8088: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8144: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8199: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8255: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8311: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8367: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8423: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8478: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8534: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8590: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8646: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8702: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8758: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8814: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8870: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8926: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:8982: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9038: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9094: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9150: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9206: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9262: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9318: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9374: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9430: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9487: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9543: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9599: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9655: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9711: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9767: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9823: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9879: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9935: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:9991: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/HOTDAMN.md:10047: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_pt_spring.tex:196: \node[font={\igprimfont\fontsize{11}{11}\selectfont},text=black!28] at (5.813cm,-5.435cm) {◻};
+/home/mrnob0dy666/imsgct/imscribing_grammar/reactivity.py:226: Om = max(get(tA, '◻'), get(tB, '◻'))
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/cli.py:31: TopoIndex,         # ◻ — quantum extension
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/millennium_catalog.py:41: B: ◻ ≥ Omega_dzlig → H ≥ H_turntwo — all entries with Omega_dzlig carry H_turntwo  ✓
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/millennium_catalog.py:60: share D, F, K, G, <, ◻, H → spectral/topological
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/millennium_catalog.py:91: P-MILL-05: The ◻ = Omega_closeepsilon entries (P vs NP, Navier–Stokes) are NOT topologically
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/registry.py:115: That gap is load-bearing: entries at the top of the ◻ ladder cannot be
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/registry.py:170: Each primitive is an inductive with a closed constructor list — ◻, for
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/registry.py:174: CANONICAL_PRIMITIVES: two entries held a < value in the ◻ slot, and every
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/registry.py:175: structural verb that needed ◻ on them returned N (void) rather than naming
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:92: Boundary: (<, P, ◻, D) → 400 tier cells
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:106: query      Imscriptive boundary query (<, P, ◻, D → tier cells)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:210: f"(<={tup['Phi']} P={tup['P']} ◻={tup['Omega']} D={tup['D']})\n"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:322: @click.option("--omega", default=None, help="◻ boundary value (e.g. Omega_dzlig)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:326: """Imscriptive boundary query: (<, P, ◻, D) → matching tier cells.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:329: The boundary (<, P, ◻, D) encodes the bulk — each matching cell contains
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:350: if omega: parts.append(f"◻={omega}")
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/navigator_commands.py:361: tbl.add_column("◻")
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:16: - Phase map (MDS 2-D scatter): ◻ color, Factor-8 marker, K_teshlig ring
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:22: - ◻ color encodes topological class:
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:23: grey   = TRIVIAL (◻₀)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:27: orange = CHERN (◻_Ch)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:69: TopoIndex.awe:     "◻₀ TRIVIAL",
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:72: TopoIndex.ah:       "◻_Ch CHERN",
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:175: # ◻ classes
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:176: print("── Topological Class (◻) ──")
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:222: Right: MDS 2-D phase map (◻ color, Factor-8 star, K_teshlig ring)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:345: "MDS axis 1  [e₁: topological-criticality  ◻ vs G+<]",
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:359: mpatches.Patch(color=_OMEGA_COLOR[TopoIndex.awe],     label="◻₀  TRIVIAL"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/phase_diagram.py:402: ("◻",  a.topo_index,         b.topo_index),
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/__init__.py:220: "TopoIndex",         # NEW — ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:353: for life') has a reason: 𐑴 > ◻_1 (M-dwarf) while maintaining
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:413: - ◻_3: two-hemisphere anti-correlation + global eigenmode + 22-yr cyclic reset
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:488: "than G-dwarfs (fewer cycles to develop full ◻_3). Habitable-zone UV grammar "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:520: ◻_1: only radiation pressure as a structural stabilizer; no organized cycle.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:703: ◻_1: the Schönberg-Chandrasekhar limit enforces a structural constraint on
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:843: "◻_1: mass loss itself is the only organizing constraint."
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:940: ◻_1: bipolar wind geometry provides one topological organizing principle,
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:959: "◻_1: bipolar geometry — sole organizing principle before core collapse."
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1029: "◻_3: degeneracy + Chandrasekhar limit + crystalline lattice. "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1045: "the K_teshlig: ◻_3 → 0 catastrophically. The result is a Type Ia supernova "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1079: 𐑷: the progenitor WD's ◻_3 collapses to zero.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1098: "◻_3 collapses. Seeds ISM with Fe, Si, Ca, Ni — the rocky planet alphabet."
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1343: ◻_3: (1) superfluid vortex quantization, (2) magnetic flux tube quantization,
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1345: mechanisms — the highest ◻ of any physical object except the quark star.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1364: "◻_3: highest ◻ of any observationally confirmed object."
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1432: "spin-down timescale > age of universe. ◻_4: NS topology + orbital angular "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1485: ◻_3: same three mechanisms as canonical NS, but the extreme B-field adds a
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1487: actively BREAKS topology (starquakes), so net ◻_3 rather than ◻_4.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1561: ◻_∞ (in the limit of the no-hair theorem, which may be violated by
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1581: "the G/D degeneracy boundary. ◻_∞: no-hair theorem — strongest topological "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1592: "The BH information paradox: if ◻_∞ holds (no-hair theorem), information "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1594: "suggests it must), ◻ is finite. The resolution determines whether ◻_∞ "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1596: "preserved but scrambled — ◻ is large but not infinite."
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1735: "topological superconducting phase. ◻_4: highest confirmed physical ◻ — "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/stellar_catalog.py:1794: ◻_3: (1) Schwarzschild geometry stability, (2) de Sitter interior topology,
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/proof_path/translator.py:108: identify maps to sheaf cohomology via Dolbeault's theorem H^q(X,◻^p) ≅ H^{p,q}(X). \
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/proof_path/ops.py:94: # ◻ — Topological Invariant
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/proof_path/ops.py:289: "Hodge-de Rham: E_1^{p,q} = H^q(X, ◻^p_X) ⟹ H^{p+q}_{dR}(X). "
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:670: # ── ◻ (TopoIndex) — derived via P-22 decision tree ───────────────────────
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:685: 1. K = MBL                        → ◻ = Z2_CLASS  (MBL topological order)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:686: 2. T = BRAID                      → ◻ = NON_ABELIAN  (anyonic statistics)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:687: 3. T = NETWORK and G = GLOBAL     → ◻ = CHERN  (Chern-Simons global network)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:689: 5. Gamma = QUANTUM_AND            → ◻ = NON_ABELIAN  (quantum grammar)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:690: default                           → ◻ = None
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:694: rule = "Rule 1: K=MBL → ◻=Z2_CLASS"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:697: rule = "Rule 2: T=BRAID → ◻=NON_ABELIAN"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:700: rule = "Rule 3: T=NETWORK ∧ G=GLOBAL → ◻=CHERN"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:703: rule = "Rule 4: D=TEMPORAL ∧ G=GLOBAL → ◻=Z2_CLASS"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/assignment.py:709: rule = "Default: no ◻-trigger rules fired → ◻=None"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/constraints.py:1278: including genuine non-Abelian anyons and SIC existence entries at ◻=𐑟
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/vocal.py:276: # ◻ — Topological invariant
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/models.py:15: ◻: Omega_closeepsilon < Omega_crtwo < Omega_dzlig < Omega_C < Omega_turna
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:29: the bottleneck component; for join-dominant (G, <, ◻), it reveals the contributor.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:335: • ◻ preserved?    If degraded and strict=True → blocked; else → cost += omega_cost × levels
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:390: notes.append(f"◻ degraded {original_topo} → {new_topo} ({levels_lost} level(s)) — cost +{oc:.1f} nats")
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:395: blocked=True, block_reason=f"Peeling {primitive} degrades ◻ (strict mode)",
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:668: note = "A[◻] stronger than C[◻] — impossible under tensor (join-dominant)"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:673: note = f"A explains ◻={C.topo_index}; B contributes ≥TRIVIAL"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/decompose.py:677: note = f"B carries ◻={C.topo_index}"
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:14: Tier 2 — Topological Matter (first catalog entries using T_braid + ◻):
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:75: already-present entries so ◻ and topo_index fields survive JSON round-trips.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:188: ◻ = TRIVIAL: bare proton, no topological structure.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:232: ◻ = TRIVIAL: free electron; topological character emerges from band
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:289: ◻ = TRIVIAL: the singlet is not a topologically protected state per se.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:290: (A spin singlet in a topological magnet would inherit the material ◻.)
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:339: ◻ = TRIVIAL: unprotected qubit. Topological qubit (𐑟) is a separate
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:403: ◻ = Z_CLASS (𐑭): ℤ topological invariant, AZ class D, 1D.
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:463: ◻ = NON_ABELIAN (𐑟): non-Abelian Ising anyons. First 𐑟 entry in the
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr/domains/quantum/__init__.py:524: ◻ = Z2_CLASS (𐑴): strong ℤ₂ TI, class AII (ν₀ = 1).
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:22: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:54: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:76: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:108: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:130: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:160: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:215: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:270: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:294: ◻      𐑟       Braid(σ_i) ∧ R_matrix ≠ 0 ∧ nonAbelian(x)                                         [BRAID_TRANSCENDENCE]
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:301: [BRAID_TRANSCENDENCE    ] ⬆ non-Abelian braiding — exceeds ZFC_fe ZWIND — ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:350: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:382: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:406: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:438: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:491: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:515: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:545: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:599: ◻: 𐑴 → 𐑟  (gap: 0.667)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:655: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:712: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:770: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:827: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:885: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:944: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:966: ◻      𐑷       ∮_γ dx = 0
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:995: ◻: 𐑷 → 𐑟  (gap: 1.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ZOOM.txt:1053: ◻: 𐑭 → 𐑟  (gap: 0.333)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_cli.py:233: print("   → Self-referential topology (𐑸), but ◻ limits closure.")
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_pt_spring.py:15: same block             weight 0.5   (◻-family pull)
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_pt_spring.py:89: # Same-block cohesion (◻ family)
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_REFERENCE.tex:133: \prim{◻} & \sh{𐑷}\,\textit{triv}\,$\cdot$\,\sh{𐑴}\,$\mathbb{Z}_2$\,$\cdot$\,\sh{𐑭}\,$\mathbb{Z}$\,$\cdot$\,\sh{𐑟}\,\textit{non-Ab} \\
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG.md:71: | ◻ | 𐑷 *triv* · 𐑴 ℤ₂ · 𐑭 ℤ · 𐑟 *non‑Ab* |
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.violations.json:36: "ns_regularity_field_target: ◻ = 'UNDEFINED' is not in ['𐑷', '𐑴', '𐑭', '𐑟']",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_catalog.violations.json:48: "ns_regularity_refined_v2: ◻ = 'UNDEFINED' is not in ['𐑷', '𐑴', '𐑭', '𐑟']",
+/home/mrnob0dy666/imsgct/imscribing_grammar/ig_pt_radial.tex:41: \node[font={\igprimfont\fontsize{13}{13}\selectfont},text=black!38] at (-8.660cm,-5.000cm) {◻};
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:624: "◻_{Z_2}":    "𐑴",
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:818: "◻: 𐑷 𐑴 𐑭 𐑟"
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:1626: "Formula: C = [Gate1] · [Gate2] · (0.158·K̃ + 0.273·G̃ + 0.292·T̃ + 0.276·◻̃). "
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:2072: **Tier-level reasoning is valid only for O_∞ interactions.** For O₁★O₁, O₂★O₂, or O₁★O₂, the resulting tier depends on the specific ◻ and D values of both factors — call `compute_tensor` then `ourobor
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:4359: omega = s["◻"]
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:4408: omega = self._shavian_to_display(s.get("◻", ""), "◻")
+/home/mrnob0dy666/imsgct/imscribing_grammar/IG_inquiry.py:4466: "omega": self._shavian_to_display(s.get("◻"), "◻"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/odot_operator.py:1171: "𐑷": ["𐑷", "𐑴", "𐑭", "𐑟"],        # ◻
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/odot_operator.py:2818: [12] ◻ — Topological invariant: none → 0; Z2 parity-protected → ℤ₂
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/odot_operator.py:2825: - D-◻: ℤ₂ requires D≥△; ℤ requires D≥∞
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/odot_operator.py:3006: 𐑷 → $\text{◻}_{\text{Å}}$         𐑴 → $\text{◻}_{\text{2}}$        𐑭 → $\text{◻}_{\text{z}}$    𐑟 → $\text{◻}_{\text{5}}$
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/odot_operator.py:3151: # sub-oracle — it does not tensor with it. Tier is (<, P, ◻, D) only; 𐑱 in
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/imscribe_generator_agent.py:447: _needs_chiral = {"𐑴", "𐑭", "𐑟"}   # ◻ Z2 / integer / non-Abelian
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/imscribe_generator_agent.py:753: - Is its role topologically protected? (◻)
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/imscribe_generator_agent.py:859: - D-◻: 𐑴 needs D≥𐑨; 𐑭 needs D≥𐑼; 𐑟 needs 𐑦
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/imscribe_generator_agent.py:879: - ◻: Is the role topologically required by the structure of the system, or could it be continuously deformed away?
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/imscribe_generator_agent.py:881: *Mathematical structures*: The "operating space" is the mathematical domain; 𐑦 for quotient/boundary constructions; T encodes the graph/orbit topology; R encodes the morphism type; ◻ encodes homotopy 
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/true_agentic_agent.py:1639: "◻_val":     ["𐑷", "𐑴", "𐑭", "𐑟"],
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/true_agentic_agent.py:1943: "◻   𐑷 𐑴 𐑭 𐑟\n"
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/true_agentic_agent.py:1956: "[12] ◻   0 → 𐑷 ; Z2 → 𐑴 ; Z → 𐑭 ; NA → 𐑟\n")
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/true_agentic_agent.py:3172: "◻_val": _prim(["𐑷", "𐑴", "𐑭", "𐑟"],
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/true_agentic_agent.py:3658: ◻   0 → 𐑷 ; Z2 → 𐑴 ; Z → 𐑭 ; NA → 𐑟
+/home/mrnob0dy666/imsgct/imscribing_grammar/agents/true_agentic_agent.py:4483: # sub-oracle — it does not tensor with it. Tier is (<, P, ◻, D) only; 𐑱 in
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr.sty:7: %   e.g. \shav{𐑭}  \axis{◻}
+/home/mrnob0dy666/imsgct/imscribing_grammar/imscrbgrmr.sty:165: \newcommand{\Omprot}{\axis{◻}}
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/expand_universes.py:77: g3 = GateSpec(g3_prim, 3.0 if g3_prim == '◻' else 2.0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/expand_universes.py:281: (AbsorptionRule('◻', '𐑭', ('meet', 'join', 'tensor')),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/clay_absorption_explore.py:50: AbsorptionRule("◻", "𐑭", ("meet", "join", "tensor")),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/clay_absorption_explore.py:55: AbsorptionRule("◻", "𐑷", ("meet", "join", "tensor")),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/migrate_models_shavian.py:30: # Sorted longest-first to avoid partial matches (e.g. "𐑟" before "◻_")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/sounds.py:433: elif base == '◻':
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/sounds.py:486: ('◻', 'Å'), ('◻', '2'), ('◻', 'z'), ('◻', '5'),              # ◻ Topological Invariant
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/sounds.py:523: # ◻ Topological Invariant
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/sounds.py:524: '𐑷': ('◻', 'Å'),   '𐑴': ('◻', '2'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/sounds.py:525: '𐑭': ('◻', 'z'),   '𐑟': ('◻', '5'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/imscribevideo.py:65: '#50c8c8',   # ◻  cyan
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/esoteric_librarian.py:489: #   ◻: 𐑷 𐑴 𐑭 𐑟
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate.py:41: (r'\text{{\igprimfont ◻}}_{\text{{\igfont Å}}}', r'{\igfont 𐑷}'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate.py:43: (r'\text{{\igprimfont ◻}}_{2}', r'{\igfont 𐑴}'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate.py:44: (r'\text{{\igprimfont ◻}}_{z}', r'{\igfont 𐑭}'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate.py:45: (r'\text{{\igprimfont ◻}}_{5}', r'{\igfont 𐑟}'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate.py:46: (r'\text{{\igprimfont ◻}}_{Z}', r'{\igfont 𐑭}'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate.py:47: (r'\text{{\igprimfont ◻}}_{Z_2}', r'{\igfont 𐑴}'),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate2.py:66: (r'\text{{\igprimfont ◻}}_{\varnothing}',     r'{\igfont 𐑷}'),   # Omega_0 / NA
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/shavian_manuscript_migrate2.py:71: (r'\text{{\igprimfont ◻}}_z',                 r'{\igfont 𐑭}'),   # Omega_Z, bare
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/psychedelic_navigator.py:504: o_omega = get_ordinal("◻", compound.get("◻", ""))
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/gen_ig_reference.py:89: # the ones that are math operators: ◻ is a geometric shape and came out
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:78: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:107: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:118: "universe, <, ◻, and the other primitives are descriptive, not "
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:149: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:204: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:250: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:284: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:302: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:320: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:341: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/new_universes.py:360: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/novel_psychedelics.py:254: current_w = base.get("◻", "")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/novel_psychedelics.py:255: current_ord = get_ordinal("◻", current_w)
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/novel_psychedelics.py:256: target_ord = get_ordinal("◻", target_w)
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/novel_psychedelics.py:267: modified["◻"] = target_w
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/novel_psychedelics.py:502: "omega": chimerium.get("◻", ""),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_viz.py:6: 1. crystal_periodic_table.png   — 5×3 <×◻ periodic table with tier distributions
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_viz.py:289: # Columns: 6 combinations of (◻, D-type): (◻0,any), (◻Z2,D_bnd), (◻Z2,D_inf), (◻Z,D_bnd), (◻Z,D_inf) — 5 combos
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/iterate_universes.py:48: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/iterate_universes.py:62: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/iterate_universes.py:94: description=f"G1={g1_prim}≥max, G2={g2_prim}≥max, G3=◻≥ord3.0. {desc}",
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/iterate_universes.py:97: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/iterate_universes.py:145: g3=GateSpec("◻", 3.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/iterate_universes.py:159: g3=GateSpec("◻", 1.0),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/zenodo_upload.py:285: s = s.replace(r'\Omega', '◻').replace(r'\omega', 'ω')
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_primitive_map_3d.py:174: omega = entry.get("◻", "")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/fix_catalog_encoding.py:65: "Omega": "◻",
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:10: ouroboricity tier (which is determined entirely by <, P, ◻, D), and generates the
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:87: for omega in VALUES["◻"]:
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:98: print(f"  {t:10s}: {n:>10,}  ({pct:5.1f}%)  from {cells:3d} (<,P,◻,D) cells  ×  {free_count:,} free combinations")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:108: print("\n\nPERIODIC TABLE STRUCTURE  (Period=< × Group=◻, counting (<,P,◻,D) tier cells)\n")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:124: for omega in VALUES["◻"]:
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:145: print(f"{'P value':12s}  {'𐑷 → tier':16s}  {'◻≠0, D_bnd → tier':22s}  {'◻≠0, D_∞ → tier':20s}")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:155: print("  → 𐑹 collapses all three ◻ columns to O_∞ (R1 overrides R3/R4/R5)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:156: print("  → All other P values respect the ◻/D branching (R3/R4/R5)")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:167: omega = entry.get("◻", "𐑷")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:201: print(f"\n  Inner crystal size: {running:,} types per (<,P,◻,D) tier cell")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/crystal_enumeration.py:218: print(f"  Tier-determining axes:     < (5) × P (5) × ◻ (3) × D (4) = {5*5*3*4:,} tier cells")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:624: "◻_{Z_2}":    "𐑴",
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:818: "◻: 𐑷 𐑴 𐑭 𐑟"
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:1626: "Formula: C = [Gate1] · [Gate2] · (0.158·K̃ + 0.273·G̃ + 0.292·T̃ + 0.276·◻̃). "
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:2072: **Tier-level reasoning is valid only for O_∞ interactions.** For O₁★O₁, O₂★O₂, or O₁★O₂, the resulting tier depends on the specific ◻ and D values of both factors — call `compute_tensor` then `ourobor
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:4359: omega = s["◻"]
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:4408: omega = self._shavian_to_display(s.get("◻", ""), "◻")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/IG_inquiry.py:4466: "omega": self._shavian_to_display(s.get("◻"), "◻"),
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:592: elif dom == '◻':
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:848: # Compute ◻ (Glu) totals
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:851: # Sum ◻ across fragments
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:852: frag_omega = sum(f['vector'][11] for f in r['fragments'])  # ◻ is index 11
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:853: print(f"    ◻ (Glu) total: {omega_total}")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:856: omega = p['profile'].get('◻', 0)
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:857: print(f"    • {p['name']}: ◻={omega}, {p['inferred_function']}")
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_stratified_predictor.py:867: glu = frag['vector'][11]  # ◻ index
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_enhancements_v5.py:336: if len(nxt.sequence) > 40 and '◻' not in str(nxt_cls.get('dominant', '')):
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_enhancements_v5.py:724: # Cross-species ◻ analysis
+/home/mrnob0dy666/imsgct/imscribing_grammar/scripts/protein_enhancements_v5.py:726: print("  ◻ (Glu) CONSERVATION IN INSULIN C-PEPTIDE")

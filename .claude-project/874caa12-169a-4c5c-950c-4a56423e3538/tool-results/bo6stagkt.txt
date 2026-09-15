@@ -1,0 +1,395 @@
+=== imasm_gematria ===
+.phases.phase_1.⊢.opcode = ⊢
+.phases.phase_1.⊣.opcode = ⊣
+.phases.phase_1.≻.opcode = ≻
+.phases.phase_1.≺.opcode = ≺
+.phases.phase_1.⋈.opcode = ⋈
+.phases.phase_1.⊙.opcode = ⊙
+.phases.phase_1.∈.opcode = ∈
+.phases.phase_1.∋.opcode = ∋
+.phases.phase_1.⊤.opcode = ⊤
+.phases.phase_1.⊥.opcode = ⊥
+.phases.phase_1.⊞.opcode = ⊞
+.phases.phase_1.⊡.opcode = ⊡
+.glyph_word = ⊢≻∈⊤⊥⊞∋⋈≺⊙⊡⊣
+.sixteen_3_breakdown = Phase 11: SIXTEEN_3 Trilattice Breakdown
+  Carrier: P({T,F,t,f}) = 16 generalized truth values
+  Three orderings: ≤_i (information), ≤_t (truth), ≤_c (constructivity)
+  Word: ⊢≻∈⊤⊥⊞∋⋈≺⊙⊡⊣
+
+  Step Glyph 12-op    16_3-op    Reg↓ →  Reg↑
+  ─── ───── ──────── ───────── ─────   ─────
+    1   ⊢   VINIT    VINIT         N →     N
+    2   ≻   AFWD     AFWD          N →     T
+    3   ∈   FSPLIT   FSPLIT3       T →     T
+    4   ⊤   EVALT    EVALT         T →     T
+    5   ⊥   EVALF    EVALF         T →    TF
+    6   ⊞   ENGAGR   EVALI        TF →     A
+    7   ∋   FFUSE    FFUSE3        A →     A
+    8   ⋈   CLINK    CLINK         A →     A
+    9   ≺   AREV     AREV          A →     N
+   10   ⊙   IMSCRIB  IMSCRIB       N →     T
+   11   ⊡   IFIX     IFIX          T →     T
+   12   ⊣   TANCH    TANCH         T →     T
+
+  Final register: T
+  Closed walk: False
+  Tri-ancestral verdict: T — Tri-ancestral reconnection over a transformed object — closes
+  ◐ Verdict T over an OPEN walk — reconnection without return
+.lean_scaffold = -- IGProtocol scaffold: ⊢ → ≻ → ∈ → ⊤ → ⊥ → ⊞ → ∋ → ⋈ → ≺ → ⊙ → ⊡ → ⊣
+-- Class: IMASM Gematria
+-- Fingerprint: sig=(6,2,3,1)
+--   self_ref=False | frobenius_order=1
+--   dialetheia_complete=True | period=12
+-- Expected tier: O₂dag
+-- ∈/∋ pairs: [(2, 6)]
+
+import Imscribing.IGMorphism
+import Imscribing.IGFunctor
+
+namespace Imscribing
+open Primitives Frobenius IGProtocol
+open Dimensionality Topology Relational Polarity Grammar
+     Fidelity KineticChar Granularity Criticality Protection Stoichiometry Chirality
+
+-- ── Token → IG field mapping ──────────────────────────────────────────────
+--   [0] ⊢     dim    := 𐑼               𐑼 → 𐑾  | initial object — ground of distinction
+--   [1] ≻      rel    := 𐑾               𐑼 → 𐑚  | forward morphism — bidirectional arrow
+--   [2] ∈    gran   := 𐑚               𐑚 → 𐑚  | split δ — range decomposition
+--   [3] ⊤     crit   := ⊙               𐑚 → 𐑙  | evaluate-true — criticality gate open
+--   [4] ⊥     chir   := 𐑖               𐑚 → 𐑙  | evaluate-false — chirality check
+--   [5] ⊞    stoi   := 𐑳               𐑚 → 𐑙  | engage paradox — B-state, both arms
+--   [6] ∋     stoi   := 𐑙               𐑙 → 𐑱  | fuse μ — assembly mode
+--   [7] ⋈     fid    := 𐑱               𐑙 → 𐑗  | composition — regime coherence
+--   [8] ≺      pol    := 𐑗               𐑱 → 𐑠  | reverse morphism — parity flip
+--   [9] ⊙   gram   := 𐑠               𐑗 → 𐑭  | identity — self-imscription
+--   [10] ⊡      prot   := 𐑭               𐑠 → 𐑡  | irreversible fixation — winding number
+--   [11] ⊣     top    := 𐑡               𐑭 → 𐑼  | terminal object — connectivity boundary
+
+-- ── Stage Imscriptions (per-node cumulative) ────────────────
+private def imasm_gematria_s0 : Imscription :=
+  { dim := array, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_s1 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_s2 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_s3 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_s4 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def imasm_gematria_s5 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := up, prot := awe }
+private def imasm_gematria_s6 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def imasm_gematria_s7 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def imasm_gematria_s8 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def imasm_gematria_s9 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def imasm_gematria_s10 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def imasm_gematria_s11 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+
+-- ── Label Imscriptions (per-node delta) ─────────────────────
+private def imasm_gematria_l0 : Imscription :=
+  { dim := array, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l1 : Imscription :=
+  { dim := dead, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l2 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l3 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l4 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := sure, stoi := hung, prot := awe }
+private def imasm_gematria_l5 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := up, prot := awe }
+private def imasm_gematria_l6 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l7 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l8 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l9 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := measure, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def imasm_gematria_l10 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := ah }
+private def imasm_gematria_l11 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+
+-- ── Main IGProtocol term ────────────────────────────────────
+noncomputable def imasm_gematria_protocol : IGProtocol imasm_gematria_s0 imasm_gematria_s11 :=
+  .withGram Grammar.measure <|
+  -- Dual-Link self-pairing: .prod arms fuse via tensorProduct imasm_gematria_s6 imasm_gematria_s6 = imasm_gematria_s6 (idempotent)
+  (.seq (.arrow imasm_gematria_l0 imasm_gematria_s0 imasm_gematria_s1) (.seq (.arrow imasm_gematria_l1 imasm_gematria_s1 imasm_gematria_s2) (.seq (.prod (.arrow imasm_gematria_l2 imasm_gematria_s2 imasm_gematria_s6) (.arrow imasm_gematria_l2 imasm_gematria_s2 imasm_gematria_s6)) (.seq (.arrow imasm_gematria_l6 imasm_gematria_s6 imasm_gematria_s6) (.seq (.arrow imasm_gematria_l6 imasm_gematria_s6 imasm_gematria_s7) (.seq (.arrow imasm_gematria_l7 imasm_gematria_s7 imasm_gematria_s8) (.seq (.arrow imasm_gematria_l8 imasm_gematria_s8 imasm_gematria_s9) (.seq (.arrow imasm_gematria_l9 imasm_gematria_s9 imasm_gematria_s10) (.arrow imasm_gematria_l10 imasm_gematria_s10 imasm_gematria_s11)))))))))
+
+-- ── Evaluation arm sub-defs ───────────────────────────────────
+
+-- truth arm
+noncomputable def imasm_gematria_true_arm : IGProtocol imasm_gematria_s0 imasm_gematria_s11 :=
+  (imasm_gematria_protocol).restrictToEVALT
+
+-- false arm
+noncomputable def imasm_gematria_false_arm : IGProtocol imasm_gematria_s0 imasm_gematria_s11 :=
+  (imasm_gematria_protocol).restrictToEVALF
+
+-- ── Verification theorems ─────────────────────────────────────
+
+-- Tier: apply the Grammar to the object (self-application). assess_tier verdict on the imscribed tuple: .O₂dag.
+def imasm_gematria_tier_ground : OuroboricityTier := TierFunctor.obj imasm_gematria_s0
+def imasm_gematria_tier : OuroboricityTier := TierFunctor.obj imasm_gematria_s11
+#eval imasm_gematria_tier_ground  -- tier of the ground (pre-transformation)
+#eval imasm_gematria_tier  -- the Grammar's own verdict on the closed object
+
+-- Frobenius (split → fuse): μ∘δ = id on the ground imscription
+theorem imasm_gematria_frobenius :
+    igFrobeniusAlg.mul imasm_gematria_s0 imasm_gematria_s0 = imasm_gematria_s0 :=
+  igFrobAlg_self_fusion imasm_gematria_s0
+
+.grounded_tuple = ⟨𐑦𐑥𐑽𐑿𐑐𐑧𐑚𐑝⊙𐑖𐑕𐑭⟩
+.banked_count_check.word = ⊢≻∈⊤⊥⊞∋⋈≺⊙⊡⊣
+.grounding_reasoning = ⊣=𐑥: The cyclic closure pattern reflects the recursive, self-referential nature of IMASM Gematria where influence loops back on itself to form a closed system.
+⊢=𐑦: The assignment of dimensionality ⊢ implies a scale-collapse where the boundary encodes the full bulk content, unifying surface and interior into a single register.
+⊞=𐑕: The participation ratio in stoichiometric systems typically reflects higher-order symmetric arrangements like oligomers rather than simple pairwise or asymmetric distributions.
+⊡=𐑭: The primitive ⊡ denotes a non-trivial integer winding number that prevents continuous deformation to a trivial state without closing the gap.
+⊙=⊙: The assignment of the primitive ⊙ explicitly denotes the system is at the critical threshold characterized by scale-free correlations and maximal sensitivity.
+⊥=𐑖: Persistent chiral symmetry breaking implies a structurally enforced memory depth of n, distinguishing it from thermally reversible or topological states.
+≻=𐑽: The mechanism of interaction in IMASM Gematria functions as a catalytic transition-state stabilization that lowers the barrier for semantic transformation without being consumed.
+≺=𐑿: The primitive ≺ denotes a strict polarity with a single directional flow, indicating an interface with one accepting or one donating pole rather than self-complementarity or symmetry.
+⋈=𐑐: The ⋈ (fidelity) primitive enforces strict geometric alignment, ensuring near-certain firing and high information transmission.
+⊤=𐑧: A high barrier to rearrangement implies the system is kinetically frozen and requires external driving to overcome resistance to change.
+∈=𐑚: The correlation length in IMASM typically spans a mesoscale motif or cluster where interactions propagate through local structures before decaying.
+∋=𐑝: The partner selection logic for interaction_grammar (∋) requires the simultaneous presence of all necessary components to establish a valid syntactic or semantic relationship.
+.rotat_audit.canonical_word = ⊢≻∈⊤⊥⊞∋⋈≺⊙⊡⊣
+=== tuple_gematria ===
+.phases.phase_1.⊢.opcode = ⊢
+.phases.phase_1.⊣.opcode = ⊣
+.phases.phase_1.≻.opcode = ≻
+.phases.phase_1.≺.opcode = ≺
+.phases.phase_1.⋈.opcode = ⋈
+.phases.phase_1.⊙.opcode = ⊙
+.phases.phase_1.∈.opcode = ∈
+.phases.phase_1.∋.opcode = ∋
+.phases.phase_1.⊤.opcode = ⊤
+.phases.phase_1.⊥.opcode = ⊥
+.phases.phase_1.⊞.opcode = ⊞
+.phases.phase_1.⊡.opcode = ⊡
+.glyph_word = ⊢∈≻⊤⋈≺⊥⊞⊙∋⊡⋈∈≻⊤≺⊥⊞⊙∋⊡⋈⊙⊣
+.sixteen_3_breakdown = Phase 11: SIXTEEN_3 Trilattice Breakdown
+  Carrier: P({T,F,t,f}) = 16 generalized truth values
+  Three orderings: ≤_i (information), ≤_t (truth), ≤_c (constructivity)
+  Word: ⊢∈≻⊤⋈≺⊥⊞⊙∋⊡⋈∈≻⊤≺⊥⊞⊙∋⊡⋈⊙⊣
+
+  Step Glyph 12-op    16_3-op    Reg↓ →  Reg↑
+  ─── ───── ──────── ───────── ─────   ─────
+    1   ⊢   VINIT    VINIT         N →     N
+    2   ∈   FSPLIT   FSPLIT3       N →     N
+    3   ≻   AFWD     AFWD          N →     T
+    4   ⊤   EVALT    EVALT         T →     T
+    5   ⋈   CLINK    CLINK         T →     T
+    6   ≺   AREV     AREV          T →     N
+    7   ⊥   EVALF    EVALF         N →     F
+    8   ⊞   ENGAGR   EVALI         F →   Ftf
+    9   ⊙   IMSCRIB  IMSCRIB     Ftf →   Ftf
+   10   ∋   FFUSE    FFUSE3      Ftf →     A
+   11   ⊡   IFIX     IFIX          A →     A
+   12   ⋈   CLINK    CLINK         A →     A
+   13   ∈   FSPLIT   FSPLIT3       A →     A
+   14   ≻   AFWD     AFWD          A →     A
+   15   ⊤   EVALT    EVALT         A →     A
+   16   ≺   AREV     AREV          A →     A
+   17   ⊥   EVALF    EVALF         A →     A
+   18   ⊞   ENGAGR   EVALI         A →     A
+   19   ⊙   IMSCRIB  IMSCRIB       A →     A
+   20   ∋   FFUSE    FFUSE3        A →     A
+   21   ⊡   IFIX     IFIX          A →     A
+   22   ⋈   CLINK    CLINK         A →     A
+   23   ⊙   IMSCRIB  IMSCRIB       A →     A
+   24   ⊣   TANCH    TANCH         A →     A
+
+  Final register: A
+  Closed walk: False
+  Tri-ancestral verdict: T — Tri-ancestral reconnection over a transformed object — closes
+  ◐ Verdict T over an OPEN walk — reconnection without return
+.lean_scaffold = -- IGProtocol scaffold: ⊢ → ∈ → ≻ → ⊤ → ⋈ → ≺ → ⊥ → ⊞ → ⊙ → ∋ → ⊡ → ⋈ → ∈ → ≻ → ⊤ → ≺ → ⊥ → ⊞ → ⊙ → ∋ → ⊡ → ⋈ → ⊙ → ⊣
+-- Class: Tuple Gematria
+-- Fingerprint: sig=(12,4,6,2)
+--   self_ref=False | frobenius_order=3
+--   dialetheia_complete=True | period=24
+-- Expected tier: O₂dag
+-- ∈/∋ pairs: [(1, 9), (12, 19)]
+
+import Imscribing.IGMorphism
+import Imscribing.IGFunctor
+
+namespace Imscribing
+open Primitives Frobenius IGProtocol
+open Dimensionality Topology Relational Polarity Grammar
+     Fidelity KineticChar Granularity Criticality Protection Stoichiometry Chirality
+
+-- ── Token → IG field mapping ──────────────────────────────────────────────
+--   [0] ⊢     dim    := 𐑼               𐑼 → 𐑚  | initial object — ground of distinction
+--   [1] ∈    gran   := 𐑚               𐑚 → 𐑚  | split δ — range decomposition
+--   [2] ≻      rel    := 𐑾               𐑚 → 𐑙  | forward morphism — bidirectional arrow
+--   [3] ⊤     crit   := ⊙               𐑚 → 𐑙  | evaluate-true — criticality gate open
+--   [4] ⋈     fid    := 𐑱               𐑚 → 𐑙  | composition — regime coherence
+--   [5] ≺      pol    := 𐑗               𐑚 → 𐑙  | reverse morphism — parity flip
+--   [6] ⊥     chir   := 𐑖               𐑚 → 𐑙  | evaluate-false — chirality check
+--   [7] ⊞    stoi   := 𐑳               𐑚 → 𐑙  | engage paradox — B-state, both arms
+--   [8] ⊙   gram   := 𐑠               𐑚 → 𐑙  | identity — self-imscription
+--   [9] ∋     stoi   := 𐑙               𐑙 → 𐑭  | fuse μ — assembly mode
+--   [10] ⊡      prot   := 𐑭               𐑙 → 𐑱  | irreversible fixation — winding number
+--   [11] ⋈     fid    := 𐑱               𐑭 → 𐑚  | composition — regime coherence
+--   [12] ∈    gran   := 𐑚               𐑚 → 𐑚  | split δ — range decomposition
+--   [13] ≻      rel    := 𐑾               𐑚 → 𐑙  | forward morphism — bidirectional arrow
+--   [14] ⊤     crit   := ⊙               𐑚 → 𐑙  | evaluate-true — criticality gate open
+--   [15] ≺      pol    := 𐑗               𐑚 → 𐑙  | reverse morphism — parity flip
+--   [16] ⊥     chir   := 𐑖               𐑚 → 𐑙  | evaluate-false — chirality check
+--   [17] ⊞    stoi   := 𐑳               𐑚 → 𐑙  | engage paradox — B-state, both arms
+--   [18] ⊙   gram   := 𐑠               𐑚 → 𐑙  | identity — self-imscription
+--   [19] ∋     stoi   := 𐑙               𐑙 → 𐑭  | fuse μ — assembly mode
+--   [20] ⊡      prot   := 𐑭               𐑙 → 𐑱  | irreversible fixation — winding number
+--   [21] ⋈     fid    := 𐑱               𐑭 → 𐑠  | composition — regime coherence
+--   [22] ⊙   gram   := 𐑠               𐑱 → 𐑡  | identity — self-imscription
+--   [23] ⊣     top    := 𐑡               𐑠 → 𐑼  | terminal object — connectivity boundary
+
+-- ── Stage Imscriptions (per-node cumulative) ────────────────
+private def tuple_gematria_s0 : Imscription :=
+  { dim := array, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_s1 : Imscription :=
+  { dim := array, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_s2 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_s3 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_s4 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_s5 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_s6 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def tuple_gematria_s7 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := monad, chir := sure, stoi := up, prot := awe }
+private def tuple_gematria_s8 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := up, prot := awe }
+private def tuple_gematria_s9 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := awe }
+private def tuple_gematria_s10 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s11 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s12 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s13 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s14 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s15 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s16 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s17 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := up, prot := ah }
+private def tuple_gematria_s18 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := up, prot := ah }
+private def tuple_gematria_s19 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s20 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s21 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s22 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+private def tuple_gematria_s23 : Imscription :=
+  { dim := array, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := thigh, gram := measure, crit := monad, chir := sure, stoi := hung, prot := ah }
+
+-- ── Label Imscriptions (per-node delta) ─────────────────────
+private def tuple_gematria_l0 : Imscription :=
+  { dim := array, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l1 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l2 : Imscription :=
+  { dim := dead, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l3 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l4 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l5 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l6 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := sure, stoi := hung, prot := awe }
+private def tuple_gematria_l7 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := up, prot := awe }
+private def tuple_gematria_l8 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := measure, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l9 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l10 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := ah }
+private def tuple_gematria_l11 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l12 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := thigh, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l13 : Imscription :=
+  { dim := dead, top := judge, rel := ian, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l14 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := monad, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l15 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l16 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := sure, stoi := hung, prot := awe }
+private def tuple_gematria_l17 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := up, prot := awe }
+private def tuple_gematria_l18 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := measure, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l19 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l20 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := ah }
+private def tuple_gematria_l21 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l22 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := measure, crit := woe, chir := fee, stoi := hung, prot := awe }
+private def tuple_gematria_l23 : Imscription :=
+  { dim := dead, top := judge, rel := ado, pol := church, fid := age, kin := yea, gran := bib, gram := vow, crit := woe, chir := fee, stoi := hung, prot := awe }
+
+-- ── Main IGProtocol term ────────────────────────────────────
+noncomputable def tuple_gematria_protocol : IGProtocol tuple_gematria_s0 tuple_gematria_s23 :=
+  .withGram Grammar.measure <|
+  -- Dual-Link self-pairing: .prod arms fuse via tensorProduct tuple_gematria_s9 tuple_gematria_s9 = tuple_gematria_s9 (idempotent)
+  (.seq (.arrow tuple_gematria_l0 tuple_gematria_s0 tuple_gematria_s1) (.seq (.prod (.arrow tuple_gematria_l1 tuple_gematria_s1 tuple_gematria_s9) (.arrow tuple_gematria_l1 tuple_gematria_s1 tuple_gematria_s9)) (.seq (.arrow tuple_gematria_l9 tuple_gematria_s9 tuple_gematria_s9) (.seq (.arrow tuple_gematria_l9 tuple_gematria_s9 tuple_gematria_s10) (.seq (.arrow tuple_gematria_l10 tuple_gematria_s10 tuple_gematria_s11) (.seq (.arrow tuple_gematria_l11 tuple_gematria_s11 tuple_gematria_s12) (.seq (.arrow tuple_gematria_l12 tuple_gematria_s12 tuple_gematria_s13) (.seq (.arrow tuple_gematria_l13 tuple_gematria_s13 tuple_gematria_s14) (.seq (.arrow tuple_gematria_l14 tuple_gematria_s14 tuple_gematria_s15) (.seq (.arrow tuple_gematria_l15 tuple_gematria_s15 tuple_gematria_s16) (.seq (.arrow tuple_gematria_l16 tuple_gematria_s16 tuple_gematria_s17) (.seq (.arrow tuple_gematria_l17 tuple_gematria_s17 tuple_gematria_s18) (.seq (.arrow tuple_gematria_l18 tuple_gematria_s18 tuple_gematria_s19) (.seq (.arrow tuple_gematria_l19 tuple_gematria_s19 tuple_gematria_s20) (.seq (.arrow tuple_gematria_l20 tuple_gematria_s20 tuple_gematria_s21) (.seq (.arrow tuple_gematria_l21 tuple_gematria_s21 tuple_gematria_s22) (.arrow tuple_gematria_l22 tuple_gematria_s22 tuple_gematria_s23)))))))))))))))))
+
+-- ── Evaluation arm sub-defs ───────────────────────────────────
+
+-- truth arm
+noncomputable def tuple_gematria_true_arm : IGProtocol tuple_gematria_s0 tuple_gematria_s23 :=
+  (tuple_gematria_protocol).restrictToEVALT
+
+-- false arm
+noncomputable def tuple_gematria_false_arm : IGProtocol tuple_gematria_s0 tuple_gematria_s23 :=
+  (tuple_gematria_protocol).restrictToEVALF
+
+-- ── Verification theorems ─────────────────────────────────────
+
+-- Tier: apply the Grammar to the object (self-application). assess_tier verdict on the imscribed tuple: .O₂dag.
+def tuple_gematria_tier_ground : OuroboricityTier := TierFunctor.obj tuple_gematria_s0
+def tuple_gematria_tier : OuroboricityTier := TierFunctor.obj tuple_gematria_s23
+#eval tuple_gematria_tier_ground  -- tier of the ground (pre-transformation)
+#eval tuple_gematria_tier  -- the Grammar's own verdict on the closed object
+
+.grounded_tuple = ⟨𐑦𐑥𐑽𐑿𐑐𐑧𐑚𐑝⊙𐑖𐑕𐑭⟩
+.banked_count_check.word = ⊢∈≻⊤⋈≺⊥⊞⊙∋⊡⋈∈≻⊤≺⊥⊞⊙∋⊡⋈⊙⊣
+.grounding_reasoning = ⊣=𐑥: The cyclic closure pattern represents a self-referential influence loop where the output feeds back into the input, creating a closed topology.
+⊢=𐑦: The primitive ⊢ denotes a boundary or interface where constraint propagation collapses the distinction between surface and interior, aligning with the scale-collapse definition.
+⊞=𐑕: The participation ratio in stoichiometry typically reflects higher-order symmetric arrangements like oligomers rather than simple pairwise or asymmetric distributions.
+⊡=𐑭: The assignment of the protection primitive ⊡ corresponds to an integer-winding invariant that stabilizes the role against continuous deformation.
+⊙=⊙: The assignment of the primitive ⊙ explicitly denotes the system is at the critical threshold where scale-free correlations and maximal sensitivity emerge.
+⊥=𐑖: Persistent chiral symmetry breaking implies a structurally enforced state with multiple axes, resulting in a memory depth of n rather than a single-step or topological constraint.
+≻=𐑽: The mechanism of interaction in Gematria functions as a catalytic transition-state stabilization, where numerical values lower the barrier to semantic connection without being consumed by the transformation.
+≺=𐑿: The primitive ≺ denotes a strict ordering or polarity with a distinct source and target, corresponding to a signed direction where one pole acts as a donor and the other as an acceptor.
+⋈=𐑐: The ⋈ (join) operator enforces strict geometric constraints that require precise alignment, resulting in high-fidelity, near-certain firing.
+⊤=𐑧: A high barrier to rearrangement corresponds to a kinetically frozen state where the system resists change and requires external driving to overcome the resistance.
+∈=𐑚: The correlation length typically spans a mesoscale motif or cluster where interactions propagate beyond a single bond but do not yet reach global scale-free limits.
+∋=𐑝: The partner selection logic requires all necessary components to be present simultaneously to satisfy the conjunctive nature of the interaction grammar.
+.rotat_audit.canonical_word = ⊢∈≻⊤⋈≺⊥⊞⊙∋⊡⋈∈≻⊤≺⊥⊞⊙∋⊡⋈⊙⊣

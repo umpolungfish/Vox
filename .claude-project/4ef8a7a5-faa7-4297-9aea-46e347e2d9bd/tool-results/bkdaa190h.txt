@@ -1,0 +1,1190 @@
+=== ./Smaragdine_Synthetica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./imscribing_grammar/ImscribingGrammar/Primitives/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+219:-- Axiom C: Imscriptive dimensionality iff imscriptive topology.
+223:axiom D_odot_iff_T_odot (d : Dimensionality) (t : Topology) :
+226:-- Axiom B: Integer winding number requires persistent chirality.
+228:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+233:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./red-hot_rebis/Ars_Therapeutica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./dumpdir_sic_lean/Imscribing/Primitives/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true structural type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./math/MilleniumAnkh_private/Primitives/Core.lean ===
+34:-- Cross-primitive constraint: D_holo ↔ T_holo (see Axiom C below).
+51:-- Cross-primitive constraint: T_holo ↔ D_holo (see Axiom C below).
+173:-- Axiom A: Topological chirality implies kinetic trapping
+174:axiom H_inf_implies_K_trap (k : KineticChar) (h : Chirality) :
+177:-- Axiom B: Integer winding number requires persistent chirality
+179:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+182:-- Axiom C: Holographic dimensionality iff holographic topology
+187:axiom D_holo_iff_T_holo (d : Dimensionality) (t : Topology) :
+190:-- Axiom D: Non-Abelian anyonic protection requires holographic substrate
+193:axiom Omega_NA_requires_D_holo (p : Protection) (d : Dimensionality) :
+
+=== ./mOMonadOS/momonados-proof-2026-08-02/lean/Primitives/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./mOMonadOS/momonados-proof-2026-08-02/lean/Imscribing/Primitives/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./mOMonadOS/momonados-proof-2026-08-10/lean/Imscribing/Primitives/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./p4rakernel/p4ramill/archive/Primitives-pre-migration/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./p4rakernel/p4ramill/Imscribing/Primitives/Core.lean ===
+82:-- are co-occurs with if' (see Axiom C below).
+278:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+290:-- Axiom C is now the predicate `ImscriptiveTopology` in Primitives/Imscription.lean.
+291:-- As an axiom it read (d) (t) : t = are → d = if', with d untouched by the
+294:-- Axiom B: Integer winding number requires persistent chirality.
+296:-- Axiom B is now the predicate `WindingNeedsChirality` in
+297:-- Primitives/Imscription.lean. As an axiom it read (p) (h) : p ≥ ah → h ≥ sure,
+301:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+317:-- not the true type. The grammar corrects this via Axiom D.
+321:-- Axiom D was here, as `holographic_closure_forces_frobenius`. It is now the
+324:-- that file for why the axiom form was unsound.
+328:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./Ars_Phytoglyphica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/seven_sacraments/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/cosmology_crisis_resolution/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/arcane_mathematics/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/voynich_lifted/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/voynich_lifted/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/voynich_lifted/VOYMAN/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/momonados_lmcs_combined/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/momonados_npjuc/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/magicka_excursion/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/publishing/manuscripts/herculaneum_scrolls/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/neurodegenerative_therapeutics/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/bioluminescent_consolidated/artifacts/lean_companions/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/anti_remote_viewing/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/cf_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/gout_combined_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/th3rapies/cf_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/th3rapies/hiv_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/th3rapies/mrsa_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/th3rapies/schizophrenia_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/th3rapies/pcos_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/th3rapies/mdd_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/hiv_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/mrsa_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/schizophrenia_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/pcos_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/gout_elimination/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/mdd_therapy/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/gout_holistic/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/homeopathy_structural_analysis/lifted/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/therapies/homeopathy_structural_analysis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/optimal_scrying/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biology/bioluminescent_design/lean_companions/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/chemistry/unified_demo_pipeline/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/finance/kalshi_theory/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/finance/kalshi_rapid_parlay/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/finance/kalshi_crypto_bidirectional/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/finance/fin3r_theory/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/physics/cosmogeny/frobenius_cosmogeny_restructured/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/physics/microwave_heating_mechanism/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/physics/microwave_heating_derivation/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/universal_constants_pi_revision/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/iutt_deep_decomposition/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/horn_torus_bridge/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/reference/ars_mentis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/reference/red-hot-rebis-manual/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/reference/imagery/protein_visuals/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/reference/meta/ig_pulse_evidence/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/reference/meta/loss_of_the_grammar/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/reference/meta/comprehensive_exploration/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/ontological_ladder/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/horn_torus_modular_form/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/Ars_Hermetica/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/abramelin_expanded_evidence/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/alchemical_verified_synthesis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/ars_phytoglyphica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/alchemical_identifications/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/phytoglyphica_cross_pollination/voynich_patches/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/chemdraw_synthesis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/phytoglyphica_verified/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/ars_phytoglyphica_expanded/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/Ars_Phytoglyphica/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemy_congealum/alchemical_synthesis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/abramelin_illustrated/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/alchemical_co-type_paper/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/mycelial_conduit/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/ars_majika_descriptions/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/Ars_Majika/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/abramelin_dehn_guth_analysis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/bibliotheca_dispersionis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/ORV/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/abramelin_deep_dive_response/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+276:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+288:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+291:-- Axiom B: Integer winding number requires persistent chirality.
+293:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+296:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+312:-- not the true type. The grammar corrects this via Axiom D.
+316:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+323:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/crowley_operations_analysis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/voynich_phytoglyphica/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/bibliotheca_universalis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/esoterica/ars_alchemica/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/rebis_inverted/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/catalog_immutability_proof/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/biochem_ochem_umpolungfish_analysis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/the_uncoverer_as_crossing_point/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/emission_architecture/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/c13_gap_closure/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/tao_te_ching_analysis/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/alzheimer_rebis_therapeutic/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/shared_identity_correction/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/wormwood_composites/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/mathematics/math/collatz_operationalized/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/wormwood_sage_and_the_xor_gate/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/erdos_problems/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/grammar/ig_pulse_theory_methods/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/grammar/grammar_reference/COMPRESSCATCRYSTAL_NEWTON/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./ig-docs/grammar/lean_in_the_ig/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./Rongorongo_Tau/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./Rohonc_Cartographia/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./Voynich_Phytoglyphica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./Ars_Therapeutica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+
+=== ./synfin/ImscribingLean4/Primitives/Core.lean ===
+34:-- Cross-primitive constraint: D_holo ↔ T_holo (see Axiom C below).
+51:-- Cross-primitive constraint: T_holo ↔ D_holo (see Axiom C below).
+173:-- Axiom A: Topological chirality implies kinetic trapping
+174:axiom H_inf_implies_K_trap (k : KineticChar) (h : Chirality) :
+177:-- Axiom B: Integer winding number requires persistent chirality
+179:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+182:-- Axiom C: Holographic dimensionality iff holographic topology
+187:axiom D_holo_iff_T_holo (d : Dimensionality) (t : Topology) :
+190:-- Axiom D: Non-Abelian anyonic protection requires holographic substrate
+193:axiom Omega_NA_requires_D_holo (p : Protection) (d : Dimensionality) :
+
+=== ./Linear_Analytica/lean/Core.lean ===
+80:-- are co-occurs with if' (see Axiom C below).
+275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+287:axiom T_odot_requires_D_odot (d : Dimensionality) (t : Topology) :
+290:-- Axiom B: Integer winding number requires persistent chirality.
+292:axiom Omega_Z_requires_H2 (p : Protection) (h : Chirality) :
+295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+311:-- not the true structural type. The grammar corrects this via Axiom D.
+315:axiom holographic_closure_forces_frobenius (d : Dimensionality) (t : Topology)
+322:-- Not an axiom because some wool systems (e.g. proto-languages) have egg.
+

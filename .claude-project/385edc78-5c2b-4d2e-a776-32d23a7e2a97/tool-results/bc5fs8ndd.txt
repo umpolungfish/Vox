@@ -1,0 +1,392 @@
+266:                crate::live_hud::stop_hud
+289:                                crate::winding_period::repl_order
+296:                                if let Some(r) = crate::winding_period::winding_order
+297:                                    let word = crate::native_numeral::encode
+313:                                crate::winding_period::repl_factor
+314:                                if let Some((_, r, _, _)) = crate::winding_period::factor
+316:                                        let word = crate::native_numeral::encode
+332:                                crate::winding_period::repl_closure
+333:                                if let Some(f) = crate::winding_period::closure_gcd
+334:                                    let word = crate::native_numeral::encode
+338:                            Err(_) => sprintln!("{}", crate::winding_period::repl_closure_big
+349:                        crate::winding_period::repl_factorgen
+356:                    "" | "list" => crate::proof::list_proofs
+357:                    "bootstrap" => crate::proof::walk_bootstrap
+358:                    "parity" => crate::proof::walk_parity
+361:                        crate::proof::list_proofs
+365:            "fold" => crate::fold_walk::walk_fold
+368:                    "" | "list" => crate::erdos_walks::list_walks
+369:                    other => crate::erdos_walks::dispatch
+374:                    "" | "list" => crate::seals::list_seals
+375:                    other => crate::seals::dispatch_seal
+391:                    crate::lattice_flow::cycle_report
+403:                    crate::lattice_flow::transitions_report
+416:                    crate::lattice_flow::insert_sweep_all
+418:                    crate::lattice_flow::insert_report
+431:                    crate::lattice_flow::banked_report
+440:                    sprintln!("{}", crate::prooflift::nest
+442:                    sprintln!("{}", crate::prooflift::report
+454:                    crate::lattice_flow::weight_report
+486:                                Some(crate::imasm_exec::emit
+574:                                sprintln!("{}", crate::vox::glyphs
+575:                                sprintln!("verdict {}", crate::vox::verdict
+601:                                sprintln!("word    {}", crate::vox::glyphs
+605:                                sprintln!("verdict {}", crate::vox::verdict
+611:                                sprintln!("word    {}", crate::vox::glyphs
+612:                                sprintln!("verdict {}", crate::vox::verdict
+618:                                sprintln!("EVM  {}  {}", crate::vox::verdict(&w), crate::vox::glyphs
+624:                                sprintln!("WASM {}  {}", crate::vox::verdict(&w), crate::vox::glyphs
+640:                                let g = crate::vox::classify_instruction
+648:                            use crate::rebis::codon
+700:                                    let fold = crate::rebis::fold
+701:                                    let n_h = fold.residues.iter().filter(|r| r.secondary == crate::rebis::fold
+702:                                    let n_s = fold.residues.iter().filter(|r| r.secondary == crate::rebis::fold
+708:                                    let all = crate::rebis::fold
+709:                                    let backbone_refs: Vec<crate::rebis::fold
+710:                                    let sidechains: Vec<Vec<crate::rebis::fold
+737:                                        let steps = crate::rebis::fold
+738:                                        let elements = crate::rebis::fold
+740:                                        let _pdb = crate::rebis::fold
+750:                                    let result = crate::rebis::translate
+766:                                        sprintln!("Protein:    {}", crate::rebis::translate
+771:                                    let chain = match crate::rebis::translate
+783:                                        degeneracies.push(crate::rebis::genetics
+784:                                        match crate::rebis::genetics
+794:                                    let dna = crate::rebis::translate
+798:                                    sprintln!("Input:      {}", crate::rebis::translate
+814:                crate::combo::repl_combo
+820:                crate::combo::repl_combo
+840:                    sprintln!("{}", crate::gpu_ecm::verify_width
+847:                        sprintln!("{}", crate::gpu_ecm::run_bsgs
+853:                    sprintln!("{}", crate::gpu_ecm::run_factor
+859:                    sprintln!("{}", crate::gpu_gnfs::help
+861:                    sprintln!("{}", crate::gpu_gnfs::blueprint
+865:                    sprintln!("{}", crate::gpu_gnfs::run_soak
+872:                        sprintln!("{}", crate::gpu_gnfs::run_poly
+876:                    sprintln!("{}", crate::gpu_gnfs::run_factor
+958:                        crate::vox::verdict
+967:                sprint!("{}", crate::belnap::corollary_
+978:                    sprintln!("{}", crate::gpu_millennium::verify
+986:                    sprintln!("{}", crate::gpu_shor::verify
+990:                    match crate::gpu_shor::order
+998:                    match crate::gpu_shor::order_bsgs
+1012:                    sprintln!("{}", crate::gpu_opi::verify
+1023:                    sprintln!("{}", crate::gpu_dqi::verify
+1035:                        sprintln!("{}", crate::gpu_rho::verify
+1040:                        sprintln!("{}", crate::gpu_rho::verify_prims
+1045:                        else { sprintln!("{}", crate::gpu_rho::run_factor
+1056:                        else { sprintln!("{}", crate::gpu_rho_ml::run_factor
+1062:                        sprintln!("{}", crate::gpu_rho_ml::verify_mont
+1072:                        sprintln!("{}", crate::gpu_fde::verify
+1084:                        sprintln!("{}", crate::gpu_vox::verify
+1089:                        else { sprintln!("{}", crate::gpu_vox::run
+1099:                    sprintln!("{}", crate::gpu_factor::run
+1112:                            (Some(a),Some(d)) if !word.is_empty()=>sprintln!("{}",crate::gpu_graph::run
+1121:                                    crate::gpu_kernel::verify_nested
+1122:                                } else { crate::gpu_kernel::verify
+1130:                        sprintln!("{}", crate::gpu_kernel::run_nested
+1137:                            sprintln!("{}", crate::gpu_kernel::run_ob
+1147:                                    crate::native_numeral::encode
+1149:                                sprintln!("{}", crate::gpu_kernel::apply_ob
+1159:                            sprintln!("{}", crate::gpu_kernel::run
+1166:                                (Ok(n), Ok(seed)) => sprintln!("{}", crate::gpu_kernel::bench
+1176:                                Ok(depth) => sprintln!("{}", crate::gpu_kernel::bench_deep
+1186:                                (Ok(depth), Ok(target)) => sprintln!("{}", crate::gpu_kernel::bench_search
+1196:                                Ok(depth) => sprintln!("{}", crate::gpu_kernel::bench_interleave
+1208:                                    sprintln!("{}", crate::gpu_kernel::bench_search_deep
+1243:                                            sprintln!("{}", crate::gpu_kernel::bench_interleave_deep
+1271:                                        sprintln!("{}", crate::gpu_kernel::bench_factor
+1273:                                        sprintln!("{}", crate::gpu_kernel::bench_factor_big
+1283:                                Ok(n) => sprintln!("{}", crate::gpu_kernel::bench_rho
+1297:                                crate::gpu_kernel::select_bdd_relation
+1298:                            } else {crate::gpu_kernel::select_relation
+1307:                                    crate::gpu_kernel::bench_selector
+1308:                                } else { crate::gpu_kernel::bench_phase
+1318:                                (Ok(n), Ok(m)) => sprintln!("{}", crate::gpu_kernel::bench_codebook
+1330:                                    sprintln!("{}", crate::gpu_kernel::bench_closure
+1334:                                    match crate::closure_nested::closure_height_walk
+1354:                                (Ok(n), Ok(m), Ok(r)) => sprintln!("{}", crate::gpu_kernel::bdd_size
+1367:                                    (Ok(n), Ok(m), Ok(r)) => sprintln!("{}", crate::gpu_kernel::bdd_sift
+1381:                                    (Ok(n), Ok(m), Ok(r)) => sprintln!("{}", crate::gpu_kernel::bdd_orders
+1393:                crate::shor_qft::repl_shor_qft
+1399:                crate::rsa_decrypter::repl_rsa
+1408:                crate::dynamic_nesting_prime_finder::repl_dyn
+1414:                sprintln!("{}", crate::closure_nested::repl_closure_nested
+1420:                crate::weight_ladder::repl_weight_ladder
+1426:                crate::multilattice::repl_multilattice
+1432:                crate::yz::repl_yz
+1438:                crate::yz_list::repl_yz_list
+1444:                crate::opi::repl_opi
+1450:                crate::fde::repl_fde
+1456:                crate::shor_qft::repl_shor_qft
+1462:                crate::dqi::repl_dqi
+1468:                crate::dqi_ambient::repl_dqi_ambient
+1475:                sprintln!("{}", crate::tower_vox::repl_tower_vox
+1481:                sprintln!("{}", crate::factor_operator::repl_factor_operator
+1487:                sprintln!("{}", crate::factor_membrane::repl_factor_membrane
+1499:                sprintln!("{}", crate::membrane_family::repl_membrane
+1505:                sprintln!("{}", crate::coupled_bridge::repl_coupled_bridge
+1511:                crate::nested_oneshot::repl_nested_oneshot
+1518:                crate::nested_prime_factorization::repl_nested_prime_factorization
+1525:                crate::doubly_nested_oneshot::repl_doubly_nested_oneshot
+1532:                crate::millennium::repl_millennium
+1538:                crate::oneshot_prime_winder::repl_oneshot_prime_winder
+1554:                                    sprintln!("{}", crate::gpu_prime::find_gpu
+1583:                                    sprintln!("{}", crate::gpu_prime::range_gpu
+1907:                        sprintln!("{}", crate::gpu_trilattice::verify_tuple_from_bitlen
+1948:                            sprintln!("{}", crate::abc_iutt::window_report
+1959:                                    crate::abc_iutt::triple_radical
+1960:                                    crate::abc_iutt::discrepancy
+1961:                                    crate::abc_iutt::quality
+1970:                            Some(n) => sprintln!("rad({n}) = {}", crate::abc_iutt::radical
+1986:                            sprintln!("{}", crate::abc_iutt::tail_closure_report
+2004:                                sprintln!("{}", crate::abc_iutt::stream_json_report
+2007:                                sprintln!("{}", crate::abc_iutt::tail_closure_report
+2024:                            sprintln!("{}", crate::abc_certificate::manifest
+2036:                                match crate::abc_certificate::gpu_champion_reports_many
+2054:                                    match crate::abc_certificate::gpu_champion_report
+2058:                                } else if json { sprintln!("{}", crate::abc_certificate::champion_json_report
+2059:                                else { sprintln!("{}", crate::abc_certificate::champion_report
+2076:                            sprintln!("{}", crate::abc_iutt::growth_report
+2087:                    sprintln!("{}", crate::gaussian_extract::extract_report
+2096:                        sprintln!("{}", crate::gpu_native_protocol::run
+2100:                        sprintln!("{}", crate::gpu_native_protocol::run_real
+2104:                        sprintln!("{}", crate::gpu_native_protocol::run_chained
+2108:                        sprintln!("{}", crate::gpu_native_cycle::run
+2138:                sprintln!("{}", crate::gpu_catalog_crystal::run
+2142:                sprintln!("{}", crate::gpu_imasm_cycle::run
+2146:                sprintln!("{}", crate::gpu_crystal_full_space::run
+2150:                sprintln!("{}", crate::gpu_ipc_no_serialization::run
+2168:                        for l in crate::circuit::table_lines
+2173:                        for l in crate::circuit::retraction_lines
+2184:                        let r = crate::circuit::circuit_one
+2202:                                if let Some(c) = crate::circuit::glyph_to_codon
+2203:                                    s.push_str(&crate::circuit::codon_rna
+2208:                        let r = crate::circuit::circuit_two
+2234:                        for l in crate::circuit::slot_loads
+2245:                        let (prim, scaf, stop) = crate::circuit::codon_census
+2253:                            if crate::circuit::section_choice_is_free
+2260:                        let d = crate::circuit::primitive_drift
+2274:                        let r = crate::circuit::strand_report
+2372:                        crate::fibonacci_qc::repl_compile
+2429:                    let strands = crate::braid_render::strands_for
+2430:                    let (a, b) = crate::braid_render::window
+2433:                            sprint!("{}", crate::braid_render::svg_loop
+2435:                            sprint!("{}", crate::braid_render::svg
+2438:                        sprint!("{}", crate::braid_render::header
+2439:                        sprint!("{}", crate::braid_render::ascii
+2455:                    crate::fibonacci_qc::repl_jones
+2482:                    "winding" => crate::fibonacci_qc::repl_winding
+2486:                        crate::fibonacci_qc::repl_readout
+2491:                        crate::fibonacci_qc::repl_alkahest
+2494:                        sprintln!("Fibonacci anyon algebra verified = {}", crate::fibonacci_qc::verify_all
+2530:                                crate::fibonacci_qc::repl_compile
+2547:                            crate::fibonacci_qc::repl_jones
+2563:                            sprintln!("{}", crate::fibonacci_qc::rep_multiply_check
+2588:                            crate::fibonacci_qc::repl_jones
+2594:                        sprint!("{}", crate::braid_protocol::report
+2615:                            let prog = crate::braid_protocol::braid_to_imasm
+2619:                                sprint!("{} ", crate::braid_protocol::token_name
+2622:                            match crate::braid_protocol::read_tangle
+2639:                            match crate::braid_protocol::parse_token_name
+2649:                            match crate::braid_protocol::read_tangle
+2668:                        crate::style::set_colour
+2672:                        crate::style::set_colour
+2673:                        sprintln!("colour {}on{}", crate::style::accent(), crate::style::reset
+2702:                            crate::iuft_qc::print_gate_report
+2710:                            match crate::iuft_qc::gate_for
+2721:                                    sprintln!("  Unitary: {}", crate::iuft_qc::verify_unitary
+2733:                            match crate::iuft_qc::gate_distance
+2745:                        crate::iuft_qc::print_distance_matrix
+2749:                        let dom = crate::catalog::parse_domain
+2750:                        let gates = crate::iuft_qc::gates_in
+2766:                            match crate::iuft_qc::encode_glyphs
+2777:                                    sprintln!("  Unitary: {}", crate::iuft_qc::verify_unitary
+2778:                                    let (nearest, dist) = crate::iuft_qc::nearest_known
+2792:                            crate::iuft_qc::verify_catalog
+2794:                            crate::iuft_qc::verify_one
+2817:                            crate::iuft_teichmuller::print_teichmuller_report
+2821:                        crate::iuft_teichmuller::print_tier_ladder
+2824:                        crate::iuft_teichmuller::print_canonical_paths
+2832:                            match crate::iuft_teichmuller::tier_to_gate
+2940:                            let c = crate::qft::qft_circuit
+2941:                            sprintln!("{}", crate::qft::format_circuit
+2951:                                let braid = crate::qft::qft_to_braid
+2962:                                let c = crate::qft::qft_circuit
+2963:                                sprintln!("{}", crate::qft::format_circuit
+2972:                            let c = crate::qft::qft_circuit
+2973:                            let phases = crate::qft::circuit_phases
+2987:                            let braid = crate::qft::qft_to_braid
+2999:                            let word = crate::native_numeral::encode
+3008:                            let ok = crate::qft::verify_qft_iqft
+3017:                            let est = crate::qft::estimate_qft_braid_length
+3019:                            let word = crate::native_numeral::encode
+3029:                            let c = crate::qft::qft_circuit
+3030:                            sprintln!("{}", crate::qft::format_circuit
+3137:                    "" | "report" => sprintln!("{}", crate::baryon_asymmetry::report
+3139:                    "mapping" => sprintln!("{}", crate::baryon_asymmetry::mapping
+3140:                    "reading" => sprintln!("{}", crate::baryon_asymmetry::reading
+3167:                    sprintln!("{}", crate::btc_secret_key_oneshot::btc_oneshot_repl
+3209:                        sprintln!("{}", crate::clay_witness::list_witnesses
+3211:                        sprintln!("{}", crate::clay_witness::witness_report
+3220:                    "verify" => sprintln!("{}", crate::sic_compute::sic_full_report
+3221:                    "bridge" => sprintln!("{}", crate::belnap_sic_bridge::bridge_report
+3222:                    "moduli" => sprintln!("{}", crate::sic_moduli::full_report
+3223:                    "d16" => sprintln!("{}", crate::sic_moduli::d
+3224:                    "d20" => sprintln!("{}", crate::sic_moduli::d
+3225:                    "calibrate" => sprintln!("{}", crate::sic_moduli::calibration_report
+3226:                    "scope" => sprintln!("{}", crate::sic_moduli::scope_report
+3227:                    "d2048" => sprintln!("{}", crate::sic_moduli::d
+3228:                    "grammar" => sprintln!("{}", crate::sic_moduli::grammar_encoding
+3229:                    "lean" => sprintln!("{}", crate::sic_moduli::lean_reference
+3249:                    "" => sprintln!("{}", crate::riemann_sic::full_report
+3250:                    "opcodes" => sprintln!("{}", crate::riemann_sic::opcode_map
+3251:                    "frobenius" => sprintln!("{}", crate::riemann_sic::frobenius_report
+3252:                    "registers" => sprintln!("{}", crate::riemann_sic::register_states
+3253:                    "bootstrap" => sprintln!("{}", crate::riemann_sic::bootstrap_table
+3254:                    "kernel" => sprintln!("{}", crate::riemann_sic::momad_kernel_map
+3255:                    "entropy" => sprintln!("{}", crate::riemann_sic::entropy_report
+3256:                    "topology" => sprintln!("{}", crate::riemann_sic::topology_report
+3257:                    "sixteen3" => sprintln!("{}", crate::riemann_sic::sixteen
+3258:                    "rotat" => sprintln!("{}", crate::riemann_sic::rotat_audit
+3259:                    "grammar" => sprintln!("{}", crate::riemann_sic::grammar_encoding
+3260:                    "lean" => sprintln!("{}", crate::riemann_sic::lean_reference
+3261:                    "sic" => sprintln!("{}", crate::riemann_sic::run_sic_verify
+3262:                    "hilbert" => sprintln!("{}", crate::riemann_hilbert::run_hilbert
+3285:                    "" | "report" => sprintln!("{}", crate::triple_frame::full_report
+3288:                        sprintln!("{}", crate::triple_frame::expand_report
+3290:                    "verify" => sprintln!("{}", crate::triple_frame::verify_report
+3293:                        sprintln!("{}", crate::triple_frame::word_report
+3295:                    "types" => sprintln!("{}", crate::triple_frame::types_report
+3296:                    "cycle" => sprintln!("{}", crate::triple_frame::cycle_report
+3297:                    "path" => sprintln!("{}", crate::triple_frame::path_report
+3298:                    "bridge" => sprintln!("{}", crate::triple_frame::bridge_report
+3301:                        sprintln!("{}", crate::triple_frame::check_report
+3304:                    "help" | "--help" | "-h" => sprintln!("{}", crate::triple_frame::triple_help
+3305:                    _ => sprintln!("{}", crate::triple_frame::triple_help
+3350:                        sprintln!("{}", crate::ovm::ovm_eigen
+3354:                        sprintln!("{}", crate::ovm::ovm_frame
+3358:                        sprintln!("{}", crate::ovm::ovm_overlap
+3360:                    "belnap" => sprintln!("{}", crate::ovm::ovm_belnap
+3361:                    "help" | "--help" | "-h" | "" => sprintln!("{}", crate::ovm::ovm_help
+3362:                    name => sprintln!("{}", crate::ovm::ovm_compute
+3368:                    "" | "report" => sprintln!("{}", crate::hqe::full_report
+3372:                        sprintln!("d({}, {}) = {:.4}", t1, t2, crate::hqe::tuple_distance
+3374:                    "cscore" => sprintln!("C-score: {:.4}", crate::hqe::consciousness_score
+3377:                        sprintln!("meet: ⟨{}⟩", crate::hqe::quantale_meet
+3381:                        sprintln!("join: ⟨{}⟩", crate::hqe::quantale_join
+3384:                    _ => sprintln!("{}", crate::hqe::full_report
+3390:                    "" | "report" => sprintln!("{}", crate::dyson::full_report
+3392:                    _ => sprintln!("{}", crate::dyson::full_report
+3398:                    "" | "report" => sprintln!("{}", crate::afdmc::full_report
+3400:                    _ => sprintln!("{}", crate::afdmc::full_report
+3406:                    "" | "report" => sprintln!("{}", crate::troq::full_report
+3409:                        for line in crate::troq::expand_axis
+3414:                    _ => sprintln!("{}", crate::troq::full_report
+3420:                    "" | "report" => sprintln!("{}", crate::hop::full_report
+3423:                        sprintln!("{}", crate::hop::manifest
+3425:                    "matrix" => sprintln!("{}", crate::hop::framework_matrix
+3429:                        sprintln!("{}", crate::hop::hop
+3431:                    _ => sprintln!("{}", crate::hop::full_report
+3437:                    "" | "report" => sprintln!("{}", crate::braid_grammar::full_report
+3444:                    _ => sprintln!("{}", crate::braid_grammar::full_report
+3450:                    "" | "report" => sprintln!("{}", crate::manifold::full_report
+3451:                    _ => sprintln!("{}", crate::manifold::full_report
+3458:                    "tier" => sprintln!("{}", crate::entropy::entropy_summary
+3459:                    "transition" => sprintln!("{}", crate::entropy::transition_report
+3460:                    "" => sprintln!("{}", crate::entropy::entropy_report
+3466:                sprintln!("{}", crate::invariant::invariant_main
+3470:                sprintln!("{}", crate::redteam::redteam_main
+3474:                sprintln!("{}", crate::witness::witness_main
+3478:                sprintln!("{}", crate::counterfactual::counterfactual_main
+3482:                sprintln!("{}", crate::basin::basin_main
+3486:                sprintln!("{}", crate::ouroboros::ouroboros_main
+3490:                sprintln!("{}", crate::frobenius_fuzzer::fuzzer_main
+3494:                sprintln!("{}", crate::oracle::oracle_main
+3498:                sprintln!("{}", crate::dialetheic_compiler::dialetheic_compiler_main
+3502:                sprintln!("{}", crate::stark_geometer::stark_geometer_main
+3506:                sprintln!("{}", crate::dialect_necromancer::dialect_necromancer_main
+3510:                sprintln!("{}", crate::braid_apocrypha::braid_apocrypha_main
+3514:                sprintln!("{}", crate::proof_braider::proof_braider_main
+3518:                sprintln!("{}", crate::universe_wormhole::universe_wormhole_main
+3522:                sprintln!("{}", crate::vox_ce::vox_ce_main
+3526:                sprintln!("{}", crate::consciousness_lath::consciousness_lath_main
+3530:                sprintln!("{}", crate::paradox_engine::paradox_engine_main
+3534:                sprintln!("{}", crate::key_dissolver::key_dissolver_main
+3538:                sprintln!("{}", crate::compiler::compiler_main
+3542:                sprintln!("{}", crate::catalogue::catalogue_main
+3546:                sprintln!("{}", crate::blackbox::blackbox_main
+3550:                sprintln!("{}", crate::museum::museum_main
+3554:                sprintln!("{}", crate::phase::phase_main
+3558:                sprintln!("{}", crate::demonstrator::demonstrate_main
+3562:                sprintln!("{}", crate::loss::loss_main
+3566:                sprintln!("{}", crate::shadow::shadow_main
+3570:                sprintln!("{}", crate::provenance::provenance_main
+3574:                sprintln!("{}", crate::ctc_loom::ctc_loom_main
+3582:                sprintln!("{}", crate::crystal_scope::crystal_scope_main
+3586:                sprintln!("{}", crate::minimal::minimal_main
+3590:                sprintln!("{}", crate::repair::repair_main
+3594:                sprintln!("{}", crate::ringspec::ringspec_main
+3599:                sprintln!("{}", crate::sk_forge::sk_forge_main
+3608:                            if let Some((p, mp, result)) = crate::divisor_ring::analyze_mersenne
+3610:                                sprintln!("{}", crate::divisor_ring::format_report
+3625:                                let results = crate::divisor_ring::scan_mersenne_range
+3639:                            if let Some(prox) = crate::divisor_ring::mersenne_proximity
+3650:                            let result = crate::divisor_ring::analyze
+3651:                            sprintln!("{}", crate::divisor_ring::format_report
+3755:                            sprintln!("{}", crate::stark::stark_formula
+3763:                            sprintln!("{}", crate::stark::stark_fibqc
+3765:                            sprintln!("{}", crate::stark::stark_fibqc
+3773:                            sprintln!("{}", crate::stark::stark_tower
+3775:                            sprintln!("{}", crate::stark::stark_tower
+3785:                                sprintln!("{}", crate::stark::stark_exponents
+3787:                                sprintln!("{}", crate::stark::stark_exponents
+3795:                    "verify" => sprintln!("{}", crate::stark::stark_verify
+3796:                    "" => sprintln!("{}", crate::stark::stark_summary
+3822:                    "run" | "verify" => sprintln!("{}", crate::witness_vessel::vessel_report
+3823:                    "" => sprintln!("{}", crate::witness_vessel::vessel_summary
+3834:                        sprintln!("{}", crate::witness_vessel::vessel_report
+3835:                        sprintln!("{}", crate::frobenius_unify::formatted_report
+3849:                        sprintln!("{}", crate::constant_closure::fine_structure_report
+3852:                        sprintln!("{}", crate::constant_closure::proton_electron_report
+3855:                        sprintln!("{}", crate::constant_closure::lepton_report
+3858:                        sprintln!("{}", crate::constant_closure::boson_report
+3861:                        sprintln!("{}", crate::constant_closure::gravitational_report
+3864:                        sprintln!("{}", crate::constant_closure::constant_closure_status_report
+3867:                        sprintln!("{}", crate::constant_closure::full_constant_closure_report
+3881:                    let (opts, _) = crate::ask::parse_ask_args
+3887:                    let (opts, q) = crate::ask::parse_ask_args
+3888:                    sprintln!("{}", crate::ask::run_ask
+3943:                                let prog = crate::sequence::build_via_substrate
+3947:                                    crate::belnap_ring_shor::glyphs_from_program
+3954:                        match crate::belnap_ring_shor::program_from_glyphs
+3957:                                    &crate::kernel::self_imscribe
+3959:                                    crate::belnap_ring_shor::glyphs_from_program
+4192:                            let snap = crate::kernel::self_imscribe
+4630:                            let snap = crate::kernel::self_imscribe
+4793:                                ("*", crate::style::accent
+4795:                                (" ", crate::style::value
+4799:                                crate::style::reset
+4800:                                crate::style::muted(), dialect_gates(u), crate::style::reset
+4801:                                crate::style::muted(), dialect_o_inf(u), crate::style::reset
+4805:                            crate::style::muted(), DIALECT_COUNT, crate::style::reset
+4821:                            crate::catalog::lookup
+4847:                                    let unis = crate::dialect_expansion::all_dialects
+4849:                                    let (g1, g1_ord, g1_glyph) = crate::dialect::eval_gate_spec
+4850:                                    let (g2, g2_ord, g2_glyph) = crate::dialect::eval_gate_spec
+4851:                                    let (g3, g3_ord, g3_glyph) = crate::dialect::eval_gate_spec
+4918:                                    if crate::dialect::is_hand_crafted
+4922:                                        let unis = crate::dialect_expansion::all_dialects
+4924:                                        let (g1_ok, g1_ord, g1_glyph) = crate::dialect::eval_gate_spec
+4925:                                        let (g2_ok, g2_ord, g2_glyph) = crate::dialect::eval_gate_spec
+4926:                                        let (g3_ok, g3_ord, g3_glyph) = crate::dialect::eval_gate_spec
+4963:                                    let dt = crate::witness_vessel::compute_tier_under
+4995:                            let snap = crate::kernel::self_imscribe
+5041:                            match crate::belnap_ring_shor::program_from_glyphs
+5081:                            let canon_ig = crate::axis_values::word_to_tuple_under
+5086:                                let ig_u = crate::axis_values::word_to_tuple_under
+5107:                            match crate::belnap_ring_shor::program_from_glyphs
+5110:                                    let snap = crate::kernel::self_imscribe
+5112:                                        .map(|u| crate::witness_vessel::compute_tier_under
+5174:                        let entry = match crate::catalog::lookup
+5285:                    sprintln!("{}", crate::frobenius_unify::formatted_report
