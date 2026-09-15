@@ -1,0 +1,4 @@
+N=1000000016000000063
+factors: 1000000007 x 1000000009
+steps=31 T=6 F=5 boundary=true
+entry(...) exited(0)   [31341031 steps in the twelve]

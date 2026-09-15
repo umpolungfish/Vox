@@ -1,4 +1,4 @@
 N=100000980001501
 factors: 10000019 x 10000079
-steps=31 T=6 F=5 boundary=true
-entry(...) exited(0)   [65033328 steps in the twelve]
+steps=31 T=6 F=5 boundary=true forward_edges=6 reverse_edges=6
+entry(...) exited(0)   [18483428 steps in the twelve]
