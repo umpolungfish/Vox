@@ -21,7 +21,7 @@ fn usage() {
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
-    eprintln!("  vox circuit <module.imasm> [hex-mask[:feedback] ...]   prepare once, switch resident QFT gates");
+    eprintln!("  vox circuit <module.imasm> [--stdin | hex-mask[:feedback] ...]   prepare once, switch resident QFT gates");
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
@@ -1151,6 +1151,14 @@ fn main() {
             println!("depth {n}: verdict {v}  fork/fuse surplus {surplus}");
             println!("{}", ::vox::vox::glyphs(&w));
             0
+        }
+        Some("operculum") => {
+            // Walk the vessel lifecycle: open, deposit, seal, run, extract.
+            let n = args.get(2).and_then(|a| a.parse::<usize>().ok()).unwrap_or(3);
+            match args.get(1).and_then(|a| ::vox::morphism_factor::decimal_to_tape(a)) {
+                Some(v) => { print!("{}", ::vox::perfect_membrane::operculum_demo(&v, n)); 0 }
+                None => { eprintln!("vox operculum <decimal> [depth]   load a value through the membrane's one lid"); 1 }
+            }
         }
         Some("numeral") => {
             // Encode a decimal to its IMASM numeral word. This is the
