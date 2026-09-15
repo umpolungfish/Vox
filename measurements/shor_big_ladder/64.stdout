@@ -1,0 +1,14 @@
+shor_qft: a=2, N=18446744073709551615, 12 index qubits (register size 4096)
+  true period (classical ground truth): 64
+  strongest peaks in the measured distribution (index, probability):
+    k=0      p=0.01562  k/M*r=0.000 (should land near an integer if peaks are where theory predicts)
+    k=64     p=0.01562  k/M*r=1.000 (should land near an integer if peaks are where theory predicts)
+    k=128    p=0.01562  k/M*r=2.000 (should land near an integer if peaks are where theory predicts)
+    k=192    p=0.01562  k/M*r=3.000 (should land near an integer if peaks are where theory predicts)
+    k=256    p=0.01562  k/M*r=4.000 (should land near an integer if peaks are where theory predicts)
+    k=320    p=0.01562  k/M*r=5.000 (should land near an integer if peaks are where theory predicts)
+    k=384    p=0.01562  k/M*r=6.000 (should land near an integer if peaks are where theory predicts)
+    k=448    p=0.01562  k/M*r=7.000 (should land near an integer if peaks are where theory predicts)
+  period extracted via continued fractions from a measured peak: 64  (matches true period: true)
+  factors recovered via gcd: 4294967295 * 4294967297 = 18446744073709551615  (verified: true)
+

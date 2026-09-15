@@ -221,3 +221,20 @@ I remove the simulation naming, add arbitrary tape payload loading, implement
 tape modular exponentiation, period detection, and gcd factor recovery, and
 run an arbitrary-width baked modulus through the complete QFT membrane. The
 release Shor tests pass and the baked run recovers the exact factors.
+I provide paired Shor bake-ins with and without the machine-width control
+
+I retain `shor_one` as the u64 control and add `shor_big_one` with arbitrary
+IMASM numeral operands. The wide path carries modular exponentiation, period
+recovery, QFT state preparation, and gcd factor recovery on tapes. A baked
+96-bit modulus closes with its exact factors, and both release test targets
+pass without build warnings.
+I take the unified Shor membrane through the 192-bit native ladder
+
+I bake and run 96-, 128-, 160-, and 192-bit Mersenne moduli through the
+arbitrary resident path. Every run recovers the two half-period factors and
+closes its period relation, with the largest run completing in 0.01 seconds.
+I test separated Shor semiprimes at increasing widths
+
+I use the known Mersenne-prime exponents 61, 89, 107, and 127 with a factor
+of three, so each baked modulus is genuinely semiprime and its factors are
+widely separated. The unified arbitrary Shor membrane recovers every pair.

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Hosted port of G-mOMonadOS/src/shor_qft.rs.
 //! The modular orbit prepares the measured branch. A shared phase table feeds
 //! nested even/odd transform stages, then continued fractions recover a period

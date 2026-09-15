@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Numeric payload reader shared by the hosted membrane executables.
 
 pub fn numbers(word: Option<&str>) -> Result<Vec<u64>, String> {
