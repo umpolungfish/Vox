@@ -620,8 +620,15 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         let nb = 1usize << (kk - 1);
         let mut soln1 = vec![0i64; width];
         let mut soln2 = vec![0i64; width];
-        // The enclosing A frame owns storage reused by every B sibling.
-        let mut logs = vec![0i32; span];
+        // The enclosing A frame owns storage reused by every B sibling. The sieve
+        // runs in cache-resident blocks: `blk` is one block's log column, and
+        // next1/next2 carry each prime's running mark position across blocks so no
+        // hit is recomputed. Blocking keeps the working set in cache, which is what
+        // the bandwidth-bound span sieve was thrashing.
+        const BLOCK: usize = 1 << 15;
+        let mut blk = vec![0i32; BLOCK];
+        let mut next1 = vec![0i64; width];
+        let mut next2 = vec![0i64; width];
         for pat in 0..nb {
             if a_of.len() >= need {
                 break 'outer;
@@ -667,29 +674,44 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             let (mag, _r) = divmod(&sub(&n_tape, &b2), &u128_to_tape(a_val));
             let cc = -(tape_to_u128(&mag)? as i128);
 
-            logs.fill(0);
-            for j in 1..width {
-                if soln1[j] < 0 {
-                    continue;
+            // running mark positions start at the roots and advance across blocks
+            next1.copy_from_slice(&soln1);
+            next2.copy_from_slice(&soln2);
+            let mut bstart = 0usize;
+            while bstart < span {
+                let bend = (bstart + BLOCK).min(span);
+                let blen = bend - bstart;
+                for e in blk[..blen].iter_mut() {
+                    *e = 0;
                 }
-                let pi = base[j] as i64;
-                let l = lp[j];
-                for &sol in &[soln1[j], soln2[j]] {
-                    let mut idx = sol as usize;
-                    while idx < span {
-                        logs[idx] += l;
-                        idx += pi as usize;
+                for j in 1..width {
+                    if soln1[j] < 0 {
+                        continue;
                     }
+                    let pi = base[j] as usize;
+                    let l = lp[j];
+                    let mut idx = next1[j] as usize;
+                    while idx < bend {
+                        blk[idx - bstart] += l;
+                        idx += pi;
+                    }
+                    next1[j] = idx as i64;
+                    let mut idx2 = next2[j] as usize;
+                    while idx2 < bend {
+                        blk[idx2 - bstart] += l;
+                        idx2 += pi;
+                    }
+                    next2[j] = idx2 as i64;
                 }
-            }
-            for xi in 0..span {
-                if a_of.len() >= need {
-                    break 'outer;
-                }
-                if logs[xi] < thresh {
-                    continue;
-                }
-                let x = xi as i128 - m;
+                for off in 0..blen {
+                    if a_of.len() >= need {
+                        break 'outer;
+                    }
+                    if blk[off] < thresh {
+                        continue;
+                    }
+                    let xi = bstart + off;
+                    let x = xi as i128 - m;
                 let g = a_i * x * x + 2 * b_i * x + cc; // = Q(x)/A
                 if g == 0 {
                     continue;
@@ -751,8 +773,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                         if trim(recon) == trim(ag) { "PASS" } else { "FAIL" }
                     );
                 }
-                a_of.push(axb_t);
-                exp_of.push(exps);
+                    a_of.push(axb_t);
+                    exp_of.push(exps);
+                }
+                bstart += BLOCK;
             }
         }
     }
