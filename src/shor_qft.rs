@@ -421,7 +421,11 @@ pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Resul
     let m = 1usize.checked_shl(n_qubits as u32).ok_or("resident QFT allocation unavailable")?;
     let one = ::vox::morphism_factor::one();
     let mut value = one.clone(); let mut orbit = Vec::with_capacity(m);
-    for _ in 0..m { orbit.push(value.clone()); value = ::vox::morphism_factor::modulo(&::vox::morphism_factor::mul(&value, &a), &n); }
+    let mut carrier = crate::fde_shor_membrane::OrderCarrier::new(one.clone());
+    for _ in 0..m {
+        orbit.push(value.clone());
+        value = carrier.modular_step(&a, &n)?;
+    }
     let mut period = None;
     for r in 1..=m { if mod_pow_tape(&a, r as u64, &n) == one { period = Some(r as u64); break; } }
     let period = period.ok_or("period exceeds baked QFT register")?;
@@ -443,7 +447,10 @@ pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Resul
         }
     }
     let factor_text = factors.map(|(p, q)| alloc::format!("{} x {}", ::vox::morphism_factor::dec_of(&p), ::vox::morphism_factor::dec_of(&q))).unwrap_or_else(|| "none".into());
-    Ok(alloc::format!("shor: N={} period={} factors={}", ::vox::morphism_factor::dec_of(&n), period, factor_text))
+    if !carrier.boundary_identity() { return Err("FDE boundary identity failed".into()); }
+    Ok(alloc::format!("shor: N={} period={} factors={} fde_transitions={} fde_closures={}",
+        ::vox::morphism_factor::dec_of(&n), period, factor_text,
+        carrier.transitions, carrier.closed))
 }
 
 #[cfg(test)]

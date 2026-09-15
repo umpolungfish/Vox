@@ -1,0 +1,13 @@
+warning: variant `F` is never constructed
+  --> src/bin/../fde_shor_membrane.rs:15:5
+   |
+12 | pub enum Fde {
+   |          --- variant in this enum
+...
+15 |     F,
+   |     ^
+   |
+   = note: `Fde` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+shor: N=79228162514264337593543950335 method=fermat-close factors=281474976710655 x 281474976710657

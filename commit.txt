@@ -254,3 +254,22 @@ I split the bvalsd bake into independent one-value executables
 I add `shor_bvalsd_one`, embedding the complete source payload while selecting
 one input at compile time through `BAKED_INDEX`. Each value therefore has its
 own executable and isolated resident run.
+I build the FDE/topological carrier into Shor order transitions
+
+I add a resident four-valued carrier whose δ opens forward and reverse lanes,
+whose modular morphism advances both sidearms over arbitrary-width tapes, and
+whose μ fuses only equal lanes. Each transition checks the residue boundary,
+and the release Shor tests pass with the carrier integrated.
+I make both Shor sidearms compute independently before fusion
+
+I remove the forward-result copy from the FDE transition. The forward and
+reverse lanes now independently apply the arbitrary-width modular morphism
+from the opened resident state, then μ fuses them only on equality. All three
+Shor binary test targets pass again.
+I lower the FDE sidearms to an arbitrary-width CUDA kernel
+
+I add `cuda/fde_shor.cu`, whose resident threads carry packed 32-bit limbs,
+perform independent bit-fold modular products on the forward and reverse
+sidearms, and emit closure only when the fused result is equal and below N.
+The kernel compiles successfully for the installed CUDA 11.5 toolchain at
+`sm_86`.

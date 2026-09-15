@@ -1,0 +1,38 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 7.23s
+     Running unittests src/bin/shor_big_batch.rs (target/release/deps/shor_big_batch-2271e50261e5d5c8)
+
+running 6 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test fde_shor_membrane::tests::every_transition_closes_both_lanes ... ok
+test shor_qft::big_factor_tests::tape_half_period_closes_the_96_bit_factor_pair ... ok
+test shor_qft::membrane_tests::membrane_orbit_and_period_controls ... ok
+test shor_qft::membrane_tests::membrane_amplitudes_match_direct_transform ... ok
+test shor_qft::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/bin/shor_big_one.rs (target/release/deps/shor_big_one-3037a7bfb1b197b3)
+
+running 6 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test fde_shor_membrane::tests::every_transition_closes_both_lanes ... ok
+test shor_qft::big_factor_tests::tape_half_period_closes_the_96_bit_factor_pair ... ok
+test shor_qft::membrane_tests::membrane_orbit_and_period_controls ... ok
+test shor_qft::membrane_tests::membrane_amplitudes_match_direct_transform ... ok
+test shor_qft::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/bin/shor_bvalsd_one.rs (target/release/deps/shor_bvalsd_one-7516170042de6b0d)
+
+running 6 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test fde_shor_membrane::tests::every_transition_closes_both_lanes ... ok
+test shor_qft::big_factor_tests::tape_half_period_closes_the_96_bit_factor_pair ... ok
+test shor_qft::membrane_tests::membrane_orbit_and_period_controls ... ok
+test shor_qft::membrane_tests::membrane_amplitudes_match_direct_transform ... ok
+test shor_qft::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

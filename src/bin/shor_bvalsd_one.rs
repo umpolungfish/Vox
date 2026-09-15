@@ -10,6 +10,7 @@ extern crate alloc;
 #[path = "../membrane_complex.rs"] mod membrane_complex;
 #[allow(dead_code)]
 #[path = "../baked_membrane.rs"] mod baked_membrane;
+#[path = "../fde_shor_membrane.rs"] mod fde_shor_membrane;
 
 const BAKED_VALUES: &str = include_str!("/home/mrnob0dy666/imsgct/bvalsd.txt");
 

@@ -17,7 +17,7 @@ In standard Lean, `False.rec : (C : Sort u) → False → C` derives anything fr
 | `src/kernel/environment.{h,cpp}` + `src/Lean/Environment.lean` | `paraconsistent : Bool` flag with `mark`/`unmark`/`is_paraconsistent`, threaded through elaboration so it bites on subsequent declarations |
 | `src/Init/Paraconsistent.lean` | User commands `enable_paraconsistent` / `disable_paraconsistent` / `#is_paraconsistent` |
 
-**Blocked:** direct recursor use on empty `Prop` — `False.rec`, `h.rec`, `False.casesOn`, `absurd`, `match h with .` where `h : False`. **Boundary:** already-compiled wrappers like `False.elim` (elaborated once under the standard stdlib build) don't re-expose the raw recursor to the check — write `h.rec` directly to trip it. `False` itself, all other connectives, and the full stdlib with the mode off are unaffected. Verified live against `build/stage1/bin/lean`: enable/disable round trip compiles clean; uncommenting the blocked line reproduces the kernel error.
+**Blocked:** direct recursor use on empty `Prop` - `False.rec`, `h.rec`, `False.casesOn`, `absurd`, `match h with .` where `h : False`. **Boundary:** already-compiled wrappers like `False.elim` (elaborated once under the standard stdlib build) don't re-expose the raw recursor to the check - write `h.rec` directly to trip it. `False` itself, all other connectives, and the full stdlib with the mode off are unaffected. Verified live against `build/stage1/bin/lean`: enable/disable round trip compiles clean; uncommenting the blocked line reproduces the kernel error.
 
 ```lean
 import Init.Paraconsistent
@@ -31,7 +31,7 @@ Build: `mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && mak
 
 ## Classical restriction is a retract
 
-`ClassicalRestriction.lean` makes "restriction, not extension" machine-checked: the classical fragment is the B-excluding subtype `{ v // v ≠ B }`, and `classicalSwitch` collapses `B ↦ F` (ex falso for B). In the **truth order** the inclusion is left adjoint to the collapse (`inclClassical ⊣ classicalSwitch`): classical logic is a **coreflective subcategory** of the bilattice, with `classicalSwitch ∘ inclClassical = id` as the retract unit (`classical_coreflective_in_truth_order`, `decide`-checked). The reverse adjunction fails and no adjunction exists in the information order — so disabling ex falso is literally corestriction to that subcategory.
+`ClassicalRestriction.lean` makes "restriction, not extension" machine-checked: the classical fragment is the B-excluding subtype `{ v // v ≠ B }`, and `classicalSwitch` collapses `B ↦ F` (ex falso for B). In the **truth order** the inclusion is left adjoint to the collapse (`inclClassical ⊣ classicalSwitch`): classical logic is a **coreflective subcategory** of the bilattice, with `classicalSwitch ∘ inclClassical = id` as the retract unit (`classical_coreflective_in_truth_order`, `decide`-checked). The reverse adjunction fails and no adjunction exists in the information order - so disabling ex falso is literally corestriction to that subcategory.
 
 ## p4ramill
 

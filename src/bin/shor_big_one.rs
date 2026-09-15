@@ -7,6 +7,7 @@ extern crate alloc;
 #[path = "../membrane_complex.rs"] mod membrane_complex;
 #[allow(dead_code)]
 #[path = "../baked_membrane.rs"] mod baked_membrane;
+#[path = "../fde_shor_membrane.rs"] mod fde_shor_membrane;
 
 fn tape_to_usize(tape: &[char]) -> Result<usize, String> {
     tape.iter().enumerate().try_fold(0usize, |value, (bit, &mark)| {
