@@ -1135,6 +1135,15 @@ fn main() {
                 None => { eprintln!("vox factor <N-word|decimal>   shape-routed full factorization"); 1 }
             }
         }
+        Some("numeral") => {
+            // Encode a decimal to its IMASM numeral word. This is the
+            // pre-compilation step: the decimal is consumed here, and the word it
+            // prints is baked into a program so the run itself takes no input.
+            match args.get(1).and_then(|a| ::vox::morphism_factor::decimal_to_tape(a)) {
+                Some(n) => { println!("{}", ::vox::morphism_factor::emit_numeral(&n)); 0 }
+                None => { eprintln!("vox numeral <decimal>   emit the IMASM numeral word for N"); 1 }
+            }
+        }
         Some("mpqs") => {
             let parsed: Option<Vec<char>> = if args.len() != 2 {
                 None
