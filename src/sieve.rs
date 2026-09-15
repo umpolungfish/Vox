@@ -368,6 +368,210 @@ pub fn qs(n: &Tape, b_bound: usize, m_interval: usize, extra: usize) -> Option<T
     combine(n, &a_of, &exp_of, &base)
 }
 
+/// Extended Euclid modular inverse of a mod m (m prime, a not 0 mod m).
+fn modinv(a: u64, m: u64) -> u64 {
+    // a^(m-2) mod m by Fermat, m prime.
+    powmod(a % m, m - 2, m)
+}
+
+/// Read a tape as a u128 little-endian (cell EVALF at position i is bit i), or
+/// None when it does not fit in 127 bits.
+fn tape_to_u128(n: &Tape) -> Option<u128> {
+    let t = trim(n.clone());
+    if t.len() > 127 {
+        return None;
+    }
+    let mut v = 0u128;
+    for (i, &c) in t.iter().enumerate() {
+        if c == EVALF {
+            v |= 1u128 << i;
+        }
+    }
+    Some(v)
+}
+
+fn isqrt_u128(n: u128) -> u128 {
+    if n < 2 {
+        return n;
+    }
+    let mut x = 1u128 << ((127 - n.leading_zeros()) / 2 + 1);
+    loop {
+        let y = (x + n / x) / 2;
+        if y >= x {
+            return x;
+        }
+        x = y;
+    }
+}
+
+/// Multiple-polynomial quadratic sieve over machine integers, exact for N up to
+/// about 120 bits. Each polynomial is g(x) = A x^2 + 2B x + C with A a product of
+/// base primes and B^2 == N (mod A), so (A x + B)^2 == A g(x) (mod N) and the A
+/// factors sit in the base. A fresh polynomial keeps its values small near its own
+/// root, so relations come thick without the single-polynomial window growing with
+/// N. The -1 sign of g rides a phantom base column so the GF(2) combine, shared
+/// with Dixon and single-poly QS, needs no change. Returns a factor or None.
+pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<Tape> {
+    let nn = tape_to_u128(n)?;
+    let bits = 128 - nn.leading_zeros();
+    // (A x + B)^2 must stay under 2^127; A ~ sqrt(2N)/M, x <= M, so (Ax+B) ~
+    // sqrt(2N) and its square ~ 2N. Guard the machine path.
+    if bits as u32 + 2 >= 127 {
+        return None;
+    }
+    // Target A ~ sqrt(2N)/M, built from three base primes near its cube root, so
+    // the factor base must reach those primes. Size the base to cover them.
+    let a_target = (isqrt_u128(2 * nn) / (m_half as u128).max(1)).max(8);
+    let mut root3 = 1u128;
+    while (root3 + 1) * (root3 + 1) * (root3 + 1) <= a_target {
+        root3 += 1;
+    }
+    let lo = (root3 * 2 / 5).max(3);
+    let hi = (root3 * 3).max(8);
+    let eff_bound = base_bound.max(hi as usize + 100);
+    let primes = small_primes(eff_bound);
+    // QR base: primes where N is a residue, each with a root of N. Index 0 is the
+    // phantom -1 (sign), value 1 so it contributes nothing to the reconstruction.
+    let mut base: Vec<u64> = vec![1];
+    let mut sqrt_n: Vec<u64> = vec![0];
+    for &p in &primes {
+        let np = (nn % p as u128) as u64;
+        if np == 0 {
+            return Some(tape_u64(p));
+        }
+        if p == 2 {
+            base.push(2);
+            sqrt_n.push(1);
+        } else if legendre(np, p) == 1 {
+            if let Some(r) = tonelli(np, p) {
+                base.push(p);
+                sqrt_n.push(r);
+            }
+        }
+    }
+    let width = base.len();
+    if width < 3 {
+        return None;
+    }
+    let need = width + extra;
+    // candidate primes for A: odd base primes near the cube root of the target.
+    let a_pool: Vec<usize> = (1..width)
+        .filter(|&k| base[k] > 2 && base[k] as u128 >= lo && base[k] as u128 <= hi)
+        .collect();
+    if a_pool.len() < 3 {
+        return None;
+    }
+
+    let flog2 = |x: u128| -> u32 {
+        if x < 2 {
+            0
+        } else {
+            127 - x.leading_zeros()
+        }
+    };
+    let m = m_half as i128;
+    let mut a_of: Vec<Tape> = Vec::new();
+    let mut exp_of: Vec<Vec<u32>> = Vec::new();
+
+    // Walk triples of the A-pool for successive polynomials.
+    let np = a_pool.len();
+    let mut poly = 0usize;
+    let max_polys = 20_000usize;
+    'outer: while a_of.len() < need && poly < max_polys {
+        // pick three distinct pool indices from a rotating base
+        let i0 = poly % np;
+        let i1 = (poly / np + i0 + 1) % np;
+        let i2 = (poly / (np * np) + i1 + 1) % np;
+        poly += 1;
+        if i0 == i1 || i1 == i2 || i0 == i2 {
+            continue;
+        }
+        let ks = [a_pool[i0], a_pool[i1], a_pool[i2]];
+        let qs: [u64; 3] = [base[ks[0]], base[ks[1]], base[ks[2]]];
+        let a_val = qs[0] as u128 * qs[1] as u128 * qs[2] as u128;
+        // B by CRT: B == sqrt_n[k] (mod q) for each q in the A-set.
+        let mut b_val: u128 = 0;
+        for j in 0..3 {
+            let q = qs[j] as u128;
+            let rest = a_val / q;
+            let inv = modinv((rest % q) as u64, qs[j]) as u128;
+            let term = (sqrt_n[ks[j]] as u128 % q) * ((rest * inv) % a_val) % a_val;
+            b_val = (b_val + term) % a_val;
+        }
+        // C = (B^2 - N) / A, exact. B^2 < A^2 <= 2N, so use i128.
+        let b2 = (b_val as i128) * (b_val as i128);
+        let cc = (b2 - nn as i128) / (a_val as i128);
+        let a_i = a_val as i128;
+        let b_i = b_val as i128;
+        // log sieve over x in [-m, m], index shifted by +m
+        let span = (2 * m_half + 1) as usize;
+        let mut logs = vec![0i32; span];
+        for k in 1..width {
+            let p = base[k];
+            if p == 2 || a_val % p as u128 == 0 {
+                continue;
+            }
+            let pi = p as i128;
+            let ainv = modinv((a_val % p as u128) as u64, p) as i128;
+            let r = sqrt_n[k] as i128;
+            let lp = flog2(p as u128) as i32;
+            for &sgn in &[r, pi - r] {
+                // x ≡ (sgn - B) * A^{-1} (mod p)
+                let x0 = (((sgn - b_i) % pi + pi) % pi) * ainv % pi;
+                // first index >= -m with x ≡ x0 (mod p): shift to [0, span)
+                let start = ((x0 - (-m)) % pi + pi) % pi;
+                let mut idx = start;
+                while idx < span as i128 {
+                    logs[idx as usize] += lp;
+                    idx += pi;
+                }
+            }
+        }
+        let thresh = flog2((a_val * (m as u128) * (m as u128)).max(2)) as i32
+            - (2 * (flog2(base_bound as u128) + 1) + 6) as i32;
+        for xi in 0..span {
+            if a_of.len() >= need {
+                break 'outer;
+            }
+            if logs[xi] < thresh {
+                continue;
+            }
+            let x = xi as i128 - m;
+            let g = a_i * x * x + 2 * b_i * x + cc; // = Q(x)/A
+            if g == 0 {
+                continue;
+            }
+            let mut val = if g < 0 { (-g) as u128 } else { g as u128 };
+            let mut exps = vec![0u32; width];
+            if g < 0 {
+                exps[0] = 1; // sign column
+            }
+            // g's own factorization over the base
+            for k in 1..width {
+                let p = base[k] as u128;
+                while val % p == 0 {
+                    exps[k] += 1;
+                    val /= p;
+                }
+            }
+            if val != 1 {
+                continue; // not smooth over the base
+            }
+            // A's factorization (the three chosen primes) joins the exponents.
+            for &k in &ks {
+                exps[k] += 1;
+            }
+            // relation value: |A x + B| mod N, which is just A x + B in size.
+            let axb = a_i * x + b_i;
+            let axb_abs = if axb < 0 { (-axb) as u128 } else { axb as u128 };
+            let axb_mod = (axb_abs % nn) as u64;
+            a_of.push(tape_u64(axb_mod));
+            exp_of.push(exps);
+        }
+    }
+    combine(n, &a_of, &exp_of, &base)
+}
+
 /// Base bound and window sized from the width of N: B grows about like the
 /// square of the digit count, the window a few hundred thousand.
 pub fn sieve_params(n: &Tape) -> (usize, usize) {
@@ -377,10 +581,13 @@ pub fn sieve_params(n: &Tape) -> (usize, usize) {
     // smooth values is thin and the window must widen with N to collect ~B
     // relations. Below 64 bits the narrow window already suffices; above it the
     // window grows with the extra width.
+    // Single-poly QS is now the fallback behind MPQS, so its window no longer
+    // needs to chase the width without limit; a few million positions is enough
+    // for the narrow N that reach it.
     let m = if bits <= 64 {
         1_500_000usize
     } else {
-        1_500_000usize + (bits - 64) * 1_500_000usize
+        (1_500_000usize + (bits - 64) * 750_000usize).min(6_000_000usize)
     };
     (bound, m)
 }

@@ -1295,7 +1295,7 @@ pub fn decimal_to_tape(s: &str) -> Option<Tape> {
 }
 
 /// Decimal string for a tape of any size, by repeated division by ten.
-fn dec_of(t: &[char]) -> String {
+pub fn dec_of(t: &[char]) -> String {
     let mut b = trim(t.to_vec());
     if zero(&b) {
         return "0".into();
@@ -1476,8 +1476,14 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 let (bound, m) = crate::sieve::sieve_params(&c);
                 let tower = construct_carrier(NINE_ARM).expect("NINE_ARM is a valid carrier");
                 let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
-                let hit = crate::sieve::qs(&c, bound, m, 16)
+                // MPQS is the primary hard arm: a fresh polynomial per step keeps
+                // the values small, so it is faster than the single polynomial
+                // everywhere they overlap and reaches to the machine-integer width.
+                // Single-poly QS is the fallback for the narrow N MPQS declines,
+                // then the carrier's rho, then Dixon.
+                let hit = crate::sieve::mpqs(&c, bound, 32_768, 32)
                     .filter(&good)
+                    .or_else(|| crate::sieve::qs(&c, bound, m, 16).filter(&good))
                     .or_else(|| run_carrier_rounds(&tower_refs, &c, HARD_CARRIER_ROUNDS).filter(&good))
                     .or_else(|| crate::sieve::dixon(&c, bound, 8, 2_000_000).filter(&good));
                 match hit {

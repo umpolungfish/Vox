@@ -1135,6 +1135,23 @@ fn main() {
                 None => { eprintln!("vox factor <N-word|decimal>   shape-routed full factorization"); 1 }
             }
         }
+        Some("mpqs") => {
+            let parsed: Option<Vec<char>> = if args.len() != 2 {
+                None
+            } else {
+                ::vox::morphism_factor::decimal_to_tape(&args[1])
+            };
+            match parsed {
+                Some(n) => {
+                    let (bound, _m) = ::vox::sieve::sieve_params(&n);
+                    match ::vox::sieve::mpqs(&n, bound, 32_768, 32) {
+                        Some(f) => { println!("{} factor {}", ::vox::morphism_factor::dec_of(&n), ::vox::morphism_factor::dec_of(&f)); 0 }
+                        None => { println!("mpqs: no factor (relations short of a dependency)"); 0 }
+                    }
+                }
+                None => { eprintln!("vox mpqs <decimal N>   multiple-polynomial quadratic sieve arm, in isolation"); 1 }
+            }
+        }
         Some("scout") => {
             let parsed: Option<Vec<char>> = if args.len() != 2 {
                 None
