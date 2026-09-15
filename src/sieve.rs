@@ -470,6 +470,14 @@ fn iroot(v: u128, k: u32) -> u128 {
 pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<Tape> {
     let n = trim(n.clone());
     let bits = n.len();
+    // Wider N wants a wider sieve window per polynomial, so fewer polynomials are
+    // set up for the same relation count; the per-polynomial root setup is real
+    // cost and this amortizes it.
+    let m_half = m_half.max(match bits {
+        0..=120 => 32_768,
+        121..=150 => 131_072,
+        _ => 524_288,
+    });
     // N stays on the tape (it may exceed 128 bits). Only the per-polynomial and
     // per-x machine values live in i128: A, B, C, g(x), and A x + B. The binding
     // one is g(x) ~ M * sqrt(2N); guard so it fits an i128.
@@ -712,14 +720,20 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     #[cfg(feature = "mpqs_debug")]
     {
         extern crate std;
-        let mut sorted = a_of.clone();
-        sorted.sort();
-        sorted.dedup();
         std::eprintln!(
-            "[mpqs] bits={} k={} s={} eff_bound={} pool={} width={} need={} relations={} distinct={} polys={}",
-            bits, k, s, eff_bound, a_pool.len(), width, need, a_of.len(), sorted.len(), poly
+            "[mpqs] bits={} k={} s={} eff_bound={} pool={} width={} need={} relations={} polys={}",
+            bits, k, s, eff_bound, a_pool.len(), width, need, a_of.len(), poly
         );
     }
+    #[cfg(feature = "mpqs_debug")]
+    {
+        extern crate std;
+        let t = std::time::Instant::now();
+        let r = combine(&n, &a_of, &exp_of, &base);
+        std::eprintln!("[mpqs] combine took {:?}", t.elapsed());
+        return r;
+    }
+    #[cfg(not(feature = "mpqs_debug"))]
     combine(&n, &a_of, &exp_of, &base)
 }
 

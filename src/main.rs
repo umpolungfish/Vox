@@ -1145,7 +1145,7 @@ fn main() {
             }
         }
         Some("mpqs") => {
-            let parsed: Option<Vec<char>> = if args.len() != 2 {
+            let parsed: Option<Vec<char>> = if args.len() < 2 {
                 None
             } else {
                 ::vox::morphism_factor::decimal_to_tape(&args[1])
@@ -1153,7 +1153,8 @@ fn main() {
             match parsed {
                 Some(n) => {
                     let (bound, _m) = ::vox::sieve::sieve_params(&n);
-                    match ::vox::sieve::mpqs(&n, bound, 32_768, 32) {
+                    let mh = args.get(2).and_then(|a| a.parse::<usize>().ok()).unwrap_or(32_768);
+                    match ::vox::sieve::mpqs(&n, bound, mh, 32) {
                         Some(f) => { println!("{} factor {}", ::vox::morphism_factor::dec_of(&n), ::vox::morphism_factor::dec_of(&f)); 0 }
                         None => { println!("mpqs: no factor (relations short of a dependency)"); 0 }
                     }
