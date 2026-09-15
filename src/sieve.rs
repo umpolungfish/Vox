@@ -503,29 +503,38 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         let cc = (b2 - nn as i128) / (a_val as i128);
         let a_i = a_val as i128;
         let b_i = b_val as i128;
-        // log sieve over x in [-m, m], index shifted by +m
+        // log sieve over x in [-m, m], index shifted by +m. Record each prime's
+        // two hit residues (positions where it divides g) so the smoothness test
+        // resieves only the primes that land, instead of trial-dividing the whole
+        // base. o1 == -2 marks a prime always attempted (2, or a divisor of A);
+        // o1 == -1 marks one that never lands.
         let span = (2 * m_half + 1) as usize;
         let mut logs = vec![0i32; span];
+        let mut offs: Vec<(i32, i32)> = vec![(-1, -1); width];
         for k in 1..width {
             let p = base[k];
             if p == 2 || a_val % p as u128 == 0 {
+                offs[k] = (-2, -2);
                 continue;
             }
             let pi = p as i128;
             let ainv = modinv((a_val % p as u128) as u64, p) as i128;
             let r = sqrt_n[k] as i128;
             let lp = flog2(p as u128) as i32;
-            for &sgn in &[r, pi - r] {
+            let mut o = [0i32; 2];
+            for (t, &sgn) in [r, pi - r].iter().enumerate() {
                 // x ≡ (sgn - B) * A^{-1} (mod p)
                 let x0 = (((sgn - b_i) % pi + pi) % pi) * ainv % pi;
                 // first index >= -m with x ≡ x0 (mod p): shift to [0, span)
                 let start = ((x0 - (-m)) % pi + pi) % pi;
+                o[t] = start as i32;
                 let mut idx = start;
                 while idx < span as i128 {
                     logs[idx as usize] += lp;
                     idx += pi;
                 }
             }
+            offs[k] = (o[0], o[1]);
         }
         let thresh = flog2((a_val * (m as u128) * (m as u128)).max(2)) as i32
             - (2 * (flog2(base_bound as u128) + 1) + 6) as i32;
@@ -546,8 +555,20 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             if g < 0 {
                 exps[0] = 1; // sign column
             }
-            // g's own factorization over the base
+            // g's factorization over the base: only the primes that land here (plus
+            // 2 and the A-divisors), and stop once val is fully reduced.
             for k in 1..width {
+                if val == 1 {
+                    break;
+                }
+                let (o1, o2) = offs[k];
+                if o1 == -1 {
+                    continue;
+                }
+                let xr = (xi as i32) % (base[k] as i32);
+                if o1 != -2 && xr != o1 && xr != o2 {
+                    continue;
+                }
                 let p = base[k] as u128;
                 while val % p == 0 {
                     exps[k] += 1;
