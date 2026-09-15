@@ -498,6 +498,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     // value arithmetic has no bit ceiling. No cap on how large N may be.
     let sqrt2n = isqrt(&mul(&tape_u64(2), &n));
     let sqrt2n_u = tape_to_u128(&sqrt2n).unwrap_or(u128::MAX);
+    // Free lunch, no cap: run the per-x value in a machine word while it fits
+    // (g ~ M*sqrt(2N)), and only fall to the tapes when it would overflow. Fast
+    // below the boundary, uncapped above it.
+    let wide = 128 - sqrt2n_u.leading_zeros() as usize + (usize::BITS - m_half.leading_zeros()) as usize + 4 >= 126;
     let flog2 = |x: u128| -> u32 {
         if x < 2 {
             0
@@ -689,6 +693,8 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             let a_t = u128_to_tape(a_val);
             let b_t = u128_to_tape(b_abs);
             let b_neg = b_i < 0;
+            // machine-word C, valid only on the fast path (values fit i128)
+            let cc_i: i128 = if wide { 0 } else { -(tape_to_u128(&c_mag).unwrap_or(0) as i128) };
 
             // running mark positions start at the roots and advance across blocks
             next1.copy_from_slice(&soln1);
@@ -727,59 +733,102 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                         continue;
                     }
                     let xi = bstart + off;
-                    let x = xi as i128 - m;
-                    let x_neg = x < 0;
-                    let x_abs = x.unsigned_abs();
-                    let x_t = u128_to_tape(x_abs);
-                    // g = A*x^2 + 2*B*x + C, on the tapes, signed. No bit ceiling.
-                    let x2_t = u128_to_tape(x_abs.wrapping_mul(x_abs));
-                    let term1 = (false, mul(&a_t, &x2_t)); // A*x^2 >= 0
-                    let term2 = (b_neg ^ x_neg, mul(&mul(&tape_u64(2), &b_t), &x_t)); // 2Bx
-                    let (g_neg, mut val) = sadd(sadd(term1, term2), (true, c_mag.clone()));
-                    if zero(&val) {
-                        continue;
-                    }
-                    let mut exps = vec![0u32; width];
-                    if g_neg {
-                        exps[0] = 1;
-                    }
                     let xi64 = xi as i64;
-                    let one_t = vec![EVALF];
-                    for j in 1..width {
-                        if val == one_t {
-                            break;
-                        }
-                        let p = base[j];
-                        let pi = p as i64;
-                        let hit = if soln1[j] < 0 {
+                    // hit test: which base primes land on this position
+                    let hit = |j: usize| -> bool {
+                        if soln1[j] < 0 {
                             skip[j]
                         } else {
-                            let xr = xi64 % pi;
+                            let xr = xi64 % base[j] as i64;
                             xr == soln1[j] || xr == soln2[j]
-                        };
-                        if !hit {
-                            continue;
                         }
-                        let pt = tape_u64(p);
-                        loop {
-                            let (q, r) = divmod(&val, &pt);
-                            if zero(&r) {
-                                exps[j] += 1;
-                                val = q;
+                    };
+                    // Produce the smooth relation (g_neg, exps, |Ax+B|) or skip.
+                    // Machine word while g fits it (fast), tapes when it would not.
+                    let relation: Option<(bool, Vec<u32>, Tape)> = if !wide {
+                        let x = xi as i128 - m;
+                        let g = a_i * x * x + 2 * b_i * x + cc_i;
+                        if g == 0 {
+                            None
+                        } else {
+                            let mut val = g.unsigned_abs();
+                            let mut exps = vec![0u32; width];
+                            if g < 0 {
+                                exps[0] = 1;
+                            }
+                            for j in 1..width {
+                                if val == 1 {
+                                    break;
+                                }
+                                if !hit(j) {
+                                    continue;
+                                }
+                                let pu = base[j] as u128;
+                                while val % pu == 0 {
+                                    exps[j] += 1;
+                                    val /= pu;
+                                }
+                            }
+                            if val != 1 {
+                                None
                             } else {
-                                break;
+                                for &idx in &ks {
+                                    exps[idx] += 1;
+                                }
+                                let axb = a_i * x + b_i;
+                                Some((g < 0, exps, u128_to_tape(axb.unsigned_abs())))
                             }
                         }
-                    }
-                    if val != one_t {
-                        continue;
-                    }
-                    for &idx in &ks {
-                        exps[idx] += 1;
-                    }
-                    // A x + B on the tapes; magnitude only, it is squared in combine
-                    let (_s, axb_t) = sadd((x_neg, mul(&a_t, &x_t)), (b_neg, b_t.clone()));
-                    let axb_t = trim(axb_t);
+                    } else {
+                        let x = xi as i128 - m;
+                        let x_neg = x < 0;
+                        let x_abs = x.unsigned_abs();
+                        let x_t = u128_to_tape(x_abs);
+                        let x2_t = u128_to_tape(x_abs.wrapping_mul(x_abs));
+                        let term1 = (false, mul(&a_t, &x2_t));
+                        let term2 = (b_neg ^ x_neg, mul(&mul(&tape_u64(2), &b_t), &x_t));
+                        let (g_neg, mut val) = sadd(sadd(term1, term2), (true, c_mag.clone()));
+                        let one_t = vec![EVALF];
+                        if zero(&val) {
+                            None
+                        } else {
+                            let mut exps = vec![0u32; width];
+                            if g_neg {
+                                exps[0] = 1;
+                            }
+                            for j in 1..width {
+                                if val == one_t {
+                                    break;
+                                }
+                                if !hit(j) {
+                                    continue;
+                                }
+                                let pt = tape_u64(base[j]);
+                                loop {
+                                    let (q, r) = divmod(&val, &pt);
+                                    if zero(&r) {
+                                        exps[j] += 1;
+                                        val = q;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                            if val != one_t {
+                                None
+                            } else {
+                                for &idx in &ks {
+                                    exps[idx] += 1;
+                                }
+                                let (_s, axb) = sadd((x_neg, mul(&a_t, &x_t)), (b_neg, b_t.clone()));
+                                Some((g_neg, exps, trim(axb)))
+                            }
+                        }
+                    };
+                    let (_g_neg, exps, axb_t) = match relation {
+                        Some(r) => r,
+                        None => continue,
+                    };
                     if !seen.insert(axb_t.clone()) {
                         continue;
                     }
@@ -794,7 +843,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                                 ag = mul(&ag, &u128_to_tape(base[c] as u128));
                             }
                         }
-                        let rhs = if g_neg { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
+                        let rhs = if _g_neg { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
                         std::eprintln!(
                             "[mpqs] identity (Ax+B)^2==A*g+N : {}",
                             if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" }
