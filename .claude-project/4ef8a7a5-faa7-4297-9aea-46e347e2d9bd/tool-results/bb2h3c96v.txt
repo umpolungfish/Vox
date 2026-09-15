@@ -1,0 +1,427 @@
+⊙> help
+[36m╭── [1;37mmOMonadOS — help[36m ─────────────────────────────────────────────╮[0m
+  [1;34mhelp <topic>[0m for any one command in detail.
+
+  [1;34mExec        [0m [2;37mExecution (run, tick, watch, timer, boot)[0m
+  [1;34mStatus      [0m [2;37mStatus (program, snapshot, graph, heatmap, registers)[0m
+  [1;34mPrograms    [0m [2;37mProgram loading (list, canonical, continuous, novel, shunt)[0m
+  [1;34mCrystal     [0m [2;37mCrystal FS (decode, store, find, name)[0m
+  [1;34mGrammar     [0m [2;37mGrammar bridges (ig, classify, frob, aleph, shor, rh, ym)[0m
+  [1;34mQuantum     [0m [2;37mQuantum computation (fibqc, jones, braids, shor, shors_btc_2, btc_oneshot, qft, iuft, sic, d12, d2048)[0m
+  [1;34mIMASM       [0m [2;37mIMASM word walks (cycle, weight, banked, insert, trans, arev)[0m
+  [1;34mKernel      [0m [2;37mKernel utilities (ask, spine, vessel, vita, whoami, ruleset)[0m
+  [1;34mRebis       [0m [2;37mRed-Hot Rebis (codon, translate, genetics, materials, bio, tx)[0m
+  [1;34mDialect     [0m [2;37mCross-dialect (ruleset, jump, seal, compound, whoami)[0m
+  [1;34mParaASM     [0m [2;37mParaASM (test, frob, kernel, load)[0m
+  [1;34mCr3echrz    [0m [2;37mTheorem engine + p4rakernel (cr3, p4ra)[0m
+  [1;34mSeals       [0m [2;37mSealed proofs — walk constant closure proofs step by step[0m
+  [1;34mProof       [0m [2;37mGuided proofs — walk a proof step by step on the kernel[0m
+  [1;34mHelp        [0m [2;37mHelp system (help <topic> for details)[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mExec[0m
+    [1;33mtick                  [0m Run N manual ticks (default 1)
+                           [2;37me.g. tick 10[0m
+    [1;33mrun                   [0m Run N ticks; no arg = continuous (ESC to stop)
+                           [2;37me.g. run 100[0m
+    [1;33mwatch                 [0m Live terminal HUD (ESC to stop)
+                           [2;37me.g. watch[0m
+    [1;33mtimer                 [0m Run N ticks, one per PIT interrupt
+                           [2;37me.g. timer 50[0m
+    [1;33mboot                  [0m Load + run any program (I-XXVIII or decimal)
+                           [2;37me.g. boot VII[0m
+    [1;33mload                  [0m Load program by Roman numeral
+                           [2;37me.g. load XII[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mStatus[0m
+    [1;33mstatus                [0m Kernel status (tick, IP, stack, fork, frob)
+                           [2;37me.g. status[0m
+    [1;33mprogram               [0m Show loaded program + fork depth
+                           [2;37me.g. program[0m
+    [1;33msnapshot              [0m Structural snapshot (sig, tier, period)
+                           [2;37me.g. snapshot[0m
+    [1;33mgraph                 [0m ASCII-art token graph with nesting
+                           [2;37me.g. graph[0m
+    [1;33mheatmap               [0m B4 memory heatmap
+                           [2;37me.g. heatmap[0m
+    [1;33mmemory                [0m Dump B4 memory
+                           [2;37me.g. memory[0m
+    [1;33mregisters             [0m Show R0-R7
+                           [2;37me.g. registers[0m
+    [1;33mcolor                 [0m Toggle terminal colour (alias colour)
+                           [2;37me.g. color on[0m
+    [1;33mstack                 [0m Stack depth
+                           [2;37me.g. stack[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mPrograms[0m
+    [1;33mlist                  [0m List all programs (I-XXVIII)
+                           [2;37me.g. list[0m
+    [1;33mcanonical             [0m Load canonical program I-XII
+                           [2;37me.g. canonical VII[0m
+    [1;33mcontinuous            [0m Load continuous program 1-4
+                           [2;37me.g. continuous 3[0m
+    [1;33mnovel                 [0m Load novel program 1-3
+                           [2;37me.g. novel 1[0m
+    [1;33mshunt                 [0m Load shunted program 1-9
+                           [2;37me.g. shunt 5[0m
+    [1;33mdynamic               [0m Dynamic mode: rebuild sequence from IgTuple each wrap
+                           [2;37me.g. dynamic on[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mCrystal[0m
+    [1;33mcrystal               [0m Decode address to 12-tuple: crystal <addr>
+                           [2;37me.g. crystal 42[0m
+    [1;33mcrystal store         [0m Store entry: crystal store <n> [d]
+                           [2;37me.g. crystal store my_system 42[0m
+    [1;33mcrystal name          [0m Retrieve by name: crystal name <n>
+                           [2;37me.g. crystal name sic_povm[0m
+    [1;33mcrystal find          [0m List stored entries
+                           [2;37me.g. crystal find[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mGrammar[0m
+    [1;33mig                    [0m IG tuple + crystal address
+                           [2;37me.g. ig[0m
+    [1;33mclassify              [0m Nearest-catalog classification
+                           [2;37me.g. classify[0m
+    [1;33mfrob                  [0m Frobenius harness status
+                           [2;37me.g. frob[0m
+    [1;33maleph                 [0m Hebrew glyph encoding: aleph <word>
+                           [2;37me.g. aleph שלום[0m
+    [1;33mrh                    [0m Riemann Hypothesis bridge
+                           [2;37me.g. rh[0m
+    [1;33mym                    [0m Yang-Mills mass gap bridge
+                           [2;37me.g. ym[0m
+    [1;33mtemp                  [0m Temporal logic bridge
+                           [2;37me.g. temp[0m
+    [1;33mcat                   [0m Category theory bridge
+                           [2;37me.g. cat[0m
+    [1;33malgebra               [0m distance|meet|join|tensor vs ZFC
+                           [2;37me.g. algebra distance[0m
+    [1;33mcl8nk                 [0m CLINK Layer 8: cl8nk <action> [name]
+                           [2;37me.g. cl8nk entry sic_povm[0m
+    [1;33mc4                    [0m Belnap C₄ complex plane (i²=B)
+                           [2;37me.g. c4[0m
+    [1;33mcscore                [0m Consciousness score (dual-gate)
+                           [2;37me.g. cscore[0m
+    [1;33mconstants             [0m MoDoT constant closure: fine-structure, proton-electron, lepton, boson, gravity
+                           [2;37me.g. constants[0m
+    [1;33movm                   [0m OVM Computation Tools
+                           [2;37me.g. ovm list[0m
+    [1;33moneshots              [0m the 10 exotic fixed-point nestings: inner already at outer's fixed point
+                           [2;37me.g. oneshots[0m
+    [1;33mctc                   [0m nest a value in an action; closure imposed where the action has none, priced by the width it smears
+                           [2;37me.g. ctc cycle T[0m
+    [1;33mcollatz               [0m the Collatz block nesting: blocks to one, the budget spectrum, and the records
+                           [2;37me.g. collatz 27[0m
+    [1;33mstraus                [0m the Erdős–Straus ladder: which rung r closes 4/n, and the spectrum across a range
+                           [2;37me.g. straus 49[0m
+    [1;33mnesting               [0m read a point against a map: q=r2/r1 splits attracted from never-arrives where one gap cannot
+                           [2;37me.g. nesting halve 203[0m
+    [1;33mcarriers              [0m census of the mu-delta=id carriers by class: one fixed point seen many ways, or a family
+                           [2;37me.g. carriers[0m
+    [1;33msubstrate             [0m closure constant, content bifurcating: the conservative substrate read on both observables
+                           [2;37me.g. substrate[0m
+    [1;33mstark                 [0m Stark unit extraction: formula,fibqc,tower,exponents,verify
+                           [2;37me.g. stark formula 2048[0m
+    [1;33mriemann               [0m Riemann-SIC report; sub-actions available
+                           [2;37me.g. riemann[0m
+    [1;33mdistance              [0m Hamming + weighted distance vs the ZFC baseline tuple (alias dist)
+                           [2;37me.g. distance[0m
+    [1;33mjoin                  [0m join of the active IG tuple with the ZFC baseline
+                           [2;37me.g. join[0m
+    [1;33msigma                 [0m sigma <n> — analyze the Sigma(n) divisor ring
+                           [2;37me.g. sigma 5[0m
+    [1;33mringspec              [0m ringspec <w1> <w2> <w3> — the spectrum of a ring, in integers: bond weights around a cycle, clean bond 1, cross-link its reaction centres; three is the minimum
+                           [2;37me.g. ringspec 1 2 2 1[0m
+    [1;33mclay                  [0m Clay Millennium structural status (machine-checked)
+                           [2;37me.g. clay[0m
+    [1;33mpsm                   [0m dialetheic alignment + measurement tests
+                           [2;37me.g. psm test[0m
+    [1;33mentropy               [0m entropy experiment: dS vs tier promotion
+                           [2;37me.g. entropy tier[0m
+    [1;33minvariant             [0m Discover invariants under transformations: ROTAT, IMSCRIB, FSPLIT/FFUSE
+                           [2;37me.g. invariant catalog under ROTAT[0m
+    [1;33mredteam               [0m Adversarial testing: analyze|stress|mutate, and audit <theory> for hidden assumptions
+                           [2;37me.g. redteam audit RH[0m
+    [1;33mwitness               [0m Smallest executable object standing behind a claim
+                           [2;37me.g. witness bsd[0m
+    [1;33mcounterfactual        [0m Perturb one glyph: invariants held/broken, reversibility, smallest repair (alias cf)
+                           [2;37me.g. counterfactual ⊢∈⊤∋⊣ rotate 1[0m
+    [1;33mbasin                 [0m Fixed-point archaeology: orbit, attractor, transient depth, exact basin size
+                           [2;37me.g. basin ⊢∈⊤∋ --action REPAIR[0m
+    [1;33mouroboros-inverse     [0m Inverse grammar: shortest IMASM word imscribing a tuple, plus its braid (alias oinv)
+                           [2;37me.g. oinv[0m
+    [1;33mfrobenius-fuzzer      [0m Mine the word space for programs the braid reproduces exactly (alias fuzz)
+                           [2;37me.g. fuzz --len 3[0m
+    [1;33moracle                [0m Adversarial: hunt the cheapest structural counterexample; surviving is not proof
+                           [2;37me.g. oracle rotat-register[0m
+    [1;33mblackbox              [0m Infer a law from integer observations, ranked by fit minus complexity
+                           [2;37me.g. blackbox 1 1 2 3 5 8 13[0m
+    [1;33mdialetheic-compiler   [0m Lift a classical gate into Belnap FOUR; show where a row rests on a paradox
+                           [2;37me.g. dialetheic-compiler xor[0m
+    [1;33mstark-geometer        [0m SIC Stark arithmetic for dimension d: m_d, unit, ramified primes
+                           [2;37me.g. stark-geometer 12[0m
+    [1;33mdialect-necromancer   [0m Imscribe a fragment and recover its nearest catalog ghost
+                           [2;37me.g. dialect-necromancer the boundary imscribes the bulk[0m
+    [1;33mbraid-apocrypha       [0m Search braid words for a target Jones magnitude; first hit is shortest
+                           [2;37me.g. braid-apocrypha --target 0.618034[0m
+    [1;33mproof-braider         [0m Lift a claim to a braid and back; PASS iff Frobenius closure survives
+                           [2;37me.g. proof-braider roundtrip Imscribing.Frobenius[0m
+    [1;33muniverse-wormhole     [0m Minimum gate-space path between two hop frameworks, as a braid + Jones
+                           [2;37me.g. universe-wormhole hqe fibonacci[0m
+    [1;33mvox-ce                [0m Lift EVM/WASM hex into an IMASM word and verdict its control-flow closure
+                           [2;37me.g. vox-ce evm 0x600160025b00[0m
+    [1;33mconsciousness-lath    [0m Single-axis mutation that most raises the C-score with both gates open
+                           [2;37me.g. consciousness-lath ⊢∈><⊤⋈⊙⊞∋⊡⊣[0m
+    [1;33mparadox-engine        [0m Hunt words that are dialetheias by four readings at once (B, price, gate1, C=0)
+                           [2;37me.g. paradox-engine --min-price 3[0m
+    [1;33mkey-dissolver         [0m SIC-narrowed bounded window before a BSGS split; recovers no real key
+                           [2;37me.g. key-dissolver 03f01d 40[0m
+    [1;33mcompiler              [0m Compile a braid to imasm/jones/lean, or a token word back to a braid
+                           [2;37me.g. compiler braid 1 2 1 --to imasm[0m
+    [1;33mcatalogue             [0m Synthesize candidate operators; rank by novelty against the catalog
+                           [2;37me.g. catalogue synthesize --top 5[0m
+    [1;33msk_forge              [0m Crystal Harvester: BIP39-SIC integrated structural gap analysis against O_∞ carriers; scalar is STRUCTURAL, never a key. Commands: forge, tuple, word, verify, carriers, bip39-sic, bip39-pipeline (alias sk-forge)
+                           [2;37me.g. sk_forge bip39-sic[0m
+    [1;33mmuseum                [0m The permanent collection of failed constructions — append-only negative knowledge
+                           [2;37me.g. museum open[0m
+    [1;33mphase                 [0m Phase as an object: orbit spectrum, phase period, and two-word interference
+                           [2;37me.g. phase interference ⊢∈⊤∋ ⊢⊤∈∋[0m
+    [1;33mdemonstrate           [0m Run a claim as an experiment: INPUT/OPERATION/OUTPUT/CHECK, computed live (alias demo)
+                           [2;37me.g. demonstrate mu-delta 1 2 -1[0m
+    [1;33mloss                  [0m What a transformation destroys: entropy in/out, bits destroyed, irreversible transitions
+                           [2;37me.g. loss collapse[0m
+    [1;33mshadow                [0m Ontological nearest-neighbour: shared structure and the measured critical difference
+                           [2;37me.g. shadow hsoa[0m
+    [1;33mprovenance            [0m Epistemic type check: dependency DAG graded by lattice MEET, not by best sibling (alias prov)
+                           [2;37me.g. prov RH[0m
+    [1;33mctc-loom              [0m Sweep the six Belnap actions over the whole word space; rank closures by price (alias loom)
+                           [2;37me.g. ctc-loom --len 3[0m
+    [1;33mcl9nk                 [0m CLINK L9, the replicative lateral: d(L8,L9) and the ladder read from L9
+                           [2;37me.g. cl9nk chain[0m
+    [1;33mcrystal-scope         [0m Substitution microscope: distance, tier, dS, gate jump, and the measured driver (alias cscope)
+                           [2;37me.g. cscope[0m
+    [1;33mminimal               [0m Shortest word achieving a target property
+                           [2;37me.g. minimal reach O_inf[0m
+    [1;33mrepair                [0m Ranked program/proof surgery with a proof-diff
+                           [2;37me.g. repair ⊢∈[0m
+    [1;33mmersearch             [0m Mersenne search: run|ll. Composite exponents answer at once (alias msearch)
+                           [2;37me.g. msearch ll 2213[0m
+    [1;33mpk2sk                 [0m PK→SK recovery: bounded-range ECDLP on secp256k1 — recover the scalar in [lo, hi) from its compressed public key, curve-gated, imscribed
+                           [2;37me.g. pk2sk selftest[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mQuantum[0m
+    [1;33mfibqc                 [0m Fibonacci anyon QC: verify | compile | jones | knot | winding (see also qc, jp)
+                           [2;37me.g. fibqc verify[0m
+    [1;33mqc                    [0m Compile a circuit over H T S X to a braid word; spaces optional; draw|svg|loop before the gates renders it, and two depths size the net and the recursion (aliases quantum_compile, fibqc compile)
+                           [2;37me.g. qc loop HTSX 10 3[0m
+    [1;33mbi                    [0m Draw a braid word — strand diagram in the terminal, SVG with `svg`, the closed braid as a ring with `loop`; window with start:count, column height with /N (alias braid_image)
+                           [2;37me.g. bi loop 1 2 -1 -2 1 2[0m
+    [1;33mjp                    [0m Jones polynomial at the 1/5 winding; signed Artin generators (alias jones_polynomial)
+                           [2;37me.g. jp 1 1 1[0m
+    [1;33mbg                    [0m Braid word to grammar tuple (alias braid-grammar); winding is a closed form in the writhe
+                           [2;37me.g. bg tuple 1,2,1 3[0m
+    [1;33mshor                  [0m Belnap Shor pipeline + dialetheic Fibonacci Shor (word ⊢∈≻⋈⊞∈⊤≻⊥≺∋⊙⋈⊡⊣); N=15,21
+                           [2;37me.g. shor dialetheic 15 7[0m
+    [1;33mshors_btc_2           [0m Shor over secp256k1 ECDLP: recover a Bitcoin private key from a public key (x,y)
+                           [2;37me.g. shors_btc_2[0m
+    [1;33mqft                   [0m Quantum Fourier Transform: circuit | phases | iqft | iqft braid | braid, on n qubits
+                           [2;37me.g. qft circuit 3[0m
+    [1;33mbtc_oneshot           [0m BTC Secret Key Oneshot Operator — structural verification & phase steps
+                           [2;37me.g. btc_oneshot verify[0m
+    [1;33mwinding               [0m Period as a torus winding: order | factor | closure | factorgen (alias wperiod)
+                           [2;37me.g. winding order 2 101[0m
+    [1;33miuft                  [0m IUFT QC gates — the 12->3 Euler-angle SU(2) encoding of an IG tuple
+                           [2;37me.g. iuft list[0m
+    [1;33mteich                 [0m IUFT <-> IUTT bridge: Teichmuller deformation paths as gate trajectories
+                           [2;37me.g. teich canonical[0m
+    [1;33mhqe                   [0m Holonomic quasi-ergodic quantale, MBL holonomy
+                           [2;37me.g. hqe report[0m
+    [1;33mdyson                 [0m Dyson beta-ensemble, double-ramified cycle
+                           [2;37me.g. dyson report[0m
+    [1;33mtroq                  [0m Triple-ramified ouroboric quantale
+                           [2;37me.g. troq report[0m
+    [1;33mafdmc                 [0m Asymptotic frozen-disordered monadic cohomology
+                           [2;37me.g. afdmc report[0m
+    [1;33mhop                   [0m Universe hopping, cross-framework transport
+                           [2;37me.g. hop report[0m
+    [1;33mmanifold              [0m Topological manifold operations
+                           [2;37me.g. manifold[0m
+    [1;33mtriple                [0m Triple-frame von Neumann superoperator algebra
+                           [2;37me.g. triple report[0m
+    [1;33msic                   [0m SIC-POVM d=12 identity, three lattice proofs
+                           [2;37me.g. sic[0m
+    [1;33mbip39                 [0m BIP39-SIC-POVM: search | words | verify | map | gap
+                           [2;37me.g. bip39 sic verify[0m
+    [1;33md12                   [0m d=12 SIC Phase VI: tower, magnitudes, orbits, existence, duallink, z0
+                           [2;37me.g. d12 tower[0m
+    [1;33md2048                 [0m d=2048 moduli tower ascent (alias d2k)
+                           [2;37me.g. d2048 next[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mIMASM[0m
+    [1;33mcycle                 [0m walk an IMASM word around its ROTAT orbit (glyphs only)
+                           [2;37me.g. cycle ⊢⊙∈⊤⊥∋⋈⊡⊣[0m
+    [1;33mweight                [0m where the weight moves through an IMASM word
+                           [2;37me.g. weight ⊢⊙∈⊤⊥∋⋈⊡⊣[0m
+    [1;33mbanked                [0m was a count cleared with nothing banked?
+                           [2;37me.g. banked ⊢⊙∈⊤⊥∋⋈⊡⊣[0m
+    [1;33minsert                [0m every one-glyph repair for an exposed word
+                           [2;37me.g. insert ⊢⊙∈⊤⊥⊞∋><⋈⊡⊣[0m
+    [1;33mtrans                 [0m transitions counted on the ring, closing edge included
+                           [2;37me.g. trans ⊢⊙∈⊤⊥∋⋈⊡⊣[0m
+    [1;33marev                  [0m H hop: read snapshot through the R1<->R2 mirror
+                           [2;37me.g. arev[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mKernel[0m
+    [1;33mask                   [0m kernel structural ask (dry). Full wet: host ./ask --file | -i
+                           [2;37me.g. ask What is the distance to CLINK L8?[0m
+    [1;33mspine                 [0m manuscript spine: PROVE->UNIFY->PORT x vessel (no Python)
+                           [2;37me.g. spine[0m
+    [1;33mvessel                [0m witness-vessel transport: Clay payloads x 88 dialects, frob-gated
+                           [2;37me.g. vessel[0m
+    [1;33mvita                  [0m one certified turn from the on-board vae_vita trunk
+                           [2;37me.g. vita[0m
+    [1;33mwhoami                [0m IG tuple under the active ruleset
+                           [2;37me.g. whoami --ruleset[0m
+    [1;33mruleset               [0m show the active ruleset
+                           [2;37me.g. ruleset[0m
+    [1;33mabsorption            [0m list all absorption rules
+                           [2;37me.g. absorption[0m
+    [1;33mreplicative           [0m load the program targeting O_inf_dag (R2) deliberately
+                           [2;37me.g. replicative[0m
+    [1;33mvox                   [0m Control-flow closure auditor: verdict <word> | evm <hex> | wasm <hex> | classify <mn>
+                           [2;37me.g. vox verdict ⊢∈⊤><>∋⊡[0m
+    [1;33mquit                  [0m halt the kernel (aliases exit, halt)
+                           [2;37me.g. quit[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mRebis[0m
+    [1;33mrebis codon           [0m Codon ↔ AA bidirectional
+                           [2;37me.g. rebis codon AUG[0m
+    [1;33mrebis translate       [0m Gene → protein pipeline
+                           [2;37me.g. rebis translate ATG...[0m
+    [1;33mrebis reverse         [0m Protein → mRNA → DNA
+                           [2;37me.g. rebis reverse MKY...[0m
+    [1;33mrebis frob            [0m Frobenius filtration (64 codons)
+                           [2;37me.g. rebis frob[0m
+    [1;33mrebis genetics        [0m 7-stage genetic code verification
+                           [2;37me.g. rebis genetics[0m
+    [1;33mrebis hadron          [0m Belnap hadron analysis
+                           [2;37me.g. rebis hadron[0m
+    [1;33mrebis serpent         [0m Serpent rod motif analysis
+                           [2;37me.g. rebis serpent[0m
+    [1;33mrebis pipeline        [0m IG promotion pipeline
+                           [2;37me.g. rebis pipeline[0m
+    [1;33mrebis strata          [0m Codon stratum counts
+                           [2;37me.g. rebis strata[0m
+    [1;33mrebis asm             [0m Genetic ParaASM programs
+                           [2;37me.g. rebis asm[0m
+    [1;33mrebis tuples          [0m 7-stage generative tuple pipeline
+                           [2;37me.g. rebis tuples[0m
+    [1;33mrebis clu             [0m CLU power-law clustering
+                           [2;37me.g. rebis clu[0m
+    [1;33mrebis exotic          [0m Exotic hadron Frobenius verification
+                           [2;37me.g. rebis exotic[0m
+    [1;33mrebis pdb             [0m PDB structure validation
+                           [2;37me.g. rebis pdb 1CRN[0m
+    [1;33mrebis antibody        [0m Antibody CDR design
+                           [2;37me.g. rebis antibody[0m
+    [1;33mrebis material        [0m IG material forge & metamaterials
+                           [2;37me.g. rebis material[0m
+    [1;33mrebis sidechain       [0m AA sidechain × environment algebra (20×4)
+                           [2;37me.g. rebis sidechain[0m
+    [1;33mrebis ligand          [0m Ligand design from catalytic sites
+                           [2;37me.g. rebis ligand[0m
+    [1;33mrebis decay           [0m Nuclear decay as IMASM winding
+                           [2;37me.g. rebis decay[0m
+    [1;33mrebis bio             [0m Biological computation
+                           [2;37me.g. rebis bio[0m
+    [1;33mrebis tx              [0m Therapeutics (chemo, pill, antidote)
+                           [2;37me.g. rebis tx[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mDialect[0m
+    [1;33mruleset show          [0m Active ruleset display
+                           [2;37me.g. ruleset show[0m
+    [1;33mruleset list          [0m List all 88 dialects
+                           [2;37me.g. ruleset list[0m
+    [1;33mruleset verify        [0m Invariant violation check
+                           [2;37me.g. ruleset verify[0m
+    [1;33mjump                  [0m Cross-dialect jump: jump <U> using <c>
+                           [2;37me.g. jump 42 using clay[0m
+    [1;33mseal                  [0m IFIX commit to current ruleset
+                           [2;37me.g. seal[0m
+    [1;33mwhoami --ruleset      [0m IG tuple under active ruleset
+                           [2;37me.g. whoami --ruleset[0m
+    [1;33mtensor                [0m Tensor under active absorption
+                           [2;37me.g. tensor[0m
+    [1;33mmeet                  [0m Meet under active absorption
+                           [2;37me.g. meet[0m
+    [1;33mabsorb_test           [0m Test absorption rule
+                           [2;37me.g. absorb_test[0m
+    [1;33mabsorption show       [0m List absorption rules
+                           [2;37me.g. absorption show[0m
+    [1;33mtstatus               [0m T-constitution pass/fail
+                           [2;37me.g. tstatus[0m
+    [1;33mcompound list         [0m List 11 diaschizic compounds
+                           [2;37me.g. compound list[0m
+    [1;33mcompound              [0m compound show|load <name>
+                           [2;37me.g. compound show I[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mParaASM[0m
+    [1;33mpsm test              [0m Dialetheic alignment + measurement
+                           [2;37me.g. psm test[0m
+    [1;33mpsm frob              [0m Frobenius identity cycle
+                           [2;37me.g. psm frob[0m
+    [1;33mpsm kernel            [0m Kernel-state B3 invariant loop
+                           [2;37me.g. psm kernel 5[0m
+    [1;33mpsm load              [0m Inline ParaASM program (; separator)
+                           [2;37me.g. psm load ENGAGR %r0; FSPLIT %r0 %r1 %r2; FFUSE %r1 %r2 %r0; HALT[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mCr3echrz[0m
+    [1;33mcr3                   [0m Theorem engine (Collatz, Goldbach, Three-Body, Burnside, ...)
+                           [2;37me.g. cr3[0m
+    [1;33mp4ra                  [0m p4rakernel Belnap+Frobenius 13-step bootstrap
+                           [2;37me.g. p4ra[0m
+    [1;33mcr3 --version         [0m cr3 version info
+                           [2;37me.g. cr3 --version[0m
+    [1;33mcr3 --list            [0m List theorems + p4rakernel modules
+                           [2;37me.g. cr3 --list[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mSeals[0m
+    [1;33mseals list            [0m List all 10 sealed proofs
+                           [2;37me.g. seals list[0m
+    [1;33mseals fine-structure  [0m α⁻¹ = d²−7 + arctan(1/4)/(4√3) + α²·d (3 steps)
+                           [2;37me.g. seals fine-structure[0m
+    [1;33mseals proton          [0m m_p/m_e = d³ + d(d−3) + α-dressing (2 steps)
+                           [2;37me.g. seals proton[0m
+    [1;33mseals lepton          [0m m_μ/m_e (exact rational), m_τ/m_e (2 steps)
+                           [2;37me.g. seals lepton[0m
+    [1;33mseals boson           [0m m_W, m_Z, m_H — π + ω forms (2 steps)
+                           [2;37me.g. seals boson[0m
+    [1;33mseals gravity         [0m α_G = α¹⁸·√3 (1 step)
+                           [2;37me.g. seals gravity[0m
+    [1;33mseals weinberg        [0m sin²θ_W = 3/13 (exact rational, 1 step)
+                           [2;37me.g. seals weinberg[0m
+    [1;33mseals cosmology       [0m ρ_Λ/ρ_Pl = e^{-44ω}/744 (1 step)
+                           [2;37me.g. seals cosmology[0m
+    [1;33mseals neutrino        [0m m₁:m₂:m₃ = 1:4:16 (1 step)
+                           [2;37me.g. seals neutrino[0m
+    [1;33mseals winding         [0m ω = 2π — all angles in windings (1 step)
+                           [2;37me.g. seals winding[0m
+    [1;33mseals residuals       [0m Where every remainders comes from (1 step)
+                           [2;37me.g. seals residuals[0m
+    [1;33mseals all             [0m GRAND SEAL — walk through all 10
+                           [2;37me.g. seals all[0m
+    [1;33mfold                  [0m The fold verdict of a word — closed form, surplus, the enclosure witness, the codon lane
+                           [2;37me.g. fold[0m
+    [1;33merdos                 [0m Guided walks through the Erdős manuscripts — list | schutte | landau | lcm
+                           [2;37me.g. erdos schutte[0m
+[36m├─────────────────────────────────────────────────────────────────┤[0m
+  [1;37mProof[0m
+    [1;33mproof list            [0m List available guided proofs
+                           [2;37me.g. proof list[0m
+    [1;33mproof bootstrap       [0m The Grammar verifying itself (7 steps, auto-play)
+                           [2;37me.g. proof bootstrap[0m
+    [1;33mprooflift             [0m Proof-lift report: undischarged claims and unrejoined forks as one object; `prooflift nest` runs the self-nest word, the proof of mu.delta=id itself (86065 glyphs, verdict T)
+                           [2;37me.g. prooflift nest[0m
+[36m╰─────────────────────────────────────────────────────────────────╯[0m
+⊙> quit
+Halting. μ∘δ=id.
+[SHUTDOWN] μ∘δ=id. Goodbye.

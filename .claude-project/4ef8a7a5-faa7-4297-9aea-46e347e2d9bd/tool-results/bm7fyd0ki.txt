@@ -1,0 +1,391 @@
+=== grep for AxiomB/AxiomC/AxiomD/axiom_b etc (case-insensitive) across whole repo (excluding .lake) ===
+README.md:309:| `genetic_tuples.py` | 7-stage tuple generation with Axiom C |
+stage0/src/kernel/declaration.h:193:  | axiomDecl       (val : AxiomVal)
+stage0/stdlib/Lean/Declaration.c:96:LEAN_EXPORT lean_object* l_Lean_Declaration_axiomDecl_elim___redArg(lean_object*, lean_object*);
+stage0/stdlib/Lean/Declaration.c:308:LEAN_EXPORT lean_object* l_Lean_Declaration_axiomDecl_elim(lean_object*, lean_object*, lean_object*, lean_object*);
+stage0/stdlib/Lean/Declaration.c:2510:LEAN_EXPORT lean_object* l_Lean_Declaration_axiomDecl_elim___redArg(lean_object* x_1, lean_object* x_2) {
+stage0/stdlib/Lean/Declaration.c:2518:LEAN_EXPORT lean_object* l_Lean_Declaration_axiomDecl_elim(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+p4ramill/Imscribing/Millennium/HornTorusEmission.lean:308:/-- Axiom C: Ð(if') ↔ Þ(are). Holographic dimensionality requires
+p4ramill/Imscribing/Millennium/HornTorusEmission.lean:313:theorem tensor_satisfies_axiom_C :
+p4ramill/Imscribing/Millennium/HornTorusEmission.lean:318:/-- Axiom B: Ω=ah requires Ħ ≥ sure. The horn torus has ah + wool,
+p4ramill/Imscribing/Millennium/HornTorusEmission.lean:320:theorem horn_torus_satisfies_axiom_B :
+p4ramill/Imscribing/Millennium/BanachMeasure.lean:221:  ("★ DIM_HOLO",  "dim",  "array",   "if'"),     -- HOLOGRAPHIC STATE SPACE (Axiom C)
+p4ramill/Imscribing/Millennium/BanachMeasure.lean:261:-- within the Imscribing Grammar. Axiom C (are ↔ if') is the critical
+p4ramill/archive/Primitives-pre-migration/Core.lean:80:-- are co-occurs with if' (see Axiom C below).
+p4ramill/archive/Primitives-pre-migration/Core.lean:275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+p4ramill/archive/Primitives-pre-migration/Core.lean:290:-- Axiom B: Integer winding number requires persistent chirality.
+p4ramill/archive/Primitives-pre-migration/Core.lean:295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+p4ramill/archive/Primitives-pre-migration/Core.lean:311:-- not the true type. The grammar corrects this via Axiom D.
+p4ramill/Imscribing/BoundaryOperators.lean:224:def axiomC_compound (a : Imscription) : Prop := a.dim = if' ∧ a.top = are
+p4ramill/Imscribing/BoundaryOperators.lean:226:def axiomB_compound (a : Imscription) : Prop := a.prot = ah ∧ a.chir ≠ fee
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:10:-- Axiom D (holographic_closure_forces_frobenius): if' + are + ah → or'
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:55:    - or' (𐑹): Frobenius-special — μ∘δ=id at s=1, forced by Axiom D
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:61:    - sure (𐑖): Persistent chirality — 2-step Markov memory (Axiom B requires H≥sure for ah)
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:137:/-- Axiom C (Core.lean): are → if'.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:139:theorem bsd_axiom_C : bsdResolved.top = .are → bsdResolved.dim = .if' := by
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:142:/-- Axiom B (Core.lean): ah requires H ≥ sure.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:144:theorem bsd_axiom_B : bsdResolved.prot = .ah → bsdResolved.chir ≥ .sure := by
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:147:/-- AXIOM D: THE RESOLUTION GATE.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:289:  closure) + ah (integer winding), via Axiom D.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:294:    then Axiom D forces or' (the Frobenius gate). -/
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:344:    Axiom D of the Imscribing Grammar: if' + are + ah → or'.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:351:    - bsd_axiom_D_forces_frobenius: Axiom D forces or'
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:358:    jointly force the BSD conclusion via Axiom D.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:379:  "Axiom D: if' + are + ah → or'\n" ++
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:82:theorem paradox_fs_satisfies_axiom_C :
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:83:    -- Axiom C: 𐑦 ↔ 𐑸
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:87:theorem paradox_fs_satisfies_axiom_B :
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:88:    -- Axiom B: 𐑭 requires Ħ ≥ 𐑖
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:112:-- Structural existence: O_inf + C=1 + Axiom C.
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:121:      paradox_fs_satisfies_axiom_C)
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:176:--   (c) Axiom C     (§3)
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:190:      paradox_fs_satisfies_axiom_C)
+p4ramill/SweepAll.lean:10:import Imscribing.AxiomD_Demotion
+p4ramill/SweepChunk0.lean:10:import Imscribing.AxiomD_Demotion
+p4ramill/Imscribing/Primitives/Imscription.lean:64:/-- Axiom C: an imscriptive topology requires imscriptive dimensionality.
+p4ramill/Imscribing/Primitives/Imscription.lean:81:/-- Axiom B: integer winding requires persistent chirality. Same repair. -/
+p4ramill/Imscribing/Primitives/Imscription.lean:91:/-- Axiom D, demoted. For any concrete imscription the predicate is decided by
+p4ramill/Imscribing/Primitives/Imscription.lean:254:-- if' and are are co-required (Axiom C).
+p4ramill/Imscribing/Primitives/Types/PrimitiveTypeOr.lean:25:def the_primitive_type_called_or_boundaryCondition : String := "Axiom D Holographic Closure"
+p4ramill/Imscribing/Tier2/CLU_GPM.lean:276:  -- Axiom B: 𐑴 requires Ħ₂ or 𐑫 (parity protection needs memory)
+p4ramill/Imscribing/Tier2/CLU_GPM.lean:277:  -- Axiom C: 𐑦 ↔ 𐑸 (self-written state-space ↔ self-referential topology)
+p4ramill/Imscribing/Tier2/CLU_GPM.lean:278:  -- Axiom D: Frobenius condition μ∘δ=id at P_special
+p4ramill/Imscribing/CLINK.lean:196:theorem cellLayer_axiom_C : cellLayer.dim = Dimensionality.if' ∧
+p4ramill/Imscribing/CLINK.lean:330:  ["Ð: 𐑼 → 𐑦  (dimensionality: infinite→self-written)  ← AXIOM C",
+p4ramill/Imscribing/CLINK.lean:1094:-- Together these close Axiom C (are requires if') and achieve full
+p4ramill/Imscribing/CLINK.lean:1101:-- ZFC_t violates Axiom C: it has are (holographic topology) but
+p4ramill/Imscribing/CLINK.lean:1102:-- array (infinite-dimensional, not self-written). Axiom C states:
+p4ramill/Imscribing/CLINK.lean:1105:-- To satisfy Axiom C, the state space must be self-written:
+p4ramill/Imscribing/CLINK.lean:1254:    · dim: array → if'  (Axiom C closure: are requires if')
+p4ramill/Imscribing/CLINK.lean:1259:  dim  := Dimensionality.if'       -- ✅ Axiom C: are + if' (holographic closure)
+p4ramill/Imscribing/CLINK.lean:1287:  ("dim",  "array → if'"),     -- HOLOGRAPHIC STATE (NEW: Axiom C)
+p4ramill/Imscribing/CLINK.lean:1321:-- §6: AXIOM C VERIFICATION
+p4ramill/Imscribing/CLINK.lean:1324:/-- Axiom C satisfaction: zfc_fe has are AND if'.
+p4ramill/Imscribing/CLINK.lean:1328:    ontological precondition (Axiom C: are → if'). -/
+p4ramill/Imscribing/CLINK.lean:1333:/-- Axiom B satisfaction: ah requires H ≥ sure.
+p4ramill/Imscribing/CLINK.lean:1334:    zfc_fe has wool ≥ sure, so Axiom B is satisfied. -/
+p4ramill/Imscribing/CLINK.lean:1342:/-- Axiom D satisfaction: if' + are + ah → or'.
+p4ramill/Imscribing/CLINK.lean:1344:    and has or', so Axiom D is satisfied. -/
+p4ramill/Imscribing/CLINK.lean:1447:    so violates Axiom C. This is exactly ZFC_t's unresolved inconsistency. -/
+src/kernel/declaration.h:193:  | axiomDecl       (val : AxiomVal)
+p4ramill/archive/Primitives-pre-migration/Imscription.lean:187:-- if' and are are co-required (Axiom C).
+p4ramill/SIC.txt:652:  exact equiangular_from_stark_axiom d hd hns sc a b hab
+p4ramill/SIC.txt:658:  exact norm_of_normalized_axiom d hd hns sc
+p4ramill/SIC.txt:10712:  exact equiangular_from_stark_axiom d hd hns sc a b hab
+p4ramill/SIC.txt:10718:  exact norm_of_normalized_axiom d hd hns sc
+p4ramill/ParaconsistentTier2.lean:282:  -- Axiom B: Ω_Z2 requires Ħ₂ or Ħ_∞ (parity protection needs memory)
+p4ramill/ParaconsistentTier2.lean:283:  -- Axiom C: Ð_⊙ ↔ Þ_⊙ (self-written state-space ↔ self-referential topology)
+p4ramill/ParaconsistentTier2.lean:284:  -- Axiom D: Frobenius condition μ∘δ=id at P_special
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:17:-- Axiom D (from Core.lean): if' + are + ah -> or'
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:23:-- The only OpenProblem -- BSD itself -- is structurally resolved by Axiom D.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:76:/-- STEP 1: BSD satisfies Axiom D's preconditions.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:84:/-- STEP 2: Axiom D forces or' (Frobenius identity).
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:142:      4. Axiom D (grammar): if' + are + ah -> or'.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:155:    not open problems. The grammar's Axiom D provides the missing logical
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:167:  "Grammar: Imscribing Grammar (Axiom D)\n" ++
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:185:  "The grammar (Axiom D) provides the missing logical step."
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:2:-- Hodge Conjecture: Witness via Double-Holographic Frobenius Forcing (Axiom D)
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:24:/-- AXIOM D (Core.lean): if' + are + ah → or'.
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:30:    H^{2p}(X,ℤ) ∩ H^{p,p}), Axiom D forces or'.
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:43:    EXCEPT or' — which is precisely what Axiom D forces
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:57:    predicts surjectivity for all p via Axiom D.
+p4ramill/Imscribing/Millennium/HadwigerNelson.lean:545:def AxiomDependence : Prop :=
+p4ramill/Imscribing/Millennium/HadwigerNelson.lean:606:4. **AxiomDependence**: Proved (Shelah & Soifer 2003). The construction
+p4ramill/Imscribing/Millennium/Master_Witness.lean:47:/-- Axiom C: are → if'. Satisfied. -/
+p4ramill/Imscribing/Millennium/Master_Witness.lean:48:theorem universal_O_inf_axiom_C :
+p4ramill/Imscribing/Millennium/Master_Witness.lean:52:/-- Axiom B: ah → H ≥ sure. Satisfied. -/
+p4ramill/Imscribing/Millennium/Master_Witness.lean:53:theorem universal_O_inf_axiom_B :
+p4ramill/Imscribing/Millennium/Master_Witness.lean:57:/-- Axiom D: if' + are + ah → or'. Satisfied. -/
+p4ramill/Imscribing/Millennium/Master_Witness.lean:58:theorem universal_O_inf_axiom_D :
+p4ramill/Imscribing/Millennium/Master_Witness.lean:70:    | Hodge | nun→or'   | Axiom D: if'+are+𐑭→or' | Primitive bridge translation |
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:439:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:441:    This is a cross-primitive grammar axiom at the same level as Axiom B and C.
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:445:    Axiom D forces its polarity to or'.
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:461:    Axiom D (Core.lean) → hodge_polarity_forced_pm_sym (here)
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:465:/-- **PRIMITIVE-LEVEL CONSEQUENCE OF AXIOM D** — Grammar theorem, 0 sorries.
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:471:    which is false, and was derivable only because Axiom D quantified over an
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:488:  structurally inconsistent under Axiom D. The conventional nun assignment
+p4ramill/Imscribing/Millennium/SIC_POVM_Stark.lean:243:  exact equiangular_from_stark_axiom d hd hns sc a b hab
+p4ramill/Imscribing/Millennium/SIC_POVM_Stark.lean:249:  exact norm_of_normalized_axiom d hd hns sc
+p4ramill/.voxsweep/verdicts_elf.tsv:11:Imscribing/AxiomD_Demotion	0	4	47	0	41
+p4ramill/Imscribing/AgentSelf.lean:64:-- Axiom C: if' + are = valid (both holographic)
+p4ramill/Imscribing/AgentSelf.lean:65:-- Axiom B: ah requires H ≥ sure (satisfied: H = sure)
+p4ramill/Imscribing/HowDiracEquationArise.lean:302:-- Steps 2 and 3 are coupled: are requires if' (Axiom C).
+p4ramill/.voxsweep/verdicts.tsv:11:AxiomD_Demotion.olean	8	1926	4248	0	4789
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:16:--   Furthermore, Axiom C (Core.lean): are → if'. The resolved BSD uses
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:55:    sure       (𐑖) — persistent chirality: ah requires H ≥ sure (Axiom B)
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:104:/-- Axiom C (Core.lean): are → if'.
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:106:theorem bsd_axiom_C : birchSwinnertonDyer.top = .are →
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:110:/-- Axiom B (Core.lean): ah protection requires persistent chirality H ≥ sure.
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:112:theorem bsd_axiom_B : birchSwinnertonDyer.prot = .ah →
+p4ramill/Imscribing/Millennium/RH.lean:20:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/RH.lean:25:    The RH primitive signature is constrained by Axiom D.
+p4ramill/Imscribing/Millennium/RH.lean:135:    Axiom D (Core.lean)
+p4ramill/Imscribing/Millennium/NS_Resolution.lean:127:/-- Axiom C (Core.lean): are → if'.
+p4ramill/Imscribing/Millennium/NS_Resolution.lean:129:theorem ns_axiom_C : navierStokesResolved.top = .are →
+p4ramill/Imscribing/Millennium/NS_Resolution.lean:133:/-- Axiom B (Core.lean): oak protection requires chirality H ≥ kick.
+p4ramill/Imscribing/Millennium/NS_Resolution.lean:135:theorem ns_axiom_B : navierStokesResolved.prot = .oak →
+p4ramill/Imscribing/GeneToProtein.lean:8:--      to satisfy Axiom C (D_ω ↔ T_⊙) — the folding landscape IS self-written by the
+p4ramill/Imscribing/GeneToProtein.lean:64:    to satisfy Axiom C: the folded state's conformational space is written
+p4ramill/Imscribing/GeneToProtein.lean:225:    - Axiom C consistency (D_ω ↔ T_⊙ for folding stages)
+p4ramill/Imscribing/GeneToProtein.lean:229:    All 7 stages: Frobenius ✓  Axiom C: ✓  φ̂/Ç compatibility: ✓
+p4ramill/Imscribing/GeneToProtein.lean:247:  "Quaternary structure dominates; prior stages are meet-sublattices (D=ω ⊢ Axiom C)"
+p4ramill/Imscribing/IGMorphism.lean:13:--   P3. Reflect (if', Axiom C*) : imscriptive self-protocol
+p4ramill/Imscribing/IGMorphism.lean:15:-- Axiom C* (MillenniumAnkh one-way form): are → if' (not biconditional).
+p4ramill/Imscribing/IGMorphism.lean:19:-- (NOT are), deliberately exercising the weaker Axiom C*: if' without are
+p4ramill/Imscribing/IGMorphism.lean:111:/-- Witness: imscriptive state — inner eye (if', satisfies Axiom C*: are forces if',
+p4ramill/Imscribing/IGMorphism.lean:147:theorem litany_witness_satisfies_axiom_C
+p4ramill/Imscribing/IGMorphism.lean:199:/-- P3. Imscriptive self-reference (Axiom C*: if' as holographic boundary).
+p4ramill/Imscribing/IGMorphism.lean:225:    exercising the weaker Axiom C*: if' without are is permissible.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:114:    ash: local simplicial (1D complex manifold) — chosen over if' to satisfy Axiom C.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:885:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:913:/-- The corrected imscription of the Hodge conjecture under Axiom D.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:922:  pol  := or',       -- ← FORCED by Axiom D: Frobenius-special (μ∘δ=id)
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:932:/-- **Axiom D consequence for the corrected Hodge encoding** (theorem, 0 sorries).
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:933:    Given if' + are + ah, Axiom D forces pol = or'.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:953:      Axiom D → or' → (this bridge) → HodgeSplit → regulator surjective
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:994:    Axiom D (Core.lean) → or' for Hodge → semantic bridge → HodgeSplit.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1016:    Chain: Axiom D → or' → semantic bridge → HodgeSplit →
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1034:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1039:    The RH primitive signature is constrained by Axiom D.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1061:    Chain: Axiom D → zeta_zeros_frobenius_fixed (RH_ZFCt_Bridge.lean, ONE axiom) →
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1097:    Axiom D (Core.lean): if' + are + ah → or'
+p4ramill/Imscribing/Millennium/CrystalBoot.lean:109:theorem kernel_satisfies_axiom_C :
+p4ramill/Imscribing/Millennium/CrystalBoot.lean:113:theorem kernel_satisfies_axiom_B :
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:109:/-- Axiom C: holographic dimensionality with self-referential topology. -/
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:110:theorem godel_complete_sentence_axiom_C :
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:115:/-- Axiom B: integer winding requires chirality ≥ sure. -/
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:116:theorem godel_complete_sentence_axiom_B :
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:169:    (godel_complete_sentence_axiom_C).2⟩
+p4ramill/Imscribing/Millennium/GodelCompletion.lean:92:/-- Axiom C: holographic dimensionality with self-referential topology. -/
+p4ramill/Imscribing/Millennium/GodelCompletion.lean:93:theorem godel_completion_axiom_C :
+p4ramill/Imscribing/Millennium/GodelCompletion.lean:97:/-- Axiom B: integer winding requires chirality ≥ sure. -/
+p4ramill/Imscribing/Millennium/GodelCompletion.lean:98:theorem godel_completion_axiom_B :
+p4ramill/Imscribing/NumberTheory/HnGcdTheorem.lean:197:/-- Axiom B: Ω ≥ .oak requires H ≥ .sure. Here Ω=.ah, H=.wool → satisfied. -/
+p4ramill/Imscribing/NumberTheory/HnGcdTheorem.lean:201:/-- Axiom C (D=.if' ↔ T=.are) is vacuous: D=.array, not .if'. -/
+p4ramill/Imscribing/Primitives/Types/PrimitiveTypeOut.lean:30:def the_primitive_type_called_out_registerFalse : String := "inconsistent type assignment violating Axiom C or Axiom D"
+p4ramill/Imscribing/Primitives/Types/PrimitiveTypeOut.lean:51:--   The permanent fixation of structural constraints like Axiom D into the kernel.
+p4ramill/Imscribing/Ob3ects/GateCheck/correct_formulation_of_axiom_d_gate_check.lean:2:-- Class: Correct Formulation of Axiom D
+src/Lean/Language/Lean.lean:44:structure a where /-- b -/ @[c] private axiom d : Nat
+p4ramill/Imscribing/Primitives/Core.lean:82:-- are co-occurs with if' (see Axiom C below).
+p4ramill/Imscribing/Primitives/Core.lean:278:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+p4ramill/Imscribing/Primitives/Core.lean:290:-- Axiom C is now the predicate `ImscriptiveTopology` in Primitives/Imscription.lean.
+p4ramill/Imscribing/Primitives/Core.lean:294:-- Axiom B: Integer winding number requires persistent chirality.
+p4ramill/Imscribing/Primitives/Core.lean:296:-- Axiom B is now the predicate `WindingNeedsChirality` in
+p4ramill/Imscribing/Primitives/Core.lean:301:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+p4ramill/Imscribing/Primitives/Core.lean:317:-- not the true type. The grammar corrects this via Axiom D.
+p4ramill/Imscribing/Primitives/Core.lean:321:-- Axiom D was here, as `holographic_closure_forces_frobenius`. It is now the
+tests/lean/run/6999.lean:13:axiom B : A → Type
+src/Lean/Elab/PreDefinition/Basic.lean:132:    addDecl <| Declaration.axiomDecl { name := preDef.declName, levelParams := preDef.levelParams, type := preDef.type, isUnsafe := preDef.modifiers.isUnsafe }
+tests/lean/run/simpUnusedArgs.lean:297:axiom b : Nat
+src/LeanChecker/Replay.lean:103:        addDecl (Declaration.axiomDecl  info)
+src/Lean/AddDecl.lean:135:    | .axiomDecl ax => pure (ax.name, .axiomInfo ax, .axiom)
+src/Lean/AddDecl.lean:206:      let fallbackDecl := .axiomDecl {
+src/Lean/AddDecl.lean:219:      let fallbackDecl := .axiomDecl {
+p4ramill/Imscribing/SerpentRod.lean:268:    𐑦: self-written folding landscape (Axiom C)
+tests/lean/run/5407.lean:40:axiom b : B
+tests/lean/run/tryHeuristicPerfIssue2.lean:127:axiom C : Type
+tests/lean/run/tryHeuristicPerfIssue2.lean:128:axiom C.add   : C → C → C
+src/Lean/Meta/Basic.lean:420:  unfoldAxiomCounter : PHashMap Name Nat := {}
+src/Lean/Meta/Basic.lean:681:  modifyDiag fun { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures } =>
+src/Lean/Meta/Basic.lean:683:    { unfoldCounter := unfoldCounter.insert declName newC, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures }
+src/Lean/Meta/Basic.lean:686:  modifyDiag fun { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures } =>
+src/Lean/Meta/Basic.lean:687:    let newC := if let some c := unfoldAxiomCounter.find? declName then c + 1 else 1
+src/Lean/Meta/Basic.lean:688:    { unfoldCounter, unfoldAxiomCounter := unfoldAxiomCounter.insert declName newC, heuristicCounter, instanceCounter, synthPendingFailures }
+src/Lean/Meta/Basic.lean:692:    { unfoldCounter, unfoldAxiomCounter := {}, heuristicCounter, instanceCounter, synthPendingFailures }
+src/Lean/Meta/Basic.lean:696:  modifyDiag fun { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures } =>
+src/Lean/Meta/Basic.lean:698:    { unfoldCounter, unfoldAxiomCounter, heuristicCounter := heuristicCounter.insert declName newC, instanceCounter, synthPendingFailures }
+src/Lean/Meta/Basic.lean:702:  modifyDiag fun { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures } =>
+src/Lean/Meta/Basic.lean:704:    { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter := instanceCounter.insert declName newC, synthPendingFailures }
+src/Lean/Meta/Basic.lean:712:      modifyDiag fun { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures } =>
+src/Lean/Meta/Basic.lean:713:        { unfoldCounter, unfoldAxiomCounter, heuristicCounter, instanceCounter, synthPendingFailures := synthPendingFailures.insert type msg }
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:599:    if', are — satisfies Axiom D, so or' carries. -/
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:709:-- THE HODGE CONJECTURE AND AXIOM D
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:713:    Axiom D (holographic_closure_forces_frobenius) forces or'.
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:764:    Axiom D forces or', pushing it to O_inf in the canonical universe.
+p4ramill/Imscribing/Millennium/UnificationConvergence.lean:116:theorem zfc_fe_satisfies_axiom_c : zfc_fe_Tuple.top = are ∧ zfc_fe_Tuple.dim = if' := by
+src/Lean/Replay.lean:86:        addDecl (Declaration.axiomDecl  info)
+src/Lean/Compiler/Old.lean:33:  | .axiomDecl { name, .. }  => #[name] -- axiom may be tagged with `@[extern ...]`
+p4ramill/Imscribing/Ob3ects/GateCheck/correct_formulation_of_axiom_c_gate_check.lean:2:-- Class: Correct Formulation of Axiom C
+p4ramill/Imscribing/Ob3ects/GateCheck/correct_formulation_of_axiom_b_gate_check.lean:2:-- Class: Correct Formulation of Axiom B
+src/Lean/Meta/Diagnostics.lean:91:    let unfoldAxiom ← mkDiagSummary `reduction (← get).diag.unfoldAxiomCounter
+tests/bench/simp_local.lean:20:axiom b : V
+tests/lean/run/partial_fixpoint_mutual.lean:4:axiom B : Type
+tests/lean/run/partial_fixpoint_mutual.lean:7:axiom B.toA : B → A
+src/Lean/Elab/Declaration.lean:125:        let decl := Declaration.axiomDecl {
+src/Lean/Declaration.lean:178:  | axiomDecl       (val : AxiomVal)
+src/Lean/Declaration.lean:205:  | .axiomDecl val          => [val.name]
+src/Lean/Declaration.lean:219:  | .axiomDecl val          => [val.name]
+src/Lean/Declaration.lean:230:  | .axiomDecl { type := type, .. }                  => f a type
+src/Lean/Compiler/LCNF/Types.lean:152:          let blocked := (← get).diag.unfoldAxiomCounter.toList.filterMap fun (n, count) => do
+src/Lean/Compiler/LCNF/Types.lean:153:            let count := count - origDiag.unfoldAxiomCounter.findD n 0
+src/Lean/Meta/Check.lean:204:      let blocked := (← get).diag.unfoldAxiomCounter.toList.filterMap fun (n, count) => do
+src/Lean/Meta/Check.lean:205:        let count := count - origDiag.unfoldAxiomCounter.findD n 0
+tests/lean/run/issue5828.lean:2:axiom b : Nat
+tests/lean/withLocationImplementationDetails.lean:2:axiom B : Nat
+tests/lean/run/kernelInterrupt.lean:17:    let decl := .axiomDecl {
+tests/lean/run/tryHeuristicPerfIssue.lean:125:axiom C : Type
+tests/lean/run/tryHeuristicPerfIssue.lean:126:axiom C.add   : C → C → C
+tests/lean/run/grind_11690.lean:19:axiom b : α
+tests/lean/run/bv_axiom_check.lean:5:theorem bv_axiomCheck (x y z : BitVec 1) : x < y → y < z → x < z := by bv_decide
+tests/lean/run/bv_axiom_check.lean:8:info: 'bv_axiomCheck' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool, Lean.trustCompiler, Quot.sound]
+tests/lean/run/bv_axiom_check.lean:11:#print axioms bv_axiomCheck
+=== grep for 'Axiom B'/'Axiom C'/'Axiom D' text ===
+README.md:309:| `genetic_tuples.py` | 7-stage tuple generation with Axiom C |
+p4ramill/archive/Primitives-pre-migration/Core.lean:80:-- are co-occurs with if' (see Axiom C below).
+p4ramill/archive/Primitives-pre-migration/Core.lean:275:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+p4ramill/archive/Primitives-pre-migration/Core.lean:290:-- Axiom B: Integer winding number requires persistent chirality.
+p4ramill/archive/Primitives-pre-migration/Core.lean:295:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+p4ramill/archive/Primitives-pre-migration/Core.lean:311:-- not the true type. The grammar corrects this via Axiom D.
+p4ramill/Imscribing/SerpentRod.lean:268:    𐑦: self-written folding landscape (Axiom C)
+p4ramill/Imscribing/Millennium/HornTorusEmission.lean:308:/-- Axiom C: Ð(if') ↔ Þ(are). Holographic dimensionality requires
+p4ramill/Imscribing/Millennium/HornTorusEmission.lean:318:/-- Axiom B: Ω=ah requires Ħ ≥ sure. The horn torus has ah + wool,
+p4ramill/Imscribing/Millennium/Master_Witness.lean:47:/-- Axiom C: are → if'. Satisfied. -/
+p4ramill/Imscribing/Millennium/Master_Witness.lean:52:/-- Axiom B: ah → H ≥ sure. Satisfied. -/
+p4ramill/Imscribing/Millennium/Master_Witness.lean:57:/-- Axiom D: if' + are + ah → or'. Satisfied. -/
+p4ramill/Imscribing/Millennium/Master_Witness.lean:70:    | Hodge | nun→or'   | Axiom D: if'+are+𐑭→or' | Primitive bridge translation |
+p4ramill/Imscribing/CLINK.lean:330:  ["Ð: 𐑼 → 𐑦  (dimensionality: infinite→self-written)  ← AXIOM C",
+p4ramill/Imscribing/CLINK.lean:1094:-- Together these close Axiom C (are requires if') and achieve full
+p4ramill/Imscribing/CLINK.lean:1101:-- ZFC_t violates Axiom C: it has are (holographic topology) but
+p4ramill/Imscribing/CLINK.lean:1102:-- array (infinite-dimensional, not self-written). Axiom C states:
+p4ramill/Imscribing/CLINK.lean:1105:-- To satisfy Axiom C, the state space must be self-written:
+p4ramill/Imscribing/CLINK.lean:1254:    · dim: array → if'  (Axiom C closure: are requires if')
+p4ramill/Imscribing/CLINK.lean:1259:  dim  := Dimensionality.if'       -- ✅ Axiom C: are + if' (holographic closure)
+p4ramill/Imscribing/CLINK.lean:1287:  ("dim",  "array → if'"),     -- HOLOGRAPHIC STATE (NEW: Axiom C)
+p4ramill/Imscribing/CLINK.lean:1321:-- §6: AXIOM C VERIFICATION
+p4ramill/Imscribing/CLINK.lean:1324:/-- Axiom C satisfaction: zfc_fe has are AND if'.
+p4ramill/Imscribing/CLINK.lean:1328:    ontological precondition (Axiom C: are → if'). -/
+p4ramill/Imscribing/CLINK.lean:1333:/-- Axiom B satisfaction: ah requires H ≥ sure.
+p4ramill/Imscribing/CLINK.lean:1334:    zfc_fe has wool ≥ sure, so Axiom B is satisfied. -/
+p4ramill/Imscribing/CLINK.lean:1342:/-- Axiom D satisfaction: if' + are + ah → or'.
+p4ramill/Imscribing/CLINK.lean:1344:    and has or', so Axiom D is satisfied. -/
+p4ramill/Imscribing/CLINK.lean:1447:    so violates Axiom C. This is exactly ZFC_t's unresolved inconsistency. -/
+p4ramill/Imscribing/Millennium/GodelCompletion.lean:92:/-- Axiom C: holographic dimensionality with self-referential topology. -/
+p4ramill/Imscribing/Millennium/GodelCompletion.lean:97:/-- Axiom B: integer winding requires chirality ≥ sure. -/
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:109:/-- Axiom C: holographic dimensionality with self-referential topology. -/
+p4ramill/Imscribing/Millennium/GodelCompleteSentence.lean:115:/-- Axiom B: integer winding requires chirality ≥ sure. -/
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:439:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:441:    This is a cross-primitive grammar axiom at the same level as Axiom B and C.
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:445:    Axiom D forces its polarity to or'.
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:461:    Axiom D (Core.lean) → hodge_polarity_forced_pm_sym (here)
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:465:/-- **PRIMITIVE-LEVEL CONSEQUENCE OF AXIOM D** — Grammar theorem, 0 sorries.
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:471:    which is false, and was derivable only because Axiom D quantified over an
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:488:  structurally inconsistent under Axiom D. The conventional nun assignment
+p4ramill/SIC.txt:652:  exact equiangular_from_stark_axiom d hd hns sc a b hab
+p4ramill/SIC.txt:658:  exact norm_of_normalized_axiom d hd hns sc
+p4ramill/SIC.txt:10712:  exact equiangular_from_stark_axiom d hd hns sc a b hab
+p4ramill/SIC.txt:10718:  exact norm_of_normalized_axiom d hd hns sc
+p4ramill/ParaconsistentTier2.lean:282:  -- Axiom B: Ω_Z2 requires Ħ₂ or Ħ_∞ (parity protection needs memory)
+p4ramill/ParaconsistentTier2.lean:283:  -- Axiom C: Ð_⊙ ↔ Þ_⊙ (self-written state-space ↔ self-referential topology)
+p4ramill/ParaconsistentTier2.lean:284:  -- Axiom D: Frobenius condition μ∘δ=id at P_special
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:10:-- Axiom D (holographic_closure_forces_frobenius): if' + are + ah → or'
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:55:    - or' (𐑹): Frobenius-special — μ∘δ=id at s=1, forced by Axiom D
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:61:    - sure (𐑖): Persistent chirality — 2-step Markov memory (Axiom B requires H≥sure for ah)
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:137:/-- Axiom C (Core.lean): are → if'.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:142:/-- Axiom B (Core.lean): ah requires H ≥ sure.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:147:/-- AXIOM D: THE RESOLUTION GATE.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:289:  closure) + ah (integer winding), via Axiom D.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:294:    then Axiom D forces or' (the Frobenius gate). -/
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:344:    Axiom D of the Imscribing Grammar: if' + are + ah → or'.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:351:    - bsd_axiom_D_forces_frobenius: Axiom D forces or'
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:358:    jointly force the BSD conclusion via Axiom D.
+p4ramill/Imscribing/Millennium/BSD_Complete_Witness.lean:379:  "Axiom D: if' + are + ah → or'\n" ++
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:599:    if', are — satisfies Axiom D, so or' carries. -/
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:709:-- THE HODGE CONJECTURE AND AXIOM D
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:713:    Axiom D (holographic_closure_forces_frobenius) forces or'.
+p4ramill/Imscribing/Millennium/UniverseRulesets.lean:764:    Axiom D forces or', pushing it to O_inf in the canonical universe.
+p4ramill/Imscribing/Primitives/Types/PrimitiveTypeOr.lean:25:def the_primitive_type_called_or_boundaryCondition : String := "Axiom D Holographic Closure"
+p4ramill/Imscribing/Millennium/SIC_POVM_Stark.lean:243:  exact equiangular_from_stark_axiom d hd hns sc a b hab
+p4ramill/Imscribing/Millennium/SIC_POVM_Stark.lean:249:  exact norm_of_normalized_axiom d hd hns sc
+p4ramill/Imscribing/Primitives/Types/PrimitiveTypeOut.lean:30:def the_primitive_type_called_out_registerFalse : String := "inconsistent type assignment violating Axiom C or Axiom D"
+p4ramill/Imscribing/Primitives/Types/PrimitiveTypeOut.lean:51:--   The permanent fixation of structural constraints like Axiom D into the kernel.
+p4ramill/Imscribing/HowDiracEquationArise.lean:302:-- Steps 2 and 3 are coupled: are requires if' (Axiom C).
+p4ramill/Imscribing/Millennium/RH.lean:20:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/RH.lean:25:    The RH primitive signature is constrained by Axiom D.
+p4ramill/Imscribing/Millennium/RH.lean:135:    Axiom D (Core.lean)
+p4ramill/Imscribing/Millennium/NS_Resolution.lean:127:/-- Axiom C (Core.lean): are → if'.
+p4ramill/Imscribing/Millennium/NS_Resolution.lean:133:/-- Axiom B (Core.lean): oak protection requires chirality H ≥ kick.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:17:-- Axiom D (from Core.lean): if' + are + ah -> or'
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:23:-- The only OpenProblem -- BSD itself -- is structurally resolved by Axiom D.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:76:/-- STEP 1: BSD satisfies Axiom D's preconditions.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:84:/-- STEP 2: Axiom D forces or' (Frobenius identity).
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:142:      4. Axiom D (grammar): if' + are + ah -> or'.
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:155:    not open problems. The grammar's Axiom D provides the missing logical
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:167:  "Grammar: Imscribing Grammar (Axiom D)\n" ++
+p4ramill/Imscribing/Millennium/BSD_MathBridge.lean:185:  "The grammar (Axiom D) provides the missing logical step."
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:2:-- Hodge Conjecture: Witness via Double-Holographic Frobenius Forcing (Axiom D)
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:24:/-- AXIOM D (Core.lean): if' + are + ah → or'.
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:30:    H^{2p}(X,ℤ) ∩ H^{p,p}), Axiom D forces or'.
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:43:    EXCEPT or' — which is precisely what Axiom D forces
+p4ramill/Imscribing/Millennium/Hodge_Witness.lean:57:    predicts surjectivity for all p via Axiom D.
+p4ramill/Imscribing/NumberTheory/HnGcdTheorem.lean:197:/-- Axiom B: Ω ≥ .oak requires H ≥ .sure. Here Ω=.ah, H=.wool → satisfied. -/
+p4ramill/Imscribing/NumberTheory/HnGcdTheorem.lean:201:/-- Axiom C (D=.if' ↔ T=.are) is vacuous: D=.array, not .if'. -/
+p4ramill/Imscribing/Ob3ects/GateCheck/correct_formulation_of_axiom_c_gate_check.lean:2:-- Class: Correct Formulation of Axiom C
+p4ramill/Imscribing/Tier2/CLU_GPM.lean:276:  -- Axiom B: 𐑴 requires Ħ₂ or 𐑫 (parity protection needs memory)
+p4ramill/Imscribing/Tier2/CLU_GPM.lean:277:  -- Axiom C: 𐑦 ↔ 𐑸 (self-written state-space ↔ self-referential topology)
+p4ramill/Imscribing/Tier2/CLU_GPM.lean:278:  -- Axiom D: Frobenius condition μ∘δ=id at P_special
+tests/lean/withLocationImplementationDetails.lean:2:axiom B : Nat
+src/Lean/Language/Lean.lean:44:structure a where /-- b -/ @[c] private axiom d : Nat
+tests/lean/run/tryHeuristicPerfIssue.lean:125:axiom C : Type
+tests/lean/run/tryHeuristicPerfIssue.lean:126:axiom C.add   : C → C → C
+tests/lean/run/issue5828.lean:2:axiom b : Nat
+p4ramill/archive/Primitives-pre-migration/Imscription.lean:187:-- if' and are are co-required (Axiom C).
+p4ramill/Imscribing/GeneToProtein.lean:8:--      to satisfy Axiom C (D_ω ↔ T_⊙) — the folding landscape IS self-written by the
+p4ramill/Imscribing/GeneToProtein.lean:64:    to satisfy Axiom C: the folded state's conformational space is written
+p4ramill/Imscribing/GeneToProtein.lean:225:    - Axiom C consistency (D_ω ↔ T_⊙ for folding stages)
+p4ramill/Imscribing/GeneToProtein.lean:229:    All 7 stages: Frobenius ✓  Axiom C: ✓  φ̂/Ç compatibility: ✓
+p4ramill/Imscribing/GeneToProtein.lean:247:  "Quaternary structure dominates; prior stages are meet-sublattices (D=ω ⊢ Axiom C)"
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:114:    ash: local simplicial (1D complex manifold) — chosen over if' to satisfy Axiom C.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:885:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:913:/-- The corrected imscription of the Hodge conjecture under Axiom D.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:922:  pol  := or',       -- ← FORCED by Axiom D: Frobenius-special (μ∘δ=id)
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:932:/-- **Axiom D consequence for the corrected Hodge encoding** (theorem, 0 sorries).
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:933:    Given if' + are + ah, Axiom D forces pol = or'.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:953:      Axiom D → or' → (this bridge) → HodgeSplit → regulator surjective
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:994:    Axiom D (Core.lean) → or' for Hodge → semantic bridge → HodgeSplit.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1016:    Chain: Axiom D → or' → semantic bridge → HodgeSplit →
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1034:  STEP 1 — AXIOM D (Primitives/Core.lean):
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1039:    The RH primitive signature is constrained by Axiom D.
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1061:    Chain: Axiom D → zeta_zeros_frobenius_fixed (RH_ZFCt_Bridge.lean, ONE axiom) →
+p4ramill/Imscribing/Millennium/PrimitiveBridge.lean:1097:    Axiom D (Core.lean): if' + are + ah → or'
+p4ramill/Imscribing/Millennium/BanachMeasure.lean:221:  ("★ DIM_HOLO",  "dim",  "array",   "if'"),     -- HOLOGRAPHIC STATE SPACE (Axiom C)
+p4ramill/Imscribing/Millennium/BanachMeasure.lean:261:-- within the Imscribing Grammar. Axiom C (are ↔ if') is the critical
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:83:    -- Axiom C: 𐑦 ↔ 𐑸
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:88:    -- Axiom B: 𐑭 requires Ħ ≥ 𐑖
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:112:-- Structural existence: O_inf + C=1 + Axiom C.
+p4ramill/Imscribing/Millennium/ParadoxBoot.lean:176:--   (c) Axiom C     (§3)
+tests/lean/run/partial_fixpoint_mutual.lean:4:axiom B : Type
+tests/lean/run/partial_fixpoint_mutual.lean:7:axiom B.toA : B → A
+tests/lean/run/5407.lean:40:axiom b : B
+tests/lean/run/simpUnusedArgs.lean:297:axiom b : Nat
+p4ramill/Imscribing/AgentSelf.lean:64:-- Axiom C: if' + are = valid (both holographic)
+p4ramill/Imscribing/AgentSelf.lean:65:-- Axiom B: ah requires H ≥ sure (satisfied: H = sure)
+p4ramill/Imscribing/IGMorphism.lean:13:--   P3. Reflect (if', Axiom C*) : imscriptive self-protocol
+p4ramill/Imscribing/IGMorphism.lean:15:-- Axiom C* (MillenniumAnkh one-way form): are → if' (not biconditional).
+p4ramill/Imscribing/IGMorphism.lean:19:-- (NOT are), deliberately exercising the weaker Axiom C*: if' without are
+p4ramill/Imscribing/IGMorphism.lean:111:/-- Witness: imscriptive state — inner eye (if', satisfies Axiom C*: are forces if',
+p4ramill/Imscribing/IGMorphism.lean:199:/-- P3. Imscriptive self-reference (Axiom C*: if' as holographic boundary).
+p4ramill/Imscribing/IGMorphism.lean:225:    exercising the weaker Axiom C*: if' without are is permissible.
+p4ramill/Imscribing/Primitives/Core.lean:82:-- are co-occurs with if' (see Axiom C below).
+p4ramill/Imscribing/Primitives/Core.lean:278:-- Axiom C (revised): Holographic topology requires holographic dimensionality,
+p4ramill/Imscribing/Primitives/Core.lean:290:-- Axiom C is now the predicate `ImscriptiveTopology` in Primitives/Imscription.lean.
+p4ramill/Imscribing/Primitives/Core.lean:294:-- Axiom B: Integer winding number requires persistent chirality.
+p4ramill/Imscribing/Primitives/Core.lean:296:-- Axiom B is now the predicate `WindingNeedsChirality` in
+p4ramill/Imscribing/Primitives/Core.lean:301:-- Axiom D: Holographic Closure — complete double-holomorphic encoding forces Frobenius.
+p4ramill/Imscribing/Primitives/Core.lean:317:-- not the true type. The grammar corrects this via Axiom D.
+p4ramill/Imscribing/Primitives/Core.lean:321:-- Axiom D was here, as `holographic_closure_forces_frobenius`. It is now the
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:16:--   Furthermore, Axiom C (Core.lean): are → if'. The resolved BSD uses
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:55:    sure       (𐑖) — persistent chirality: ah requires H ≥ sure (Axiom B)
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:104:/-- Axiom C (Core.lean): are → if'.
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:110:/-- Axiom B (Core.lean): ah protection requires persistent chirality H ≥ sure.
+p4ramill/Imscribing/Ob3ects/GateCheck/correct_formulation_of_axiom_b_gate_check.lean:2:-- Class: Correct Formulation of Axiom B
+p4ramill/Imscribing/Ob3ects/GateCheck/correct_formulation_of_axiom_d_gate_check.lean:2:-- Class: Correct Formulation of Axiom D
+p4ramill/Imscribing/Primitives/Imscription.lean:64:/-- Axiom C: an imscriptive topology requires imscriptive dimensionality.
+p4ramill/Imscribing/Primitives/Imscription.lean:81:/-- Axiom B: integer winding requires persistent chirality. Same repair. -/
+p4ramill/Imscribing/Primitives/Imscription.lean:91:/-- Axiom D, demoted. For any concrete imscription the predicate is decided by
+p4ramill/Imscribing/Primitives/Imscription.lean:254:-- if' and are are co-required (Axiom C).
+tests/bench/simp_local.lean:20:axiom b : V
+tests/lean/run/grind_11690.lean:19:axiom b : α
+tests/lean/run/6999.lean:13:axiom B : A → Type
+tests/lean/run/tryHeuristicPerfIssue2.lean:127:axiom C : Type
+tests/lean/run/tryHeuristicPerfIssue2.lean:128:axiom C.add   : C → C → C

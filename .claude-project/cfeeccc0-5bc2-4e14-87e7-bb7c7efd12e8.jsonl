@@ -1,0 +1,7 @@
+{"type":"mode","mode":"normal","sessionId":"cfeeccc0-5bc2-4e14-87e7-bb7c7efd12e8"}
+{"type":"permission-mode","permissionMode":"auto","sessionId":"cfeeccc0-5bc2-4e14-87e7-bb7c7efd12e8"}
+{"type":"file-history-snapshot","messageId":"985354e6-8a95-4aaf-9833-ba1a506cc24f","snapshot":{"messageId":"985354e6-8a95-4aaf-9833-ba1a506cc24f","trackedFileBackups":{},"timestamp":"2026-09-01T21:24:56.759Z"},"isSnapshotUpdate":false}
+{"parentUuid":null,"isSidechain":false,"type":"system","subtype":"informational","content":"Unknown command: /logijn. Did you mean /login?","isMeta":false,"timestamp":"2026-09-01T21:24:56.990Z","uuid":"d018237a-3ec4-48ec-9023-8dc6628f8231","level":"warning","userType":"external","entrypoint":"cli","cwd":"/home/mrnob0dy666/imsgct","sessionId":"cfeeccc0-5bc2-4e14-87e7-bb7c7efd12e8","version":"2.1.257","gitBranch":"HEAD"}
+{"type":"cost-state","sessionId":"cfeeccc0-5bc2-4e14-87e7-bb7c7efd12e8","totalCostUSD":0,"totalAPIDuration":0,"totalAPIDurationWithoutRetries":0,"totalToolDuration":0,"totalLinesAdded":0,"totalLinesRemoved":0,"totalDuration":5145,"startTime":1788297893023,"modelUsage":{},"hasUnknownModelCost":false}
+{"type":"last-prompt","leafUuid":"d018237a-3ec4-48ec-9023-8dc6628f8231","sessionId":"cfeeccc0-5bc2-4e14-87e7-bb7c7efd12e8"}
+{"type":"cost-state","sessionId":"cfeeccc0-5bc2-4e14-87e7-bb7c7efd12e8","totalCostUSD":0,"totalAPIDuration":0,"totalAPIDurationWithoutRetries":0,"totalToolDuration":0,"totalLinesAdded":0,"totalLinesRemoved":0,"totalDuration":5151,"startTime":1788297893023,"modelUsage":{},"hasUnknownModelCost":false}

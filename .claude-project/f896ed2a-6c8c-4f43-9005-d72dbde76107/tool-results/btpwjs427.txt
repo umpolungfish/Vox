@@ -1,0 +1,817 @@
+01_conventional_decomposition.md
+107_1135_713.txt
+111.jpg
+1135.bin
+1135.bin.txt
+1212121.svg
+1212125.svg
+121212e.svg
+123.png
+123.svg
+123.txt
+123123.md
+16_3.Lean
+1thru9combo.txt
+1thru9combo2.txt
+222.png
+2churn.txt
+333.png
+333.svg
+333.txt
+3333333.png
+3dww3dfs23.png
+555555555555555555555555555555555555555555.png
+=
+A1.txt
+AA.tex
+AAAA02.1.gbff
+AAAA02.1.gbff.gz
+AB.txt
+ABAB.txt
+ALEPH_OS
+APFreeReduction.bin.txt
+AZ.txt
+AdditiveEnergy.bin.txt
+AntiRamseyOddCycles.bin.txt
+Ars_Animaglyphica
+Ars_Astrologica
+Ars_Fungiglyphica
+Ars_Fysika
+Ars_Geometrica
+Ars_Grammatica
+Ars_Phytoglyphica
+Ars_Therapeutica
+B3.png
+B5.png
+B6.png
+B9.png
+BAM.txt
+BUNO.md
+BUNO.pdf
+Base.bin.txt
+BinomialGCD.bin.txt
+BiochemicalMassGapUnification.bin
+BiochemicalMassGapUnification.bin.txt
+CLTZ.txt
+Cargo.lock
+Cargo.toml
+ChromaticOddCycle.bin.txt
+Collatz.txt
+Collatz.word.txt
+CollatzDepthSplit.bin.txt
+Collatz_Proof_Skeleton.bin.txt
+DQIdismantle.md
+DialetheicAlignment.lean
+DifferenceSets.bin.txt
+EMAIL_PREPARED_www.thegraph.com,thegraph.com_2026-08-07.md
+ErdosKacInterval.bin.txt
+ErdosTuranAP.bin.txt
+Evo_2_paper.pdf
+GATEWAY.txt
+GATEWAY_layout.txt
+Grammatika
+Holy_Trinity_interpenetration.png
+IGSICPOVM.tex
+IG_DIAPHORICS.md
+IG_HARNESS
+IG_ONTICS.md
+IG_TOPICS.md
+IM.lean.txt
+IMASM_REFERENCE.md
+IMLEANVOX.txt
+IMSCRIBr
+IMSGCTREE.md
+IMVOX.txt
+KEYCOMPILED.txt
+KS.txt
+LENGINES
+LiftCollatz.lean
+Linear_Analytica
+Luc.dna
+M3RS3N
+MoDoT
+MonochromaticOddCycle.bin.txt
+NSNS_PRIME.md
+NiceVisual.png
+OrderOfThree.lean
+PolynomAsymptotics.bin.txt
+PomeranceSDR.bin.txt
+Problem1135.bin.txt
+Problem1135.imasm.txt
+QC103.txt
+Quantum Dot.png
+README_backups
+REBISHELP.md
+RamseyAsymptotics.bin.txt
+RatioSetSharp.bin.txt
+Rohonc_Cartographia
+Rongorongo_Tau
+SK.txt
+SKPBTC.md
+SKPK.txt
+SNS_PRIME.md
+SUBLIMENHANCEMENTS.md
+SchutteTClose.bin.txt
+SchutteTournament.bin.txt
+SidonCounting.bin.txt
+Smaragdine_Synthetica
+SmolLM2-135M
+SquarefreePlusPowerOfTwo.bin.txt
+SquarefreePlusPowerOfTwoClose.bin.txt
+StrausGreedyFamily.bin.txt
+SubgroupOrders.bin.txt
+SumsetAvoidingAP.bin.txt
+T
+TASK.txt
+TOOL_INVENTORY.md
+Trabajo.otf
+TrianglePartition.bin.txt
+UBP_Master_Document.txt
+UBP_Master_Document_docx.docx
+UNODOS-1.pdf
+UNODOS-1.pdf:Zone.Identifier
+UNOrev.pdf
+UNOrev.tex
+UR3.md
+UnitDistance.bin.txt
+Vox
+Voynich_Phytoglyphica
+WORDZ.txt
+YM_Mass_Gap.png
+YM_Mass_Gap2.png
+ZENODO_PUBLICATIONS
+__pycache__
+_archive
+_assets
+_builds
+_data
+_scripts
+a_transformation_that_maps_any_hypothetical_perf_ob3ect.json
+advantage_pipeline
+agents
+aljibra.txt
+all.txt
+all_papers
+ask
+assnmnt.txt
+assnmnt_augmented.txt
+b.bin
+b100.png
+b101.png
+b111.png
+b3.svg
+b3.txt
+b313.png
+b5.svg
+b6.svg
+b9.png
+b9.svg
+b98.svg
+b99.svg
+b9new.png
+b9new2.paint
+b9new2.png
+b_state_summary.json
+barf.tex
+bbb.png
+bbb.svg
+bild.txt
+bip39_keys_100.json
+bip39_keys_10000.json
+bip39_keys_batch_0.json
+bip39_keys_batch_1.json
+bip39_keys_batch_2.json
+bip39_keys_batch_3.json
+bip39_keys_batch_4.json
+bip39_keys_batch_5.json
+bip39_keys_batch_6.json
+bip39_keys_batch_7.json
+bip39_keys_batch_8.json
+bip39_keys_batch_9.json
+bip39_tuples.json
+bip39_tuples_10000.json
+bip39_tuples_10000.txt
+bip39_wordlist.txt
+bip39_wordlist_imasm.json
+boom.txt
+braid009.svg
+braid2.png
+braid_0.png
+braid_0.svg
+branch_probe10.log
+build.txt
+butt.fart
+buttfart.txt
+catalog
+catchat
+catchup.txt
+cetaceanspeak
+chatlog.txt
+churn.txt
+cl9nkout.txt
+claude.bin.txt
+claude.imasm.txt
+claudeax.txt
+claudecollatz.txt
+cnt.txt
+co
+commercial
+commit.txt
+commit_B.txt
+commit_F.txt
+commit_adic.txt
+commit_bank.txt
+commit_beatty.txt
+commit_branch.txt
+commit_check.txt
+commit_corr.txt
+commit_cross.txt
+commit_ctc.txt
+commit_cyc.txt
+commit_dens.txt
+commit_dich.txt
+commit_dir.txt
+commit_exc.txt
+commit_fix.txt
+commit_free.txt
+commit_gap.txt
+commit_harm.txt
+commit_iface.txt
+commit_imasm.txt
+commit_item4.txt
+commit_item5.txt
+commit_item7.txt
+commit_items12.txt
+commit_land.txt
+commit_limit.txt
+commit_lower.txt
+commit_nest.txt
+commit_norm.txt
+commit_ob3.txt
+commit_op.txt
+commit_parity.txt
+commit_pass.txt
+commit_point.txt
+commit_rec.txt
+commit_reduce.txt
+commit_sep.txt
+commit_shallow.txt
+commit_sharp.txt
+commit_size.txt
+commit_tang.txt
+commit_thr.txt
+commit_tower.txt
+commit_wind.txt
+cont.txt
+continue.txt
+convo.txt
+coupled.txt
+cr3echrz
+cuntinu.txt
+cv.txt
+cz.txt
+d12_sic_build
+d48_table.gp
+darkmatter.png
+daydr33m
+discoveries
+do.txt
+dumpdir_bsd_hodge
+dumpdir_clay_closure
+dumpdir_d12
+dumpdir_furnace
+dumpdir_sic_lean
+ej.lean
+ender.txt
+ep1.yaml
+erdos.txt
+ew.txt
+exOS
+fart.txt
+fartzzz.txt
+ffs.txt
+fibonacci_anyon
+files
+files.zip
+fimscriptions.txt
+fin3r
+forgot.txt
+formalize.txt
+formalize2.txt
+formalize3.txt
+fuz.png
+g3.md
+gate_obstruction.pdf
+gene_imscriber
+generate_sequences.py
+generate_sequences_v2.py
+glyphsys.md
+gnosisimg
+gp1.png
+gp2.png
+grammar_trainset
+grok-video-15f99c1f-5299-4e9b-995e-c36ac0907b9c.mp4
+help.txt
+hobbes.txt
+hotdamn.txt
+icon1
+ig-docs
+ig-docs-lifted
+ig-docs-public
+ig-pulse
+imagonnawin
+imasm_map.py
+imasm_reference.tex
+imasm_tuple2word_2559.json
+imasmic_core
+imasmodel.safetensors
+imscribe.com
+imscribing_grammar
+install_grammar_hook.py
+install_hosted.sh
+install_momonados.sh
+iuft_results
+k3v-with-dialects.html
+k3v-with-dialects.html.modified
+k3v-with-ucf.html
+k3v-with-ucf.html.bak
+k3v-with-ucf.html.bak3
+k3vM.html
+kernel_three_view.png
+kernel_three_view1.png
+kernel_three_view2.png
+kernel_three_view3.png
+kernelcycle.md
+key.txt
+keypairs_100.txt
+keypairs_100_coupling.txt
+keypairs_100_decimal.txt
+keypairs_100_relationships.txt
+keypairs_100_voxce.txt
+keyz.txt
+l2.png
+landomills.com
+lang
+lean2elf.sh
+lean4-kernel-paraconsistent
+lilb.svg
+llama_server.log
+lloop.svg
+look.txt
+loop_one.svg
+luciferase.fasta
+m3iosis
+m3iosis.egg-info
+mOMonadOS
+magz1.txt
+magz1.txt.bak
+mapap.png
+mary_complete_traditions.yaml
+math
+memory
+mersenne_gpu.zip
+mnemonic
+model.safetensors:Zone.Identifier
+moduli_H.gp
+moduli_H.log
+mr8uV-dIVkanrzb
+mrnob0dy666.lnk
+new.txt
+nice.txt
+notes_on_modules.txt
+numberstuff
+ob3ect
+odot_operator
+olean.txt
+omonad_OS
+one_shot_readout.pdf
+oneshot_prime_factorizer_factors_any_value.txt
+oneshot_prime_winder
+oneshot_prime_winder_test
+openai-api-key.txt
+openai-api-key.txt:Zone.Identifier
+optimal_phenethylamine_salt
+out.txt
+owow.txt
+p4radice
+p4rakernel
+p4rapend
+panoramic.txt
+paper-127-schur-egz-lean4-formalization.md
+paper19-extended-zero-reduction-theory.md
+parse_tower
+parse_tower.rs
+pcmvcluc2fsa.fasta
+perifrac.htm
+phenethylamine_impregnation_of_printable_paper
+philosophical_scratchpad.md
+pk2sk.py
+pk2sk.py.bak
+pk2sk_batch_results.json
+pk2sk_batch_test.py
+pkpk.txt
+plntz.jpg
+plzformat.tex
+popo.txt
+poster.pdf
+poster.tex
+priest_non_classical_logic.pdf
+priests-engine
+programs
+prompts
+protimasm.md
+q1.txt
+qchat.txt
+qmisfde.md
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.jpg
+raphz.jpg
+read.txt
+rebis_concrete
+recent_snapshot.json
+red-hot_rebis
+report.md
+rh_fano_cut_spectrum.txt
+rionrebis
+rionrebis_II
+run_collatz.lean
+rvw.txt
+sadasdasasdasd.md
+scan_report.md
+scan_report_www.thegraph.com,thegraph.com_2026-08-07.md
+scripts
+sdk
+sdsdsd.mp4
+sdsdsd.png
+seedkeypair.txt
+seedkeypair2.txt
+seekpeek
+sess.txt
+shavianconvert.py
+shorbtc.txt
+sic.txt
+sic_moduli_conductor.pdf
+siccy.txt
+siccy2.txt
+sicool.txt
+sicpovm.tex
+snnnnek - Copy.jpg
+snnnnek.jpg
+somepapers
+split_test.gp
+spt.jpg
+src
+stack_builds
+stark.aux
+stark.log
+stark.nav
+stark.out
+stark.pdf
+stark.snm
+stark.tex
+stark.toc
+stark.vrb
+synfin
+t.bin
+target
+temptools
+test.png
+test.svg
+test_mapping.py
+this.txt
+tiny-gpt2.safetensors
+torus2.gif
+torusdark.png
+towerdump
+treeeee.md
+trnscrpt.txt
+tshoot.txt
+txt.txt
+update.txt
+urev.md
+urev.pdf
+v3ssel
+vae_vita
+verify_logic.py
+verify_order.py
+verify_seed_map.py
+visuals
+vox_keypair_bridge.py
+voxy.txt
+voxy.txt@
+vtask.txt
+w0xmd.jpg
+w111.png
+wew.txt
+wget-log
+winding_lattice.pdf
+witness_vessel_submission
+word1.txt
+word1.txtrush
+words.tsv
+wordup.txt
+wow.dna
+wow.txt
+woww.txt
+wowww.txt
+wwa.txt
+ya.svg
+∈
+---
+=== /home/mrnob0dy666/imsgct/ALEPH_OS/ ===
+7a1e325 Φ_} is now ⊙ (monad)
+e82d004 Correct the licence, and leave the badge blocks alone
+fcb77d8 Badges: the licence was wrong on every repository
+391b19c Φ_} is now ⊙ (monad)
+e8eeb57 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+=== /home/mrnob0dy666/imsgct/Ars_Animaglyphica/ ===
+5154871 Rename the CLI entry point ag → ars-anima
+6d32d82 Rename the CLI entry point ag → ars-anima
+5055817 Rename the CLI entry point ag → ars-anima
+bd0eeb4 Give the badge row back the badge that says which project this is
+a3fb635 Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/Ars_Fungiglyphica/ ===
+c70a50a Rename the CLI entry point fg → ars-fungi
+65e451e Rename the CLI entry point fg → ars-fungi
+76b5e8d Rename the CLI entry point fg → ars-fungi
+03ba317 Give the badge row back the badge that says which project this is
+6791053 Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/Ars_Geometrica/ ===
+196409f Rename the CLI entry point ageo → ars-geo
+bca63a7 Rename the CLI entry point ageo → ars-geo
+d0eb6b3 Rename the CLI entry point ageo → ars-geo
+93590a9 Give the badge row back the badge that says which project this is
+a37b451 Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/Ars_Phytoglyphica/ ===
+4c2fd35 Sync IG_catalog.json to canonical
+47c9bac Sync IG_catalog.json to canonical
+7d98eca Sync IG_catalog.json to canonical
+92470ba Sync IG_catalog.json to canonical
+3eb8f84 Sync IG_catalog.json to canonical
+=== /home/mrnob0dy666/imsgct/Grammatika/ ===
+6ba466c Initial commit: the Grammatika skeleton and first census
+b06dbe1 Initial commit: the Grammatika skeleton and first census
+8c963a3 Initial commit: the Grammatika skeleton and first census
+=== /home/mrnob0dy666/imsgct/IMSCRIBr/ ===
+6f63e3e I fixed emit_scaffold so an ob3ect name starting with a digit no longer breaks the Lean it generates. "16_3_kernel_rs" produced private def 16_3_kernel_rs_s0, and Lean's lexer reads a leading digit as the start of a numeral: 16_3 parses as a number with an underscore digit-separator, then chokes on the first letter after it. Fifty-odd "expected decimal number" errors, one per generated identifier.
+718b783 The lift reads LaTeX and runs on this project's own inference
+43ec005 The lift reads LaTeX and runs on this project's own inference
+38678d7 AREV and AFWD are now the marks ≺ and ≻
+7c1e3b5 AREV and AFWD are now the marks ≺ and ≻
+=== /home/mrnob0dy666/imsgct/Linear_Analytica/ ===
+d1a59ac Rename the CLI entry point la → linear-a, and guard the optional engine import
+6ef7387 Rename the CLI entry point la → linear-a, and guard the optional engine import
+fd4cd92 Rename the CLI entry point la → linear-a, and guard the optional engine import
+00b6627 Ħ is chirality everywhere, including in Core.lean's own comments
+18d6f75 Give the badge row back the badge that says which project this is
+=== /home/mrnob0dy666/imsgct/M3RS3N/ ===
+69fad85 initial
+c0f89f2 initial
+3e93a21 Give the badge row back the badge that says which project this is
+6805965 Badges: the licence was wrong on every repository
+ad0cf30 initial
+=== /home/mrnob0dy666/imsgct/MoDoT/ ===
+7f3c330 commit
+bb3d5c3 commit
+04a62d6 Give ask its own --lean audit [repair], the general Lean-to-ELF procedure
+8ef79a0 Give ask its own --lean audit [repair], the general Lean-to-ELF procedure
+21cf0cb Rebuild ask.bin: it was four days stale, from before the ⊡ rename
+ M imasm_core/src/lattice_flow.rs
+=== /home/mrnob0dy666/imsgct/Rohonc_Cartographia/ ===
+5ffbddc Rename the CLI entry point rc → rohonc
+b4aca56 Rename the CLI entry point rc → rohonc
+3f0a75a Give the badge row back the badge that says which project this is
+1cbf0a4 Badges: the licence was wrong on every repository
+e815d8b Ħ is chirality everywhere, including in Core.lean's own comments
+=== /home/mrnob0dy666/imsgct/Rongorongo_Tau/ ===
+787ecb4 Rename the CLI entry point rt → rongorongo, and guard the optional engine import
+9b8bcca Rename the CLI entry point rt → rongorongo, and guard the optional engine import
+df320fe Rename the CLI entry point rt → rongorongo, and guard the optional engine import
+57ffc20 Give the badge row back the badge that says which project this is
+b969303 Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/Smaragdine_Synthetica/ ===
+929e540 Rename the CLI entry point ss → smaragdine, and guard the optional engine import
+409614b Rename the CLI entry point ss → smaragdine, and guard the optional engine import
+57767ab Rename the CLI entry point ss → smaragdine, and guard the optional engine import
+18f9649 Give the badge row back the badge that says which project this is
+3e728e0 Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/Vox/ ===
+718e687 vox compile <seq> runs the full RNA<->protein pipeline both ways, natively in this binary, with real fold info on both ends.
+1e40245 vox compile <seq> runs the full RNA<->protein pipeline both ways, natively in this binary, with real fold info on both ends.
+d789e4f vox compile <seq> runs the full RNA<->protein pipeline both ways, natively in this binary, with real fold info on both ends.
+90c5f98 I gave vox run the syscall coverage and process setup it needs to actually run a real Linux program, not just call one function.
+29dcc91 I gave vox run the syscall coverage and process setup it needs to actually run a real Linux program, not just call one function.
+=== /home/mrnob0dy666/imsgct/Voynich_Phytoglyphica/ ===
+d2df4ab Sync IG_catalog.json to canonical
+4596a51 Sync IG_catalog.json to canonical
+c1eca52 Sync IG_catalog.json to canonical
+cb117ce Sync IG_catalog.json to canonical
+01ff943 Sync IG_catalog.json to canonical
+=== /home/mrnob0dy666/imsgct/cetaceanspeak/ ===
+ae9c7e1 Moved ancillary documents to ig-docs (2026-06-14)
+d1f543c Give the badge row back the badge that says which project this is
+2294458 Badges: the licence was wrong on every repository
+c949e7c Moved ancillary documents to ig-docs (2026-06-14)
+fb16667 Moved ancillary documents to ig-docs (2026-06-14)
+=== /home/mrnob0dy666/imsgct/cr3echrz/ ===
+58186a5 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+763e55d Retire the Phi_c family: gen-1 criticality names to bare Shavian
+82773a5 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+4ddc8d5 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+ceb2539 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+=== /home/mrnob0dy666/imsgct/d12_sic_build/ ===
+8992db7 Finish the mark conversion, and correct two documents
+2f70653 Finish the mark conversion, and correct two documents
+92989d2 Finish the mark conversion, and correct two documents
+13e45bc d = 128: the second point on the sixteen-power progression
+7fd8cfa The exponent lattice: two right answers wearing one numeral
+=== /home/mrnob0dy666/imsgct/exOS/ ===
+f446146 Correct the licence, and leave the badge blocks alone
+e390a3b Badges: the licence was wrong on every repository
+395479c Φ_} is now ⊙ (monad)
+e477aaa Φ_} is now ⊙ (monad)
+87ff4b1 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+=== /home/mrnob0dy666/imsgct/fin3r/ ===
+378b92c Back out the d=12 SIC grafting — the Dual-Link vessel moved to its own project (v3ssel) — 2026-07-08
+06a6a40 Give the badge row back the badge that says which project this is
+cc4d252 Badges: the licence was wrong on every repository
+7fafd1e Back out the d=12 SIC grafting — the Dual-Link vessel moved to its own project (v3ssel) — 2026-07-08
+a9b22aa sic12: weight the d=12 populations by alert, not raw value — the read now reads the market
+=== /home/mrnob0dy666/imsgct/gene_imscriber/ ===
+aa075f8 Give the badge row back the badge that says which project this is
+6946d93 Badges: the licence was wrong on every repository
+41f9292 Retire the gen-2 glyph-pair notation for bare Shavian
+a29ff27 update
+4555ccf update
+=== /home/mrnob0dy666/imsgct/ig-docs-public/ ===
+75694e2 convert the last gen-1 markers to canon — nothing left to map
+a0796f4 convert the last gen-1 markers to canon — nothing left to map
+d70bc4c convert the last gen-1 markers to canon — nothing left to map
+e2f1c28 convert the last gen-1 markers to canon — nothing left to map
+ec9e546 convert the last gen-1 markers to canon — nothing left to map
+=== /home/mrnob0dy666/imsgct/ig-docs/ ===
+2e442dc9 I fix my own mistake from the last commit. This paper's canonical PDF lives at pdfs/collatz_reduction.pdf, built with lualatex; I built a second copy at the root with xelatex and committed that instead, leaving two diverging PDFs of the same paper. Removing the stray root copy and rebuilding the real one with the engine it was already built with, now carrying the odd- step composability addition.
+90b6399f I fix my own mistake from the last commit. This paper's canonical PDF lives at pdfs/collatz_reduction.pdf, built with lualatex; I built a second copy at the root with xelatex and committed that instead, leaving two diverging PDFs of the same paper. Removing the stray root copy and rebuilding the real one with the engine it was already built with, now carrying the odd- step composability addition.
+54c1c3fc I add the odd-step composability result to collatz_reduction.tex and the negative result it settles. Proposition 4.4 is the paper-register statement of what I proved in Lean this session: the odd-step count composes exactly across a split, and doubles, triples, or scales by any m across repeats of a cycle. Proposition 4.5 is what that composability is actually for here -- running Theorem 4.3's own argument at a rescaled length mk instead of k gives back the same margin inequality with its right side inflated by exactly m, never sharper. Verified the factoring numerically over 200 random (k,j,m) triples before writing the proof. The length cannot be bounded by climbing to a multiple of itself and dividing back down; a bound on k needs a genuinely different relation than the cycle identity rescaled.
+6c81e3c8 I combine the three witness-and-closure Erdős papers into one manuscript, erdos_witness_closure_census.tex, and I add the section the three standalone papers should have had from the start: what closure actually looks like for a problem of this shape, stated directly instead of hedged.
+2946d0f0 I add a Keywords line to UNO Reverse and its blinded copy, matching the exact house convention already in manuscripts3 (chrysopoeia_2048, witness_ vessel, vox_lift, sic_moduli_conductor): \noindent\textbf{Keywords:} right after the abstract, terms separated by \(\cdot\).
+?? LOGIC.zip
+?? LOGIC/
+?? QMFDE.md
+?? QMFDE.pdf
+?? Updated_B_Fixed_Point.docx
+?? Updated_B_Fixed_Point.md
+?? _builds/QMFDE/
+?? bughunter_review_igdocs_2026.md
+?? gematria_loop_geometry.md
+?? preview.html
+=== /home/mrnob0dy666/imsgct/ig-pulse/ ===
+8611c73 Take the default device from IG_DEVICES
+64b7e18 Take the default device from IG_DEVICES
+7c941dd Give the enums their Shavian names and delete the old ones entirely
+2a6d36d Give the badge row back the badge that says which project this is
+ac9a75f Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/imscribe.com/ ===
+1760194 I gave AREV a real body in the k3vM visualizer instead of the no-op it shared with CLINK and AFWD. Its own table entry names it exactly: the involution that swaps T and F, fixing N and B. mOMonadOS's own kernel just got the same fix for the same reason, in the same words its own opcode table already used — this is that fix propagated to the visualizer that shares its stack semantics comment for comment.
+574838b I gave AREV a real body in the k3vM visualizer instead of the no-op it shared with CLINK and AFWD. Its own table entry names it exactly: the involution that swaps T and F, fixing N and B. mOMonadOS's own kernel just got the same fix for the same reason, in the same words its own opcode table already used — this is that fix propagated to the visualizer that shares its stack semantics comment for comment.
+89c92f0 Rename the Millennium card to p4rakernel, drop hedging language
+abe169b Update stale numbers, fix two wrong claims, real 2x2 feature grid
+7d708f3 Move visualizations and repositories off the landing page
+=== /home/mrnob0dy666/imsgct/imscribing_grammar/ ===
+4962d3a I stop imscribe generate spawning an agent to resolve name conflicts. Conflicts aren't gated anymore at either the imscribe_system or encode_system layer, so an agent session that used to reason through differing primitives and re-call with convergence_justification had nothing left to resolve -- it was loading a local model on every conflicting name for a decision the tool already makes on its own.
+d5cd4b9 I remove Tetractys and the conflict gate entirely. Slot membership already does the check that matters -- a value either belongs to its own primitive's set or it doesn't, and there's nothing left to triangulate three independent opinions over once that's true. A re-imscription of an existing name, with a tuple that differs from what's already there, is not gated at either layer: it commits directly, the same as a brand new name.
+5d6c623 I let a tuple with an invalid value on its first attempt reach Tetractys instead of being refused outright before triangulation ever runs.
+7318eea I stop the conflict-resolution task telling the model to re-fetch what it already has. Step 1 said "call lookup_catalog to read the existing entry and its description" -- but the existing encoding and existing description are already printed directly in the prompt, above that instruction. Watched it burn two windings on this live: it searched for '0', didn't find a one-character name in the first page of a paginated 843-entry catalog, then tried a shell grep for it with a typo'd path and got nowhere -- work spent re-deriving information that was already sitting in its own context.
+16da3a2 I fix the conflict-resolution agent guessing outside each primitive's own value set on its first attempt -- watched it happen live: ⊢_val='𐑸', a topology value, handed to the dimensionality slot, rejected by imscribe_system's own validator, burning a whole winding on the retry.
+ M .llm_cache.json
+ M IG_catalog.json
+ M IG_catalog.provenance.json
+ M commit.txt
+=== /home/mrnob0dy666/imsgct/landomills.com/ ===
+d5133cd Give the badge row back the badge that says which project this is
+7b3a235 Badges: the licence was wrong on every repository
+fa00f67 3-panel torus GIFs for C⊙smic Kernel project card
+4653e9f Add C⊙smic Kernel spotlight desc to Cosmic Kernel project card
+e3d2478 Millennium claims -> Framework, verified numbers updated
+D  __pycache__/render_engine_graph.cpython-310.pyc
+D  __pycache__/render_engine_graph_v3.cpython-310.pyc
+D  __pycache__/render_engine_graph_v4.cpython-310.pyc
+D  __pycache__/render_v2.cpython-310.pyc
+M  index.html
+=== /home/mrnob0dy666/imsgct/m3iosis/ ===
+d2ecd2c landomills.com
+f0bdc7a landomills.com
+e2b56a3 Winding's mark is now ⊡, not ◻. A dot fixed in the box reads right for a closed loop pinned at a point and for IFIX, where the old bare square did not.
+d96cc47 Flag a degenerate fusion space instead of reporting invariants off it
+635d488 Flag a degenerate fusion space instead of reporting invariants off it
+=== /home/mrnob0dy666/imsgct/mOMonadOS/ ===
+2f6fa39 I rebuild prime_winding's engine again, this time on the ob3ect itself instead of a numeric method borrowed and relabeled. Every decimal digit 0-9 has its own canonical IMASM word (checked pairwise distinct before this was wired in -- a real 1-1 encoding, not an assumed one); N's word is those ten words concatenated in digit order; N is prime iff that word's banking already holds, imasm_core::lattice_flow::banked_walk's own holds()/vacuous() read directly, not parsed back out of report text. Close is prime, open is composite, exactly as stated. No BSGS, no step budget, no Undetermined-by-resource-limit: the check is linear in digit count, so a 260-digit N resolves the same way a two-digit one does.
+744e3e0 I pull Miller-Rabin and Brent's rho out of the four oneshot/nested prime tools and replace both with the winding-order engine the ob3ects actually name. oneshot_prime_winder, nested_oneshot, and doubly_nested_oneshot all printed their WORD/PERIOD/LANDINGS as header text and decided primality and factorization with textbook Miller-Rabin and Brent's cycle detection underneath -- I checked, grepping for where those constants were ever read past their own sprintln, and they were not. prime_winding.rs, the shared engine every one of them calls, was the same: Miller-Rabin for is_prime, trial division into a Miller-Rabin-confirmed cofactor for factor. None of the four ever ran the artifact's own winding-order search on an arbitrary N.
+35a4527 I clear every build warning on both targets -- bare-metal and hosted release, both now compile silent.
+ea4d67b I fix millennium's bare invocation -- it was dumping all seven reports at once, when every other multi-item command here (seals, proof) shows the list on no argument and runs on a name. Backwards from the start.
+263a5f5 I add millennium, the OVM instrument for the Millennium Prize conjectures I said I'd build once the axiom-guard work in imscribing_grammar was done.
+ M commit.txt
+ M src/prime_winding.rs
+?? docs/BTC_KEY_DERIVER.md
+?? src/btc_key_deriver.rs
+?? test_issue.rs
+?? tools/__pycache__/
+?? tools/_find_stress_cmds.txt
+?? tools/_hex16_cmds.txt
+?? tools/_hex256_cmds.txt
+?? tools/_hex256_combo_cmds.txt
+?? tools/_hex256_combo_out.txt
+?? tools/_hex256_cycle_out.txt
+?? tools/_hex256_out.txt
+?? tools/_pairwise_cmds.txt
+?? tools/_pairwise_out.txt
+?? tools/_triple_cmds.txt
+?? tools/dimensional_arrangement.py
+=== /home/mrnob0dy666/imsgct/ob3ect/ ===
+c1ff10e70 Churn and zoom already ran the full audit per node; their rollups didn't say so
+413ccd8b4 Churn and zoom already ran the full audit per node; their rollups didn't say so
+db751076b Churn and zoom already ran the full audit per node; their rollups didn't say so
+808309292 Churn and zoom already ran the full audit per node; their rollups didn't say so
+3631b7bdc Churn and zoom already ran the full audit per node; their rollups didn't say so
+ m .lake/packages/Cli
+ m .lake/packages/LeanSearchClient
+ m .lake/packages/Qq
+ m .lake/packages/aesop
+ m .lake/packages/batteries
+ m .lake/packages/importGraph
+ m .lake/packages/mathlib
+ m .lake/packages/plausible
+ m .lake/packages/proofwidgets
+ M .llm_cache.json
+?? contexts/
+?? digital/a_hex_digit_s_fourth_bit_as_fork_openness_not_a_f03510ea/
+?? digital/imasm_gematria/
+?? digital/oneshot_prime_factorizer_factors_any_value_into_fb1796b2/
+?? digital/primality_as_banking_closure_on_a_digit_concaten_aa051a70/
+?? digital/the_digit_0/
+?? digital/the_digit_1/
+?? digital/the_digit_2/
+?? digital/the_digit_3/
+?? digital/the_digit_4/
+=== /home/mrnob0dy666/imsgct/odot_operator/ ===
+0a01230 Read IG_MODEL and IG_PROVIDER first
+90a1eb3 Read IG_MODEL and IG_PROVIDER first
+ed92b09 Retire the gen-2 glyph-pair notation for bare Shavian
+f770aec Give the badge row back the badge that says which project this is
+d9b4dab Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/omonad_OS/ ===
+7d84728 SNS_PRIME.md notation migration: O_inf→O_∞, O_0→O₀, O_1→O₁, O_2→O₂ (7 files)
+c7b9d84 SNS_PRIME.md notation migration: O_inf→O_∞, O_0→O₀, O_1→O₁, O_2→O₂ (7 files)
+4ff13ef SNS_PRIME.md notation migration: O_inf→O_∞, O_0→O₀, O_1→O₁, O_2→O₂ (7 files)
+92d4997 Give the badge row back the badge that says which project this is
+76507e4 Badges: the licence was wrong on every repository
+=== /home/mrnob0dy666/imsgct/p4radice/ ===
+17b5121 Winding's mark is now ⊡, not ◻, matching the same change across the Grammar. The trained tokenizer already holds ⊡ as its own distinct token from earlier corpus text, so the vocab needs a retrain against a regenerated corpus before the next run, not a hand patch of tokenizer.json.
+a47df66 Rework the tokenizer pipeline: shift the collision zone, don't paper over it
+f055e99 Root-cause the residual orphan-byte tokens, document why it's not fixed here
+43d030a Real vocabulary: text, IMASM, and Shavian tuples as one trained tokenizer
+4ecfe57 Stop condition checks real closure, not a bare glyph match
+=== /home/mrnob0dy666/imsgct/p4rakernel/ ===
+1c76c65e I add the gate-check Lean scaffolds for the ten digit ob3ects and for primality as banking closure on a digit-concatenated word, the formal side of the primality engine I just rebuilt in mOMonadOS.
+56a4bb3f I generalize the period-doubling lemma to any multiple and check it for real this time. col_iterate_period: a period-k cycle repeats at every multiple of k. oddSteps_mul_of_period: m trips around a period-k cycle take exactly m times one trip's odd steps. Both proved by induction, no sorry.
+dcbd1944 I generalize the period-doubling lemma to any multiple and check it for real this time. col_iterate_period: a period-k cycle repeats at every multiple of k. oddSteps_mul_of_period: m trips around a period-k cycle take exactly m times one trip's odd steps. Both proved by induction, no sorry.
+59f85ae5 I prove the composability lemma the cycle-period question needs and its period-doubling corollary. oddSteps_add: the odd-step count is additive over composition, k steps then m more from wherever the first k landed -- oddSteps_succ was always the m=1 case of this, now the general statement. oddSteps_double_of_period: given col^[k] n = n, running the cycle around twice takes exactly twice the odd steps of running it once. Both proved by induction on k, no sorry.
+ceb5823c I give the FDE tower its missing direction. fdeEmbed already carried FDE(k) up into FDE(n); nothing carried a deeper tier back down. I add fdeRestrict, prove it retracts fdeEmbed exactly (fdeRestrict_fdeEmbed_id, no axioms at all), prove the retraction alone is a genuine coarsening rather than a second bijection (fdeRestrict_not_injective), and prove the restriction to any two tiers factors through any tier between them (fdeRestrict_trans) — so a walk through several scales can go by any intermediate route and land the same place. This is μ∘δ = id for the FDE tower, concretely, at an arbitrary depth rather than only asserted of the abstract fork/fuse dyad.
+ M commit.txt
+?? p4ramill/Imscribing/Ob3ects/GateCheck/a_hex_digit_s_fourth_bit_as_fork_openness_not_a_f03510ea_gate_check.lean
+?? p4ramill/Imscribing/Ob3ects/GateCheck/oneshot_prime_factorizer_factors_any_value_into_fb1796b2_gate_check.lean
+=== /home/mrnob0dy666/imsgct/priests-engine/ ===
+3836a8a Fix the crystal codec in para_qm: encoder returned 0 for every input
+1e1a94a Give the badge row back the badge that says which project this is
+6b3f0bc Badges: the licence was wrong on every repository
+5b0d78c Retire the Phi_c family: gen-1 criticality names to bare Shavian
+0e43d17 Retire the Phi_c family: gen-1 criticality names to bare Shavian
+=== /home/mrnob0dy666/imsgct/red-hot_rebis/ ===
+a2bedfb rebis.ligand --pdb 6UPT --auto-active ran to completion but wallpapered the terminal with RDKit's native "Post-condition Violation: Element 'X' not found" and "Explicit valence" diagnostics — real failures, correctly caught by the try/except already around every candidate attempt, but RDKit's C++ logger writes them straight to the process's stderr file descriptor regardless of any Python-level exception handling, so the catch never silenced them.
+f14d17f rebis.ligand --pdb 6UPT --auto-active ran to completion but wallpapered the terminal with RDKit's native "Post-condition Violation: Element 'X' not found" and "Explicit valence" diagnostics — real failures, correctly caught by the try/except already around every candidate attempt, but RDKit's C++ logger writes them straight to the process's stderr file descriptor regardless of any Python-level exception handling, so the catch never silenced them.
+3461d66 rebis.ligand --pdb 6UPT --auto-active ran to completion but wallpapered the terminal with RDKit's native "Post-condition Violation: Element 'X' not found" and "Explicit valence" diagnostics — real failures, correctly caught by the try/except already around every candidate attempt, but RDKit's C++ logger writes them straight to the process's stderr file descriptor regardless of any Python-level exception handling, so the catch never silenced them.
+83f5d1a rebis.ligand --pdb 6UPT --auto-active ran to completion but wallpapered the terminal with RDKit's native "Post-condition Violation: Element 'X' not found" and "Explicit valence" diagnostics — real failures, correctly caught by the try/except already around every candidate attempt, but RDKit's C++ logger writes them straight to the process's stderr file descriptor regardless of any Python-level exception handling, so the catch never silenced them.
+ca156a2 Two more of the same bug, found by tracing every file that actually crosses from a canonical mark source into a local table, not by re-grepping the glyph.
+=== /home/mrnob0dy666/imsgct/seekpeek/ ===
+3a0a99e THIS_bip39_addresses.tsv is one table again
+274820a THIS_bip39_addresses.tsv is one table again
+0688ec8 THIS_bip39_addresses.tsv is one table again
+84295ed THIS_bip39_addresses.tsv is one table again
+b1b3bff THIS_bip39_addresses.tsv is one table again
+=== /home/mrnob0dy666/imsgct/synfin/ ===
+be336b1 Ħ is chirality everywhere, including in Core.lean's own comments
+659930c Ħ is chirality everywhere, including in Core.lean's own comments
+67bb016 Ħ is chirality everywhere, including in Core.lean's own comments
+050dfc6 Ħ is chirality everywhere, including in Core.lean's own comments
+84d5b86 Give the badge row back the badge that says which project this is
+=== /home/mrnob0dy666/imsgct/v3ssel/ ===
+e3b8045 v3ssel: trade by rebalancing to a target allocation, so the position IS the state
+67b974c Give the badge row back the badge that says which project this is
+64a3871 Badges: the licence was wrong on every repository
+2eb6329 v3ssel: trade by rebalancing to a target allocation, so the position IS the state
+ece3abd v3ssel: trade by rebalancing to a target allocation, so the position IS the state
+=== /home/mrnob0dy666/imsgct/vae_vita/ ===
+96466a9 Take the card from IG_DEVICES
+3410103 Take the card from IG_DEVICES
+d5ed644 Take the card from IG_DEVICES
+db8da0d Give the badge row back the badge that says which project this is
+44ed1dd Badges: the licence was wrong on every repository

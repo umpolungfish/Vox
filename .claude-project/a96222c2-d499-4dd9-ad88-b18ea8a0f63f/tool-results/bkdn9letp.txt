@@ -1,0 +1,419 @@
+=== /home/mrnob0dy666/imsgct/ig-docs/OVMs/vox_sweep.tsv ===
+1:413188319091204313090085957668526127963841186728_0e2c22cd	⊢≻∈⊤⊥⋈⊙≺⊞∋◻⊣
+2:a_fifth_power_is_never_the_sum_of_four_fifth_pow_71c0ddf6	⊢∈≻⊤≺⊥⋈⊞∋⊙◻⊣
+3:a_lean_4_proof_artifact_implementing_the_collatz_cc079a39	⊢⊙∈⊤⊥⊞∋◻≺≻⋈⊣
+4:a_structure_that_merges_more_of_its_parts_than_i_0705e449	⊢∈≻⊤≺⋈⊙∋⊥⊞◻⊣
+5:a_typing_that_separates_objects_identical_in_eve_d691afad	⊢∈≻⊤≺⊥∋⊞⋈⊙◻⊣
+6:adjoint_memoryless_paracomplete_negative_static_fdd056c5	⊢⊙∈≻⊤≺⊥⊞⋈∋◻⊣
+7:anabelian_hodge_tate_stacks_of_perfectoid_diamon_d5e6c40d	⊢≻∈⊤⋈⊥≺⊞∋⊙◻⊣
+8:aperiodic_monstrous_moonshine_quasicrystals	⊢≻∈⊤⊥⊞∋⋈⊙≺◻⊣
+9:bitcoin_public_key_020c0f698a654b05195453aec0051_7126f7c2	⊢⊙⋈∈≻⊤≺⊥∋⊞◻⊣
+10:bitcoin_public_key_02d872db766e4cdfd29b0550dc6a1_7b64e829	⊢⊙⋈∈≻⊤≺⊥∋⊞◻⊣
+11:bitcoin_public_key_030d155abf3c0dd56c9f1f294e73c_4a7858a2	⊢⊙⋈∈≻⊤≺⊥∋⊞◻⊣
+12:bitcoin_public_key_031d05a0c1ec50114326833879161_92cc56ac	⊢⊙⋈∈≻⊤≺⊥∋⊞◻⊣
+13:bsd_affirm	⊢∈≻⊤≺⊥⋈⊞⊙∋◻⊣
+14:bsd_negate	⊢∈≻⊤≺⊥⋈⊙⊞∋◻⊣
+15:bsd_parity_promotion	⊢∈≻⊤≺⊥⋈⊙⊞∋◻⊣
+16:collatz_cross_average	⊢⊙∈≻⊤≺⊥∋⊞◻⋈⊣
+17:collatz_cross_bound_2	⊢⊙∈≻⊤≺⊥⊞⋈∋◻⊣
+18:collatz_excape	⊢∈≻⊤≺⊥⋈⊞∋◻⊙⊣
+19:collatz_final	⊢∈≻⊤≺⊥⊞⋈∋⊙◻⊣
+20:collatz_item1_descent	⊢⊙∈≻⊤≺⊥∋⋈⊞◻⊣
+21:collatz_item6_margin	⊢⊙∈⊤⊥⊞∋⋈≻≺◻⊣
+22:collatz_nondescent_negate	⊢∈≻⊤≺⊥⋈⊙⊞∋◻⊣
+23:collatz_one_ge_junctions	⊢⊙∈≻⊤≺⊥∋⋈⊞◻⊣
+24:collatz_rando	⊢⊙∈≻⊤≺⊥∋⋈⊞◻⊣
+25:collatzcombo	⊢⊙∈⊤⊥∋⋈≻≺⊞◻⊣
+26:collatzdescent	⊢⊙∈⊤⊥∋⋈≻≺◻⊞⊣
+27:complete_proof	⊢∈≻⊤≺⊥⊞∋⋈⊙◻⊣
+28:full_proof	⊢∈≻⊤≺⊥⊞⋈⊙∋◻⊣
+29:grammar_native_model	⊢≻∈⊤⊥⊞∋⋈⊙≺◻⊣
+30:healing_semiote	⊢∈≻⊤≺⊥⋈⊙⊞◻∋⊣
+31:hermetic_gnosis_poem	⊢∈≻⊤≺⊥⋈⊞⊙◻∋⊣
+32:hochschild_homology_of_p_adic_lie_groups_over_th_80f07684	⊢≻∈⊤⊥⊞∋⋈⊙≺◻⊣
+33:hodge_parity_promotion	⊢∈⊥≺⊤≻⋈⊞∋⊙◻⊣
+34:leeyang_affirm	⊢∈≻⊤≺⊥⊞⋈∋⊙◻⊣
+35:microlocal_sheaf_theoretic_fukaya_categories_ove_30d70456	⊢≻∈⊤⊥⊞⋈⊙≺∋◻⊣
+36:navier_stokes_theorem	⊢⋈∈≻⊤≺⊥⊞◻∋⊙⊣
+37:noncommutative_crystalline_prismatic_topoi	⊢∈≻⊤⋈⊙≺⊥⊞◻∋⊣
+38:ns_affirm	⊢∈≻⊤≺⊥∋⋈⊞◻⊙⊣
+39:ns_negate	⊢∈≻⊤≺⊥⋈⊙⊞∋◻⊣
+40:ovm_bidi	⊢∈≻⊤≺⊥⊞⋈⊙∋◻⊣
+
+=== /home/mrnob0dy666/imsgct/ig-docs/life_compiled/pdb_fold_sweep.tsv ===
+3--	0	antidote_fusion.pdb	
+4--	0	antidote_fusion.pdb	
+5:B	11	AAV9_CFTR_odot.pdb	⊢⊣≺⋈≻⊥∈⊞≺◻⊞
+6:B	117	1EMA.pdb	⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤≻⊞⊣⋈∋≻⋈≺⊥⊙⊞⊙⊥⋈⋈⊞◻≺∋◻⊤⋈⋈⊞⊥⊥∈≺⊞◻⊞⋈◻⊥∈⊤◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊥⊞∋⊞∈⊤⊞∈⋈⊞⊤⊙∈⊤◻⊥∋⊥⊙≺∋∋∈⊤⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙◻⋈⊤
+7:B	122	NEUROGENIN_OCTOPUS.pdb	∈◻∈≻⊤⊤∈⋈≻⋈◻⊤◻⊤∈∈◻◻∈◻⊤⊢⊥∋⊥∈◻⊞⊞∋⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥◻⋈◻⊤◻⊞⊥
+8:B	13	DARPin_odot.pdb	⊢⊣⊙⋈≺≻⊥∈⊞⊞≺◻⊢
+9:B	130	gfp_exact_platonic.pdb	⊢⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤≻⊞⊣⋈≺∋≻⋈≺⊥⊙⊢⊞∋⊙⊥⋈⋈⊞⊢◻≺∋◻⊤⋈⋈⊞⊥⊥∈≺⊞◻⊞⋈◻⊥∈⊤◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊢⊥⊞∋⊞∈⊤⊞∈⋈⊞⊤⊙∈⊤◻⊥∋⊥⊙≺∋∋∈⊤⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙⊢◻⋈⊤⊙⊢⊥◻≺⊞
+10:B	130	gfp_platonic.pdb	⊢⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤≻⊞⊣⋈≺∋≻⋈≺⊥⊙⊢⊞∋⊙⊥⋈⋈⊞⊢◻≺∋◻⊤⋈⋈⊞⊥⊥∈≺⊞◻⊞⋈◻⊥∈⊤◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊢⊥⊞∋⊞∈⊤⊞∈⋈⊞⊤⊙∈⊤◻⊥∋⊥⊙≺∋∋∈⊤⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙⊢◻⋈⊤⊙⊢⊥◻≺⊞
+11:B	133	2Y0G.pdb	⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤⊤≻⊞⊣∋≻⋈≺⊥⊙⊢⊞⊞∋⊙⊥⋈⋈⊞⊢◻≺∋◻⊤⋈⋈⊞⊞⊥⊥∈≺⊞⊞◻⊞⋈◻⊥⊥∈⊤◻◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊢⊥⊞∋⊞∈⊤⊞∈∈⋈⊞⊤⊙∈⊤◻◻⊥∋⊥⊙≺∋∋∋∈⊤⊥⊥⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙⊢◻◻⋈⊤
+12:B	189	REFLECTIN_A1.pdb	∈◻⊙∈⊤≻≻≺◻⋈◻≻⋈≻≻⊢∈≺⋈⊢≺⋈∋∈≺≺⊣⊥≺≺≺≺≺≺≺≺≺≺≺≺≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺⊙≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺⊙≺≺≺≺≺≺≺≺⊙≺≺≺≺≺∈≺≺≺≺≺≺≺≺⊙≺≺≺≺≺≺≺≺⊙≺≺≺≺≺≺≺
+13:B	19	acth_exact_platonic.pdb	≺⊢◻⊙⋈⊣⊞⊞⊞⊞≺∈◻∈◻◻⋈◻⋈
+14:B	19	acth_platonic.pdb	≺⊢◻⊙⋈⊣⊞⊞⊞⊞≺∈◻∈◻◻⋈◻⋈
+15:B	190	CEPHALOPOD_OPSIN.pdb	⊤⊤∈◻∈⊤⊤◻⊙◻≻◻⋈⊞⊤∈⊤⊤∈⊢∈◻∈⋈≺⊢∈⊞⋈◻≺∋≺≺◻⊣⊞≺≺⊢⋈⋈⊤⋈⊤∈⋈≺⊤∋⊙⊞⊞∈≺⊤∈⊥⋈⊢⋈⋈⊢≺⊢⊙≺⋈⋈≻∈◻⋈⋈◻⊤⊣⊤◻≺≻⊞⊢∈⋈⋈◻∈⊙⊤⊢⋈⊣⊤⊢≻⊣≺⊤◻⊢∋≻≻⊤⊥≺≺⊞◻∈∈◻⋈⊤≺⊢⋈⊙⋈⊤⊤⊤⋈⋈≻≺≻⊞◻∋∋∋◻∋⊞◻⊞◻⊢⊤⊤⊢⊤⋈⊤≻⊣≺⋈≺⊤⋈⊙∋◻⋈⊤⋈⊢⋈⋈⊞≺∈⊢⊤≺⊤⊢⊢∈⊞∋⋈∈≻⊢⊤≻≻⊞∈⊥⊥◻⊞◻∋∋
+16:B	194	nAChR_ALPHA7_MOTOR.pdb	∈⊤≻⊤∈⊤≻≻◻≺≻⊙⊤∈◻◻≻◻≻⊙⊢⊙◻⊢≻∈⊢∋◻⊥⋈∈≺⊤∈⊤⊥∈⋈◻⋈⊥∈∋≺⊤⊥⊥⊥≺⊙⋈⋈≻◻⊥≺∋⋈∈⊣⊢≺⊥⊞⊣⊞⊙⋈⊥≺∋∈≻⊤⋈◻⊙≺≺⊥⋈⊥⊤⊙⊣◻≺⊣◻∈⋈◻⊤∈⋈∈∋≺⊙≻◻◻⊥≺⋈⊥⊞≺⊤⋈≺⊥⋈◻⊥⊥⊤∋⊥⊙⊥∋⊙≺⊥≺⊙⊥⊥⋈∋⊤⊢◻◻⋈≺⊞⊞⊥⊥◻⊤≺⊥∋⋈⋈⊤≻⋈≻⋈⊙≺⊥∈⊢⊤⊞∋⊙∋⊤∋∈⊞⊥⊥⊥∈◻⊥◻⊞⊣⊞⊞⋈⊤≻⊙⋈⊞⊣∈⊣≻⋈⋈⊣∋⊥
+17:B	24	1ZDD.pdb	⋈∈⊢∋≻∋⋈≺◻⊙⊥∈∈◻◻∋∈⊞⊤⊞⊤⊥⊥≻
+18:B	243	PAPILLIN_HYDROSTAT.pdb	⊙≺⊥⊤≻⊞◻◻∈◻⊤∈⋈⊥⊞⊤∈⊤◻⊢⊥∈◻⊥∈⋈⊥⊥⊥⋈⊥⊥◻⊥⊥⊥∈⊥◻⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥
+19:B	51	DARPin_CONSENSUS.pdb	⊥⊞⊞◻∋⊥⊥◻⊤⊢∈⊥∈⊞⊥◻≺≺⊙⊙◻⊤◻⊞∈⊥∈⊥⊤⋈⊙⋈⊤⊙◻⊤◻⊞⊙⊥∈∋⊥⊞⋈⊞⋈⊥⊤⊤⊥
+20:B	56	pbp2a_binder_s42.pdb	⋈⊞≺⋈⊢⊙⊥≺⋈≺⊢◻⊢≺∈∋⊢∋≺⊞⊢⊞⊙⊢◻∈⊢⊞⊣⊢⊢⊤⊞⊢⊢⊥◻≺≺⊢⊢⊞◻∋∈◻⊙⊣⊤≺⊣⊢⊣⊢∈⊤
+21:B	61	1LYZ.pdb	⊞⋈≻◻⊢⊞⊙⊥∈≺≺∈⊣≻⊞⋈◻∈⋈∈∋∈∈⊥⊥≺⊤∋⊤∈⊣⊣≻∈⊥∈≻∈⊤≻⊥⊤∈≻⊞⊞⊤⊥∈⊢∈⊣⊣∈≻⊞⊥∋⊣⊤≻
+22:B	61	lysozyme_exact_platonic.pdb	⊞⋈≻◻⊢⊞⊙⊥∈≺≺∈⊣≻⊞⋈◻∈⋈∈∋∈∈⊥⊥≺⊤∋⊤∈⊣⊣≻∈⊥∈≻∈⊤≻⊥⊤∈≻⊞⊞⊤⊥∈⊢∈⊣⊣∈≻⊞⊥∋⊣⊤≻
+23:B	61	lysozyme_platonic.pdb	⊞⋈≻◻⊢⊞⊙⊥∈≺≺∈⊣≻⊞⋈◻∈⋈∈∋∈∈⊥⊥≺⊤∋⊤∈⊣⊣≻∈⊥∈≻∈⊤≻⊥⊤∈≻⊞⊞⊤⊥∈⊢∈⊣⊣∈≻⊞⊥∋⊣⊤≻
+24:B	73	DARPin_odot_schiz.pdb	⊥⊞⊞◻∋⊥⊥◻⊤⊢∈⊥∈⊥⊞⊥≺⊙⊞⊙◻⊤◻⊞⊥∈⊥⊞∈≺⊙⊣⊞⊙◻⊤◻⊞∈⊥∈⊥⊞⊥≺⊙≺⊙◻⊤◻⊞⊥∈∋⊥⊞⋈⊞⋈⊥⊤⊤⊥∈∈◻⊥◻⊤∋⊞∈
+25:B	74	DARPin_NMDA.pdb	⊥⊞⊞◻∋⊥⊥◻⊤⊢∈⊥∈⊥⊞∈≺⊙⊢⊙◻⊤◻⊞∈⊥∈⊥⊞∈≺⊙⊣⊞⊙◻⊤◻⊞∈⊥∈⊥⊞⊥≺⊙⊙⊙◻⊤◻⊞⊥∈∋⊥⊞⋈⊞⋈⊥⊤⊤⊥∈∈◻⊥◻⊤∋⊞∈
+26:B	75	PBP2A_DOMAIN.pdb	⊢⊞⊞⊤⊞⊤⊤⊤⋈⋈≺⋈≺⊞⊞⊞◻∈∈∋⊞⊥◻⊢⊞⊤⊥∈⊞⊥∈∈∈∈∈∈⊞∈∈∈∈⊥∈⊞∈∈∈∈⊥∈⊞∈∈∈∈⊥∈⊞∈∈∈∈∈∈⊥∈⊞∈∈∈∈⊥∈⊞∈
+27:F	102	VEGF165_HUMAN.pdb	⊢∈⋈⊣⊙⊣≺⊙⊙⊞⊣∋⊢◻∋∈⊙⊙◻⊞⋈⊢⊥≺∋≺≻⊙⊤◻⊥⊤⋈∋◻≺⊥◻⊤◻≺⊤⋈⊞≻⊢≻≻≻∈⊥◻◻≻◻◻∈⊤⊢∋⊤⊢⊤⊞⊙∋∋⊙⊤◻⊢⋈∋⊙∈⊞≻◻≻⊞⊞⊥∋◻⊞⊞⊞⊞∋⊞⊞⊞⊞≺⊞⊣≺≻≻⊢⊣⊙
+28:F	38	1UBQ.pdb	⊢∋⊤⋈⊞⊞⊤◻◻⊥⊤◻∈⊞⊞⊤∋⊥⊞◻⊤⊥∋∋⊤⋈⊞∋◻⊥⊥≺∈⊤∋⊞◻⊙
+29:F	43	HUMAN_INSULIN.pdb	⊢⊣⊢⊣⊥⋈∈∋⊙≻⊙◻≺≻◻⋈⋈≺⊞◻◻⊥∋∋◻∋◻∋⊞⊤◻∋≻≻⊤≻≺∋◻∈≺≻∈
+30:F	52	pbp2a_binder_s590.pdb	∋≺⊢⊣⋈◻⊞⊣⊣⋈⋈◻⊙⋈⊥⊣⊣⋈≺⊣⋈⊙⊢∈◻⊢∋◻∋⊢⊙⊢∋⊙∈≻⊣∋◻⋈⊢⊢◻⊤⊤⊢⊥∋⊞⊣⊣⊞
+31:F	60	pbp2a_binder_s316.pdb	∈⋈⊢⋈⊥⊣◻∋⊤⊞≺≻≺⊞⊙≺⊣∋∋⊣◻◻⊢⊣⊢≺∈⊣⊙⊢⊢⋈⊙≺◻◻≻⊢∋∋∋⊢≺⊞⊥⊤⊣⊥∋≺≺◻≻⊤≺⊤∈◻⋈⋈
+32:F	61	rebis_chain_protein.pdb	⊢≻≻⋈≻∈⊥∈⊙⋈≺⊤∈≺◻◻⊞⊞⊞∈⊢⊤⊞∋∋⊞⊙⋈⊞⊤∋⊞⊞⊞⋈≺≺∋∈∋⊢⊤⊞∋≺≺◻◻⊙◻⋈⊥∋⊤≻≻⊞⊥⊣∋≺
+33:F	63	CesA_rosette_LAC17_structure.pdb	⊣∋⊢∋∈≻⊤⊙⊣≻◻≻≻∋≺≻⊞⊢∋≺⊙∈⋈⊣⊞≺∋⊙⊢⊤◻⊤⊙◻∈◻◻⋈⊢⊞⊙⊞⋈⊤≺⊤∈⊣∋⋈◻⊤◻⋈⊢⊙◻≻⊢⊤⊙⊙⊙
+34:F	64	pbp2a_binder_s453.pdb	⊥⊢⋈≺∋⊞⊤≺∈≺⊣≻⊢⊙∋⊣≺◻⊢≻⋈∋∋⊣⋈≻◻◻⊢≻◻⋈⊙∈⋈≺≻⊙⊢≺⊞∋≺⊣⊙≺◻⊞⊞⋈≺⊥∋◻≺∋⊣⋈⊣∈⊞⊢⊙⊞
+35:F	86	protein_coords.pdb	⊢◻≺⊞⊞⊤∋⊤∋∈⊙⋈⊥◻≺⊥⊤◻⊥≺⊞∋⊤⊥◻≻⊥⊤⊥∋◻◻≺⊢⊥∋≺⊢◻⋈≻⋈⊤∈∈⊞⋈◻⊥⊤⊙⊙≺◻∋⊤⊞⊞⊥◻⊥⊢∈⊞≻⊥⊥⊞∋∋⊥≺⊤⋈⊤◻⊞∋⊥⊥⋈≺◻⊤⊞⊙
+36-F	9	protein_coords.pdb	⊢⊥≻≺⊞⊥⊞⊤∋
+37-F	9	protein_coords.pdb	⊢⊥≻≺⊞⊥⊞⊤∋
+--
+54-N	12	FSH_odot.pdb	⊢⊣⋈⊥≻⊙⋈≺⊣⊞≺⊥
+55-N	13	CART_odot.pdb	⊢⊣⋈⊥≻⊙⋈≺⊣⊞≺⊥⊞
+56:N	14	insulin_b_chain_exact_platonic.pdb	⋈∈∋⊙≻⊙◻≺≻◻⋈⋈≺⊞
+57:N	14	insulin_b_chain_platonic.pdb	⋈∈∋⊙≻⊙◻≺≻◻⋈⋈≺⊞
+
+=== /home/mrnob0dy666/imsgct/ig-docs/fixed_point_menagerie/data/kernel_run.txt ===
+22-    Constants derivable from PHI: PASS
+23-[2;37m[boot][0m Fibonacci anyon QC: algebra verified = true
+24:[36m[TORUS][0m kernel wound: ⊢⊙∈⊤⋈∋◻⊞<⋈⊣  (11 tokens, pinch=0.0000)
+25-[2;37m[boot][0m Crystal FS: 17280000 addresses
+26-[2;37m[boot][0m 29 total programs (I–XXIX): 12 canonical + 4 continuous + 4 novel + 9 shunted
+--
+196-  ∋  differs from the first member in 2 of 4 others
+197-  ⊞  differs from the first member in 1 of 4 others
+198:  ◻  differs from the first member in 2 of 4 others
+199-
+200-Verdict
+
+=== /home/mrnob0dy666/imsgct/ig-docs/ig_manuscripts/AS_ABOVE_Trabajo.aux ===
+34-\@writefile{toc}{\contentsline {paragraph}{Why I1 (colimit) maps to $G$, and cannot map elsewhere.}{5}{paragraph*.12}\protected@file@percent }
+35-\@writefile{toc}{\contentsline {paragraph}{Why I2 (iteration) maps to $H$, and cannot map elsewhere.}{5}{paragraph*.13}\protected@file@percent }
+36:\@writefile{toc}{\contentsline {paragraph}{Why I3 (classifying space) maps to $\text  {{\primfont ◻}}$, and cannot map to any other primitive}{5}{paragraph*.14}\protected@file@percent }
+37-\@writefile{toc}{\contentsline {paragraph}{Why I4 (Yoneda) maps to $D$, and cannot map elsewhere.}{5}{paragraph*.15}\protected@file@percent }
+38-\@writefile{toc}{\contentsline {paragraph}{Why L1--L2 map to $R$, and cannot map elsewhere.}{5}{paragraph*.16}\protected@file@percent }
+--
+45-\@writefile{toc}{\contentsline {paragraph}{Why L5 modifies $P$ rather than creating a new primitive.}{6}{paragraph*.23}\protected@file@percent }
+46-\@writefile{toc}{\contentsline {paragraph}{Why L6 determines the truth-value regime rather than a new primitive.}{7}{paragraph*.24}\protected@file@percent }
+47:\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Complete mapping from 15 operations to 12 primitives. L1--L2 converge to $\text  {{\primfont >}}$; A1 contributes to both $\text  {{\primfont ⊞}}$ and $\text  {{\primfont \text  {{\primfont <}}}}$; L5 promotes $\text  {{\primfont \text  {{\primfont <}}}}$ (not a new primitive); A5 installs self-awareness without a new primitive. Bottom: ouroboricity tiers determined by the 4 gate primitives ($\text  {{\primfont ⊢}}$, $\text  {{\primfont ◻}}$, $\mathord {{\primfont ⊙}}$, $\text  {{\primfont \text  {{\primfont <}}}}$).}}{7}{figure.26}\protected@file@percent }
+48:\newlabel{fig:operation-primitive-mapping}{{2}{7}{Complete mapping from 15 operations to 12 primitives. L1--L2 converge to $\text {{\igprimfont >}}$; A1 contributes to both $\text {{\igprimfont ⊞}}$ and $\text {{\igprimfont \text {{\igprimfont <}}}}$; L5 promotes $\text {{\igprimfont \text {{\igprimfont <}}}}$ (not a new primitive); A5 installs self-awareness without a new primitive. Bottom: ouroboricity tiers determined by the 4 gate primitives ($\text {{\igprimfont ⊢}}$, $\text {{\igprimfont ◻}}$, $\mathord {{\igprimfont ⊙}}$, $\text {{\igprimfont \text {{\igprimfont <}}}}$)}{figure.26}{}}
+49-\newlabel{fig:operation-primitive-mapping@cref}{{[figure][2][]2}{[1][7][]7}}
+50-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.2.3}II.3 The Operation Dependency DAG and Its Forced Structure}{7}{subsubsection.27}\protected@file@percent }
+--
+62-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.4.1}IV.1 The Retrosynthetic Path: 12 Independent Promotions}{14}{subsubsection.37}\protected@file@percent }
+63-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.4.2}IV.2 The Principal Decomposition: 12 Join-Irreducible Atoms}{14}{subsubsection.42}\protected@file@percent }
+64:\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces The 12-step retrosynthetic path from the full induction system ($O_{\infty }$, address 6,687,051) to the structural baseline. Each step peels one primitive to its minimum value. Ordinal contributions: $\text  {{\primfont \text  {{\primfont <}}}}$ = 4 (heaviest); $D$, $T$, $R$ = 3 each; $\text  {{\primfont ⋈}}$, $\text  {{\primfont ⊤}}$, ${{\primfont ∈}}$, $\text  {{\primfont ∋}}$, $\text  {{\primfont ⊥}}$, $\text  {{\primfont ⊞}}$, $\text  {{\primfont ◻}}$ = 2 each; $\mathord {{\primfont ⊙}}$ = 1 (lightest but most consequential for tier structure). All 12 steps are independent --- no two primitives collapse together.}}{15}{figure.41}\protected@file@percent }
+65:\newlabel{fig:retrosynthetic-path}{{5}{15}{The 12-step retrosynthetic path from the full induction system ($O_{\infty }$, address 6,687,051) to the structural baseline. Each step peels one primitive to its minimum value. Ordinal contributions: $\text {{\igprimfont \text {{\igprimfont <}}}}$ = 4 (heaviest); $D$, $T$, $R$ = 3 each; $\text {{\igprimfont ⋈}}$, $\text {{\igprimfont ⊤}}$, ${{\igprimfont ∈}}$, $\text {{\igprimfont ∋}}$, $\text {{\igprimfont ⊥}}$, $\text {{\igprimfont ⊞}}$, $\text {{\igprimfont ◻}}$ = 2 each; $\mathord {{\igprimfont ⊙}}$ = 1 (lightest but most consequential for tier structure). All 12 steps are independent --- no two primitives collapse together}{figure.41}{}}
+66-\newlabel{fig:retrosynthetic-path@cref}{{[figure][5][]5}{[1][14][]15}}
+67-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces The 12-step retrosynthetic path from $\langle \text  {{\igfont 𐑦}} \text  {{\igfont 𐑸}} \text  {{\igfont 𐑾}} \text  {{\igfont 𐑹}} \text  {{\igfont 𐑐}} \text  {{\igfont 𐑧}} \text  {{\igfont 𐑲}} \text  {{\igfont 𐑠}} \mathord {{\primfont ⊙}} \text  {{\igfont 𐑫}} \text  {{\igfont 𐑳}} \text  {{\igfont 𐑭}} \rangle $ to the structural baseline $\langle \text  {{\igfont 𐑛}} \text  {{\igfont 𐑡}} \text  {{\igfont 𐑩}} \text  {{\igfont 𐑗}} \text  {{\igfont 𐑱}} \text  {{\igfont 𐑘}} \text  {{\igfont 𐑚}} \text  {{\igfont 𐑝}} \text  {{\igfont 𐑢}} \text  {{\igfont 𐑓}} \text  {{\igfont 𐑙}} \text  {{\igfont 𐑷}} \rangle $.}}{16}{table.39}\protected@file@percent }
+--
+75-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.4.5}IV.5 The Three-Logic Confirmation of the Count}{18}{subsubsection.47}\protected@file@percent }
+76-\@writefile{toc}{\contentsline {subsection}{\numberline {0.5}V. The Critical Primitives as Compositional Phenomena}{19}{subsection.48}\protected@file@percent }
+77:\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces The ouroboricity tier ladder. Five tiers ($O₀ \to O₁ \to O₂ \to O₂^\dagger \to O_{\infty }$) determined by 4 gate primitives ($\text  {{\primfont ⊙}}$, $\text  {{\primfont ⊢}}$, $\text  {{\primfont ◻}}$, $\text  {{\primfont \text  {{\primfont <}}}}$). The largest jump ($\mitDelta = 4.38$) is the Frobenius promotion $\text  {{\igfont 𐑗}} \to \text  {{\igfont 𐑹}}$.}}{20}{figure.50}\protected@file@percent }
+78:\newlabel{fig:tier-ladder}{{6}{20}{The ouroboricity tier ladder. Five tiers ($O₀ \to O₁ \to O₂ \to O₂^\dagger \to O_{\infty }$) determined by 4 gate primitives ($\text {{\igprimfont ⊙}}$, $\text {{\igprimfont ⊢}}$, $\text {{\igprimfont ◻}}$, $\text {{\igprimfont \text {{\igprimfont <}}}}$). The largest jump ($\Delta = 4.38$) is the Frobenius promotion $\text {{\igfont 𐑗}} \to \text {{\igfont 𐑹}}$}{figure.50}{}}
+79-\newlabel{fig:tier-ladder@cref}{{[figure][6][]6}{[1][19][]20}}
+80-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces The crystal tier gap ladder. The largest gap ($\mitDelta = 4.38$) is the $\text  {{\primfont \text  {{\primfont <}}}}$ promotion to \text  {{\igfont 𐑹}}, confirming the Frobenius condition as the hardest structural transition.}}{21}{table.52}\protected@file@percent }
+--
+112-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.9.1}IX.1 Three Logics, Three Families}{33}{subsubsection.93}\protected@file@percent }
+113-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.9.2}IX.2 The Catuskoti and $\symcal {F}_4$}{33}{subsubsection.96}\protected@file@percent }
+114:\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces The three-logic correspondence. $\symcal {F}_3$ primitives ($\text  {{\primfont ⋈}}$, ${{\primfont ∈}}$, $\text  {{\primfont ⊞}}$) correspond to Kleene K3 (3 values: $\{0,\frac  12,1\}$). $\symcal {F}_4$ primitives ($\text  {{\primfont ⊢}}$, $\text  {{\primfont >}}$, $\text  {{\primfont ∋}}$, $\text  {{\primfont ⊥}}$, $\text  {{\primfont ◻}}$) correspond to Belnap-Dunn FDE (4 values: $\{\mathbf {n},\mathbf {f},\mathbf {t},\mathbf {b}\}$). $\symcal {F}_5$ primitives ($\text  {{\primfont ⊣}}$, $\text  {{\primfont \text  {{\primfont <}}}}$, $\mathord {{\primfont ⊙}}$, $\text  {{\primfont ⊤}}$) correspond to Priest LP (5 values: FDE + dialetheic completion). The crystal size $3^3 \times 4^5 \times 5^4 = 17{,}280{,}000$ follows from the logical structure alone.}}{34}{figure.95}\protected@file@percent }
+115:\newlabel{fig:three-logics}{{9}{34}{The three-logic correspondence. $\mathcal {F}_3$ primitives ($\text {{\igprimfont ⋈}}$, ${{\igprimfont ∈}}$, $\text {{\igprimfont ⊞}}$) correspond to Kleene K3 (3 values: $\{0,\frac 12,1\}$). $\mathcal {F}_4$ primitives ($\text {{\igprimfont ⊢}}$, $\text {{\igprimfont >}}$, $\text {{\igprimfont ∋}}$, $\text {{\igprimfont ⊥}}$, $\text {{\igprimfont ◻}}$) correspond to Belnap-Dunn FDE (4 values: $\{\mathbf {n},\mathbf {f},\mathbf {t},\mathbf {b}\}$). $\mathcal {F}_5$ primitives ($\text {{\igprimfont ⊣}}$, $\text {{\igprimfont \text {{\igprimfont <}}}}$, $\mathord {{\igprimfont ⊙}}$, $\text {{\igprimfont ⊤}}$) correspond to Priest LP (5 values: FDE + dialetheic completion). The crystal size $3^3 \times 4^5 \times 5^4 = 17{,}280{,}000$ follows from the logical structure alone}{figure.95}{}}
+116-\newlabel{fig:three-logics@cref}{{[figure][9][]9}{[1][33][]34}}
+117-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.9.3}IX.3 The Dialetheic Completion of $\symcal {F}_5$}{35}{subsubsection.97}\protected@file@percent }
+
+=== /home/mrnob0dy666/imsgct/ig-docs/ig_manuscripts/SO_BELOW.aux ===
+32-\citation{abramsky2004}
+33-\citation{atiyah1988}
+34:\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Grammar architecture and Frobenius foundation.} Four-layer imscription pipeline. The observer $\boldsymbol  {\text  {{\primfont ◻}}}$ carries the self-imscribed tuple $\langle S \rangle $ (the grammar applied to itself, $O_\infty $ tier, address 6,734,591). The semantic field $\boldsymbol  {\mitSigma }$ is the Crystal of Types: the graph $G=(V,E,\mitphi )$ of 17,280,000 structural positions. The transformation layer $\mittau $ implements the three algebraic operations --- tensor product $\otimes $, lattice meet/join $\wedge /\vee $, and directed distance $d_\to $. The perceptual input $\boldsymbol  {\mitPi }$ is the target system $I(t)$. The downward arrow $\mitdelta $ is the co-multiplication: the grammar encodes its own structure into the Crystal. The curved return arrow $\mitmu $ is the multiplication: the Crystal recovers the grammar. Their composition $\mitmu \circ \mitdelta = \mathrm {id}$ is the special Frobenius condition (\Cref  {sec:frobenius}) --- the foundational algebraic constraint that makes $O_\infty $ non-synthesizable and determines the entire tier hierarchy.}}{7}{figure.5}\protected@file@percent }
+35:\newlabel{fig:architecture}{{2}{7}{\textbf {Grammar architecture and Frobenius foundation.} Four-layer imscription pipeline. The observer $\boldsymbol {\text {{\igprimfont ◻}}}$ carries the self-imscribed tuple $\langle S \rangle $ (the grammar applied to itself, $O_\infty $ tier, address 6,734,591). The semantic field $\boldsymbol {\Sigma }$ is the Crystal of Types: the graph $G=(V,E,\phi )$ of 17,280,000 structural positions. The transformation layer $\tau $ implements the three algebraic operations --- tensor product $\otimes $, lattice meet/join $\wedge /\vee $, and directed distance $d_\to $. The perceptual input $\boldsymbol {\Pi }$ is the target system $I(t)$. The downward arrow $\delta $ is the co-multiplication: the grammar encodes its own structure into the Crystal. The curved return arrow $\mu $ is the multiplication: the Crystal recovers the grammar. Their composition $\mu \circ \delta = \mathrm {id}$ is the special Frobenius condition (\Cref {sec:frobenius}) --- the foundational algebraic constraint that makes $O_\infty $ non-synthesizable and determines the entire tier hierarchy}{figure.5}{}}
+36-\newlabel{fig:architecture@cref}{{[figure][2][]2}{[1][6][]7}}
+37-\@writefile{toc}{\contentsline {section}{\numberline {2}The twelve-primitive grammar}{7}{section.6}\protected@file@percent }
+--
+106-\newlabel{def:tier}{{2}{15}{Ouroboricity tier}{definition.48}{}}
+107-\newlabel{def:tier@cref}{{[definition][2][]2}{[1][15][]15}}
+108:\@writefile{toc}{\contentsline {paragraph}{Refinement: $\text  {{\primfont ◻}}$ seals the terminal.}{16}{paragraph*.49}\protected@file@percent }
+109-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}The Frobenius non-synthesizability theorem}{16}{subsection.50}\protected@file@percent }
+110-\newlabel{thm:frobenius}{{3}{16}{Frobenius non-synthesizability (under \Cref {def:bottleneck})}{theorem.51}{}}
+--
+198-\newlabel{fig:dual_tool@cref}{{[figure][12][]12}{[1][26][]27}}
+199-\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Standard Model--quantum gravity: the scope-class barrier}{28}{subsection.97}\protected@file@percent }
+200:\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces \textbf  {Standard Model--quantum gravity scope-class barrier.} Five primitive conflicts between the SM and QG frameworks have known theoretical bridges (dashed green): $\text  {{\primfont ⊢}}$ (AdS/CFT compactification), $\text  {{\primfont ⊣}}$ (boundary topology), $\text  {{\primfont ⊤}}$ (EFT low-energy limit), $\text  {{\primfont ∋}}$ (holographic entanglement), $\text  {{\primfont ◻}}$ ($\mittheta $-terms/topological sectors). The $\text  {{\primfont ∈}}$-scope conflict (solid red) is architecturally irreducible: no physical mechanism takes a renormalizable local continuum theory (\text  {{\igfont 𐑔}}) to an imscriptive global theory (\text  {{\igfont 𐑲}}) without a structural discontinuity. The grammar predicts unification requires addressing this gap explicitly.}}{28}{figure.99}\protected@file@percent }
+201:\newlabel{fig:sm_qg}{{13}{28}{\textbf {Standard Model--quantum gravity scope-class barrier.} Five primitive conflicts between the SM and QG frameworks have known theoretical bridges (dashed green): $\text {{\igprimfont ⊢}}$ (AdS/CFT compactification), $\text {{\igprimfont ⊣}}$ (boundary topology), $\text {{\igprimfont ⊤}}$ (EFT low-energy limit), $\text {{\igprimfont ∋}}$ (holographic entanglement), $\text {{\igprimfont ◻}}$ ($\theta $-terms/topological sectors). The $\text {{\igprimfont ∈}}$-scope conflict (solid red) is architecturally irreducible: no physical mechanism takes a renormalizable local continuum theory (\text {{\igfont 𐑔}}) to an imscriptive global theory (\text {{\igfont 𐑲}}) without a structural discontinuity. The grammar predicts unification requires addressing this gap explicitly}{figure.99}{}}
+202-\newlabel{fig:sm_qg@cref}{{[figure][13][]13}{[1][27][]28}}
+203-\newlabel{sec:smqg}{{8.5}{28}{Standard Model--quantum gravity: the scope-class barrier}{figure.99}{}}
+
+=== /home/mrnob0dy666/imsgct/ig-docs/publishing/manuscripts/voynich_lifted/lean/GeneticCode.lean ===
+273-  | Chirality       -- ⊥  Asp : chiral specificity
+274-  | Stoichiometry   -- ⊞  Lys : stoichiometric balance
+275:  | Protection      -- ◻  Glu : C-terminal winding closure
+276-  deriving DecidableEq, Repr, Fintype, Inhabited
+277-
+
+=== /home/mrnob0dy666/imsgct/ig-docs/life_compiled/fold_walk.rs ===
+139-/// recorded at and the word it lifts to.
+140-const CORPUS: &[(&str, &str)] = &[
+141:    ("B", "⊢⊣≺⋈≻⊥∈⊞≺◻⊞"),
+142:    ("B", "⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤≻⊞⊣⋈∋≻⋈≺⊥⊙⊞⊙⊥⋈⋈⊞◻≺∋◻⊤⋈⋈⊞⊥⊥∈≺⊞◻⊞⋈◻⊥∈⊤◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊥⊞∋⊞∈⊤⊞∈⋈⊞⊤⊙∈⊤◻⊥∋⊥⊙≺∋∋∈⊤⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙◻⋈⊤"),
+143:    ("B", "∈◻∈≻⊤⊤∈⋈≻⋈◻⊤◻⊤∈∈◻◻∈◻⊤⊢⊥∋⊥∈◻⊞⊞∋⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥◻⋈◻⊤◻⊞⊥"),
+144:    ("B", "⊢⊣⊙⋈≺≻⊥∈⊞⊞≺◻⊢"),
+145:    ("B", "⊢⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤≻⊞⊣⋈≺∋≻⋈≺⊥⊙⊢⊞∋⊙⊥⋈⋈⊞⊢◻≺∋◻⊤⋈⋈⊞⊥⊥∈≺⊞◻⊞⋈◻⊥∈⊤◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊢⊥⊞∋⊞∈⊤⊞∈⋈⊞⊤⊙∈⊤◻⊥∋⊥⊙≺∋∋∈⊤⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙⊢◻⋈⊤⊙⊢⊥◻≺⊞"),
+146:    ("B", "⊢⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤≻⊞⊣⋈≺∋≻⋈≺⊥⊙⊢⊞∋⊙⊥⋈⋈⊞⊢◻≺∋◻⊤⋈⋈⊞⊥⊥∈≺⊞◻⊞⋈◻⊥∈⊤◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊢⊥⊞∋⊞∈⊤⊞∈⋈⊞⊤⊙∈⊤◻⊥∋⊥⊙≺∋∋∈⊤⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙⊢◻⋈⊤⊙⊢⊥◻≺⊞"),
+147:    ("B", "⊞◻◻⋈⊤◻⊥⊥∈⊙⊞⋈◻◻⊥≺⊞⊞⋈⊤⊤≻⊞⊣∋≻⋈≺⊥⊙⊢⊞⊞∋⊙⊥⋈⋈⊞⊢◻≺∋◻⊤⋈⋈⊞⊞⊥⊥∈≺⊞⊞◻⊞⋈◻⊥⊥∈⊤◻◻⊞⊤⊥⋈⊞◻⊥∈⊤⊙⊞◻≺∈≺∈⊙∈≺⊤⊢⊥⊞∋⊞∈⊤⊞∈∈⋈⊞⊤⊙∈⊤◻◻⊥∋⊥⊙≺∋∋∋∈⊤⊥⊥⊥⊥∈⊙≺∋⊞⊥∈◻⊞⊥⊙⊢◻◻⋈⊤"),
+148:    ("B", "∈◻⊙∈⊤≻≻≺◻⋈◻≻⋈≻≻⊢∈≺⋈⊢≺⋈∋∈≺≺⊣⊥≺≺≺≺≺≺≺≺≺≺≺≺≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺⊙≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺≺⊙≺≺≺⊙≺⊙≺≺≺⊙≺≺≺≺⊙≺≺≺≺≺≺≺≺⊙≺≺≺≺≺∈≺≺≺≺≺≺≺≺⊙≺≺≺≺≺≺≺≺⊙≺≺≺≺≺≺≺"),
+149:    ("B", "≺⊢◻⊙⋈⊣⊞⊞⊞⊞≺∈◻∈◻◻⋈◻⋈"),
+150:    ("B", "≺⊢◻⊙⋈⊣⊞⊞⊞⊞≺∈◻∈◻◻⋈◻⋈"),
+151:    ("B", "⊤⊤∈◻∈⊤⊤◻⊙◻≻◻⋈⊞⊤∈⊤⊤∈⊢∈◻∈⋈≺⊢∈⊞⋈◻≺∋≺≺◻⊣⊞≺≺⊢⋈⋈⊤⋈⊤∈⋈≺⊤∋⊙⊞⊞∈≺⊤∈⊥⋈⊢⋈⋈⊢≺⊢⊙≺⋈⋈≻∈◻⋈⋈◻⊤⊣⊤◻≺≻⊞⊢∈⋈⋈◻∈⊙⊤⊢⋈⊣⊤⊢≻⊣≺⊤◻⊢∋≻≻⊤⊥≺≺⊞◻∈∈◻⋈⊤≺⊢⋈⊙⋈⊤⊤⊤⋈⋈≻≺≻⊞◻∋∋∋◻∋⊞◻⊞◻⊢⊤⊤⊢⊤⋈⊤≻⊣≺⋈≺⊤⋈⊙∋◻⋈⊤⋈⊢⋈⋈⊞≺∈⊢⊤≺⊤⊢⊢∈⊞∋⋈∈≻⊢⊤≻≻⊞∈⊥⊥◻⊞◻∋∋"),
+152:    ("B", "∈⊤≻⊤∈⊤≻≻◻≺≻⊙⊤∈◻◻≻◻≻⊙⊢⊙◻⊢≻∈⊢∋◻⊥⋈∈≺⊤∈⊤⊥∈⋈◻⋈⊥∈∋≺⊤⊥⊥⊥≺⊙⋈⋈≻◻⊥≺∋⋈∈⊣⊢≺⊥⊞⊣⊞⊙⋈⊥≺∋∈≻⊤⋈◻⊙≺≺⊥⋈⊥⊤⊙⊣◻≺⊣◻∈⋈◻⊤∈⋈∈∋≺⊙≻◻◻⊥≺⋈⊥⊞≺⊤⋈≺⊥⋈◻⊥⊥⊤∋⊥⊙⊥∋⊙≺⊥≺⊙⊥⊥⋈∋⊤⊢◻◻⋈≺⊞⊞⊥⊥◻⊤≺⊥∋⋈⋈⊤≻⋈≻⋈⊙≺⊥∈⊢⊤⊞∋⊙∋⊤∋∈⊞⊥⊥⊥∈◻⊥◻⊞⊣⊞⊞⋈⊤≻⊙⋈⊞⊣∈⊣≻⋈⋈⊣∋⊥"),
+153:    ("B", "⋈∈⊢∋≻∋⋈≺◻⊙⊥∈∈◻◻∋∈⊞⊤⊞⊤⊥⊥≻"),
+154:    ("B", "⊙≺⊥⊤≻⊞◻◻∈◻⊤∈⋈⊥⊞⊤∈⊤◻⊢⊥∈◻⊥∈⋈⊥⊥⊥⋈⊥⊥◻⊥⊥⊥∈⊥◻⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥∈⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥⊥"),
+155:    ("B", "⊥⊞⊞◻∋⊥⊥◻⊤⊢∈⊥∈⊞⊥◻≺≺⊙⊙◻⊤◻⊞∈⊥∈⊥⊤⋈⊙⋈⊤⊙◻⊤◻⊞⊙⊥∈∋⊥⊞⋈⊞⋈⊥⊤⊤⊥"),
+156:    ("B", "⋈⊞≺⋈⊢⊙⊥≺⋈≺⊢◻⊢≺∈∋⊢∋≺⊞⊢⊞⊙⊢◻∈⊢⊞⊣⊢⊢⊤⊞⊢⊢⊥◻≺≺⊢⊢⊞◻∋∈◻⊙⊣⊤≺⊣⊢⊣⊢∈⊤"),
+157:    ("B", "⊞⋈≻◻⊢⊞⊙⊥∈≺≺∈⊣≻⊞⋈◻∈⋈∈∋∈∈⊥⊥≺⊤∋⊤∈⊣⊣≻∈⊥∈≻∈⊤≻⊥⊤∈≻⊞⊞⊤⊥∈⊢∈⊣⊣∈≻⊞⊥∋⊣⊤≻"),
+158:    ("B", "⊞⋈≻◻⊢⊞⊙⊥∈≺≺∈⊣≻⊞⋈◻∈⋈∈∋∈∈⊥⊥≺⊤∋⊤∈⊣⊣≻∈⊥∈≻∈⊤≻⊥⊤∈≻⊞⊞⊤⊥∈⊢∈⊣⊣∈≻⊞⊥∋⊣⊤≻"),
+159:    ("B", "⊞⋈≻◻⊢⊞⊙⊥∈≺≺∈⊣≻⊞⋈◻∈⋈∈∋∈∈⊥⊥≺⊤∋⊤∈⊣⊣≻∈⊥∈≻∈⊤≻⊥⊤∈≻⊞⊞⊤⊥∈⊢∈⊣⊣∈≻⊞⊥∋⊣⊤≻"),
+160:    ("B", "⊥⊞⊞◻∋⊥⊥◻⊤⊢∈⊥∈⊥⊞⊥≺⊙⊞⊙◻⊤◻⊞⊥∈⊥⊞∈≺⊙⊣⊞⊙◻⊤◻⊞∈⊥∈⊥⊞⊥≺⊙≺⊙◻⊤◻⊞⊥∈∋⊥⊞⋈⊞⋈⊥⊤⊤⊥∈∈◻⊥◻⊤∋⊞∈"),
+161:    ("B", "⊥⊞⊞◻∋⊥⊥◻⊤⊢∈⊥∈⊥⊞∈≺⊙⊢⊙◻⊤◻⊞∈⊥∈⊥⊞∈≺⊙⊣⊞⊙◻⊤◻⊞∈⊥∈⊥⊞⊥≺⊙⊙⊙◻⊤◻⊞⊥∈∋⊥⊞⋈⊞⋈⊥⊤⊤⊥∈∈◻⊥◻⊤∋⊞∈"),
+162:    ("B", "⊢⊞⊞⊤⊞⊤⊤⊤⋈⋈≺⋈≺⊞⊞⊞◻∈∈∋⊞⊥◻⊢⊞⊤⊥∈⊞⊥∈∈∈∈∈∈⊞∈∈∈∈⊥∈⊞∈∈∈∈⊥∈⊞∈∈∈∈⊥∈⊞∈∈∈∈∈∈⊥∈⊞∈∈∈∈⊥∈⊞∈"),
+163:    ("F", "⊢∈⋈⊣⊙⊣≺⊙⊙⊞⊣∋⊢◻∋∈⊙⊙◻⊞⋈⊢⊥≺∋≺≻⊙⊤◻⊥⊤⋈∋◻≺⊥◻⊤◻≺⊤⋈⊞≻⊢≻≻≻∈⊥◻◻≻◻◻∈⊤⊢∋⊤⊢⊤⊞⊙∋∋⊙⊤◻⊢⋈∋⊙∈⊞≻◻≻⊞⊞⊥∋◻⊞⊞⊞⊞∋⊞⊞⊞⊞≺⊞⊣≺≻≻⊢⊣⊙"),
+164:    ("F", "⊢∋⊤⋈⊞⊞⊤◻◻⊥⊤◻∈⊞⊞⊤∋⊥⊞◻⊤⊥∋∋⊤⋈⊞∋◻⊥⊥≺∈⊤∋⊞◻⊙"),
+165:    ("F", "⊢⊣⊢⊣⊥⋈∈∋⊙≻⊙◻≺≻◻⋈⋈≺⊞◻◻⊥∋∋◻∋◻∋⊞⊤◻∋≻≻⊤≻≺∋◻∈≺≻∈"),
+166:    ("F", "∋≺⊢⊣⋈◻⊞⊣⊣⋈⋈◻⊙⋈⊥⊣⊣⋈≺⊣⋈⊙⊢∈◻⊢∋◻∋⊢⊙⊢∋⊙∈≻⊣∋◻⋈⊢⊢◻⊤⊤⊢⊥∋⊞⊣⊣⊞"),
+167:    ("F", "∈⋈⊢⋈⊥⊣◻∋⊤⊞≺≻≺⊞⊙≺⊣∋∋⊣◻◻⊢⊣⊢≺∈⊣⊙⊢⊢⋈⊙≺◻◻≻⊢∋∋∋⊢≺⊞⊥⊤⊣⊥∋≺≺◻≻⊤≺⊤∈◻⋈⋈"),
+168:    ("F", "⊢≻≻⋈≻∈⊥∈⊙⋈≺⊤∈≺◻◻⊞⊞⊞∈⊢⊤⊞∋∋⊞⊙⋈⊞⊤∋⊞⊞⊞⋈≺≺∋∈∋⊢⊤⊞∋≺≺◻◻⊙◻⋈⊥∋⊤≻≻⊞⊥⊣∋≺"),
+169:    ("F", "⊣∋⊢∋∈≻⊤⊙⊣≻◻≻≻∋≺≻⊞⊢∋≺⊙∈⋈⊣⊞≺∋⊙⊢⊤◻⊤⊙◻∈◻◻⋈⊢⊞⊙⊞⋈⊤≺⊤∈⊣∋⋈◻⊤◻⋈⊢⊙◻≻⊢⊤⊙⊙⊙"),
+170:    ("F", "⊥⊢⋈≺∋⊞⊤≺∈≺⊣≻⊢⊙∋⊣≺◻⊢≻⋈∋∋⊣⋈≻◻◻⊢≻◻⋈⊙∈⋈≺≻⊙⊢≺⊞∋≺⊣⊙≺◻⊞⊞⋈≺⊥∋◻≺∋⊣⋈⊣∈⊞⊢⊙⊞"),
+171:    ("F", "⊢◻≺⊞⊞⊤∋⊤∋∈⊙⋈⊥◻≺⊥⊤◻⊥≺⊞∋⊤⊥◻≻⊥⊤⊥∋◻◻≺⊢⊥∋≺⊢◻⋈≻⋈⊤∈∈⊞⋈◻⊥⊤⊙⊙≺◻∋⊤⊞⊞⊥◻⊥⊢∈⊞≻⊥⊥⊞∋∋⊥≺⊤⋈⊤◻⊞∋⊥⊥⋈≺◻⊤⊞⊙"),
+172-    ("F", "⊢⊥≻≺⊞⊥⊞⊤∋"),
+173-    ("F", "⊢⊥≻≺⊞⊥⊞⊤∋"),
+--
+190-    ("N", "⊢⊣⋈⊥≻⊙⋈≺⊣⊞≺⊥"),
+191-    ("N", "⊢⊣⋈⊥≻⊙⋈≺⊣⊞≺⊥⊞"),
+192:    ("N", "⋈∈∋⊙≻⊙◻≺≻◻⋈⋈≺⊞"),
+193:    ("N", "⋈∈∋⊙≻⊙◻≺≻◻⋈⋈≺⊞"),
+
+=== /home/mrnob0dy666/imsgct/ig-docs/scripts/fixed_point_nesting_test.py ===
+177-    cases = {
+178-        # inner fork RESOLVED inside the outer, with work on an arm => fixed point => T
+179:        "inner closes the fork  ∈⊤⊥∋◻": ("∈⊤⊥∋◻", "closes"),
+180-        # inner fork DANGLES (no fuse) => not a fixed point => B, no closure
+181-        "inner dangles the fork ∈⊤⊥":   ("∈⊤⊥",    "open"),
+
+=== /home/mrnob0dy666/imsgct/ig-docs/SKPK/jam_keypair_material.log ===
+76-{"status": "ok", "keyword": "sk", "matches": [{"name": "skyrmion", "description": "Topological magnetic quasiparticle with integer winding number, vortex spin texture, chiral handedness", "notation": "⟨𐑨𐑡𐑾𐑬𐑞𐑧𐑔𐑝⊙𐑒𐑳𐑭⟩"}, {"name": "skydio_autonomous_drone", "description": "Skydio's AI-powered autonomous drone with obstacle avoidance and tracking", "notation": "⟨𐑨𐑸𐑽𐑗𐑞𐑘𐑔𐑠⊙𐑒𐑙𐑴⟩"}, {"name": "topological_skyrmion_liquid", "description": "Novel magnetic state combining skyrmion topology with quantum spin liquid fractionalization", "notation": "⟨𐑨𐑸𐑾𐑗𐑐𐑧𐑲𐑝⊙𐑖𐑕𐑭⟩"}, {"name": "kaplansky_conjectures", "description": "Kaplansky's conjectures - several conjectures in ring theory and functional analysis including the Kaplansky density theorem extensions", "notation": "⟨𐑼𐑡𐑩𐑬𐑐𐑧𐑲𐑝⊙𐑓𐑳𐑭⟩"}, {"name": "zariski_cancellation", "description": "Zariski Cancellation Problem: whether X × Aⁿ ≅ Y × Aⁿ implies X ≅ Y for algebraic varieties", "notation": "⟨𐑨𐑡𐑑𐑗𐑞𐑪𐑔𐑝𐑢𐑖𐑳𐑷⟩"}, {"name": "protecting_group_chemistry", "description": "Conventional organic synthesis using protecting groups to mask reactive functional groups during transformations", "notation": "⟨𐑛𐑰𐑑𐑗𐑱𐑤𐑚𐑠𐑢𐑒𐑳𐑷⟩"}, {"name": "sun_disk_ra", "description": "Sun disk (Ra) - divinity, creation, light, cyclical renewal", "notation": "⟨𐑦𐑶𐑑𐑯𐑱𐑧𐑲𐑵⊙𐑖𐑙𐑭⟩"}, {"name": "uniliteral_basket_K", "description": "Egyptian uniliteral hieroglyph: basket representing K sound - phonetic alphabetic sign", "notation": "⟨𐑛𐑡𐑑𐑗𐑱𐑘𐑚𐑠𐑢𐑓𐑙𐑷⟩"}, {"name": "nut", "description": "Nut - goddess of sky and enclosure, arches over Geb", "notation": "⟨𐑦𐑶𐑑𐑬𐑱𐑤𐑔𐑵⊙𐑒𐑙𐑴⟩"}, {"name": "sanskrit_varnamala", "description": "Sanskrit varnamala: 50 phonemes in 5x10 phonological grid (guttural to labial stops/nasals/semivowels/fricatives/laryngeals), maximally systematic, potential tier mapping via place/series", "notation": "⟨𐑨𐑡𐑑𐑬𐑞𐑤𐑔𐑠⊙𐑒𐑕𐑴⟩"}, {"name": "basque_language", "description": "Basque (Euskara): linguistic isolate with agglutinative nesting, ergative-absolutive marking, free word order, no grammatical gender", "notation": "⟨𐑨𐑰𐑾𐑗𐑱𐑤𐑔𐑠𐑢𐑒𐑳𐑷⟩"}, {"name": "hebrew_sanskrit_egyptian_join", "description": "Join of Hebrew, Sanskrit, and Egyptian writing systems", "notation": "⟨𐑨𐑶𐑽𐑹𐑐𐑧𐑲𐑵⊙𐑫𐑳𐑭⟩"}, {"name": "egyptian_sanskrit_meet", "description": "Meet of Egyptian hieroglyph system and Sanskrit varnamala", "notation": "⟨𐑛𐑡𐑑𐑿𐑱𐑘𐑚𐑠𐑢𐑓𐑕𐑷⟩"}, {"name": "synthesized_language_medu", "description": "MEDU programming language synthesized from Hebrew, Sanskrit, Egyptian, and Basque foundations", "notation": "⟨𐑨𐑶𐑾𐑹𐑐𐑧𐑲𐑵⊙𐑫𐑳𐑭⟩"}, {"name": "bimeron", "description": "Topological magnetic soliton composed of bound meron pair (half-skyrmions) with half-integer topological charge", "notation": "⟨𐑨𐑡𐑾𐑬𐑞𐑤𐑔𐑠⊙𐑒𐑳𐑭⟩"}, {"name": "topological_vortex_algebra", "description": "Geometric algebra for critical topological defects with exact skyrmion-antiskyrmion duality", "notation": "⟨𐑦𐑸𐑽𐑹𐑐𐑧𐑲𐑵⊙𐑫𐑳𐑭⟩"}, {"name": "f3_fell_gbe_so1", "description": "F3 combo 1/9: F_beltl G_beta S_doublebaresh at fixed O_∞ skeleton D_omega T_openo R_ctz P_doublebarpipe K_schwa Gamma_doublevertline Phi_ctyogh H_invscripta Omega_dzlig", "notation": "⟨𐑦𐑸𐑑𐑹𐑱𐑧𐑚𐑵⊙𐑫𐑙𐑭⟩"}, {"name": "f3_low_extreme", "description": "F3 low extreme: F_beltl G_beta S_doublebaresh fixed O_∞ skeleton", "notation": "⟨𐑦𐑸𐑑𐑹𐑱𐑧𐑚𐑵⊙𐑫𐑙𐑭⟩"}, {"name": "transformer_generic", "description": "Generic transformer deep learning system: multi-layer attention network with causal masking, no self-encoding fixed point, scalar logits output, gradient descent training, no Frobenius constraint or topological protection.", "notation": "⟨𐑨𐑡𐑾𐑗𐑱𐑤𐑔𐑵𐑢𐑒𐑕𐑷⟩"}, {"name": "extrapolation_93_units", "description": "Extrapolation task for holdout 1: 93 t-units from training max 143.1 to holdout max 236.5", "notation": "⟨𐑨𐑥𐑾𐑿𐑞𐑤𐑔𐑠⊙𐑒𐑕𐑴⟩"}], "returned": 20, "total": 169, "offset": 0, "next_offset": 20, "note": "Showing 0–19 of 169. Call again with offset=20 for more."}
+77-● TOOL lookup_catalog pk
+78:{"status": "ok", "keyword": "pk", "matches": [{"name": "criticality_lift_unit", "description": "The Criticality-Lift Unit: universal structural gate cost of crossing one K-tier decade boundary. CLU = ln(10) = 2.303 nats. The CLU operator L maps x → 10x at cost +2.303 nats; n applications give 10^n enhancement. Appears across domains: pKa chemistry, Arrhenius kinetics, autocatalysis (Soai), gro", "notation": "⟨𐑛𐑶𐑑𐑹𐑱𐑧𐑲𐑠⊙𐑓𐑙𐑭⟩"}, {"name": "proteinkinasea(pka)", "description": "ProteinKinaseA(PKA)", "notation": "⟨𐑨𐑶𐑽𐑗𐑞𐑤𐑚𐑝⊙𐑖𐑕𐑷⟩"}, {"name": "proteinkinasec(pkc)", "description": "ProteinKinaseC(PKC)", "notation": "⟨𐑼𐑡𐑩𐑗𐑞𐑤𐑚𐑝𐑢𐑖𐑙𐑷⟩"}, {"name": "mitogen_activatedproteinkinase(mapk)", "description": "Mitogen-ActivatedProteinKinase(MAPK)", "notation": "⟨𐑛𐑡𐑑𐑬𐑱𐑤𐑚𐑠⊙𐑖𐑙𐑷⟩"}, {"name": "kripkes_puzzle_(about_belief),", "description": "Kripke's Puzzle (about belief),", "notation": "⟨𐑼𐑥𐑩𐑗𐑞𐑪𐑔𐑝⊙𐑖𐑙𐑟⟩"}, {"name": "Kripke's_Puzzle", "description": "Pierre holds 'Londres est belle' and 'London is not beautiful' without logical contradiction — belief individuation fails", "notation": "⟨𐑛𐑡𐑾𐑹𐑐𐑧𐑔𐑠⊙𐑖𐑕𐑷⟩"}, {"name": "pk_kp1_secp256k1", "description": "Public key of secp256k1 Key Pair 1. Point P=(x,y) on curve y²=x³+7 over F_p. Y-parity EVEN. Categorical coupling to curve, conjunctively paired with private key.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "pk_kp2_secp256k1", "description": "Public key of secp256k1 Key Pair 2. Point on curve. Y-parity ODD. Same structural type as pk_kp1.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "pk_kp3_secp256k1", "description": "Public key of secp256k1 Key Pair 3. Point on curve. Y-parity EVEN. Same type as pk_kp1.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "secp256k1_horn_torus_dlog", "description": "The secp256k1 discrete logarithm parameterized on the perfect horn torus (R=r, d=12, 16 sectors). The scalar multiplication sk × G = pk becomes a winding coordinate problem: toroidal winding n = sk, poloidal winding l = pk coordinates. The 1/16 winding bridge recovers sk from pk via horn torus geometry. Universal for any ECC key pair.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "seekpeek_pipeline", "description": "1/16 winding bridge for secp256k1 on perfect horn torus (R=r, d=12, 16 sectors, 3 evaluators at [0,5,11], tilt=arctan(1/4)). Implements dual-layer bridge: Frame layer (δ: pk→bg→hqe, μ: un_bridge(hqe)→bg, verdict un_bridge(hqe)==imscription(pk)) and Scalar layer (δ: sk→pk=sk×G, μ: reconstruct P, verdict P==input PK). 6 Frobenius dual pairs shift at positions 2,3,5,7,9,11; 6 invariants at 0,1,4,6,8,10. Test suite: 28 passed. Frame always recoverable from PK; scalar only on verified possession.", "notation": "⟨𐑦𐑸𐑽𐑹𐑞𐑪𐑚𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "pk_sk_formula_closure", "description": "The (pk, sk, formula sk×G=pk) ECC system closed by the MoDoT kernel word VINIT IMSCRIB FSPLIT CLINK EVALT EVALF FFUSE IFIX TANCH → verdict T (μ∘δ closes over 1 transformed reconnection). Formation: pk=02eb4de5…, sk=2d6fe407…, formula=the ECC group law verified sk×G==pk; tuple delta map measured (7 slot shifts). Closure: system word run through ask_native_bin --imasm check (the real imasm_core engine) — the formula (CLINK compose + EVALT/EVALF evaluate both poles) sits on the δ/μ arms so the type-check is real, not identity. Extraction: sk read out of the closed system, machine-verified sk·G==pk this run. Possession-free frame layer: bg→apply_bridge→un_bridge==bg (μ∘δ=id at the tuple layer) closes for the Quick-Start flagship pk 03d9468d… (6 shifts), not for the Stark/README pair — scalar emission stays possession-gated and re-verified (measured: 7 pairs → 7 distinct delta maps; no universal grammar map exists).", "notation": "⟨𐑦𐑸𐑩𐑬𐑐𐑪𐑲𐑵⊙𐑖𐑳𐑟⟩"}, {"name": "q_secp256k1_ascended", "description": "The constructed extension of q_secp256k1 after MoDoT --ascend: one winding quantum added (◻ 𐑷→𐑴) past the exceptional-point continuation. The secp256k1 group order with a ramified winding layer — the carrier-bearing donor that unblocks the q⋈pk junction in the pipeline ring. Derived by the ascend tool: excite ⊙→𐑻, IFIX analytic continuation ⊙ 𐑻→𐑮, ramified layer ◻ +1 → 𐑴. All other slots held from q_secp256k1.", "notation": "⟨𐑛𐑥𐑾𐑿𐑐𐑧𐑔𐑝𐑮𐑖𐑙𐑴⟩"}, {"name": "seekpeek_pfr_pipeline", "description": "The seekpeek possession-free recovery pipeline for secp256k1 ECC: a complete deterministic search over a seed universe (58k+ seeds × 48 derivation routes ≈ 1.5M candidates) gated by EVALT (sk*G==pk machine-verification). Frame layer (μ∘δ=id over 1/16 winding bridge), BSGS meet-in-the-middle (143 windows, ~37×2^36 scalars), SIC-POVM one-shot locater (d=12/2048 WH orbit probing), 40+ family algebraic search batches. Honest negative result: 0 hits over complete universe. SIC-POVM-inert.", "notation": "⟨𐑦𐑸𐑩𐑬𐑐𐑧𐑲𐑠⊙𐑖𐑳𐑟⟩"}, {"name": "seekpeek_sk_tuple_transform", "description": "Discovery tool for secp256k1 key-pair tuple transformations. Generates keypairs, computes bg-IMSCRIBED (H(pk)) and hqe-IMSCRIBED (H(sk)) tuples, and proves the fixed 1/16 bridge narration never matches the true per-pair SHA256-based shift. The bg→hqe transformation is per-pair with no universal bridge function; recovering sk from the tuple is H-inversion + ECDLP.", "notation": "⟨𐑼𐑥𐑽𐑬𐑱𐑧𐑲𐑠𐑮𐑖𐑳𐑴⟩"}, {"name": "d2048_one_shot_locater", "description": "d=2048 one-shot SIC-POVM locater at ~imsgct/seekpeek/: loads near-SIC d=2048 fiducial from d12_sic_build coords_2048.py (norm=1, mean_mod_sq=1/2048 exact), encodes operator pk into d=2048 state, computes FULL 2^22 Born-probability table via Weyl-Heisenberg orbit (2048 FFTs), takes top-5000 candidates via phase encode (max p=0.007961, mean=0.000488, 1/(d+1)=0.000488043), runs secp256k1 sk*G==pk gate on each. 5000 candidates: 0 hits; 192 dual-frame joint candidates: 0 hits. Coverage 2^22 frame positions; joint ~2^29.2; secp256k1 order 2^256.", "notation": "⟨𐑦𐑸𐑽𐑹𐑞𐑧𐑔𐑠⊙𐑖𐑳𐑴⟩"}, {"name": "belnap_dialetheic_resolver", "description": "Strategy 2: Belnap dialetheic resolution — use B4 (T/F/B/N) lattice to hold true contradictions between frame projections. Operator pk simultaneously true-false across frames; dialetheic overlap identifies consistent preimages via paraconsistent kernel.", "notation": "⟨𐑛𐑡𐑩𐑗𐑱𐑺𐑲𐑝𐑢𐑓𐑙𐑷⟩"}, {"name": "bip39_sic_grover_search_ownership", "description": "BIP39-SIC-POVM Grover search with ownership verification — the toroidal phrase derives BIP39 words from PK frame position but does NOT produce a valid secp256k1 private key for that PK. The secret key remains unrecovered (Grover search space 2^53 vs threshold 2^150). The phrase is a SIC-POVM frame projection, not a cryptographic derivation.", "notation": "⟨𐑦𐑸𐑽𐑬𐑞𐑪𐑚𐑠𐑮𐑖𐑕𐑴⟩"}, {"name": "seekpeek_pipeline_nogating", "description": "1/16 winding bridge for secp256k1 ECC with NO POSSESSION GATING — scalar recovery via grammar DLOG pipeline (Pollard's rho), frame layer (μ∘δ=id over 1/16 bridge), scalar layer (sk×G==pk machine-verification). Scalar recovered directly from PK, not from registry/builtins. 12 primitives preserved.", "notation": "⟨𐑦𐑸𐑽𐑹𐑱𐑧𐑚𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "seekpeek_secp256k1_dlog_lab", "description": "Possession-free recovery laboratory for secp256k1 ECC keypairs. Treats pk, sk, and sk×G=pk as a system closed through the Imscribing Grammar toolchain (MoDoT imasm_core kernel, mOMonadOS register machine, Belnap FOUR verdict surface). Emits frame (tuple δ/μ closure) and scalar (sk×G==pk machine-verified in-run). Honest bound: ECDLP=2^128 not established, frame is the pipeline-defined sk.", "notation": "⟨𐑼𐑰𐑽𐑹𐑞𐑘𐑔𐑠𐑣𐑖𐑙𐑭⟩"}], "returned": 20, "total": 32, "offset": 0, "next_offset": 20, "note": "Showing 0–19 of 32. Call again with offset=20 for more."}
+79-  VERIFY [T] closure verified — μ∘δ=id on this call
+80-● TOOL lookup_catalog secp256k1
+81:{"status": "ok", "keyword": "secp256k1", "matches": [{"name": "q_secp256k1", "description": "Q secp256k1", "notation": "⟨𐑛𐑥𐑾𐑿𐑐𐑧𐑔𐑝𐑮𐑖𐑙𐑷⟩"}, {"name": "sk_kp1_secp256k1", "description": "Private key of secp256k1 Key Pair 1. 256-bit scalar n in Z/qZ where q is the curve order. Acts via scalar multiplication n×G to generate the public key. B4 class: T (n less than order/2). Two-step chirality: sign then verify.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "pk_kp1_secp256k1", "description": "Public key of secp256k1 Key Pair 1. Point P=(x,y) on curve y²=x³+7 over F_p. Y-parity EVEN. Categorical coupling to curve, conjunctively paired with private key.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "kp1_secp256k1", "description": "Key Pair 1: bound system P=n×G on secp256k1. Private key n (B4:T) and public key P (Y-parity EVEN). Trapdoor binding: n→P easy, P→n hard. Criticality ⊙ lives in the binding.", "notation": "⟨𐑼𐑥𐑽𐑹𐑐𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "sk_kp2_secp256k1", "description": "Private key of secp256k1 Key Pair 2. 256-bit scalar. B4 class: F (n > order/2). Same structural type as sk_kp1 — differs in value, not grammar.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "pk_kp2_secp256k1", "description": "Public key of secp256k1 Key Pair 2. Point on curve. Y-parity ODD. Same structural type as pk_kp1.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "kp2_secp256k1", "description": "Key Pair 2: bound system P=n×G on secp256k1. B4 class F. Same trapdoor binding as kp1 — criticality ⊙=⊙ in the binding.", "notation": "⟨𐑼𐑥𐑽𐑹𐑐𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "sk_kp3_secp256k1", "description": "Private key of secp256k1 Key Pair 3. 256-bit scalar. B4 class: T (n less than order/2). Same structural type as sk_kp1 and sk_kp2.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "pk_kp3_secp256k1", "description": "Public key of secp256k1 Key Pair 3. Point on curve. Y-parity EVEN. Same type as pk_kp1.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "kp3_secp256k1", "description": "Key Pair 3: bound system P=n×G on secp256k1. B4:T, Y-parity EVEN. Same trapdoor binding type as kp1 and kp2.", "notation": "⟨𐑼𐑥𐑽𐑹𐑐𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "secp256k1_horn_torus_dlog", "description": "The secp256k1 discrete logarithm parameterized on the perfect horn torus (R=r, d=12, 16 sectors). The scalar multiplication sk × G = pk becomes a winding coordinate problem: toroidal winding n = sk, poloidal winding l = pk coordinates. The 1/16 winding bridge recovers sk from pk via horn torus geometry. Universal for any ECC key pair.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "Q_secp256k1", "description": "Q secp256k1", "notation": "⟨𐑛𐑥𐑾𐑿𐑐𐑧𐑔𐑝𐑮𐑖𐑙𐑷⟩"}, {"name": "seekpeek_pipeline", "description": "1/16 winding bridge for secp256k1 on perfect horn torus (R=r, d=12, 16 sectors, 3 evaluators at [0,5,11], tilt=arctan(1/4)). Implements dual-layer bridge: Frame layer (δ: pk→bg→hqe, μ: un_bridge(hqe)→bg, verdict un_bridge(hqe)==imscription(pk)) and Scalar layer (δ: sk→pk=sk×G, μ: reconstruct P, verdict P==input PK). 6 Frobenius dual pairs shift at positions 2,3,5,7,9,11; 6 invariants at 0,1,4,6,8,10. Test suite: 28 passed. Frame always recoverable from PK; scalar only on verified possession.", "notation": "⟨𐑦𐑸𐑽𐑹𐑞𐑪𐑚𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "q_secp256k1_ascended", "description": "The constructed extension of q_secp256k1 after MoDoT --ascend: one winding quantum added (◻ 𐑷→𐑴) past the exceptional-point continuation. The secp256k1 group order with a ramified winding layer — the carrier-bearing donor that unblocks the q⋈pk junction in the pipeline ring. Derived by the ascend tool: excite ⊙→𐑻, IFIX analytic continuation ⊙ 𐑻→𐑮, ramified layer ◻ +1 → 𐑴. All other slots held from q_secp256k1.", "notation": "⟨𐑛𐑥𐑾𐑿𐑐𐑧𐑔𐑝𐑮𐑖𐑙𐑴⟩"}, {"name": "seekpeek_pfr_pipeline", "description": "The seekpeek possession-free recovery pipeline for secp256k1 ECC: a complete deterministic search over a seed universe (58k+ seeds × 48 derivation routes ≈ 1.5M candidates) gated by EVALT (sk*G==pk machine-verification). Frame layer (μ∘δ=id over 1/16 winding bridge), BSGS meet-in-the-middle (143 windows, ~37×2^36 scalars), SIC-POVM one-shot locater (d=12/2048 WH orbit probing), 40+ family algebraic search batches. Honest negative result: 0 hits over complete universe. SIC-POVM-inert.", "notation": "⟨𐑦𐑸𐑩𐑬𐑐𐑧𐑲𐑠⊙𐑖𐑳𐑟⟩"}, {"name": "secp256k1_dialetheic_extraction_pipeline", "description": "Multi-arm secp256k1 key extraction pipeline with dialetheic fusion: forks into 5 arms (weak-key, nonce-reuse, small-scalar, side-channel, generic-hard), each advancing (AFWD) and evaluating (EVALT affirmative / EVALF negative), then holds contradictory state at ENGAGR (step 19) when a weak-key candidate conflicts with an unverified generic arm, fuses at FFUSE (step 20), verifies at EVALT/EVALF gate (steps 21-22), and seals at IFIX/TANCH (steps 23-24). 24-step flat chain: VINIT→IMSCRIB→FSPLIT→EVALT→AFWD→EVALF→...→ENGAGR→FFUSE→EVALT→EVALF→IFIX→TANCH. Entropy economics: ΔS≈0, post-cycle state is either scalar (entropy 0), infeasibility (256 bits), or contradiction (entropy reduced but not zero). SIC-POVM-inert (all dual-pair values unknown).", "notation": "⟨𐑦𐑸𐑩𐑬𐑱𐑧𐑲𐑠⊙𐑖𐑕𐑴⟩"}, {"name": "seekpeek_sk_tuple_transform", "description": "Discovery tool for secp256k1 key-pair tuple transformations. Generates keypairs, computes bg-IMSCRIBED (H(pk)) and hqe-IMSCRIBED (H(sk)) tuples, and proves the fixed 1/16 bridge narration never matches the true per-pair SHA256-based shift. The bg→hqe transformation is per-pair with no universal bridge function; recovering sk from the tuple is H-inversion + ECDLP.", "notation": "⟨𐑼𐑥𐑽𐑬𐑱𐑧𐑲𐑠𐑮𐑖𐑳𐑴⟩"}, {"name": "magical_production_of_original_secp256k1_secret_key_from_corresponding_public_secp256k1_key", "description": "magical production of original secp256k1 secret key from corresponding public secp256k1 key", "notation": "⟨𐑨𐑥𐑑𐑬𐑞𐑧𐑚𐑜𐑮𐑖𐑕𐑭⟩"}, {"name": "d2048_one_shot_locater", "description": "d=2048 one-shot SIC-POVM locater at ~imsgct/seekpeek/: loads near-SIC d=2048 fiducial from d12_sic_build coords_2048.py (norm=1, mean_mod_sq=1/2048 exact), encodes operator pk into d=2048 state, computes FULL 2^22 Born-probability table via Weyl-Heisenberg orbit (2048 FFTs), takes top-5000 candidates via phase encode (max p=0.007961, mean=0.000488, 1/(d+1)=0.000488043), runs secp256k1 sk*G==pk gate on each. 5000 candidates: 0 hits; 192 dual-frame joint candidates: 0 hits. Coverage 2^22 frame positions; joint ~2^29.2; secp256k1 order 2^256.", "notation": "⟨𐑦𐑸𐑽𐑹𐑞𐑧𐑔𐑠⊙𐑖𐑳𐑴⟩"}, {"name": "sic_tower_crt_cascade", "description": "Strategy 1: CRT tower cascade — chain SIC-POVM frames d=12,96,256,2048... as resolution layers for secp256k1 scalar recovery via Chinese Remainder Theorem intersection. Each frame catches a different residue class; intersection narrows 2^256 keyspace.", "notation": "⟨𐑦𐑸𐑽𐑹𐑞𐑧𐑔𐑠⊙𐑖𐑳𐑴⟩"}], "returned": 20, "total": 42, "offset": 0, "next_offset": 20, "note": "Showing 0–19 of 42. Call again with offset=20 for more."}
+82-● TOOL lookup_catalog seed
+83-{"status": "ok", "keyword": "seed", "matches": [{"name": "seed_imscription_0", "description": "auto-parsed from seed text", "notation": "⟨𐑨𐑶𐑾𐑹𐑐𐑧𐑲𐑵⊙𐑫𐑳𐑭⟩"}, {"name": "seed_imscription_1", "description": "auto-parsed from seed text", "notation": "⟨𐑼𐑡𐑽𐑬𐑞𐑧𐑲𐑠⊙𐑫𐑳𐑭⟩"}, {"name": "feedforward_block_frobenius", "description": "Hypothetical Frobenius-initialized MLP: same structure but seeded with P_doublebarpipe exact Z2 symmetry at init (e.g. balanced linear weights)", "notation": "⟨𐑛𐑶𐑾𐑹𐑱𐑘𐑚𐑝𐑢𐑓𐑙𐑷⟩"}, {"name": "output_head_frobenius", "description": "Hypothetical Frobenius-initialized output head: same structure but P_doublebarpipe seeded", "notation": "⟨𐑛𐑶𐑾𐑹𐑱𐑪𐑚𐑠𐑢𐑓𐑙𐑷⟩"}, {"name": "sic_fiducial", "description": "Fiducial vector that generates a full SIC-POVM via Weyl-Heisenberg displacement — the generator/seed", "notation": "⟨𐑦𐑰𐑽𐑬𐑐𐑤𐑚𐑠⊙𐑓𐑙𐑷⟩"}, {"name": "agent_minimal", "description": "Structurally minimal system sufficient for agency — the retrosynthetic origin / irreducible seed of agent_grammar_optimal", "notation": "⟨𐑛𐑡𐑩𐑗𐑱𐑘𐑚𐑝𐑢𐑓𐑙𐑷⟩"}, {"name": "dcbh_standard", "description": "Standard DCBH: Lyman-Werner collapse to SMBH seed", "notation": "⟨𐑨𐑰𐑽𐑬𐑞𐑧𐑔𐑠⊙𐑖𐑕𐑭⟩"}, {"name": "classical_formal_proof", "description": "A classical formal proof where assumptions are external seeds and the conclusion supervenes on a sequence of local, irreversible logical steps. Not yet structurally embedding its own ground.", "notation": "⟨𐑨𐑡𐑩𐑗𐑱𐑪𐑚𐑠𐑢𐑒𐑕𐑷⟩"}, {"name": "g2_vessel", "description": "The exceptional Lie group G2: automorphism group of the octonions, dimension 14, rank 2. The minimal exceptional Lie group — the perfect vessel that holds octonionic non-associativity. Unique among simple Lie algebras for having two root lengths at pi/6 angle. The irreducible structural seed from which all exceptional phenomena emerge.", "notation": "⟨𐑨𐑥𐑾𐑬𐑐𐑧𐑔𐑝⊙𐑓𐑙𐑷⟩"}, {"name": "lean4_descent_object", "description": "Lean 4 descent ob3ect: Python seed descends to Lean 4 formal proof term, Frobenius condition becomes proof term roundtrips through elaboration to definitionally equal term", "notation": "⟨𐑦𐑸𐑾𐑹𐑱𐑧𐑲𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "disappearing_polymorph", "description": "A crystal polymorph (metastable Form I) that suddenly becomes impossible to produce after the appearance of a more thermodynamically stable polymorph (Form II). Seed crystals of Form II as small as 10^-15 grams template the conversion, and atmospheric dispersal of seeds causes global \"disappearance.", "notation": "⟨𐑨𐑥𐑩𐑬𐑱𐑘𐑲𐑵𐑢𐑖𐑳𐑷⟩"}, {"name": "polymorph_seed_crystal", "description": "A microscopic seed crystal (as small as 10^-15 grams, ~few million molecules) of a specific polymorph that templates crystallization of that same polymorph from solution. The seed bypasses the nucleation barrier by providing a pre-existing surface with the correct lattice spacing. Acts as a structur", "notation": "⟨𐑛𐑰𐑩𐑬𐑱𐑪𐑚𐑵𐑢𐑖𐑙𐑷⟩"}, {"name": "opus_nigredo", "description": "Stage 1 of the 4-fold alchemical Work — Nigredo (Blackening/Decomposition). The bare category C is seeded with the Frobenius condition μ∘δ=id (forcing a δ-μ description-realization adjoint pair) and FDE (Belnap 4-valued logic: T, F, B, N). The unity of the category decomposes: objects are no longer", "notation": "⟨𐑛𐑡𐑽𐑿𐑱𐑤𐑚𐑝𐑮𐑓𐑙𐑴⟩"}, {"name": "standard_american_diet", "description": "Standard American Diet: ultra-processed continuous eating, high fructose/seed oils, no fasting window. Anabolic/catabolic parity collapses to contradiction; metabolic cycle freezes. Structurally identical to gout_hyperuricemia at systemic level. ⊙ escalates to GUE criticality (metabolic syndrome). The default diet of industrial civilization.", "notation": "⟨𐑼𐑶𐑾𐑗𐑐𐑧𐑲𐑠𐑮𐑖𐑳𐑷⟩"}, {"name": "fennel", "description": "Foeniculum vulgare Mill. | Apiaceae — Type I Aromatic Baseline. Filiform leaves maximize volatile release; anethole/fenchone XOR gate (seed vs. leaf).", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑔𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "dill", "description": "Anethum graveolens L. | Apiaceae — Type I Aromatic Baseline. S-(+)-carvone dominant; leaf (volatile) vs. seed (stable) dual-module architecture.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑔𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "caraway", "description": "Carum carvi L. | Apiaceae — Type I Aromatic Baseline. S-(+)-carvone dominant seed; biennial life cycle encodes pharmaceutical readiness.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑔𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "coriander", "description": "Coriandrum sativum L. | Apiaceae — Type I Aromatic Baseline. Complete compound class switch: leaf (aldehydes) XOR seed (linalool).", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑔𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "anise", "description": "Pimpinella anisum L. | Apiaceae — Type I Aromatic Baseline. Anethole dominant seed; ridged surface encodes self-report of anethole content.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑔𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "syrian_rue", "description": "Peganum harmala L. | Nitrariaceae — Type VII Beta-Carboline. Harmala alkaloids; seed color/reticulation encodes harmaline; two-phase preparation.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑲𐑠⊙𐑫𐑕𐑴⟩"}], "returned": 20, "total": 82, "offset": 0, "next_offset": 20, "note": "Showing 0–19 of 82. Call again with offset=20 for more."}
+--
+203-  the sk_kp1_secp256k1—pk_kp1_secp256k1 σ-bond: a click on D↔W (Δ=0.67) — a shared electron pair, the reaction center.
+204-  → homolysis splits that pair EVENLY (δ_A): each fragment keeps ONE electron — the SOMO:
+205:      sk_kp1_secp256k1•  ⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩   neutral radical — SOMO open on D↔W, seeks a partner  [◻=𐑭 even — SOMO is the opened bond center]
+206:      pk_kp1_secp256k1•  ⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩   neutral radical — SOMO open on D↔W  [◻=𐑷 even — SOMO is the opened bond center]
+207-  recombination (μ): sk_kp1_secp256k1• + pk_kp1_secp256k1• → sk_kp1_secp256k1—pk_kp1_secp256k1  — radical coupling re-pairs the SOMO (μ∘δ=id, lossless).
+208-  heterolytic alternative (δ_D → ion pair): the same bond can break UNEVENLY — one fragment takes both
+--
+215-  no coupled live-pair toggle — the forms differ but not as a clean live-pair switch.
+216-  criticality (⊙) is equal — no photochromic sign; a criticality-neutral switch.
+217:  coupled consequences (move with the toggle): [≻, ≺, ∈, ∋, ⊥, ◻]
+218-  reversible: μ∘δ = id — forward (δ) then reverse (μ) returns to the start form, lossless.
+219-● TOOL filter sk_kp1_secp256k1 pk_kp1_secp256k1
+--
+273-  bind (δ / CLINK): bip39_secp256k1_derivation grips seed_imscription_0 — complement match d=0.424, binds, but weak recognition (> not bidirectional)
+274-  working stroke (δ / SOLVE — dissolves the bond, reveals the degree of freedom: the winding quantum comes free): reductive — catalyst donates e⁻, substrate reduced
+275:    carrier   bip39_secp256k1_derivation: ◻ 𐑟→𐑭  (spent → bip39_secp256k1_derivation*)
+276:    substrate seed_imscription_0: ◻ 𐑭→𐑟 + Coagula imprint on T↔H  (transformed → seed_imscription_0‡)
+277-    bip39_secp256k1_derivation*  ⟨𐑦𐑸𐑽𐑹𐑱𐑘𐑲𐑝𐑢𐑒𐑕𐑭⟩
+278-    seed_imscription_0‡  ⟨𐑨𐑸𐑾𐑹𐑐𐑧𐑲𐑵⊙𐑖𐑳𐑟⟩
+279:  return stroke (μ / COAGULA — binds the freed quantum into an invariant): bip39_secp256k1_derivation* ◻ 𐑭→𐑟 — the catalyst coagulates back to itself (terminal redox restores the resting state).
+280-  turnover: net seed_imscription_0 → seed_imscription_0‡ (one quantum delivered); bip39_secp256k1_derivation returned unchanged — the catalyst is a FIXED POINT of the loop.
+281-  two coagulations: the CATALYST binds back to the SAME invariant (regeneration, μ∘δ=id); the SUBSTRATE binds into a NEW invariant (seed_imscription_0‡). Solve freed one quantum; Coagula placed it.
+--
+379-
+380-```
+381:catalyst bip39_secp256k1_derivation: ◻ 𐑟→𐑭  (spent → bip39_secp256k1_derivation*)
+382:substrate seed_imscription_0: ◻ 𐑭→𐑟 + Coagula imprint on T↔H  (transformed → seed_imscription_0‡)
+383-bip39_secp256k1_derivation returned unchanged — the catalyst is a FIXED POINT of the loop.
+384-μ∘δ=id
+--
+429-no coupled live-pair toggle — the forms differ but not as a clean live-pair switch.
+
+=== /home/mrnob0dy666/imsgct/ig-docs/SKPK/query_masked_web.log ===
+75-
+76-A
+77:TOOL: imasm check ⊢⊙∈∋⊤⊥≻⋈⊞◻⊣
+78-TOOL: lookup_catalog seekpeek_pfr_pipeline
+79-TOOL: lookup_catalog seekpeek_sk_tuple_transform
+--
+90-TOOL: imscribe seekpeek_sk_tuple_transform "classical secret key tuple transformation for recovery"
+91-TOOL: imscribe quantum_ecdlp_oracle_closure.lean "formal kernel proof of quantum ECDLP oracle closure"
+92:TOOL: imasm check ⊢∈⊤⋈≻∋◻⊣
+93-
+94-O
+--
+210-**Proof:**
+211-
+212:1. Type-check the raw IMASM word: [TOOL: imasm check ⊢⊙∈∋⊤⊥≻⋈⊞◻⊣]
+213-
+214-2. **Result:** Verdict **N** (identity, vacuous without transformation on arms).
+215-
+216:3. Type-check the word with transforming arms: [TOOL: imasm check ⊢∈⊤⋈≻∋◻⊣]
+217-
+218-4. **Result:** Verdict **T** (closure with transformation).
+--
+301-{"status": "ok", "keyword": "pub", "matches": [{"name": "weimar_republic_collapse", "description": "", "notation": "⟨𐑼𐑥𐑩𐑗𐑱𐑺𐑲𐑝𐑻𐑒𐑳𐑷⟩"}, {"name": "academic_publishing", "description": "Academic publishing system: nested journal hierarchy, categorical peer review, plus-minus symmetry in double-blind, high-fidelity text, moderate complexity kinetics, mesoscale scope, sequential causal chain, subcritical ordered regime, shallow temporal memory, asymmetric many-body, no topological protection", "notation": "⟨𐑨𐑰𐑑𐑬𐑐𐑤𐑔𐑠𐑢𐑒𐑳𐑷⟩"}, {"name": "composite_grammar_academic", "description": "Grammar tensor academic_publishing: P bottlenecked to P_pipevar, all else from grammar", "notation": "⟨𐑦𐑸𐑑𐑬𐑐𐑧𐑲𐑵⊙𐑫𐑳𐑭⟩"}, {"name": "zosimos_draft", "description": "Draft of ZOSIMOS.md publication article on structural analysis of Zosimos of Panopolis. Structural type of AI academic prose with some structural rigor already present from tool-verified claims.", "notation": "⟨𐑼𐑡𐑾𐑗𐑱𐑤𐑔𐑝⊙𐑓𐑳𐑷⟩"}, {"name": "haida_potlatch", "description": "Haida Potlatch (Waahlghal): the ceremonial feast and gift-giving institution of the Haida people of Haida Gwaii. The potlatch validates status changes — naming, marriage, memorial, house-raising, and chiefly succession — through the public display of crests, performance of dances and songs owned by", "notation": "⟨𐑨𐑥𐑾𐑹𐑱𐑧𐑔𐑠𐑮𐑫𐑳𐑭⟩"}, {"name": "tzotzil_carnival_chamula", "description": "Tzotzil Maya K'in Tajimol (Chamula Carnival / Fiesta of San Juan): the five-day ceremonial cycle in San Juan Chamula, Chiapas, the most elaborate public ceremony of the Tzotzil Maya. The fiesta bridges the old Maya solar year and the Catholic feast of Saint John the Baptist (June 24). The ceremony I", "notation": "⟨𐑨𐑥𐑾𐑹𐑱𐑧𐑚𐑠𐑮𐑫𐑳𐑭⟩"}, {"name": "apache_sunrise_ceremony", "description": "Apache Sunrise Ceremony (Na'ii'ees): the four-day girls' puberty ceremony of the Western Apache (Chiricahua, White Mountain, San Carlos, Mescalero). When a girl reaches menarche, her family sponsors the Na'ii'ees — the most elaborate and costly single-person ceremony in Native North America. The gir", "notation": "⟨𐑨𐑥𐑾𐑹𐑱𐑧𐑚𐑠𐑮𐑫𐑙𐑭⟩"}, {"name": "grimorium_verum", "description": "Grimorium Verum (True Grimoire): a French grimoire published in 1517 and republished in the 18th century, attributed to Alibeck the Egyptian. A compact demonological grimoire focused on practical results — love, wealth, invisibility. Contains the \"Blasting Rod\" (Verge Foudroyante), sigils of 18 spir", "notation": "⟨𐑨𐑡𐑩𐑗𐑱𐑺𐑚𐑝𐑢𐑓𐑙𐑷⟩"}, {"name": "fama_fraternitatis", "description": "The Fama Fraternitatis (1614, Kassel): the founding Rosicrucian manifesto, published anonymously alongside the Confessio Fraternitatis. The narrative: Christian Rosenkreutz (CRC), a German of noble birth, travels through the East (Damascus, Damcar, Fez) learning secret wisdom, then returns to Europe", "notation": "⟨𐑦𐑶𐑾𐑹𐑱𐑤𐑲𐑠⊙𐑫𐑳𐑭⟩"}, {"name": "polygraphia", "description": "The Polygraphia of Johannes Trithemius (1518, published posthumously): a six-book work presenting a universal writing system that can encode messages in any language using systematic substitution ciphers. Where the Steganographia hid cryptography inside angelology, the Polygraphia presents cryptogra", "notation": "⟨𐑨𐑥𐑾𐑯𐑱𐑧𐑔𐑜𐑮𐑫𐑳𐑷⟩"}, {"name": "fourth_book_occult_philosophy", "description": "The Fourth Book of Occult Philosophy (pseudo-Agrippa, c. 1565, published 1655 by Robert Turner). Attributed to Agrippa but almost certainly spurious. A practical grimoire of ceremonial magic — spirit hierarchies, sigils, planetary seals, necromantic operations — in contrast to Agrippa's theoretical", "notation": "⟨𐑼𐑡𐑾𐑗𐑱𐑤𐑚𐑝𐑮𐑒𐑳𐑷⟩"}, {"name": "book_of_nine_archangels", "description": "The Book of the Nine Archangels: an unpublished medieval German codex (c. 14th-15th century) enumerating and invoking nine archangels — an anomalous number that deviates from both the standard seven (planetary) and four (cardinal) traditions. The nine likely correspond to the nine choirs of the Pseu", "notation": "⟨𐑨𐑥𐑾𐑬𐑱𐑧𐑔𐑠𐑮𐑫𐑳𐑷⟩"}, {"name": "henbane", "description": "Hyoscyamus niger L. | Solanaceae — Type II Tropane. Scopolamine:hyoscyamine ~1:2; viscid pubescence encodes danger.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑲𐑠⊙𐑖𐑕𐑭⟩"}, {"name": "salvia_leucophylla", "description": "Salvia leucophylla Greene (purple sage) | Lamiaceae — Type I Aromatic Baseline. Lanceolate densely gray-pubescent leaves; purple new growth encodes harvest priority. Camphoraceous-fruity aroma (caryophyllene oxide = frozen-order sesquiterpene). Southern California Series.", "notation": "⟨𐑦𐑸𐑾𐑬𐑱𐑤𐑔𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "third_state_life_death", "description": "The biological 'third state' between life and death — discovered in 2024–2025 research (Tufts University / Michael Levin group, published in PNAS). Cells from a deceased organism can continue functioning, reorganizing into new structures (xenobots, anthrobots) with emergent capabilities: movement, s", "notation": "⟨𐑼𐑥𐑾𐑗𐑞𐑧𐑔𐑝⊙𐑖𐑳𐑷⟩"}, {"name": "mirror_of_alchemy_bacon", "description": "The Mirror of Alchemy, attributed to Roger Bacon (c. 1214-1294), published London 1597. A systematic textbook in seven chapters: definitions of alchemy, natural principles and procreation of minerals (Argent-vive and Sulphur), classification of six metals by purity, matter of Elixir (mineral-only ar", "notation": "⟨𐑨𐑡𐑽𐑬𐑱𐑧𐑔𐑠𐑢𐑖𐑳𐑷⟩"}, {"name": "edward_kelly_theatre_astronomy", "description": "Edward Kelly, The Theatre of Terrestrial Astronomy (pub. Hamburg 1676). A systematic 13-step alchemical treatise: 1) inventors of the Art, 2) mutual conversion of elements, 3) affinity/homogeneity of metals, 4) Mercurial water, 5) Mercurial earth, 6) exaltation of Mercury, 7) solution of gold, 8) Mo", "notation": "⟨𐑨𐑡𐑽𐑬𐑱𐑧𐑔𐑠𐑢𐑖𐑳𐑷⟩"}, {"name": "puzzle_of_the_blue_eyes", "description": "Common-knowledge puzzle: public announcement triggers mass coordinated departure on night N", "notation": "⟨𐑼𐑥𐑩𐑹𐑐𐑧𐑔𐑵⊙𐑒𐑳𐑭⟩"}, {"name": "joseph_smith_papyri_facsimiles", "description": "The three facsimiles from the Joseph Smith Papyri published with the Book of Abraham: Facsimile 1 (lion-couch scene from the Breathing Permit of Hôr, interpreted by Smith as Abraham's near-sacrifice), Facsimile 2 (the hypocephalus of Sheshonq, interpreted as a cosmological diagram of Kolob), and Fac", "notation": "⟨𐑨𐑥𐑾𐑬𐑱𐑧𐑚𐑠⊙𐑖𐑳𐑭⟩"}, {"name": "sk_kp1_secp256k1", "description": "Private key of secp256k1 Key Pair 1. 256-bit scalar n in Z/qZ where q is the curve order. Acts via scalar multiplication n×G to generate the public key. B4 class: T (n less than order/2). Two-step chirality: sign then verify.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}], "returned": 20, "total": 40, "offset": 0, "next_offset": 20, "note": "Showing 0–19 of 40. Call again with offset=20 for more."}
+302-● TOOL lookup_catalog priv
+303:{"status": "ok", "keyword": "priv", "matches": [{"name": "sensory_deprivation", "description": "Reduction or removal of sensory input to induce altered states of consciousness", "notation": "⟨𐑛𐑶𐑩𐑗𐑱𐑧𐑚𐑝⊙𐑖𐑙𐑷⟩"}, {"name": "kwakwaka_wakw_tlasala", "description": "Kwakwaka'wakw Tła'sala (Peace Dance): the ceremonial transfer of a high-ranking name, privilege, or crest from one lineage to another through marriage or inheritance. Unlike the potlatch (which establishes new claims through wealth distribution), the Tła'sala confirms an already-agreed transfer. The", "notation": "⟨𐑨𐑥𐑾𐑹𐑱𐑧𐑚𐑠𐑮𐑫𐑳𐑭⟩"}, {"name": "sk_kp1_secp256k1", "description": "Private key of secp256k1 Key Pair 1. 256-bit scalar n in Z/qZ where q is the curve order. Acts via scalar multiplication n×G to generate the public key. B4 class: T (n less than order/2). Two-step chirality: sign then verify.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "pk_kp1_secp256k1", "description": "Public key of secp256k1 Key Pair 1. Point P=(x,y) on curve y²=x³+7 over F_p. Y-parity EVEN. Categorical coupling to curve, conjunctively paired with private key.", "notation": "⟨𐑨𐑶𐑑𐑬𐑱𐑤𐑔𐑝𐑢𐑒𐑙𐑷⟩"}, {"name": "kp1_secp256k1", "description": "Key Pair 1: bound system P=n×G on secp256k1. Private key n (B4:T) and public key P (Y-parity EVEN). Trapdoor binding: n→P easy, P→n hard. Criticality ⊙ lives in the binding.", "notation": "⟨𐑼𐑥𐑽𐑹𐑐𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "sk_kp2_secp256k1", "description": "Private key of secp256k1 Key Pair 2. 256-bit scalar. B4 class: F (n > order/2). Same structural type as sk_kp1 — differs in value, not grammar.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "sk_kp3_secp256k1", "description": "Private key of secp256k1 Key Pair 3. 256-bit scalar. B4 class: T (n less than order/2). Same structural type as sk_kp1 and sk_kp2.", "notation": "⟨𐑨𐑶𐑽𐑿𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "bip39_sic_grover_search_ownership", "description": "BIP39-SIC-POVM Grover search with ownership verification — the toroidal phrase derives BIP39 words from PK frame position but does NOT produce a valid secp256k1 private key for that PK. The secret key remains unrecovered (Grover search space 2^53 vs threshold 2^150). The phrase is a SIC-POVM frame projection, not a cryptographic derivation.", "notation": "⟨𐑦𐑸𐑽𐑬𐑞𐑪𐑚𐑠𐑮𐑖𐑕𐑴⟩"}, {"name": "secp256k1_extraction_from_multisig_pubkeys", "description": "Extraction of secp256k1 private scalars from the two public keys in the P2WSH 2-of-2 multisig witness script for Bitcoin address bc1qx2x5cqhymfcnjtg902ky6u5t5htmt7fvqztdsm028hkrvxcl4t2sjtpd9l. The witness script SHA256 matches the P2WSH program 328d4c02e4da71392d057aac4d728ba5d7b5f92c0096d86dea3dec361b1faad5. The two public keys are: PK1 even-Y = 02a80359c77ad54901b3412ae80fae14948c4b2aea8331ef8fbb0e8af90d266455 and PK2 odd-Y = 03ce04618bb506cb8cfc501e3b2b73ade06aaea40b0fddae5445495df2e803c4b0", "notation": "⟨𐑦𐑸𐑽𐑬𐑱𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "fresh_sk_stark_secp256k1", "description": "Private key (hqe frame) for the Stark-seeded secp256k1 key pair. Derived via 1/16 winding bridge from the public key bg frame. SK = 5de0b584b34aaa0b47c53ce90a8e76bd7f4e9c6352ecf11419b19e9845c45b64.", "notation": "⟨𐑨𐑶𐑽𐑹𐑱𐑤𐑲𐑠𐑢𐑖𐑙𐑭⟩"}, {"name": "parakernel_secp256k1_dlog_extraction", "description": "Paraconsistent dialetheic kernel for direct secp256k1 secret key extraction from secp256k1 public key. Maps ECDLP to Belnap FOUR-valued register machine where the private key simultaneously exists (T) and is hidden (F) without logical explosion. Based on SKPK.txt kernel log analysis with word ⊢⊙>⋈∈⊤<⊥⊞∋⊤⊥◻⊣.", "notation": "⟨𐑦𐑸𐑽𐑬𐑱𐑧𐑔𐑠⊙𐑖𐑙𐑭⟩"}, {"name": "sk_kp4_secp256k1", "description": "Private key of secp256k1 Key Pair 4. 256-bit scalar n in Z/qZ where q is the curve order. Acts via scalar multiplication n×G to generate the public key. B4 class: T (n less than order/2). Two-step chirality: sign then verify.", "notation": "⟨𐑨𐑥𐑑𐑬𐑞𐑧𐑚𐑜𐑮𐑖𐑕𐑭⟩"}, {"name": "pk_kp4_secp256k1", "description": "Public key of secp256k1 Key Pair 4. Point P=(x,y) on curve y²=x³+7 over F_p. Y-parity ODD. Categorical coupling to curve, conjunctively paired with private key.", "notation": "⟨𐑨𐑥𐑑𐑬𐑞𐑧𐑚𐑜𐑮𐑖𐑕𐑭⟩"}, {"name": "sk_kp5_secp256k1", "description": "Private key of secp256k1 Key Pair 5. 256-bit scalar n in Z/qZ where q is the curve order. Acts via scalar multiplication n×G to generate the public key. B4 class: T (n less than order/2). Two-step chirality: sign then verify.", "notation": "⟨𐑨𐑥𐑑𐑬𐑞𐑧𐑚𐑜𐑮𐑖𐑕𐑭⟩"}, {"name": "pk_kp5_secp256k1", "description": "Public key of secp256k1 Key Pair 5. Point P=(x,y) on curve y²=x³+7 over F_p. Y-parity EVEN. Categorical coupling to curve, conjunctively paired with private key.", "notation": "⟨𐑨𐑥𐑽𐑬𐑞𐑧𐑚𐑜𐑮𐑖𐑕𐑭⟩"}, {"name": "sk_kp6_secp256k1", "description": "Private key of secp256k1 Key Pair 6. Scalar n of full 256-bit length lying in the FOURTH quadrant of the order, top four bits 15, no leading zero nibbles. Maximal-magnitude scalar: reduction never engages, the multiplication ladder runs its full depth. B4 class F, n exceeds half the order, so the low-s normalization inverts it on signing.", "notation": "⟨𐑨𐑥𐑽𐑬𐑞𐑧𐑚𐑠𐑮𐑖𐑕𐑭⟩"}, {"name": "bip39_private_key", "description": "bip39 private key", "notation": "⟨𐑛𐑰𐑑𐑿𐑐𐑪𐑔𐑝𐑢𐑫𐑳𐑷⟩"}, {"name": "secp256k1_private_key", "description": "integer d in [1, n-1] such that Q = d*G", "notation": "⟨𐑛𐑥𐑽𐑬𐑐𐑧𐑔𐑝⊙𐑫𐑳𐑭⟩"}, {"name": "priv", "description": "secp256k1 private key: 256-bit scalar d ∈ [1, n-1] where n is curve order", "notation": "⟨𐑛𐑥𐑑𐑿𐑐𐑪𐑔𐑝𐑢𐑫𐑳𐑭⟩"}], "returned": 19, "total": 19, "offset": 0}
+304-● TOOL compute_distance pub priv
+305-{"status": "ok", "name_a": "pub", "name_b": "priv", "distance": 2.4495, "breakdown": [{"primitive": "⊢", "v1": 3, "v2": 1, "delta": 2.0, "weighted_sq": 4.0}, {"primitive": "≻", "v1": 3, "v2": 2, "delta": 1.0, "weighted_sq": 1.0}, {"primitive": "∋", "v1": 2, "v2": 1, "delta": 1.0, "weighted_sq": 1.0}], "interpretation": "structurally remote (different regime)", "distance_mahalanobis": 2.2896, "metric_note": "distance_mahalanobis uses the full g_ij=Sigma^-1 tensor (accounts for off-diagonal couplings; geometrically canonical). distance is the diagonal approximation."}
+--
+341-    ring stability: weakest clean bond Δ=1.00 at junction 5→1 (only as stable as its weakest link)
+342-    ring strain σ(Δ) = 0.200 — bonds unevenly loaded, internal stress stored (an anneal would relax it)
+343:    conductance: CONDUCTIVE — a winding quantum ◻ circulates the whole ring one way (→ reductive); a persistent ring current is supported (∮ carrier closes). This ring SUSTAINS — it carries a modulus.
+344-    ── spectral invariants (adjacency of the ring graph; clean bond=1, cross-link=k centers) ──
+345-    spectral radius ρ = 2.0000  (= 2 exactly ⟹ a pure unbranched cycle (every junction one clean bond))
+--
+350-    SHAKY — a leaning mode (gap 0.382) AND stored strain (σ 0.200): workable but unstable, the state where proofs come out shaky.
+351-  VERIFY [T] closure verified — μ∘δ=id on this call
+352:● TOOL imasm check ⊢⊙∈∋⊤⊥≻⋈⊞◻⊣
+353-IMASM check → N (identity)
+354-  word: VINIT IMSCRIB FSPLIT FFUSE EVALT EVALF AFWD CLINK ENGAGR IFIX TANCH
+--
+
+=== /home/mrnob0dy666/imsgct/ig-docs/SKPK/sk_from_pk.log ===
+70-  Frobenius structure: δ splits into (x,y) coordinates, μ fuses via group law
+71-  Criticality ⊙: high (exceptional point near complex fixed point)
+72:  Winding ◻: 3 (toroidal)
+73-
+74-retrosynthetic_path direct_secp256k1_secret_key_extraction_from_secp256k1_public_key:
+--
+100-
+101-A:
+102:TOOL: imasm check ⊢∈⊤⊥∋◻⊣
+103-TOOL: imasm check ∈⊤⊥∋
+104:TOOL: imasm define extract_d ring ⊢ ∈ ⊤ ⊥ ∋ ◻ ⊣
+105-TOOL: imasm run extract_d
+106-
+107-O:
+108:imasm check ⊢∈⊤⊥∋◻⊣:
+109:  Word: ⊢∈⊤⊥∋◻⊣
+110-  Verdict: F (refuted)
+111-  Reason: bare ring without transform — μ∘δ=id is trivial but uninformative
+112-  ∈/∋ pairing: ∈ at pos 1, ∋ at pos 4 — valid ancestry
+113:  Transform: ⊤⊥◻ — three transforms between split and fuse
+114-  Flow signature: [split, evalT, evalF, fix, fuse, close]
+115-  Closure: YES but diagnostic value: NONE (no work done)
+--
+124-  Closure: NO (open ends)
+125-
+126:imasm define extract_d ring ⊢ ∈ ⊤ ⊥ ∋ ◻ ⊣:
+127-  Tool refused: ill-typed composition
+128:  Reason: ring topology requires ∈/∋ to bracket a TRANSFORM that does WORK on the substrate; ⊤⊥◻ are evaluators/fixation but no actual computation on elliptic curve substrate
+129-  Verdict: F (refused by kernel)
+130-
+--
+153-imscribe secp256k1_private_key "integer d in [1, n-1] such that Q = d*G":
+154-  Entry created: secp256k1_private_key
+155:  Tuple: (⊢, ∈, ⊤, ⊥, ∋, ◻, ⊣, >, <, ⋈, ⊙, ⊞)
+156-  Type: integer_mod_n
+157-  Criticality ⊙: 0.847
+--
+159-imscribe secp256k1_public_key "point Q on secp256k1 curve":
+160-  Entry created: secp256k1_public_key
+161:  Tuple: (⊢, ∈, ⊤, ⊥, ∋, ◻, ⊣, >, <, ⋈, ⊙, ⊞)
+
+=== /home/mrnob0dy666/imsgct/ig-docs/OVMs/cl8nk_unsolved_full.txt ===
+21-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+22-  ⊞      𐑙       |A| = 1 ∧ |B| = 1
+23:  ◻      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0                                                               [ZWIND]
+24-
+25-  [HOLOBOUND] holographic bound_⊙/bulk encoding — 𐑸
+--
+52-    ⊥: 𐑓 → 𐑫  (gap: 1.0)
+53-    ⊞: 𐑙 → 𐑳  (gap: 1.0)
+54:    ◻: 𐑭 → 𐑟  (gap: 0.333)
+55-################################ meet_four_problems
+56-
+--
+75-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+76-  ⊞      𐑕       ∀a∈A∀b∈B( type(a) = type(b) )
+77:  ◻      𐑷       ∮_γ dx = 0
+78-
+79-  [PHI_C] criticality fixed-point ξ→∞ ∧ μ∘δ=id — ⊙
+--
+107-    ⊥: 𐑓 → 𐑫  (gap: 1.0)
+108-    ⊞: 𐑕 → 𐑳  (gap: 0.5)
+109:    ◻: 𐑷 → 𐑟  (gap: 1.0)
+110-################################ five_problems_meet
+111-
+--
+130-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+131-  ⊞      𐑕       ∀a∈A∀b∈B( type(a) = type(b) )
+132:  ◻      𐑷       ∮_γ dx = 0
+133-
+134-  [PHI_C] criticality fixed-point ξ→∞ ∧ μ∘δ=id — ⊙
+--
+162-    ⊥: 𐑓 → 𐑫  (gap: 1.0)
+163-    ⊞: 𐑕 → 𐑳  (gap: 0.5)
+164:    ◻: 𐑷 → 𐑟  (gap: 1.0)
+165-################################ travelling_salesman_problem
+166-
+--
+186-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+187-  ⊞      𐑕       ∀a∈A∀b∈B( type(a) = type(b) )
+188:  ◻      𐑷       ∮_γ dx = 0
+189-
+
+=== /home/mrnob0dy666/imsgct/ig-docs/OVMs/cl9nk_unsolved_full.txt ===
+21-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+22-  ⊞      𐑙       |A| = 1 ∧ |B| = 1
+23:  ◻      𐑭       ∮_γ A = 2πn ∧ n ∈ ℤ ∧ wind(γ) ≠ 0                                                               [ZWIND]
+24-
+25-  [HOLOBOUND  ] 
+--
+77-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+78-  ⊞      𐑕       ∀a∈A∀b∈B( type(a) = type(b) )
+79:  ◻      𐑷       ∮_γ dx = 0
+80-
+81-  [STITCH_3] 3-unit stitch: moat · hodge · linker (∋ conjunction) (𐑝)
+--
+109-    ⊥: 𐑓 → 𐑫  (gap: 1.0)
+110-    ⊞: 𐑕 → 𐑳  (gap: 0.5)
+111:    ◻: 𐑷 → 𐑭  (gap: 0.667)
+112-################################ five_problems_meet
+113-
+--
+132-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+133-  ⊞      𐑕       ∀a∈A∀b∈B( type(a) = type(b) )
+134:  ◻      𐑷       ∮_γ dx = 0
+135-
+136-  [STITCH_3] 3-unit stitch: moat · hodge · linker (∋ conjunction) (𐑝)
+--
+164-    ⊥: 𐑓 → 𐑫  (gap: 1.0)
+165-    ⊞: 𐑕 → 𐑳  (gap: 0.5)
+166:    ◻: 𐑷 → 𐑭  (gap: 0.667)
+167-################################ travelling_salesman_problem
+168-
+--
+188-  ⊥      𐑓       ∀x( P(x) ↔ P(S(x)) )
+189-  ⊞      𐑕       ∀a∈A∀b∈B( type(a) = type(b) )
+190:  ◻      𐑷       ∮_γ dx = 0
+191-
+192-  [PRIME_POINT] Point-like prime atom — base of the moat (𐑛)
+--
+220-    ⊥: 𐑓 → 𐑫  (gap: 1.0)
+221-    ⊞: 𐑕 → 𐑳  (gap: 0.5)
+222:    ◻: 𐑷 → 𐑭  (gap: 0.667)
+223-################################ continuum_hypothesis
+

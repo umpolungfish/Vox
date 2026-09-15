@@ -1,0 +1,342 @@
+=== ImscriptiveTopology ===
+p4ramill/Imscribing/Primitives/Core.lean:290:-- Axiom C is now the predicate `ImscriptiveTopology` in Primitives/Imscription.lean.
+p4ramill/Imscribing/Primitives/Imscription.lean:75:def ImscriptiveTopology (i : Imscription) : Prop :=
+p4ramill/Imscribing/Primitives/Imscription.lean:78:instance : DecidablePred ImscriptiveTopology := fun i => by
+p4ramill/Imscribing/Primitives/Imscription.lean:79:  unfold ImscriptiveTopology; infer_instance
+=== WindingNeedsChirality ===
+p4ramill/Imscribing/Primitives/Core.lean:296:-- Axiom B is now the predicate `WindingNeedsChirality` in
+p4ramill/Imscribing/Primitives/Imscription.lean:82:def WindingNeedsChirality (i : Imscription) : Prop :=
+p4ramill/Imscribing/Primitives/Imscription.lean:85:instance : DecidablePred WindingNeedsChirality := fun i => by
+p4ramill/Imscribing/Primitives/Imscription.lean:86:  unfold WindingNeedsChirality; infer_instance
+=== ImscriptiveClosure ===
+p4ramill/Imscribing/Millennium/BSD_Resolution.lean:6:-- to ImscriptiveClosure (𐑸, 𐑐) by establishing 𐑭 winding as a global
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:475:    Now the imscription carries the claim and `ImscriptiveClosure i` is a
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:480:    (hp : i.prot ≥ Protection.ah) (hc : ImscriptiveClosure i) :
+p4ramill/Imscribing/Millennium/Hodge_KernelCrossing.lean:482:  unfold ImscriptiveClosure at hc
+p4ramill/Imscribing/Primitives/Core.lean:322:-- decidable predicate `ImscriptiveClosure` in Primitives/Imscription.lean,
+p4ramill/Imscribing/Primitives/Imscription.lean:60:def ImscriptiveClosure (i : Imscription) : Prop :=
+p4ramill/Imscribing/Primitives/Imscription.lean:88:instance : DecidablePred ImscriptiveClosure := fun i => by
+p4ramill/Imscribing/Primitives/Imscription.lean:89:  unfold ImscriptiveClosure; infer_instance
+p4ramill/Imscribing/Primitives/Imscription.lean:95:    (h : decide (ImscriptiveClosure i) = true) : ImscriptiveClosure i :=
+=== #print axioms (whole repo) ===
+stage0/stdlib/Lean/Elab/Print.c:20036:x_1 = lean_mk_string_unchecked("cannot use `#print axioms` in a `module`; consider temporarily removing the `module` header or placing the command in a separate file", 133, 133);
+p4ramill/scratch_ovm_axioms.lean:3:#print axioms windingSelfInverse_iff
+p4ramill/scratch_ovm_axioms.lean:4:#print axioms positive_iff_selfInverse
+p4ramill/scratch_ovm_axioms.lean:5:#print axioms cells_twenty
+p4ramill/scratch_ovm_axioms.lean:6:#print axioms seven_words_roundtrip
+p4ramill/scratch_ovm_axioms.lean:7:#print axioms seven_cells
+p4ramill/scratch_ovm_axioms.lean:8:#print axioms convergence_newTheorems
+p4ramill/scratch_ovm_axioms.lean:9:#print axioms convergence_settled
+p4ramill/scratch_ovm_axioms.lean:10:#print axioms criticality_gradient
+p4ramill/scratch_ovm_axioms.lean:11:#print axioms measurement_inverts_five
+p4ramill/scratch_ovm_axioms.lean:12:#print axioms completeness_inverts
+p4ramill/scratch_ovm_axioms.lean:13:#print axioms broadcast_three
+p4ramill/Imscribing/Millennium/Unsolved.lean:622:#print axioms Unsolved.ig_assembly_reconstitutes
+p4ramill/Imscribing/Millennium/Erdos/ErdosKacInterval.lean:181:#print axioms loglog_sixteen_gt_one
+p4ramill/Imscribing/Millennium/Erdos/ErdosKacInterval.lean:182:#print axioms prime_power_excluded
+p4ramill/Imscribing/Millennium/Erdos/ErdosKacInterval.lean:183:#print axioms ffuse_true_neither
+p4ramill/Imscribing/Millennium/Erdos/UnitDistance.lean:261:#print axioms dist_circA_circB
+p4ramill/Imscribing/Millennium/Erdos/UnitDistance.lean:262:#print axioms lenz_lower_bound
+stage0/stdlib/Lean/Parser/Term.c:11560:x_1 = lean_mk_string_unchecked("The `sorry` term is a temporary placeholder for a missing proof or value.\n\nThe syntax is intended for stubbing-out incomplete parts of a value or proof while still having a syntactically correct skeleton.\nLean will give a warning whenever a declaration uses `sorry`, so you aren't likely to miss it,\nbut you can double check if a declaration depends on `sorry` by looking for `sorryAx` in the output\nof the `#print axioms my_thm` command, the axiom used by the implementation of `sorry`.\n\n\"Go to definition\" on `sorry` in the Infoview will go to the source position where it was introduced, if such information is available.\n\nEach `sorry` is guaranteed to be unique, so for example the following fails:\n```lean\nexample : (sorry : Nat) = sorry := rfl -- fails\n```\n\nSee also the `sorry` tactic, which is short for `exact sorry`.\n", 827, 827);
+p4ramill/sweep/run_sweep.sh:28:# The cross-check. `#print axioms` knows nothing about the twelve, so where the
+p4ramill/sweep/LiftEnergy.lean:48:      -- Transitively, the way `#print axioms` is. A theorem whose body is one
+p4ramill/Imscribing/Millennium/Erdos/RatioSetSharp.lean:172:#print axioms Erdos.RatioSet.ratioSetSharp
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:413:#print axioms card_le_r_k
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:414:#print axioms block_sum_le
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:415:#print axioms summable_of_blocks
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:416:#print axioms summable_blocks_of_log_bound
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:417:#print axioms erdos_conjecture_of_bound
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:418:#print axioms not_summable_one_div_log_rpow
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:419:#print axioms not_summable_at_exponent_one
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:420:#print axioms not_summable_exp_neg_log_rpow
+p4ramill/Imscribing/Millennium/Erdos/APFreeReduction.lean:421:#print axioms summable_exp_neg_log_rpow
+p4ramill/ProofLift.lean:72:      -- Transitively, the way `#print axioms` is. A theorem whose body is one
+p4ramill/Imscribing/Millennium/Erdos/CheckEnvelopeAxioms.lean:3:#print axioms CollatzDepthSplit.cnt_three_eq_sum_pow
+p4ramill/Imscribing/Millennium/Erdos/CheckEnvelopeAxioms.lean:4:#print axioms CollatzDepthSplit.cnt_predStep_mod_pow
+p4ramill/Imscribing/Millennium/Erdos/ChromaticOddCycle.lean:179:#print axioms chord_gives_shorter_odd
+p4ramill/Imscribing/Millennium/Erdos/ChromaticOddCycle.lean:180:#print axioms chorded_cycle_long
+p4ramill/Imscribing/Millennium/Erdos/ChromaticOddCycle.lean:181:#print axioms cycleColour_proper
+p4ramill/Imscribing/Millennium/Erdos/SidonCounting.lean:214:#print axioms Erdos.Sidon.sidon_card_sq_le
+p4ramill/Imscribing/Millennium/Erdos/SidonCounting.lean:215:#print axioms Erdos.Sidon.sidon_card_le
+p4ramill/Imscribing/Millennium/Erdos/SidonCounting.lean:216:#print axioms Erdos.Sidon.diff_injOn_offDiag
+p4ramill/Imscribing/Millennium/Erdos/SidonCounting.lean:217:#print axioms Erdos.Sidon.fourPowers_isSidon
+p4ramill/Imscribing/Millennium/ProofModules/LCMSieve.lean:144:#print axioms Millennium.ProofModules.LCMSieve.mul_pred_le_lcm
+p4ramill/Imscribing/Millennium/ProofModules/LCMSieve.lean:145:#print axioms Millennium.ProofModules.LCMSieve.log_succ_lt
+p4ramill/Imscribing/Millennium/ProofModules/LCMSieve.lean:146:#print axioms Millennium.ProofModules.LCMSieve.excess_of_three_le
+p4ramill/Imscribing/NumberTheory/ErdosStrausProof.lean:170:#print axioms erdos_straus_off_open_case
+p4ramill/Imscribing/NumberTheory/ErdosStrausProof.lean:171:#print axioms conjecture_iff_open_case
+p4ramill/Imscribing/NumberTheory/ErdosStrausProof.lean:172:#print axioms old_mod12_9_fails
+p4ramill/Imscribing/Vox/ProofLift.lean:72:      -- Transitively, the way `#print axioms` is. A theorem whose body is one
+p4ramill/Imscribing/Vox/ProofLift.lean:147:/-- The independent oracle. `#print axioms` is what a reviewer would run, and it
+p4ramill/VoxAudit_HornTorusGeometry.lean:3:The independent oracle: #print axioms on every theorem of the module.
+p4ramill/VoxAudit_HornTorusGeometry.lean:11:#print axioms pinch
+p4ramill/VoxAudit_HornTorusGeometry.lean:12:#print axioms gamma_zero
+p4ramill/VoxAudit_HornTorusGeometry.lean:13:#print axioms gamma_pi
+p4ramill/VoxAudit_HornTorusGeometry.lean:14:#print axioms origin_on_sphere
+p4ramill/VoxAudit_HornTorusGeometry.lean:15:#print axioms omega_on_sphere
+p4ramill/VoxAudit_HornTorusGeometry.lean:16:#print axioms coupler_length_sq
+p4ramill/VoxAudit_HornTorusGeometry.lean:17:#print axioms trineTop_on_sphere
+p4ramill/VoxAudit_HornTorusGeometry.lean:18:#print axioms trineFalsity_on_sphere
+p4ramill/VoxAudit_HornTorusGeometry.lean:19:#print axioms trineEngagr_on_sphere
+p4ramill/VoxAudit_HornTorusGeometry.lean:20:#print axioms trine_equilateral_top_falsity
+p4ramill/VoxAudit_HornTorusGeometry.lean:21:#print axioms trine_equilateral_top_engagr
+p4ramill/VoxAudit_HornTorusGeometry.lean:22:#print axioms trine_equilateral_falsity_engagr
+p4ramill/VoxAudit_HornTorusGeometry.lean:23:#print axioms trineTop_ne_falsity
+p4ramill/VoxAudit_HornTorusGeometry.lean:24:#print axioms trineFalsity_ne_engagr
+p4ramill/VoxAudit_HornTorusGeometry.lean:25:#print axioms trine_card
+p4ramill/VoxAudit_HornTorusGeometry.lean:26:#print axioms projYZ_top
+p4ramill/VoxAudit_HornTorusGeometry.lean:27:#print axioms projYZ_falsity
+p4ramill/VoxAudit_HornTorusGeometry.lean:28:#print axioms projYZ_engagr
+p4ramill/VoxAudit_HornTorusGeometry.lean:29:#print axioms xz_collinear
+p4ramill/VoxAudit_HornTorusGeometry.lean:30:#print axioms A2_equilateral_top_falsity
+p4ramill/VoxAudit_HornTorusGeometry.lean:31:#print axioms A2_equilateral_falsity_engagr
+p4ramill/VoxAudit_HornTorusGeometry.lean:32:#print axioms dot2_top_falsity
+p4ramill/VoxAudit_HornTorusGeometry.lean:33:#print axioms dot2_falsity_engagr
+p4ramill/VoxAudit_HornTorusGeometry.lean:34:#print axioms trineEngagr_norm_sq
+p4ramill/VoxAudit_HornTorusGeometry.lean:35:#print axioms engagr_not_on_untilted
+p4ramill/VoxAudit_HornTorusGeometry.lean:36:#print axioms rotX_norm
+p4ramill/VoxAudit_HornTorusGeometry.lean:37:#print axioms engagr_not_on_R2_any_tilt
+p4ramill/VoxAudit_HornTorusGeometry.lean:38:#print axioms engagr_tilt_unit
+p4ramill/VoxAudit_HornTorusGeometry.lean:39:#print axioms unit_rotated_on_horn
+p4ramill/VoxAudit_HornTorusGeometry.lean:40:#print axioms engagr_on_horn_unit
+p4ramill/VoxAudit_HornTorusGeometry.lean:41:#print axioms engagr_tilt_scaled
+p4ramill/VoxAudit_HornTorusGeometry.lean:42:#print axioms scaled_rotated_on_horn
+p4ramill/VoxAudit_HornTorusGeometry.lean:43:#print axioms engagr_on_horn_scaled
+p4ramill/VoxAudit_HornTorusGeometry.lean:44:#print axioms card_b4
+p4ramill/VoxAudit_HornTorusGeometry.lean:45:#print axioms card_b4_sq
+p4ramill/VoxAudit_HornTorusGeometry.lean:46:#print axioms conductor_exponent
+p4ramill/VoxAudit_HornTorusGeometry.lean:47:#print axioms ns_period
+p4ramill/VoxAudit_HornTorusGeometry.lean:48:#print axioms ym_period
+p4ramill/VoxAudit_HornTorusGeometry.lean:49:#print axioms ns_split_fuse
+p4ramill/VoxAudit_HornTorusGeometry.lean:50:#print axioms ns_pair
+p4ramill/VoxAudit_HornTorusGeometry.lean:51:#print axioms ns_dialetheia
+p4ramill/VoxAudit_HornTorusGeometry.lean:52:#print axioms feature_ns
+p4ramill/VoxAudit_HornTorusGeometry.lean:53:#print axioms trine_top_unique
+p4ramill/VoxAudit_HornTorusGeometry.lean:54:#print axioms winding_unique
+p4ramill/VoxAudit_HornTorusGeometry.lean:55:#print axioms horn_torus_summary
+p4ramill/scratch_dss_check.lean:39:#print axioms dss_counterexample
+p4ramill/sweep/LiftAPFree.lean:48:      -- Transitively, the way `#print axioms` is. A theorem whose body is one
+src/Init/Core.lean:2354:  -- This ensures that `#print axioms` will track use of `reduceBool`.
+src/Init/Core.lean:2366:  -- This ensures that `#print axioms` will track use of `reduceNat`.
+p4ramill/Imscribing/Millennium/ErdosFormalize3.lean:424:#print axioms ErdosFormalize3.partition_arms_exclusive
+p4ramill/Imscribing/Millennium/ErdosFormalize3.lean:425:#print axioms exClique_bddAbove
+p4ramill/Imscribing/Millennium/ErdosFormalize3.lean:426:#print axioms choose_two_formula
+p4ramill/Imscribing/Millennium/ErdosFormalize3.lean:427:#print axioms verdict_counts
+p4ramill/Imscribing/Millennium/PerfectCuboid/DescentTheorem.lean:155:#print axioms no_solution_2a_sq_eq_d_sq
+p4ramill/Imscribing/Millennium/PerfectCuboid/DescentTheorem.lean:156:#print axioms case_all_gcd_one_impossible
+p4ramill/Imscribing/Millennium/PerfectCuboid/DescentTheorem.lean:157:#print axioms all_edges_even_when_g_even
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:247:#print axioms doublingCount_closed_form
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:248:#print axioms claimed_closed_form_false
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:249:#print axioms doubling_construction_refuted
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:250:#print axioms claimed_form_misses_base
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:252:#print axioms lower_bound_asymptotic_order
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:253:#print axioms lower_bound_is_Theta_n_mul_2_pow_n
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:254:#print axioms upper_bound_is_O_n_squared_mul_2_pow_n
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:255:#print axioms asymptotic_gap_is_Theta_n
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:256:#print axioms asymptotic_gap_precise_slope
+p4ramill/Imscribing/Millennium/Erdos/SchutteTClose.lean:257:#print axioms complete_asymptotic_closure
+p4ramill/Imscribing/Millennium/Erdos/SumsetAvoidingAP.lean:451:#print axioms Q817.two_pow_le_of_apFree
+p4ramill/Imscribing/Millennium/Erdos/SumsetAvoidingAP.lean:452:#print axioms Q817.no_triple_below_eight
+p4ramill/Imscribing/Millennium/Erdos/SumsetAvoidingAP.lean:453:#print axioms Q817.no_quintuple_below_sixty
+p4ramill/Imscribing/Millennium/Erdos/RamseyAsymptotics.lean:222:#print axioms stirling_beats_exponential
+p4ramill/Imscribing/Millennium/Erdos/RamseyAsymptotics.lean:223:#print axioms refined_ratio_tendsto_zero
+p4ramill/Imscribing/Millennium/Erdos/RamseyAsymptotics.lean:224:#print axioms refined_ratio_bound
+p4ramill/Imscribing/Millennium/Erdos/AntiRamseyOddCycles.lean:194:#print axioms turan_edges
+p4ramill/Imscribing/Millennium/Erdos/AntiRamseyOddCycles.lean:195:#print axioms regime_partition
+p4ramill/Imscribing/Millennium/Erdos/AntiRamseyOddCycles.lean:196:#print axioms regimes_separate
+p4ramill/Imscribing/Classical/ErdosProblem16.lean:174:#print axioms rise_iff
+p4ramill/Imscribing/Classical/ErdosProblem16.lean:175:#print axioms not_eventually_monotone
+p4ramill/Imscribing/Classical/ErdosProblem16.lean:176:#print axioms rise_at_twin
+p4ramill/Imscribing/Classical/WindowedBound.lean:576:#print axioms windowed_method_stops
+p4ramill/Imscribing/Classical/WindowedBound.lean:577:#print axioms no_sidon_basis
+p4ramill/Imscribing/Classical/WindowedBound.lean:578:#print axioms covering_demand
+p4ramill/Imscribing/Classical/WindowedBound.lean:579:#print axioms no_sidon_covering
+p4ramill/Imscribing/Classical/WindowedBound.lean:580:#print axioms windowed_crossing
+p4ramill/Imscribing/Classical/WindowedBound.lean:581:#print axioms occupancy_ge
+p4ramill/Imscribing/Classical/WindowedBound.lean:582:#print axioms prefix_small
+p4ramill/Imscribing/Classical/WindowedBound.lean:583:#print axioms windowed_k_bound
+p4ramill/Imscribing/Classical/WindowedBound.lean:584:#print axioms windowed_sidon_bound
+p4ramill/Imscribing/Classical/WindowedBound.lean:585:#print axioms sum_window_pairs
+p4ramill/Imscribing/Classical/WindowedBound.lean:586:#print axioms sidon_pairs_in_windows
+p4ramill/Imscribing/Classical/WindowedBound.lean:587:#print axioms sum_windowCount
+p4ramill/Imscribing/Classical/WindowedBound.lean:588:#print axioms windowed_bound
+p4ramill/Imscribing/Classical/ErdosTuranReduction.lean:181:#print axioms bounded_reps_forces_density
+p4ramill/Imscribing/Classical/ErdosTuranReduction.lean:182:#print axioms bounded_reps_forces_sparsity
+p4ramill/Imscribing/Classical/ErdosTuranReduction.lean:183:#print axioms counting_bounds_compatible
+p4ramill/sweep/Lift0041.lean:48:      -- Transitively, the way `#print axioms` is. A theorem whose body is one
+p4ramill/Imscribing/GeneToProtein.lean:251:#print axioms Imscribing.GeneToProtein.closure_theorem
+p4ramill/Imscribing/GeneToProtein.lean:252:#print axioms Imscribing.GeneToProtein.path_is_connected
+p4ramill/Imscribing/GeneToProtein.lean:253:#print axioms Imscribing.GeneToProtein.consciousness_invariant
+p4ramill/Imscribing/FoldVerdict.lean:211:#print axioms Imscribing.FoldVerdict.surplus
+p4ramill/Imscribing/FoldVerdict.lean:212:#print axioms Imscribing.FoldVerdict.fork_is_AAY
+p4ramill/Imscribing/FoldVerdict.lean:213:#print axioms Imscribing.FoldVerdict.fuse_is_CAR
+p4ramill/Imscribing/FoldVerdict.lean:214:#print axioms Imscribing.FoldVerdict.frame_counts
+p4ramill/Imscribing/FoldVerdict.lean:215:#print axioms Imscribing.FoldVerdict.no_repair_by_rearrangement
+p4ramill/Imscribing/Quantum/WindingLattice.lean:144:#print axioms eigenvalues_generate
+p4ramill/Imscribing/Quantum/WindingLattice.lean:145:#print axioms framing_order_ten
+p4ramill/Imscribing/Quantum/WindingLattice.lean:146:#print axioms eighth_not_a_tenth
+p4ramill/Imscribing/Quantum/WindingLattice.lean:147:#print axioms gate_separation
+p4ramill/Imscribing/Millennium/Z7StructureConstants.lean:130:#print axioms mul_z2_identity
+p4ramill/Imscribing/Millennium/Z7StructureConstants.lean:131:#print axioms z2_involutive
+p4ramill/Imscribing/Millennium/Z7StructureConstants.lean:132:#print axioms invRelabel_relabel
+p4ramill/Imscribing/Millennium/ErdosFormalize.lean:423:#print axioms squares_density_zero
+p4ramill/Imscribing/Millennium/ErdosFormalize.lean:424:#print axioms chromatic_independence_ratio
+p4ramill/Imscribing/Millennium/ErdosFormalize.lean:425:#print axioms complete_graph_edge_count
+p4ramill/Imscribing/Millennium/ErdosFormalize.lean:426:#print axioms prime_reciprocal_series_diverges
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:116:#print axioms Erdos.SquarefreePow2.not_squarefreePlusPowerOfTwo
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:117:#print axioms Erdos.SquarefreePow2.bad_not_representable
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:118:#print axioms Erdos.SquarefreePow2.not_forall_squarefree_plus_pow_two
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:119:#print axioms Erdos.SquarefreePow2.infinitely_many_counterexamples
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:120:#print axioms Erdos.SquarefreePow2.family_injective
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:190:#print axioms squarefree_plus_pow_two_certificate
+p4ramill/Imscribing/Millennium/Erdos/SquarefreePlusPowerOfTwo.lean:191:#print axioms counterexample_density_explicit
+p4ramill/Imscribing/Millennium/Erdos/TrianglePartition.lean:267:#print axioms rep_ratio
+p4ramill/Imscribing/Millennium/Erdos/TrianglePartition.lean:268:#print axioms not_repArith_six
+p4ramill/Imscribing/Millennium/Erdos/TrianglePartition.lean:269:#print axioms six_is_least_excluded
+p4ramill/Imscribing/Millennium/Erdos/TrianglePartition.lean:270:#print axioms pieces_congruent
+p4ramill/Imscribing/Millennium/Erdos/TrianglePartition.lean:271:#print axioms piece_not_similar_to_original
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1072:#print axioms Erdos.StrausGreedy.threeUnit_of_closedAtRungSq
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1150:#print axioms Erdos.StrausGreedy.closedAtRung_of_full_coverage
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1152:#print axioms Erdos.StrausGreedy.straus_class_of_rungBounded
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1153:#print axioms Erdos.StrausGreedy.ladder_cross
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1154:#print axioms Erdos.StrausGreedy.ladder_complete
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1155:#print axioms Erdos.StrausGreedy.ladder_rung_residue
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1156:#print axioms Erdos.StrausGreedy.rung_three_residue
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1157:#print axioms Erdos.StrausGreedy.closedAtRung_of_shift
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1158:#print axioms Erdos.StrausGreedy.closedAtRung_of_kshift
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1159:#print axioms Erdos.StrausGreedy.closedAtRung_of_two_shift
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1160:#print axioms Erdos.StrausGreedy.straus_196561
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1161:#print axioms Erdos.StrausGreedy.closedAtRung_of_cofactor
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1162:#print axioms Erdos.StrausGreedy.closedAtRung_three_of_prime
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1163:#print axioms Erdos.StrausGreedy.straus_of_neg_one_divisor
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1164:#print axioms Erdos.StrausGreedy.negMReachable_of_negOneReachable
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1166:#print axioms Erdos.StrausGreedy.straus_of_priceZero
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1167:#print axioms Erdos.StrausGreedy.straus_scaling
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1168:#print axioms Erdos.StrausGreedy.straus_of_representable_divisor
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1169:#print axioms Erdos.StrausGreedy.straus_frontier_mod_24
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1171:#print axioms Erdos.StrausGreedy.straus_one_shot
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1172:#print axioms Erdos.StrausGreedy.straus_class_of_everyNClosed
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1173:#print axioms Erdos.StrausGreedy.straus_of_closedAtRung
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1174:#print axioms Erdos.StrausGreedy.straus_practical
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1175:#print axioms Erdos.StrausGreedy.straus_n_family
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1176:#print axioms Erdos.StrausGreedy.straus_prime_family
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1177:#print axioms Erdos.StrausGreedy.straus_master
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1178:#print axioms Erdos.StrausGreedy.v_condition_free
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1179:#print axioms Erdos.StrausGreedy.straus_divisor_family
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1180:#print axioms Erdos.StrausGreedy.second_split_general
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1181:#print axioms Erdos.StrausGreedy.straus_2521
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1182:#print axioms Erdos.StrausGreedy.r_over_M_split
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1183:#print axioms Erdos.StrausGreedy.ladder_step
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1184:#print axioms Erdos.StrausGreedy.straus_forty_nine
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1185:#print axioms Erdos.StrausGreedy.straus_of_divisor
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1186:#print axioms Erdos.StrausGreedy.straus_off_residue
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1187:#print axioms Erdos.StrausGreedy.greedy_step
+p4ramill/Imscribing/Millennium/Erdos/StrausGreedyFamily.lean:1215:#print axioms straus_mod20
+p4ramill/Imscribing/Millennium/Erdos/AdditiveEnergy.lean:78:#print axioms sum_reps
+p4ramill/Imscribing/Millennium/Erdos/AdditiveEnergy.lean:79:#print axioms energy_ge
+p4ramill/Imscribing/Millennium/Erdos/AdditiveEnergy.lean:198:#print axioms BloomSisaskSubmitted.convolution_eq_reps
+p4ramill/Imscribing/Millennium/Erdos/AdditiveEnergy.lean:199:#print axioms BloomSisaskSubmitted.bloom_sisask_lemma
+p4ramill/Imscribing/Millennium/Erdos/MonochromaticOddCycle.lean:221:#print axioms card_le_of_classes_bipartite
+p4ramill/Imscribing/Millennium/Erdos/MonochromaticOddCycle.lean:222:#print axioms col5_no_mono_triangle
+p4ramill/Imscribing/Millennium/Erdos/MonochromaticOddCycle.lean:223:#print axioms all_colourings_K6_have_mono_triangle
+p4ramill/Imscribing/Millennium/Erdos/PomeranceSDR.lean:137:#print axioms fnn_table
+p4ramill/Imscribing/Millennium/Erdos/PomeranceSDR.lean:138:#print axioms four_window_fails
+p4ramill/Imscribing/Millennium/Erdos/PomeranceSDR.lean:212:#print axioms exists_distinct_multiples_window
+p4ramill/Imscribing/Millennium/Erdos/PomeranceSDR.lean:213:#print axioms window_length_ge
+p4ramill/Imscribing/Millennium/ProofModules/DistinctDistances.lean:101:#print axioms g_distinct_eq_zero
+p4ramill/Imscribing/Millennium/ProofModules/DistinctDistances.lean:102:#print axioms guth_katz_computable_is_false
+p4ramill/Imscribing/Millennium/ProofModules/DistinctDistances.lean:103:#print axioms distances_pos_of_two
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0041.lean:108:#print axioms card_le_of_distinct_sums
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0041.lean:109:#print axioms erdos_problem_41
+p4ramill/Imscribing/Classical/SidonRepresentation.lean:146:#print axioms sidon_reps_le_two
+p4ramill/Imscribing/Classical/SidonRepresentation.lean:147:#print axioms sidon_not_basis_of_erdos_turan
+p4ramill/Imscribing/Millennium/ProofModules/ErdosFuchs.lean:153:#print axioms sum_repr_eq_card_pairs
+p4ramill/Imscribing/Millennium/ProofModules/ErdosFuchs.lean:154:#print axioms sum_repr_le_card_sq
+p4ramill/Imscribing/Millennium/ProofModules/ErdosFuchs.lean:155:#print axioms basis_sqrt_density
+p4ramill/Imscribing/Millennium/ProofModules/ErdosFuchs.lean:156:#print axioms avg_bounded_of_sqrt_density
+p4ramill/Imscribing/Classical/SuperLinearPrimes.lean:125:#print axioms erdos16_superLinear
+p4ramill/Imscribing/Classical/SuperLinearPrimes.lean:126:#print axioms erdos16_not_eventually_monotone
+p4ramill/Imscribing/Classical/SuperLinearPrimes.lean:127:#print axioms primeCounting_nth
+p4ramill/Imscribing/Classical/SuperLinearPrimes.lean:128:#print axioms superLinear
+src/Init/Prelude.lean:706:of the `#print axioms my_thm` command.
+src/Init/Prelude.lean:778:may not expect. You can use `#print axioms my_thm` to find out if a given
+tests/lean/reduceBool.lean:4:#print axioms f'
+tests/lean/reduceBool.lean:9:#print axioms g'
+p4ramill/Imscribing/MachHolonomy.lean:204:#print axioms transport_rotate_intertwine
+p4ramill/Imscribing/MachHolonomy.lean:205:#print axioms transport_not_rotation_invariant
+p4ramill/Imscribing/MachHolonomy.lean:206:#print axioms cycle_lemma
+p4ramill/Imscribing/MachHolonomy.lean:207:#print axioms sixteen_power_iff
+tests/pkg/leanchecker/LeanCheckerTests/ReplaceAxiom.lean:37:#print axioms efsq
+src/Init/Tactics.lean:457:of the `#print axioms my_thm` command, the axiom used by the implementation of `sorry`.
+src/Init/Tactics.lean:1417:part, and the axiom `Lean.ofReduceBool` will show up in `#print axioms` for theorems using
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:18:`#print axioms` blocks say exactly which facts entered as PARI/GP field data
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:123:#print axioms Imscribing.Millennium.Ring2048Bridge.D2.sicpovm_exists_2
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:124:#print axioms SIC.D12.Embedding.d12_sic_exists
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:125:#print axioms SIC.D12.Equiangularity.equiangularity_all
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:126:#print axioms SIC.D2048.Moduli.calibration_exponent_rule
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:127:#print axioms SIC.D16.Moduli.coinvariant_count_theorem
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:128:#print axioms SIC.D16.Moduli.ray_class_group_is_abelian
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:129:#print axioms SIC.D16.Moduli.statement_B_confirmed_by_coinvariant_count
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:130:#print axioms SIC.D20.Moduli.five_torsion_absent_from_conductor
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:131:#print axioms SIC.D20.Moduli.d20_cannot_discriminate
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:132:#print axioms SIC.D2048.Moduli.predicted_exponent_2048
+p4ramill/Imscribing/Millennium/SIC_Moduli_Report.lean:133:#print axioms SIC.D2048.Moduli.fiducial_field_degree
+p4ramill/Imscribing/Millennium/ErdosFormalize2.lean:435:#print axioms saw_pow_bound
+p4ramill/Imscribing/Millennium/ErdosFormalize2.lean:436:#print axioms ratio_set_bound
+p4ramill/Imscribing/Millennium/ErdosFormalize2.lean:437:#print axioms primes_not_lcm_triple
+p4ramill/Imscribing/Millennium/ErdosFormalize2.lean:439:#print axioms arrowsPair_mono
+p4ramill/Imscribing/Millennium/ErdosFormalize2.lean:440:#print axioms sizeRamsey_le
+p4ramill/Imscribing/Millennium/Erdos/SubgroupOrders.lean:214:#print axioms partsF_sum
+p4ramill/Imscribing/Millennium/Erdos/SubgroupOrders.lean:266:#print axioms partsF_complete
+p4ramill/Imscribing/Millennium/Erdos/SubgroupOrders.lean:267:#print axioms landau_table
+p4ramill/Imscribing/Millennium/Erdos/ErdosTuranAP.lean:182:#print axioms dense_has_3ap
+p4ramill/Imscribing/Millennium/Erdos/ErdosTuranAP.lean:183:#print axioms behrend_lower_bound
+p4ramill/Imscribing/Millennium/Erdos/ErdosTuranAP.lean:184:#print axioms primes_reciprocal_diverges
+p4ramill/Imscribing/Millennium/Erdos/PolynomAsymptotics.lean:182:#print axioms abs_pow_sub_one_le_two
+p4ramill/Imscribing/Millennium/Erdos/PolynomAsymptotics.lean:183:#print axioms consecutive_roots_coprime
+p4ramill/Imscribing/Millennium/Erdos/PolynomAsymptotics.lean:184:#print axioms sum_ge_card
+src/Lean/Elab/Print.lean:249:      throwError "cannot use `#print axioms` in a `module`; consider temporarily removing the \
+tests/lean/run/kernelBacktrack.lean:21:#print axioms kernel_error
+tests/pkg/leanchecker/LeanCheckerTests/NativeDecide.lean:4:#print axioms nat_dec
+tests/lean/run/bv_axiom_check.lean:11:#print axioms bv_axiomCheck
+p4ramill/Imscribing/Millennium/PerfectCuboid/CaseC.lean:129:#print axioms descent_or_impossible
+p4ramill/Imscribing/Millennium/PerfectCuboid/CaseC.lean:130:#print axioms no_perfect_cuboid
+p4ramill/Imscribing/Millennium/Erdos/SchutteTournament.lean:293:#print axioms paley7_has_S2
+p4ramill/Imscribing/Millennium/Erdos/SchutteTournament.lean:294:#print axioms no_S2_on_six
+p4ramill/Imscribing/Millennium/Erdos/SchutteTournament.lean:295:#print axioms stated_bound_weaker
+p4ramill/Imscribing/Millennium/Erdos/SchutteTournament.lean:296:#print axioms sandwich_nonempty
+p4ramill/Imscribing/Millennium/Erdos/BinomialGCD.lean:150:#print axioms prime_le_gcd_choose
+p4ramill/Imscribing/Millennium/Erdos/BinomialGCD.lean:151:#print axioms dvd_choose_of_units_digit_exceeds
+p4ramill/Imscribing/Millennium/Erdos/BinomialGCD.lean:152:#print axioms dvd_choose_pred_of_dvd
+p4ramill/Imscribing/Millennium/Erdos/BinomialGCD.lean:153:#print axioms choose_modEq_of_dvd_dvd
+p4ramill/Imscribing/Millennium/Erdos/BinomialGCD.lean:154:#print axioms gcd_row30_pair
+p4ramill/Imscribing/Millennium/Erdos/DifferenceSets.lean:204:#print axioms thick_not_banach_zero
+p4ramill/Imscribing/Millennium/Erdos/DifferenceSets.lean:205:#print axioms thick_iff_compl_not_syndetic
+p4ramill/Imscribing/Millennium/Erdos/DifferenceSets.lean:206:#print axioms lacunary_diff_bounded
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:92:where it is visible without `#print axioms`, and anyone who discharges it gets
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:340:#print axioms three_ap_of_dense
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:341:#print axioms three_ap_of_not_threeAPFree
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:342:#print axioms block_card_le
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:343:#print axioms erdos_problem_3_k3
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:344:#print axioms summable_of_blocks
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:345:#print axioms summable_blocks_of_log_bound
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:346:#print axioms erdos_problem_3_k3_of_roth_bound
+p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0003.lean:347:#print axioms erdos_problem_3_k3_unconditional
+p4ramill/Imscribing/Classical/RepresentationParity.lean:288:#print axioms odd_mem_mixed_sumset
+p4ramill/Imscribing/Classical/RepresentationParity.lean:289:#print axioms odd_reps_card_eq_two_mul
+p4ramill/Imscribing/Classical/RepresentationParity.lean:290:#print axioms odd_needs_mixed
+p4ramill/Imscribing/Classical/RepresentationParity.lean:291:#print axioms reps_card_odd_iff
+p4ramill/Imscribing/Classical/RepresentationParity.lean:292:#print axioms reps_card_even_off_diagonal
+p4ramill/Imscribing/Classical/RepresentationParity.lean:293:#print axioms two_le_reps_of_nonempty
+p4ramill/Imscribing/Classical/RepresentationParity.lean:294:#print axioms no_basis_with_reps_le_one
+p4ramill/Imscribing/Classical/RepresentationParity.lean:295:#print axioms reps_eq_two_of_bound_two
+p4ramill/Imscribing/Classical/ErdosTuranSmallC.lean:159:#print axioms sidon_diff_bound
+p4ramill/Imscribing/Classical/ErdosTuranSmallC.lean:160:#print axioms card_product_split
+src/Lean/Parser/Term.lean:153:of the `#print axioms my_thm` command, the axiom used by the implementation of `sorry`.
+tests/lean/run/kernelErrorFollowup.lean:4:Kernel errors should not lead to follow-up errors but should be detectable using `#print axioms`.
+tests/lean/run/kernelErrorFollowup.lean:31:#print axioms zero_eq_one
+tests/lean/run/decideNative.lean:11:#guard_msgs in #print axioms ex1
+tests/lean/run/nativeReflBackdoor.lean:40:#print axioms unsound
+tests/lean/run/collectAxioms.lean:21:#print axioms A2
+tests/lean/run/collectAxioms.lean:36:#print axioms one_add_one
+=== find AxiomD_Demotion.lean ===

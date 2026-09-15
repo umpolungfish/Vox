@@ -1,0 +1,245 @@
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/DerivedNonCommutativeMotivicCohomology.lean
+/home/mrnob0dy666/imsgct/p4rakernel/DerivedNonCommutativeMotivicCohomology.lean:11:0: error: invalid 'import' command, it must be used in the beginning of the file
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/Derivation/Erdos564_Derivation.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/Derivation/Erdos564_Derivation.lean:1:0: error: object file '/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/.lake/build/lib/lean/Imscribing/Vox.olean' of module Imscribing.Vox does not exist
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:67:30: error: unexpected token 'theorem'; expected '}'
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:72:2: warning: declaration uses `sorry`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:69:8: warning: declaration uses `sorry`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:72:2: warning: 'native_decide' tactic does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:97:11: error: Type mismatch
+  Infinite ↑{a | A a = true ∧ A (a - d) = true}
+has type
+  Prop
+but is expected to have type
+  Bool
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:115:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.void`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:130:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:138:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:145:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:153:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:160:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:162:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:168:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:175:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:177:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:183:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:190:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:192:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:194:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:198:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:205:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:207:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:209:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:210:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:213:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:216:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:220:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:222:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:224:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:225:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:228:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:231:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:235:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:237:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:239:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:240:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:243:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:246:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:250:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:252:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:254:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:255:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:258:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:261:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:265:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:267:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:269:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:270:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:273:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:274:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Chirality.two_steps`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:276:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:280:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:282:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:284:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:285:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:288:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:289:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Chirality.two_steps`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:290:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Stoichiometry.broadcast`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:291:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:295:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:297:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:299:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:300:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:303:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:304:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Chirality.two_steps`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:305:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Stoichiometry.broadcast`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:306:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:310:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:312:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:314:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:315:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:316:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Granularity.maximal`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:317:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Grammar.sequential`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:318:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:319:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Chirality.two_steps`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:320:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Stoichiometry.one_to_one`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:321:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:325:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:327:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:329:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:330:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:331:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Granularity.maximal`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:332:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Grammar.sequential`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:333:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:334:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Chirality.two_steps`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:335:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Stoichiometry.one_to_one`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:336:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:340:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:342:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:344:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:345:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:346:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Granularity.maximal`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:347:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Grammar.sequential`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:348:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Criticality.critical`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:349:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Chirality.two_steps`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:350:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Stoichiometry.one_to_one`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:351:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Protection.integer`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:355:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Dimensionality.infinity`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:357:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Relational.bidirectional`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:359:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Fidelity.quantum`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:360:11: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.KineticChar.slow`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:361:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Granularity.maximal`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:362:12: error(lean.unknownIdentifier): Unknown constant `Imscribing.Primitives.Grammar.sequential`
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/DifferenceSets_Complete.lean:363:12: error: maximum number of errors (100; from option `maxErrors`) reached, exiting
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0040.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0040.lean:1:0: error: object file '/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/.lake/packages/mathlib/.lake/build/lib/lean/Mathlib/Data/Nat/Interval.olean' of module Mathlib.Data.Nat.Interval does not exist
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0143.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Millennium/Erdos/Problems/Problem0143.lean:1:0: error: object file '/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/.lake/packages/mathlib/.lake/build/lib/lean/Mathlib/Analysis/SpecialFunctions/Log/ENNReal.olean' of module Mathlib.Analysis.SpecialFunctions.Log.ENNReal does not exist
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:33:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:35:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:37:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:39:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:41:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:43:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:45:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:47:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:49:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:51:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:53:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:55:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:57:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:61:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:63:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:65:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:67:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:69:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:71:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:73:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:75:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:77:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:79:29: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:81:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:83:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:85:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:89:41: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:89:56: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:97:41: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:97:56: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:101:42: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:101:57: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:107:30: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:107:70: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:108:23: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:108:63: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:109:8: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:110:8: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:113:32: error: unexpected character; expected decimal number
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/0_sorry_proof_gate_check.lean:114:25: error: unexpected character; expected decimal number
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:32:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:34:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:36:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:38:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:40:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:42:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:44:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:46:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:48:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:50:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:52:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:54:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:58:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:60:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:62:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:64:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:66:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:68:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:70:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:72:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:74:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:76:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:78:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:80:11: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:84:17: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:84:132: error: unexpected identifier; expected ':=', 'where' or '|'
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:92:17: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:92:132: error: unexpected identifier; expected ':=', 'where' or '|'
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:96:17: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:96:133: error: unexpected identifier; expected ':=', 'where' or '|'
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:102:3: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:102:146: error: unexpected identifier; expected command
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:103:3: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:103:139: error: unexpected identifier; expected command
+4131883190912042940979443588050986700111872.000000
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:104:50: error: unexpected identifier; expected command
+4131883190912042940979443588050986700111872.000000
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:105:50: error: unexpected identifier; expected command
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:108:7: error: unexpected token; expected identifier
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/413188319091204313090085957668526127963841186728_0e2c22cd_gate_check.lean:109:67: error: unexpected identifier; expected ':=', 'where' or '|'
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/a_single_four_valued_carrier_that_several_diverg_b9e1fb54_gate_check.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/a_single_four_valued_carrier_that_several_diverg_b9e1fb54_gate_check.lean:3:0: error: unexpected identifier; expected command
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/a_single_four_valued_carrier_that_several_diverg_b9e1fb54_gate_check.lean:11:0: error: invalid 'import' command, it must be used in the beginning of the file
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/the_migration_that_carries_a_theorem_proved_agai_4770184d_gate_check.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/the_migration_that_carries_a_theorem_proved_agai_4770184d_gate_check.lean:3:0: error: unexpected identifier; expected command
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/the_migration_that_carries_a_theorem_proved_agai_4770184d_gate_check.lean:11:0: error: invalid 'import' command, it must be used in the beginning of the file
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/the_retirement_of_a_duplicate_result_whose_repla_57fd5729_gate_check.lean
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/the_retirement_of_a_duplicate_result_whose_repla_57fd5729_gate_check.lean:3:0: error: unexpected identifier; expected command
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/the_retirement_of_a_duplicate_result_whose_repla_57fd5729_gate_check.lean:11:0: error: invalid 'import' command, it must be used in the beginning of the file
+=====
+FAIL /home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/x86_instruction_set_gate_check.lean
+Imscribing.Primitives.OuroboricityTier.O₀
+Imscribing.Primitives.OuroboricityTier.O₂dag
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/x86_instruction_set_gate_check.lean:166:20: error: Application type mismatch: The argument
+  paralogical_dagger ?m.7
+has type
+  isDagger ?m.7 = true → IGProtocol ?m.6 ?m.5
+but is expected to have type
+  Imscription
+in the application
+  igProtoMu_depth (paralogical_dagger ?m.7)
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/x86_instruction_set_gate_check.lean:165:45: error: Tactic `decide` proved that the proposition
+  imscriptionTier x86_instruction_set_s0 = OuroboricityTier.O_inf
+is false
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/x86_instruction_set_gate_check.lean:166:44: error: Expected type must not contain metavariables
+  IGProtocol ?m.5 ?m.6
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/x86_instruction_set_gate_check.lean:175:11: error(lean.invalidField): Invalid field `period`: The environment does not contain `Imscribing.IGProtocol.period`, so it is not possible to project the field `period` from an expression
+  loop
+of type
+  IGProtocol x86_instruction_set_s0 x86_instruction_set_s20
+/home/mrnob0dy666/imsgct/p4rakernel/p4ramill/Imscribing/Ob3ects/GateCheck/x86_instruction_set_gate_check.lean:176:31: error: Tactic `decide` proved that the proposition
+  x86_instruction_set_protocol.depth = 1
+is false
