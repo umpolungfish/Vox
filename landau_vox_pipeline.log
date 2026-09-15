@@ -1,0 +1,9 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 2.88s
+saved membranes/landau_one/10_15_45/payload.elf.imasm
+n=10 largest_partition_lcm=30
+n=15 largest_partition_lcm=105
+n=45 largest_partition_lcm=60060
+entry(...) exited(0)   [63650 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/landau_one/10_15_45/payload.elf.imasm

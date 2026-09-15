@@ -1,0 +1,3 @@
+n=10 largest_partition_lcm=30
+n=15 largest_partition_lcm=105
+n=45 largest_partition_lcm=60060

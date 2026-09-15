@@ -1,0 +1,26 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 3.17s
+saved membranes/shor_one/2_21_12/payload.elf.imasm
+audit k=0 re=0.408347948293 im=0.000000000000 p=0.166748046875
+audit k=682 re=-0.084035383920 im=-0.146243512652 p=0.028449110744
+audit k=683 re=0.169116915137 im=0.292228520130 p=0.113998038963
+audit k=1365 re=0.169116915137 im=-0.292228520130 p=0.113998038963
+audit k=2048 re=0.408347948293 im=0.000000000000 p=0.166748046875
+audit k=2731 re=0.169116915137 im=0.292228520130 p=0.113998038963
+audit k=3413 re=0.169116915137 im=-0.292228520130 p=0.113998038963
+shor_qft: a=2, N=21, 12 index qubits (register size 4096)
+  true period (classical ground truth): 6
+  strongest peaks in the measured distribution (index, probability):
+    k=0      p=0.16675  k/M*r=0.000 (should land near an integer if peaks are where theory predicts)
+    k=2048   p=0.16675  k/M*r=3.000 (should land near an integer if peaks are where theory predicts)
+    k=1365   p=0.11400  k/M*r=2.000 (should land near an integer if peaks are where theory predicts)
+    k=3413   p=0.11400  k/M*r=5.000 (should land near an integer if peaks are where theory predicts)
+    k=682    p=0.02845  k/M*r=0.999 (should land near an integer if peaks are where theory predicts)
+    k=1366   p=0.02845  k/M*r=2.001 (should land near an integer if peaks are where theory predicts)
+    k=2730   p=0.02845  k/M*r=3.999 (should land near an integer if peaks are where theory predicts)
+    k=3414   p=0.02845  k/M*r=5.001 (should land near an integer if peaks are where theory predicts)
+  period extracted via continued fractions from a measured peak: 6  (matches true period: true)
+  factors recovered via gcd: 7 * 3 = 21  (verified: true)
+
+entry(...) exited(0)   [2782218 steps in the twelve]

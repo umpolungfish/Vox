@@ -1,0 +1,31 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+warning: unused label
+   --> src/sieve.rs:681:13
+    |
+681 |             'blocks: while bstart < span {
+    |             ^^^^^^^
+    |
+    = note: `#[warn(unused_labels)]` (part of `#[warn(unused)]`) on by default
+
+warning: `vox` (lib) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 8.29s
+     Running unittests src/bin/landau_one.rs (target/release/deps/landau_one-e5a87b0a3f91c12d)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test landau_membrane::tests::membrane_matches_partition_descent ... ok
+landau n=45 value=60060 partition_descent=4.246711ms nested_all_capacities=5.851µs
+test landau_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/tripsum_one.rs (target/release/deps/tripsum_one-4be788c5c9320240)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test tripsum_membrane::tests::membrane_matches_original_witness_and_restores_siblings ... ok
+tripsum limit=24 witness=[1, 2, 3, 11, 17, 20, 23] original=8.510481ms nested_with_setup=1.041124ms
+test tripsum_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

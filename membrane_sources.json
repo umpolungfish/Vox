@@ -1,0 +1,73 @@
+{
+  "source_repository": "/home/mrnob0dy666/imsgct/G-mOMonadOS",
+  "source_head_at_review": "eb71bba135093c9762e6539d1ac9bbdea23cdbaa",
+  "selection": [
+    {
+      "source": "src/abc_iutt.rs",
+      "sha256": "58f2a1720dcdedb682546a1176e62ea72fdd6581fed99aa84362eda551fe343c",
+      "destination": "src/abc_iutt.rs",
+      "binary": "abc_one",
+      "shared_state": "radical and logarithm tables plus cumulative window maxima",
+      "removed_repetition": "independent enumeration and factorization for overlapping cutoffs"
+    },
+    {
+      "source": "src/divisor_ring.rs",
+      "sha256": "d88f4bdb14c9e9fe589dcb2c1d5fdfa22bbe7a9775c0bd55b6d83f3c6ed7f231",
+      "destination": "src/divisor_ring.rs",
+      "binary": "divisor_one",
+      "shared_state": "one prime factorization and its exponent-ordered divisors",
+      "removed_repetition": "trial divisor scan followed by factorization and exponent reconstruction"
+    },
+    {
+      "source": "src/shor_qft.rs",
+      "sha256": "31fb849b407f255d01184ea1b13236f84ca840384b5a67911d72f6628e92d80b",
+      "destination": "src/shor_qft.rs",
+      "binary": "shor_one",
+      "shared_state": "roots of unity and bit-reversal permutation across nested Fourier stages",
+      "removed_repetition": "direct per-frequency sums and independent modular exponentiations"
+    },
+    {
+      "source": "src/erdos_walks.rs",
+      "sha256": "4f44b2ab90a38b1948f29372a3f3df55edb0f07719cd654efd30930945aff490",
+      "extracted_kernel": "Schutte paley_beats and has_property; original search retained for tests",
+      "destination": "src/schutte_membrane.rs",
+      "binary": "schutte_one",
+      "shared_state": "quadratic-residue graph and dominator bitsets",
+      "removed_repetition": "residue searches and masks of irrelevant cardinalities"
+    },
+    {
+      "source": "src/erdos_walks.rs",
+      "sha256": "4f44b2ab90a38b1948f29372a3f3df55edb0f07719cd654efd30930945aff490",
+      "extracted_kernel": "Landau partition descent; retained as independent test control",
+      "destination": "src/landau_membrane.rs",
+      "binary": "landau_one",
+      "shared_state": "capacity maxima nested by prime with alternative prime powers",
+      "removed_repetition": "enumeration of partitions with shared attainable LCMs"
+    },
+    {
+      "source": "src/erdos_walks.rs",
+      "sha256": "4f44b2ab90a38b1948f29372a3f3df55edb0f07719cd654efd30930945aff490",
+      "extracted_kernel": "max_b3, descend, triple_sums_distinct; retained as independent test control",
+      "destination": "src/tripsum_membrane.rs",
+      "binary": "tripsum_one",
+      "shared_state": "occupied triple sums and a rollback trail across search branches",
+      "removed_repetition": "reconstruction and linear duplicate checks of existing triple sums"
+    }
+  ],
+  "support_sources": [
+    {
+      "source": "src/fibonacci_qc.rs",
+      "sha256": "92bc5c0f0f6c4e3991995dbb48e57804893b4dba234592fdafd7e9e2828282bc",
+      "extracted_kernel": "Complex type and arithmetic implementations",
+      "destination": "src/membrane_complex.rs"
+    }
+  ],
+  "other_candidates_inspected": {
+    "sequence.rs": "coupled to kernel snapshots and canonical tuple machinery",
+    "prime_winding.rs": "coupled to bigint and catalog typing; factoring already present in Vox",
+    "tower_polynomials.rs": "static coefficient tables with no execution loop",
+    "entropy.rs": "already precomputed tier tables",
+    "d2048_sieve.rs": "small fixed demonstration",
+    "abc_certificate.rs": "depends on abc_iutt; repeated scans addressed in that numerical module"
+  }
+}

@@ -1,0 +1,51 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.70s
+     Running unittests src/lib.rs (target/debug/deps/vox-6fda2b3ee15d583a)
+
+running 43 tests
+test divisor_membrane::tests::operators_are_imasm_words ... ok
+test factor_operator::tests::full_resolve_gives_multiset ... ok
+test fold3d::tests::sin_cos_match_known_values ... ok
+test divisor_membrane::tests::membrane_35_closes_over_tapes ... ok
+test fold3d::tests::build_backbone_produces_one_atom_set_per_residue_at_real_bond_lengths ... ok
+test fold3d::tests::written_pdb_round_trips_through_vox_own_pdb_reader ... ok
+test imasm_vm::membrane_simd_tests::byte_swap_preserves_flags ... ok
+test imasm_vm::membrane_simd_tests::carry_survives_increment_and_full_width_borrow ... ok
+test imasm_vm::membrane_simd_tests::packed_moves_preserve_adjacent_memory_and_lanes ... ok
+test morphism_factor::tests::constructor_recovers_the_full_tower ... ok
+test imasm_vm::membrane_simd_tests::pinsrw_preserves_other_lanes_and_masks_the_selector ... ok
+test morphism_factor::tests::constructed_carrier_factors_like_the_fixed_tower ... ok
+test morphism_factor::tests::frontier_arm_clears_a_balanced_semiprime_fast ... ok
+test morphism_factor::tests::factors_marks_without_numeric_state ... ok
+test morphism_factor::tests::incomplete_operator_word_is_named_not_run ... ok
+test divisor_membrane::tests::membrane_143_closes_over_tapes ... ok
+test morphism_factor::tests::instant_extractor_decomposes_and_factors ... ok
+test morphism_factor::tests::lehman_step_finds_a_mid_range_factor ... ok
+test morphism_factor::tests::power_and_lucas_helpers_are_exact ... ok
+test factor_operator::tests::moat_reports_prime ... ok
+test morphism_factor::tests::smart_factor_gives_full_multiset ... ok
+test morphism_factor::tests::ecm_arm_factors_and_nests ... ok
+test morphism_factor::tests::nested_p_minus_catches_a_far_large_smooth_predecessor_factor ... ok
+test protein::tests::full_translation_keeps_ground_layer_residues_lift_rna_drops ... ok
+test protein::tests::mitochondrial_dialect_changes_degeneracy_and_choice ... ok
+test protein::tests::parse_chain_reads_one_letter_and_three_letter_forms_the_same ... ok
+test protein::tests::preferred_codon_ala_is_gcc ... ok
+test protein::tests::preferred_codon_leu_is_cuc_via_the_fourfold_tier ... ok
+test protein::tests::preferred_codon_met_is_its_only_codon ... ok
+test protein::tests::reverse_of_full_translation_round_trips ... ok
+test safetensors::tests::test_roundtrip_f32_scalar ... ok
+test morphism_factor::tests::full_membrane_certifies_factors_and_takes_perfect_powers ... ok
+test morphism_factor::tests::phase_family_reaches_a_forty_bit_semiprime ... ok
+test morphism_factor::tests::witness_first_certifies_a_large_prime_without_the_sqrt_walk ... ok
+test x86::membrane_decode_tests::packed_membrane_instructions_keep_their_boundaries ... ok
+test x86::membrane_decode_tests::pinsrw_consumes_the_complete_formatting_instruction ... ok
+test morphism_factor::tests::squfof_finds_factors ... ok
+test factor_operator::tests::moat_resolves_semiprimes ... ok
+test sieve::tests::qs_factors_through_the_full_pipeline ... ok
+test morphism_factor::tests::scout_reads_the_shape_and_routes ... ok
+test sieve::tests::dixon_factors ... ok
+test morphism_factor::tests::phase_family_reaches_a_sixty_bit_semiprime ... ok
+test sieve::tests::mpqs_siblings_return_exact_divisors ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.08s
+

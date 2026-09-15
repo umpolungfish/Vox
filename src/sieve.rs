@@ -435,6 +435,23 @@ fn next_combination(c: &mut [usize], n: usize) -> bool {
     false
 }
 
+/// Signed tape addition. Each operand is (is_negative, magnitude); returns the sum
+/// the same way. This lets g(x) and A x + B be carried on the tapes with a sign, so
+/// the value arithmetic has no bit ceiling.
+fn sadd(a: (bool, Tape), b: (bool, Tape)) -> (bool, Tape) {
+    if a.0 == b.0 {
+        (a.0, trim(add(&a.1, &b.1)))
+    } else {
+        match cmp(&a.1, &b.1) {
+            core::cmp::Ordering::Less => (b.0, trim(sub(&b.1, &a.1))),
+            _ => {
+                let m = trim(sub(&a.1, &b.1));
+                (if zero(&m) { false } else { a.0 }, m)
+            }
+        }
+    }
+}
+
 /// Integer k-th root of v (largest r with r^k <= v), for the A-prime sizing.
 fn iroot(v: u128, k: u32) -> u128 {
     if k == 0 || v < 2 {
@@ -476,14 +493,11 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         121..=150 => 131_072,
         _ => 524_288,
     });
-    // N stays on the tape (it may exceed 128 bits). Only the per-polynomial and
-    // per-x machine values live in i128: A, B, C, g(x), and A x + B. The binding
-    // one is g(x) ~ M * sqrt(2N); guard so it fits an i128.
+    // N stays on the tape. The polynomial coefficients A and B fit a machine word
+    // (they are near sqrt(N)); C, g(x) and A x + B are carried on the tapes, so the
+    // value arithmetic has no bit ceiling. No cap on how large N may be.
     let sqrt2n = isqrt(&mul(&tape_u64(2), &n));
-    let sqrt2n_u = tape_to_u128(&sqrt2n)?;
-    if sqrt2n_u >= (1u128 << 108) {
-        return None; // sqrt(2N) too large for the machine inner loop
-    }
+    let sqrt2n_u = tape_to_u128(&sqrt2n).unwrap_or(u128::MAX);
     let flog2 = |x: u128| -> u32 {
         if x < 2 {
             0
@@ -668,11 +682,13 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                 soln1[j] = (soln1[j] + m as i64).rem_euclid(pi);
                 soln2[j] = (soln2[j] + m as i64).rem_euclid(pi);
             }
-            // C = (B^2 - N)/A, exact, on the tapes (B^2 and N exceed a machine word)
+            // C = (B^2 - N)/A on the tapes; C < 0 since B^2 < N. Kept as magnitude.
             let b_abs = b_i.unsigned_abs();
             let b2 = mul(&u128_to_tape(b_abs), &u128_to_tape(b_abs));
-            let (mag, _r) = divmod(&sub(&n_tape, &b2), &u128_to_tape(a_val));
-            let cc = -(tape_to_u128(&mag)? as i128);
+            let (c_mag, _r) = divmod(&sub(&n_tape, &b2), &u128_to_tape(a_val));
+            let a_t = u128_to_tape(a_val);
+            let b_t = u128_to_tape(b_abs);
+            let b_neg = b_i < 0;
 
             // running mark positions start at the roots and advance across blocks
             next1.copy_from_slice(&soln1);
@@ -712,67 +728,78 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     }
                     let xi = bstart + off;
                     let x = xi as i128 - m;
-                let g = a_i * x * x + 2 * b_i * x + cc; // = Q(x)/A
-                if g == 0 {
-                    continue;
-                }
-                let mut val = if g < 0 { (-g) as u128 } else { g as u128 };
-                let mut exps = vec![0u32; width];
-                if g < 0 {
-                    exps[0] = 1;
-                }
-                let xi64 = xi as i64;
-                for j in 1..width {
-                    if val == 1 {
-                        break;
-                    }
-                    let p = base[j];
-                    let pi = p as i64;
-                    let hit = if soln1[j] < 0 {
-                        skip[j]
-                    } else {
-                        let xr = xi64 % pi;
-                        xr == soln1[j] || xr == soln2[j]
-                    };
-                    if !hit {
+                    let x_neg = x < 0;
+                    let x_abs = x.unsigned_abs();
+                    let x_t = u128_to_tape(x_abs);
+                    // g = A*x^2 + 2*B*x + C, on the tapes, signed. No bit ceiling.
+                    let x2_t = u128_to_tape(x_abs.wrapping_mul(x_abs));
+                    let term1 = (false, mul(&a_t, &x2_t)); // A*x^2 >= 0
+                    let term2 = (b_neg ^ x_neg, mul(&mul(&tape_u64(2), &b_t), &x_t)); // 2Bx
+                    let (g_neg, mut val) = sadd(sadd(term1, term2), (true, c_mag.clone()));
+                    if zero(&val) {
                         continue;
                     }
-                    let pu = p as u128;
-                    while val % pu == 0 {
-                        exps[j] += 1;
-                        val /= pu;
+                    let mut exps = vec![0u32; width];
+                    if g_neg {
+                        exps[0] = 1;
                     }
-                }
-                if val != 1 {
-                    continue;
-                }
-                for &idx in &ks {
-                    exps[idx] += 1;
-                }
-                let axb = a_i * x + b_i;
-                let axb_abs = if axb < 0 { (-axb) as u128 } else { axb as u128 };
-                let axb_t = u128_to_tape(axb_abs);
-                if !seen.insert(axb_t.clone()) {
-                    continue;
-                }
-                #[cfg(feature = "mpqs_debug")]
-                if a_of.is_empty() {
-                    extern crate std;
-                    let lhs = mul(&axb_t, &axb_t);
-                    let ag = mul(&u128_to_tape(a_val), &u128_to_tape(if g < 0 { (-g) as u128 } else { g as u128 }));
-                    let rhs = if g < 0 { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
-                    let mut recon = one();
-                    for c in 0..width {
-                        for _ in 0..exps[c] {
-                            recon = mul(&recon, &u128_to_tape(base[c] as u128));
+                    let xi64 = xi as i64;
+                    let one_t = vec![EVALF];
+                    for j in 1..width {
+                        if val == one_t {
+                            break;
+                        }
+                        let p = base[j];
+                        let pi = p as i64;
+                        let hit = if soln1[j] < 0 {
+                            skip[j]
+                        } else {
+                            let xr = xi64 % pi;
+                            xr == soln1[j] || xr == soln2[j]
+                        };
+                        if !hit {
+                            continue;
+                        }
+                        let pt = tape_u64(p);
+                        loop {
+                            let (q, r) = divmod(&val, &pt);
+                            if zero(&r) {
+                                exps[j] += 1;
+                                val = q;
+                            } else {
+                                break;
+                            }
                         }
                     }
-                    std::eprintln!(
-                        "[mpqs] identity (Ax+B)^2==A*g+N : {} ; exps==A*|g| : {}",
-                        if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" },
-                        if trim(recon) == trim(ag) { "PASS" } else { "FAIL" }
-                    );
-                }
+                    if val != one_t {
+                        continue;
+                    }
+                    for &idx in &ks {
+                        exps[idx] += 1;
+                    }
+                    // A x + B on the tapes; magnitude only, it is squared in combine
+                    let (_s, axb_t) = sadd((x_neg, mul(&a_t, &x_t)), (b_neg, b_t.clone()));
+                    let axb_t = trim(axb_t);
+                    if !seen.insert(axb_t.clone()) {
+                        continue;
+                    }
+                    #[cfg(feature = "mpqs_debug")]
+                    if a_of.is_empty() {
+                        extern crate std;
+                        let lhs = mul(&axb_t, &axb_t);
+                        // A*|g| reconstructed from the exponents (A's primes plus g's)
+                        let mut ag = one();
+                        for c in 0..width {
+                            for _ in 0..exps[c] {
+                                ag = mul(&ag, &u128_to_tape(base[c] as u128));
+                            }
+                        }
+                        let rhs = if g_neg { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
+                        std::eprintln!(
+                            "[mpqs] identity (Ax+B)^2==A*g+N : {}",
+                            if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" }
+                        );
+                    }
                     a_of.push(axb_t);
                     exp_of.push(exps);
                 }

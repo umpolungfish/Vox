@@ -1,0 +1,4 @@
+cutoff=9 a=1 b=8 c=9 discrepancy=0.226289161185
+cutoff=32 a=1 b=8 c=9 discrepancy=0.226289161185
+cutoff=1000 a=3 b=125 c=128 discrepancy=1.110713144091
+execution=0.01s

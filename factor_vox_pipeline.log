@@ -1,0 +1,7 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 4.00s
+saved membranes/factor_one/8051/payload.elf.imasm
+8051 = 83 x 97
+entry(...) exited(0)   [7113242 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/factor_one/8051/payload.elf.imasm

@@ -1,0 +1,3 @@
+vertices=23 k=2 holds=true subsets=253 counterexample=None
+vertices=23 k=3 holds=true subsets=1771 counterexample=None
+execution=0.00s

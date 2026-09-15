@@ -1,0 +1,22 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 7.39s
+     Running unittests src/bin/abc_one.rs (target/release/deps/abc_one-204eb7b8b8909941)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test abc_iutt::tests::membrane_matches_independent_windows_in_requested_order ... ok
+abc cutoffs=[200, 400, 600, 800, 1000] reference=138.317175ms nested=13.047876ms
+test abc_iutt::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.15s
+
+     Running unittests src/bin/divisor_one.rs (target/release/deps/divisor_one-65c8ff13c77fe009)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test divisor_ring::membrane_tests::generated_ring_matches_trial_divisors_and_exponent_sort ... ok
+divisor n=1125899906842624 reference_divisors=210.598394ms nested_full_analysis=21.174µs
+test divisor_ring::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+

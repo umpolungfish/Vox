@@ -1,0 +1,82 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.10s
+     Running unittests src/bin/abc_one.rs (target/debug/deps/abc_one-d275675aeef73b45)
+
+running 16 tests
+test abc_iutt::tests::enumerate_window_matches_certified_small_window ... ok
+test abc_iutt::tests::example_189_rejects_the_stronger_false_bound ... ok
+test abc_iutt::tests::packet_calibrations_hold_for_known_triples ... ok
+test abc_iutt::tests::radical_matches_known_values ... ok
+test abc_iutt::tests::enumerate_window_matches_certified_c32_window ... ok
+test abc_iutt::tests::scale_link_nine_to_thirty_two_holds ... ok
+test abc_iutt::tests::weighted_packet_matches_log_c_directly ... ok
+test abc_iutt::tests::tail_reading_matches_window_maximum_at_the_same_scale ... ok
+test abc_iutt::tests::squarefree_matches_known_values ... ok
+test abc_iutt::tests::window_maximum_matches_certified_c32_window ... ok
+test abc_iutt::tests::window_maximum_matches_certified_nine_window ... ok
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test abc_iutt::tests::membrane_matches_independent_windows_in_requested_order ... ok
+test abc_iutt::tests::squarefree_c_never_has_positive_prime_excess ... ok
+test abc_iutt::tests::membrane_timing_control ... ok
+test abc_iutt::tests::cofinal_holds_for_every_triple_in_a_real_window ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.56s
+
+     Running unittests src/bin/divisor_one.rs (target/debug/deps/divisor_one-0b7a037d17bb7b9f)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test divisor_ring::membrane_tests::generated_ring_matches_trial_divisors_and_exponent_sort ... ok
+test divisor_ring::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+
+     Running unittests src/bin/factor_one.rs (target/debug/deps/factor_one-ef591b862a716d0b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/landau_one.rs (target/debug/deps/landau_one-a7de0240ababf25d)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test landau_membrane::tests::membrane_matches_partition_descent ... ok
+test landau_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/bin/schutte_one.rs (target/debug/deps/schutte_one-93378814f7d9bf7c)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test schutte_membrane::tests::membrane_matches_original_search ... ok
+test schutte_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/bin/shor_one.rs (target/debug/deps/shor_one-685d6ac5a31c0c98)
+
+running 4 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test shor_qft::membrane_tests::membrane_orbit_and_period_controls ... ok
+test shor_qft::membrane_tests::membrane_amplitudes_match_direct_transform ... ok
+test shor_qft::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src/bin/tripsum_one.rs (target/debug/deps/tripsum_one-cbea37b2920a9706)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test tripsum_membrane::tests::membrane_matches_original_witness_and_restores_siblings ... ok
+test tripsum_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running unittests src/main.rs (target/debug/deps/vox-a717b774afd14861)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

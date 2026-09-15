@@ -223,7 +223,141 @@ what the code is for. No pattern list, no per-language rules, no heuristics.
   stripped binary rather than misreading padding and data as code. The CPython
   lane and the cost measurement are in `vox.py`, not the crate.
 
-## Layout
+## Baked numerical membranes
+
+### Resident circuits
+
+`qft_circuit.sh <levels>` builds a QFT circuit with `2^levels` ports, lifts its
+complete executable into IMASM, and prepares it once inside Vox. Depth is a
+build parameter. The direct-transform checking runner accepts depths 1 through
+12; the circuit's connection layout is generated from the selected depth.
+
+```text
+input gates -> stored permutation -> level 1 -> ... -> level d -> output
+     ^                                                           |
+     +-------------- sampled feedback gate <----------------------+
+```
+
+Connections are compile-time data. Preparation initializes the shared phase
+table and signal buffers. Activation changes a gate pattern and propagates
+through those existing connections, using fixed guest storage. Feedback selects
+the preceding activation's normalized output as the source. Closing all input
+gates clears the signals. A 64-bit gate pattern repeats across the ports when
+the circuit has more than 64 ports.
+
+```sh
+./qft_circuit.sh 3
+./qft_circuit.sh 8
+./target/release/vox circuit membranes/qft_circuit/256/payload.elf.imasm --stdin
+```
+
+With `--stdin`, preparation finishes before gate changes are read. Enter one
+hexadecimal mask per line, optionally followed by `:1` to select feedback, then
+EOF to finish. For example, `1`, `0123456789abcdef`, `ffffffffffffffff:1`, and
+`0` activate, change the pattern, feed back, and clear. The same VM remains
+resident throughout. Each output is checked against a direct transform after
+the activation timer stops. Logs separate loading, preparation and activation;
+the default run also compares five cold and resident runs with identical gates.
+
+### Complete process membranes
+
+`membrane_one.sh` builds static musl executables from the copied
+`G-mOMonadOS` numerical modules. Parameters become IMASM numeral words before
+compilation. Vox lifts the complete executable, including its data, into a saved
+`.imasm` module and runs that module with no input arguments. The launcher
+requires successful VM exit and exact stdout/stderr agreement with the native
+control. Modules, executables, output comparisons and elapsed Vox timings live
+under `membranes/<kind>_one/<parameters>/`. The installed Rust musl target is
+required. `membrane_speed_chart.md` distinguishes native kernel benchmarks from
+complete interpreted executions.
+
+```sh
+./membrane_one.sh abc 1 10 9 32 1000
+
+./membrane_one.sh divisor 1125899906842624 360 97
+
+./membrane_one.sh shor 2 21 12
+
+./membrane_one.sh schutte 23 2 3
+
+./membrane_one.sh landau 10 15 45
+
+./membrane_one.sh tripsum 24
+./membrane_one.sh factor 8051
+```
+
+ABC takes an epsilon numerator and nonzero denominator, followed by cutoffs.
+Its outer window membrane holds one radical table, logarithm table, and scan of
+cumulative maxima. Each cutoff reads that scan, preserving request order and
+duplicate cutoffs. Cutoffs through 1,000,000 are accepted by the hosted entry.
+
+The divisor membrane takes unsigned 64-bit integers. One factorization generates
+the divisors in exponent order. The numerical sort, ring bonds, and spectrum
+consume that prepared state. Inputs zero and one return a trivial result.
+
+The Shor membrane takes a base, modulus, and index-qubit count (1 through 14).
+The modular orbit advances by multiplication. A shared roots-of-unity table and
+bit-reversal permutation feed the nested Fourier stages, reducing the transform
+from quadratic work in register size M to O(M log M), with O(M) storage.
+Continued fractions still consume the computed probability peaks.
+
+The Schütte membrane takes a vertex count (1 through 63), followed by subset
+sizes. It prepares the quadratic-residue graph once. Each subset intersects
+precomputed dominator bitsets; only masks of the requested cardinality are
+visited, in increasing order. The result carries the number examined and the
+first failing subset, when present. The kernel is extracted from the Schütte
+section of `erdos_walks.rs`.
+
+The modules are compiled by their hosted binary targets; the `vox` library
+retains its standalone `no_std` interface and has no added dependencies.
+Source provenance is recorded in `membrane_sources.json`.
+
+Controls compare ABC maxima and attaining triples with separate original window
+enumerations, and divisor membership and ring order with trial division and
+exponent sorting. Run them with:
+
+```sh
+cargo test --release --bin abc_one --bin divisor_one membrane -- --nocapture
+cargo test --release --bin shor_one --bin schutte_one -- --nocapture
+```
+
+The recorded controls in `membrane_checks.log` measured ABC cutoffs
+200/400/600/800/1000 at 138.32 ms for separate windows and 13.05 ms for one
+membrane. For `2^50`, trial divisor enumeration took 210.60 ms and the prepared
+full ring analysis took 21.17 microseconds. These are execution timings for
+those inputs. The wrapper's build time is separate.
+
+`membrane_wave2_checks.log` records a dense 1,024-amplitude QFT control at
+25.35 ms for the direct transform and 38.77 microseconds for the nested transform,
+including phase-table setup. Complex amplitudes agree within the test tolerance;
+norm preservation and extracted periods have separate controls. The Schütte
+control at 23 vertices and subset size 2 takes 11.24 ms in the original search
+and 4.38 microseconds with the prepared graph, including setup. All 253 pairs
+are checked. These measurements cover the named kernels and inputs.
+
+The Landau membrane prepares the largest partition LCM for every capacity through
+the greatest requested N. Each prime encloses its alternative powers, and every
+choice reads the preceding prime stage. Results use checked `u128` arithmetic.
+Multiple requested N values consume the same table in request order.
+
+The distinct-triple-sum membrane retains the sums belonging to the active search
+branch. A candidate adds only triples containing that candidate. Its trail is
+rolled back on leaving the branch, preserving the enclosing sums and the original
+search order. It emits the largest set whose three-element subsets have distinct
+sums, including the same first witness as the source search.
+
+Both kernels are extracted from `erdos_walks.rs`. Controls in
+`membrane_wave3_checks.log` compare Landau values through 32 and triple-sum
+witnesses through 18 against the original exhaustive code. At N=45, partition
+descent takes 4.25 ms and the complete Landau table 5.85 microseconds. At limit
+24, the original triple-sum search takes 8.51 ms and the nested search 1.04 ms;
+both emit `[1, 2, 3, 11, 17, 20, 23]`. Reproduce the controls with:
+
+```sh
+cargo test --release --bin landau_one --bin tripsum_one -- --nocapture
+```
+
+## Source layout
 
 - `src/loader.rs` the universal loader, any container to code + data + entry.
 - `src/x86.rs` the operand decoder, bytes to structured operands.

@@ -1,0 +1,21 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 7.06s
+     Running unittests src/bin/schutte_one.rs (target/release/deps/schutte_one-f5470ad2bcf4741d)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test schutte_membrane::tests::membrane_matches_original_search ... ok
+test schutte_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/bin/shor_one.rs (target/release/deps/shor_one-89e117e38fe4cb6e)
+
+running 4 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test shor_qft::membrane_tests::membrane_orbit_and_period_controls ... ok
+test shor_qft::membrane_tests::membrane_amplitudes_match_direct_transform ... ok
+test shor_qft::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

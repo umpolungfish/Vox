@@ -1,0 +1,391 @@
+*** Begin Patch
+*** Add File: /home/mrnob0dy666/imsgct/ig-docs/prepared_membranes_and_resident_circuits.tex
++\documentclass[11pt]{article}
++\usepackage[a4paper,margin=22mm]{geometry}
++\usepackage{fontspec}
++\setmainfont{TeX Gyre Pagella}
++\setsansfont{TeX Gyre Heros}
++\setmonofont{DejaVu Sans Mono}[Scale=0.78]
++\usepackage{amsmath,amssymb,booktabs,tabularx,array,xcolor,tikz}
++\usetikzlibrary{arrows.meta,positioning,calc}
++\usepackage[colorlinks=true,linkcolor=teal,urlcolor=teal]{hyperref}
++\usepackage{fancyhdr}
++\pagestyle{fancy}\fancyhf{}
++\fancyhead[L]{\small Prepared membranes and resident circuits}
++\fancyhead[R]{\small Theory and realizations}
++\fancyfoot[C]{\thepage}
++\setlength{\headheight}{14pt}
++\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
++\definecolor{ink}{HTML}{153B50}
++\definecolor{flow}{HTML}{007F80}
++\definecolor{light}{HTML}{EEF5F7}
++\tikzset{box/.style={draw=ink,fill=light,rounded corners=2pt,align=center,minimum height=9mm,font=\small},
++active/.style={-{Latex[length=2mm]},thick,flow},
++stored/.style={-{Latex[length=2mm]},gray,dashed},
++caption/.style={font=\small,align=center}}
++\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
++\begin{document}
++{\Huge\color{ink} Prepared Membranes\\and Resident Circuits\par}
++{\large Theory, executable realizations, and measured activation\par}
++{\small 15 September 2026\par}
++\section*{1. The circuit exists before the switch}
++A light switch acts on an existing circuit. Its conductors, connections and load
++are already in place; operating the switch changes the conducting path.
++The computational principle is to prepare the connected structure before a
++request arrives, retain it, and let the request act through its gates.
++The response then pays for activation and propagation through that structure.
++
++A membrane holds operations, connections and reusable state behind an interface.
++Nesting places shared preparation around the operations that consume it.
++Levels can exchange signals through forward, bypass and return connections.
++Their number follows the object being realized. Depth is a construction
++parameter; an illustrative number of boxes carries no special significance.
++
++\begin{center}
++\begin{tikzpicture}[x=1cm,y=1cm]
++\node[box,minimum width=6cm] (a) at (0,0) {Enclosing membrane: prepared resources};
++\node[box,minimum width=6cm] (b) at (0,-1.3) {A connected inner level};
++\node[font=\large] at (0,-2.25) {$\vdots$};
++\node[box,minimum width=6cm] (d) at (0,-3.2) {A further level and its output ports};
++\draw[active] (a)--(b);
++\draw[active] (b)--(0,-1.95);
++\draw[active] (0,-2.6)--(d);
++\draw[active] (a.east)--++(1,0)|-(d.east);
++\node[caption,anchor=west] at (4.1,-1.55) {selected\\cross-level path};
++\draw[stored] (b.west)--++(-.65,0)|-($(d.west)+(0,.2)$);
++\draw[active] (d.west)--++(-1.3,0)|-($(a.west)+(0,-.2)$);
++\node[caption,anchor=east] at (-4.35,-1.6) {return\\connection};
++\end{tikzpicture}
++
++\small General design schematic. Solid paths carry the illustrated activation;
++dashed paths remain prepared. Intermediate levels are elided.
++\end{center}
++The engineering meaning of immediate response is that construction has already
++been paid for when the gate changes. Propagation still has a duration.
++Hardware follows physical paths and switching dynamics. The current Vox
++realization follows interpreted instructions and memory accesses.
++Both descriptions separate preparation from activation.
++
++\section*{2. A persistent transformation}
++Write the membrane as a directed graph $G$, with parameters $p$, state $s$,
++gates $g$ and input $x$. Its contracts are
++\[
++ C=\operatorname{prepare}(G,p),\qquad
++ (s_{t+1},y_t)=\operatorname{activate}(C,s_t,g_t,x_t).
++\]
++The circuit $C$ survives the call. Its topology, operators, coefficients and
++storage remain available while the gates and signals change.
++The current payload is transformed through the prepared structure.
++Feedback requires a defined delay, scheduling rule or settling rule.
++
++\newpage
++\section*{3. Nesting moves work to its enclosing lifetime}
++Let $L$ denote loading, $P$ preparation, $A_t$ activation and $R_t$ output
++extraction. For $K$ requests sharing topology and parameters,
++\[
++ T_{\rm resident}=L+P+\sum_{t=1}^{K}(A_t+R_t),\qquad
++ T_{\rm cold}=\sum_{t=1}^{K}(L+P+A_t+R_t).
++\]
++Under these assumptions, retaining the circuit removes $(K-1)(L+P)$ from the
++repeated work. Residency exchanges retained storage for avoided reconstruction.
++
++Nesting also changes work inside an algorithm. An enclosing region prepares a
++factorization, table, graph or phase schedule once. Inner operations consume it.
++A search can preserve its enclosing state and roll back only a child's additions.
++These transformations can change the amount of work as well as its location.
++
++For alternative arms tried in order, the cost through the first decisive arm $j$
++is
++\[
++ T_j=\sum_{i<j}T_{{\rm reject},i}+T_{{\rm decide},j}.
++\]
++Cheap shape tests and fast rejection keep the preceding sum small. The practical
++ordering test measures each affected input family against its control.
++
++\small
++\begin{tabularx}{\linewidth}{@{}lXX@{}}
++\toprule
++Module & Retained enclosing structure & Inner operation\\
++\midrule
++ABC windows & Radical/logarithm tables and cumulative scan &
++Read requested prefix maxima.\\
++Divisor ring & One factorization and exponent coordinates &
++Generate divisors through prime-power alternatives.\\
++QFT / Shor & Phase roots and bit-reversed ordering &
++Compose radix-two butterfly stages.\\
++Schütte & Residues and dominator bitsets &
++Enumerate subsets of the requested cardinality.\\
++Landau & Capacity maxima between prime stages &
++Select alternative powers of each prime.\\
++Triple sums & Occupied sums and a rollback trail &
++Extend a candidate; undo only its additions.\\
++\bottomrule
++\end{tabularx}
++\normalsize
++
++\subsection*{Native algorithm controls}
++The following compare source algorithms with their nested ports on the native
++host. Setup is included in the nested readings.
++\small
++\begin{tabularx}{\linewidth}{@{}lXrrr@{}}
++\toprule
++Kernel & Input / comparison & Original & Nested & Ratio\\
++\midrule
++ABC & Cutoffs 200--1000, step 200; $\epsilon=1/10$ &138.317 ms&13.048 ms&10.60\\
++Divisor & $2^{50}$: scan / full analysis &210.598 ms&21.174 $\mu$s&9,946.08\\
++QFT & Dense 1,024-amplitude transform &25.347 ms&38.768 $\mu$s&653.80\\
++Schütte & 23 vertices, all pairs &11.236 ms&4.375 $\mu$s&2,568.33\\
++Landau & 45: partitions / capacity table &4.247 ms&5.851 $\mu$s&725.81\\
++Triple sums & Limit 24, same witness &8.510 ms&1.041 ms&8.17\\
++\bottomrule
++\end{tabularx}
++\normalsize
++The QFT replaces the direct quadratic transform with an $O(N\log N)$ staged
++transform. The divisor construction removes the trial scan through the square
++root once a factorization is available. Algorithm structure grounds these work
++changes; the timing ratios describe the measured inputs.
++
++\newpage
++\section*{4. Complete executable membranes in Vox}
++The complete process path expresses parameters as IMASM numerals, bakes them
++into a static executable, lifts executable operations and data into a saved
++IMASM module, and runs that module through Vox.
++The saved module carries symbols, embedded data and lifted instructions.
++A numeral string supplies the input payload; the complete module carries the
++executable membrane with that payload.
++
++\begin{center}
++\begin{tikzpicture}[node distance=5mm]
++\node[box,text width=2.65cm] (p) {Parameters\\as numeral payloads};
++\node[box,text width=2.65cm,right=of p] (c) {Static executable\\operations + data};
++\node[box,text width=2.65cm,right=of c] (l) {Complete\\IMASM module};
++\node[box,text width=2.65cm,right=of l] (v) {Vox execution\\and output};
++\draw[active] (p)--node[above,font=\scriptsize]{bake}(c);
++\draw[active] (c)--node[above,font=\scriptsize]{lift}(l);
++\draw[active] (l)--node[above,font=\scriptsize]{run}(v);
++\end{tikzpicture}
++\end{center}
++The launcher requires successful process exit inside the VM and exact
++stdout/stderr agreement with the corresponding native executable.
++That explicit exit check matters because the general run command can return
++shell status zero after reporting a VM halt.
++
++\small
++\begin{tabularx}{\linewidth}{@{}lXrr@{}}
++\toprule
++Membrane & Baked inputs & Vox wall time & VM steps\\
++\midrule
++Factor & 8051 &7.34 s&7,113,242\\
++ABC & $\epsilon=1/10$; cutoffs 9, 32, 1000 &58.57 s&56,272,600\\
++Divisor ring & $2^{50}$, 360, 97 &0.29 s&238,939\\
++Shor & $a=2$, $N=21$, 12 qubits &1.90 s&1,958,437\\
++Schütte & 23 vertices; $k=2,3$ &0.17 s&148,959\\
++Landau & 10, 15, 45 &0.11 s&63,650\\
++Triple sums & Limit 24 &11.50 s&11,934,728\\
++\bottomrule
++\end{tabularx}
++\normalsize
++These recorded whole-process readings include loading and interpretation,
++and exclude compilation and lifting. Each listed example matches its native
++output control. The QFT kernel timing on the preceding page covers the
++transform; the Shor process timing covers the full baked example, including
++period extraction and reporting.
++
++\section*{5. A circuit retained across requests}
++The resident interface keeps the same IMASM machine alive. It invokes the
++module's preparation function once, then repeatedly invokes its activation
++function. Metadata supplies the port count, output address and counters.
++
++\begin{center}
++\begin{tikzpicture}[node distance=6mm]
++\node[box,text width=2.45cm] (load) {Load module\\resolve entry points};
++\node[box,text width=2.45cm,right=of load] (prep) {Prepare\\phases + signals};
++\node[box,text width=2.45cm,right=of prep] (wait) {Resident circuit\\await gate input};
++\node[box,text width=2.45cm,right=of wait] (act) {Activate\\propagate signals};
++\draw[active] (load)--(prep);
++\draw[active] (prep)--(wait);
++\draw[active] (wait)--(act);
++\draw[active] (act.south)--++(0,-.8)-|node[pos=.25,below,font=\small]{retain state; accept the next gates}(wait.south);
++\end{tikzpicture}
++\end{center}
++With standard-input streaming, preparation finishes before gate changes are
++read. The interactive record has one preparation followed by five activations:
++fresh input, a changed mask, feedback, clearing, and reactivation.
++
++\newpage
++\section*{6. The depth-selected QFT circuit}
++The circuit has $N=2^d$ ports and $d$ transform levels. Depth is selected at
++module build time; the construction has run in Vox at $d=3,6,8$.
++The direct-transform checking runner accepts up to 4,096 ports.
++
++Input permutation and butterfly connections are compile-time data.
++Preparation supplies the phase table, normalization and cleared signal storage.
++Each connection records two source positions, sum and difference destinations,
++and a phase index. At stage width $w$, a butterfly computes
++\[
++ z=e^{2\pi i j/w}b,\qquad u=a+z,\qquad v=a-z.
++\]
++Readout applies $N^{-1/2}$. Storage contains $Nd/2$ butterfly records,
++$N/2$ phases, $N$ permutation entries and $N(d+1)$ complex signal slots.
++
++\begin{center}
++\begin{tikzpicture}[x=3cm,y=.48cm]
++\foreach \s in {0,...,3} {
++ \foreach \j in {0,...,7} {
++  \coordinate (n\s-\j) at (\s,-\j);
++  \fill[ink] (n\s-\j) circle (1.5pt);
++ }
++}
++\foreach \s in {0,1,2} {
++ \pgfmathtruncatemacro{\next}{\s+1}
++ \pgfmathtruncatemacro{\halfwidth}{2^\s}
++ \foreach \j in {0,...,7} {
++  \pgfmathtruncatemacro{\partner}{\j+\halfwidth*(1-2*mod(floor(\j/\halfwidth),2))}
++  \draw[flow,thin] (n\s-\j)--(n\next-\j);
++  \draw[flow,thin,opacity=.65] (n\s-\j)--(n\next-\partner);
++ }
++}
++\node[caption] at (0,1.3) {Bit-reversed\\input slots};
++\node[caption] at (1,1.3) {Level 1\\width 2};
++\node[caption] at (2,1.3) {Level 2\\width 4};
++\node[caption] at (3,1.3) {Level 3\\width 8};
++\foreach \j in {0,...,7} {\node[left,font=\scriptsize] at (n0-\j) {\j};}
++\node[caption] at (3,-8) {normalize and read};
++\end{tikzpicture}
++
++\small Eight-port illustration, generated by the implementation's stage-pairing
++rule. Each paired output receives a butterfly sum or difference.
++\end{center}
++
++Let $D(g_t)$ be the diagonal gate mask and $F_N$ the normalized positive-sign
++Fourier transform. The implemented source and readout are
++\[
++ x_t=\begin{cases}
++ D(g_t)\mathbf 1,&\text{fresh source},\\
++ D(g_t)y_{t-1},&\text{feedback source},
++ \end{cases}
++ \qquad y_t=F_Nx_t.
++\]
++The 64-bit gate mask repeats across ports when $N>64$.
++Feedback samples the preceding normalized output before the next sweep begins:
++the return path has one activation of delay.
++
++Every activation overwrites signal slots through a full butterfly sweep.
++Closing all input gates produces zero output, including after nonzero feedback.
++Guest activation uses fixed storage with no allocation or topology
++reconstruction. The host controller and Vox interpreter have their own
++allocation and execution costs.
++
++In ideal arithmetic, full-open feedback reapplies $F_N$:
++$F_N^2x[j]=x[-j\bmod N]$ and $F_N^4=I$, by summing Fourier phases over the
++intermediate index. Such feedback can cycle. The sampled return path gives
++this recurrent computation an explicit temporal meaning.
++
++\newpage
++\section*{7. Measurements and controls}
++Every output port is compared with a separately evaluated direct transform.
++For feedback, the reference propagates its own preceding expected output.
++Its componentwise absolute-error threshold is $10^{-10}$. The default cases
++exercise zero gates, changed masks, feedback, clearing and reactivation.
++Recorded maximum errors reach approximately $1.3\times10^{-15}$,
++$1.8\times10^{-14}$ and $1.3\times10^{-13}$ at 8, 64 and 256 ports.
++
++\small
++\begin{tabularx}{\linewidth}{@{}rrXXXX@{}}
++\toprule
++$d$&$N$&Preparation&Resident activation&Cold parse + prepare + activate&Cold / resident\\
++\midrule
++3&8&112.336 $\mu$s&545.599 $\mu$s&37.305347 ms&68.38$\times$\\
++6&64&755.225 $\mu$s&8.004777 ms&45.928677 ms&5.74$\times$\\
++8&256&23.401976 ms&39.995148 ms&103.725391 ms&2.59$\times$\\
++\bottomrule
++\end{tabularx}
++\normalsize
++Preparation is a single initial reading separate from loading. Activation and
++cold columns are medians of five executions with the same gate mask.
++Each cold execution starts with module text already in host memory, parses a
++new VM, prepares and activates. Each resident execution activates the existing
++prepared VM. Extraction, reference checking and printing follow the timer.
++
++These ratios measure avoided reconstruction for this path. The sequential
++propagation sweep still performs $O(N\log N)$ arithmetic. Increasing depth in
++this sweep also increases port count. A fixed-size topology experiment would
++isolate depth alone.
++
++\section*{8. Reproduction and connected extensions}
++From the Vox working directory:
++\begin{verbatim}
++./qft_circuit.sh 3
++./qft_circuit.sh 8
++./target/release/vox circuit \
++  membranes/qft_circuit/256/payload.elf.imasm --stdin
++\end{verbatim}
++Enter a hexadecimal mask per line, optionally followed by \code{:1} for feedback:
++\begin{verbatim}
++1
++0123456789abcdef
++ffffffffffffffff:1
++0
++\end{verbatim}
++End-of-file closes the controller. Complete-process examples use
++\code{./membrane_one.sh shor 2 21 12} or
++\code{./membrane_one.sh divisor 1125899906842624 360 97}.
++
++The general connected-membrane design admits prebound ports between multiple
++resident modules and gates spanning nonadjacent levels. Its QFT realization
++uses adjacent butterfly levels with a sampled output-to-input return path.
++Further routing realizations can retain the same contracts: explicit state
++ownership, defined feedback timing, and separate measurements of preparation,
++activation, propagation and extraction.
++
++\newpage
++\section*{Implementation and measurement record}
++The following are local source and run records in the Vox repository.
++Complete module directories retain executable IMASM and their output records.
++All diagrams in this document are vector drawings. The butterfly diagram is
++generated from the stage-index rule in the circuit constructor.
++
++\begin{enumerate}
++\item \code{src/qft_circuit.rs}: compile-time connection generation,
++preparation, gate semantics, stage sweep and direct-transform unit controls.
++\item \code{src/bin/qft_circuit.rs}: exported circuit interface, signal storage
++and preparation/activation counters.
++\item \code{src/circuit_cli.rs}: resident VM controller, gate parsing,
++timing boundaries and independent direct-transform reference.
++\item \code{qft_circuit.sh}; \code{src/imasm_module.rs};
++\code{src/imasm_vm.rs}: build/lift path, full module representation and execution.
++\item \code{membranes/qft_circuit/8/resident.log},
++\code{membranes/qft_circuit/64/resident.log},
++\code{membranes/qft_circuit/256/resident.log}: depth-specific readings.
++The \code{payload.elf.imasm} file in each directory is the complete module.
++\item \code{membranes/qft_circuit/64/interactive.log}: one preparation followed
++by five gate changes supplied through the resident interface.
++\item \code{membrane_one.sh}; \code{membrane_speed_chart.md};
++the numerical \code{membranes/*_one/} directories: process timings and
++native-output comparisons.
++\item \code{membrane_checks.log}, \code{membrane_wave2_checks.log},
++\code{membrane_wave3_checks.log}: native algorithm controls.
++\item \code{circuit_tests_depth3.log}, \code{circuit_tests_depth8.log},
++\code{circuit_final_tests.log}: circuit and controller tests.
++\end{enumerate}
++
++The process examples produce the following concrete readings. Factoring 8051
++returns $83\times97$. Shor with $a=2,N=21$ recovers period 6 and factors
++$7\times3$. Landau returns 30, 105 and 60060 at 10, 15 and 45.
++The distinct-triple-sum search at limit 24 returns
++$\{1,2,3,11,17,20,23\}$. Schütte's 23-vertex example checks all pairs and triples.
++ABC's cutoff-1000 maximum is attained at $(3,125,128)$ with reported discrepancy
++$1.110713144091$ for $\epsilon=1/10$.
++
++These executable readings accompany the structural account: preparation has a
++lifetime, gates alter the admitted signals, the existing connections carry the
++transformation, and the prepared object survives to receive the next input.
++\end{document}
+*** Update File: /home/mrnob0dy666/imsgct/ig-docs/commit.txt
+@@
+-I tabulate the large nested phase factors
++I document prepared membranes and resident circuits
+@@
+-I list the exact 128, 256, 512, and 1,024-bit prime factors and composite products with their family-vessel, phase-leaf, nested-mark, and timing measurements.
++I explain preparation and activation, configurable nesting depth, complete IMASM realization and sampled feedback. I include vector diagrams of the general membrane, executable pipeline, butterfly wiring and resident lifecycle, with measured controls and reproducible commands.
+*** End Patch

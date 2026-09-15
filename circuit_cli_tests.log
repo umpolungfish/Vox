@@ -1,0 +1,8 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 6.17s
+     Running unittests src/main.rs (target/release/deps/vox-e233009c35d2efb5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -153,6 +153,39 @@ macro_rules! ins { ($addr:expr,$c:expr,$mn:expr,$ops:expr,$wm:expr,$t:expr) =>
 
 pub fn decode(b: &[u8], addr: u64) -> Option<Insn> { decode_mode(b, addr, 64) }
 
+#[cfg(test)]
+mod membrane_decode_tests {
+    use super::*;
+
+    #[test]
+    fn pinsrw_consumes_the_complete_formatting_instruction() {
+        let bytes = [0x66, 0x43, 0x0f, 0xc4, 0x84, 0x09, 0xc0, 0x4a, 0x45, 0x00, 0x01];
+        let insn = decode(&bytes, 0x40b4eb).unwrap();
+        assert_eq!(insn.len, bytes.len());
+        assert_eq!(insn.mnemonic, "pinsrw");
+        assert_eq!(insn.ops[0].field(), "r:xmm0");
+        assert_eq!(insn.ops[1].field(), "m:r9:r9:1:0x454ac0:2");
+        assert_eq!(insn.ops[2].field(), "i:0x1");
+    }
+
+    #[test]
+    fn packed_membrane_instructions_keep_their_boundaries() {
+        for (bytes, name) in [
+            (&[0x66,0x0f,0x6d,0xdd][..], "punpckhqdq"),
+            (&[0x66,0x0f,0xd6,0x44,0x0a,0x08][..], "movq"),
+            (&[0x66,0x0f,0x14,0xd2][..], "unpcklpd"),
+            (&[0x66,0x0f,0x15,0xc1][..], "unpckhpd"),
+            (&[0x66,0x0f,0xc6,0xc9,0x01][..], "shufpd"),
+            (&[0x0f,0x16,0x44,0x24,0x08][..], "movhps"),
+            (&[0x49,0x0f,0xc8][..], "bswap"),
+        ] {
+            let instruction = decode(bytes, 0).unwrap();
+            assert_eq!(instruction.len, bytes.len(), "{name}");
+            assert_eq!(instruction.mnemonic, name);
+        }
+    }
+}
+
 /// `bits` is 64 or 32. In 32-bit mode there is no REX, 0x40..0x4F are the short
 /// inc/dec forms, and a mod=0 rm=5 memory operand is an absolute disp32 rather
 /// than RIP-relative.
@@ -341,6 +374,13 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xBD => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,if f3{"lzcnt"}else{"bsr"},vec![rop(r,osz,rex.p),rm],false,None) }
         0xBE => { let (rm,r)=modrm(c,rex,1,1)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
         0xBF => { let (rm,r)=modrm(c,rex,2,2)?; ins!(addr,c,"movsx",vec![rop(r,osz,rex.p),rm],false,None) }
+        0x14|0x15 => { let (rm,r)=modrm(c,rex,16,16)?; let mn=match (op2,o66) {(0x14,true)=>"unpcklpd",(0x15,true)=>"unpckhpd",(0x14,false)=>"unpcklps",_=>"unpckhps"}; ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
+        0xC6 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?; ins!(addr,c,if o66{"shufpd"}else{"shufps"},vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
+        0x12|0x16 if !f2 && !f3 => { let (rm,r)=modrm(c,rex,16,8)?;
+            let mn=if op2==0x12 {if rm.is_mem(){"movlps"}else{"movhlps"}} else {if rm.is_mem(){"movhps"}else{"movlhps"}};
+            ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
+        0x13|0x17 => { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,if op2==0x13{"movlps"}else{"movhps"},vec![rm,rop(r,16,rex.p)],true,None) }
+        0xD6 if o66 => { let (rm,r)=modrm(c,rex,16,8)?; let wm=rm.is_mem(); ins!(addr,c,"movq",vec![rm,rop(r,16,rex.p)],wm,None) }
         0x28 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"movaps",vec![rop(r,16,rex.p),rm],false,None) }
         0x29 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,"movaps",vec![rm,rop(r,16,rex.p)],wm,None) }
         // Vector/scalar move: F3 movss, F2 movsd, 66 movupd, none movups.
@@ -389,6 +429,7 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xEB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"por",vec![rop(r,16,rex.p),rm],false,None) }
         0xF4 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmuludq",vec![rop(r,16,rex.p),rm],false,None) }
         0x38 => { let op3=c.u8()?; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if op3==0x40{"pmulld"}else{"pshufb"},vec![rop(r,16,rex.p),rm],false,None) }
+        0xC4 if o66 => { let (rm,r)=modrm(c,rex,4,2)?; let im=c.imm(1,false)?; ins!(addr,c,"pinsrw",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         0x70 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?; ins!(addr,c,"pshufd",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         0x73 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
                   ins!(addr,c,match g&7 {2=>"psrlq",3=>"psrldq",6=>"psllq",7=>"pslldq",_=>"psrlq"},vec![rm,Op::Imm(im)],false,None) }
@@ -398,8 +439,9 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xF3 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psllq",vec![rop(r,16,rex.p),rm],false,None) }
         0x62 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpckldq",vec![rop(r,16,rex.p),rm],false,None) }
         0x6C => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpcklqdq",vec![rop(r,16,rex.p),rm],false,None) }
+        0x6D => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpckhqdq",vec![rop(r,16,rex.p),rm],false,None) }
         0xA2 => ins!(addr,c,"cpuid",vec![],false,None),
-        0xC8..=0xCF => ins!(addr,c,"bswap",vec![],false,None),
+        0xC8..=0xCF => ins!(addr,c,"bswap",vec![rop((op2 & 7) | ((rex.b as u8) << 3),if rex.w {8} else {4},rex.p)],false,None),
         _ => None,
     }
 }

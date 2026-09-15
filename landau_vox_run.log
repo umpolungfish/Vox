@@ -1,0 +1,84 @@
+regs at halt: rax=20d5b0 rbx=fbad8000 rcx=0 rdx=7ffefcd0 rsi=25 rdi=20d5b0 rbp=0 rsp=fbad8010 r12=20d5b0 r13=7ffefcd0 r14=0 r15=7ffefb90
+call chain:
+entry(...) halted: no instruction at 0x0 after 2706 steps
+  previous 12:
+  2afba0: ⊞ punpcklqdq r:xmm0 r:xmm4
+  2afba4: ⊡ movups m:r14::1:0x18:16 r:xmm3
+  2afba9: ⊡ movups m:r14::1:0x28:16 r:xmm0
+  2afbae: ⊞ add r:rsp i:0x10
+  2afbb2: ⋈ pop r:rbx
+  2afbb3: ⋈ pop r:rbp
+  2afbb4: ⋈ pop r:r12
+  2afbb6: ⋈ pop r:r13
+  2afbb8: ⋈ pop r:r14
+  2afbba: ⊣ ret
+  2a99a7: ⊞ movdqa r:xmm0 m:rsp::1:0x0:16
+  2a99ac: ⋈ mov r:rsi r:r12
+  2a99af: ⋈ mov r:ecx r:r14d
+  2a99b2: ⋈ mov r:rdx r:r13
+  2a99b5: ⋈ mov r:rdi r:r15
+  2a99b8: ⊡ and m:rsp::1:0x10:4 i:-0x2
+  2a99bd: ⊡ movaps m:rsp::1:0xf0:16 r:xmm0
+  2a99c5: ≻ call i:0x2a29c0
+  2a29c0: ⊞ endbr64
+  2a29c4: ⋈ push r:r15
+  2a29c6: ⋈ push r:r14
+  2a29c8: ⋈ push r:r13
+  2a29ca: ⋈ push r:r12
+  2a29cc: ⋈ push r:rbp
+  2a29cd: ⋈ mov r:rbp r:rdi
+  2a29d0: ⋈ push r:rbx
+  2a29d1: ⊞ sub r:rsp i:0x538
+  2a29d8: ⋈ mov m:rsp::1:0x8:8 r:rsi
+  2a29dd: ⋈ mov m:rsp::1:0x20:8 r:rdx
+  2a29e2: ⋈ mov m:rsp::1:0x6c:4 r:ecx
+  2a29e6: ⋈ mov r:rax m:fs::1:0x28:8
+  2a29ef: ⋈ mov m:rsp::1:0x528:8 r:rax
+  2a29f7: ⋈ mov r:rax i:-0x48
+  2a29fe: ⋈ mov r:eax m:fs+rax::1:0x0:4
+  2a2a01: ⋈ mov m:rsp::1:0x7c:4 r:eax
+  2a2a05: ⋈ mov r:eax m:rdi::1:0xc0:4
+  2a2a0b: ⊤ test r:eax r:eax
+  2a2a0d: ∈ ne i:0x2a2e58
+  2a2e58: ⊤ cmp r:eax i:-0x1
+  2a2e5b: ∈ e i:0x2a2a1d
+  2a2a1d: ⋈ mov r:ebx m:rbp::1:0x0:4
+  2a2a20: ⊤ test r:bl i:0x8
+  2a2a23: ∈ ne i:0x2a4b10
+  2a2a29: ⊤ cmp m:rsp::1:0x8:8 i:0x0
+  2a2a2f: ∈ e i:0x2a4bdc
+  2a2a35: ⊤ test r:bl i:0x2
+  2a2a38: ∈ ne i:0x2a3eb0
+  2a2a3e: ⋈ mov r:rax m:rsp::1:0x20:8
+  2a2a43: ⋈ mov r:rdi m:rsp::1:0x8:8
+  2a2a48: ⋈ mov r:esi i:0x25
+  2a2a4d: ⊞ movdqu r:xmm1 m:rax::1:0x0:16
+  2a2a51: ⊡ movups m:rsp::1:0x118:16 r:xmm1
+  2a2a59: ⋈ mov r:rax m:rax::1:0x10:8
+  2a2a5d: ⊡ movaps m:rsp::1:0x10:16 r:xmm1
+  2a2a62: ⋈ mov m:rsp::1:0x128:8 r:rax
+  2a2a6a: ≻ call i:0x32c840
+  32c840: ⊙ jmp m:rip::1:0x4ad2:4
+  2f1870: ⊞ endbr64
+  2f1874: ⊞ movd r:xmm1 r:esi
+  2f1878: ⋈ mov r:eax r:edi
+  2f187a: ⊞ and r:eax i:0xfff
+  2f1881: ⊞ pushad
+  2f1882: ⋈ leave
+  2f1883: ⊤ cmp r:eax i:0xfc0
+  2f188a: ⊞ popad
+  2f188b: ⋈ leave
+  2f188c: ⊞ pshufd r:xmm1 r:xmm1 i:0x0
+  2f1891: ∈ g i:0x2f19e0
+  2f1897: ⊞ movdqu r:xmm0 m:rdi::1:0x0:16
+  2f189b: ⊞ pxor r:xmm3 r:xmm3
+  2f189f: ⊞ movdqa r:xmm4 r:xmm0
+  2f18a3: ⊞ pcmpeqb r:xmm0 r:xmm1
+  2f18a7: ⊞ pcmpeqb r:xmm4 r:xmm3
+  2f18ab: ⊞ por r:xmm0 r:xmm4
+  2f18af: ⊞ pmovmskb r:eax r:xmm0
+  2f18b3: ⊤ test r:eax r:eax
+  2f18b5: ∈ e i:0x2f18c0
+  2f18b7: ⊞ bsf r:eax r:eax
+  2f18ba: ⊞ lea r:rax m:rdi:rax:1:0x0:8
+  2f18be: ⊣ ret   [2706 steps]

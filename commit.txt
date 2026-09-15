@@ -1,13 +1,85 @@
-I finish divisor_membrane's tape arithmetic instead of leaving three helpers dead
+I prepare resident circuits and activate them through runtime gates in Vox
 
-modulo, zero and two sat unused since they were scaffolded ahead of the code
-that would call them. Warnings from unused code are mine to fix regardless
-of which file introduced them, and fixing means completing the wiring, not
-silencing the warning: low_congruent now computes its truncation through
-modulo and pow2 instead of a hand-rolled bit loop, divmod asserts its
-divisor is never the zero tape, and enum_odd_tapes checks every candidate
-it emits is genuinely odd via a mod-2 tape test built from all three
-primitives together. All three existing tests still pass.
+I generate QFT wiring from a configurable depth and retain its connections,
+phase table and signal buffers across activations. My feedback gate samples the
+preceding output into the next activation. Closed input gates inject zero.
 
-Wires the module into lib.rs and gives it a CLI entry: vox membrane bridge
-<N> <m> runs the coupled W_t trace entirely over IMASM tapes.
+My vox circuit command loads the complete IMASM module once and calls its
+prepare and activation functions in the same machine. It accepts gate changes
+on standard input after preparation. I check every output against a direct
+transform and check the resident preparation and activation counters.
+
+I verify depths 3, 6 and 8 through Vox, including changing payloads, feedback,
+clearing and reactivation. I measure loading, preparation and propagation
+separately and compare five cold and resident runs with identical gates.
+I retain complete modules and logs, expose the command in help, and document
+the build and interactive paths in the README and measurement chart.
+
+Previous membrane work:
+
+I build self-contained musl executables, lift their operations and baked data
+into saved IMASM modules, and execute those modules in Vox. My launcher requires
+successful VM exit and exact agreement with the native output control. I retain
+the executable, full module, outputs, comparison and wall-clock reading for each
+payload under membranes.
+
+I correct the missing packed insert, unpack, shuffle, half-vector move and
+byte-swap instructions encountered by these runs. I preserve carry across
+increment and decrement and retain full-width carry and borrow in adc/sbb.
+I add decoder-boundary, SIMD lane, memory-width and carry regression controls.
+
+My ABC, divisor, Shor, Schutte, Landau, triple-sum and small factor examples
+execute through Vox and match the native stdout and stderr exactly. The chart
+links their complete executable IMASM modules and separates their measured Vox
+wall times from the earlier native kernel benchmarks. My historical 160-bit
+factor run remains unverified in Vox.
+
+Previous port work:
+
+I copy abc_iutt and divisor_ring from G-mOMonadOS into hosted Vox targets.
+My ABC membrane holds one cumulative scan across every requested cutoff.
+My divisor membrane holds one factorization and generates the exponent-ordered
+divisors directly for the ring and sorted membership list.
+
+I bake numeric parameters as IMASM numeral words before compiling abc_one and
+divisor_one. Both executables run with no arguments. I record source hashes,
+selection rationale, commands, and measured comparison logs in the repository.
+
+Independent-window ABC controls agree exactly, including
+duplicate and descending cutoffs. Divisor membership and ring order agree with
+the original trial-division and exponent-sort controls through 2000.
+The ABC cutoff control measures 138.32 ms before and 13.05 ms nested; at 2^50
+the original divisor scan takes 210.60 ms and the full nested analysis 21.17 us.
+
+I port shor_qft with the Complex arithmetic from fibonacci_qc. One phase table
+feeds nested even/odd transform stages, and the modular orbit advances from its
+previous value. The dense 1024-amplitude control measures 25.35 ms for the direct
+transform and 38.77 us with nested stages including setup. Complex amplitudes,
+norm preservation and recovered periods pass their independent controls.
+
+I extract the Schutte kernel from erdos_walks. The outer graph prepares
+dominator bitsets once; inner searches walk only subsets of the requested size.
+The n=23, k=2 control checks all 253 pairs in 4.38 us including setup versus
+11.24 ms for the original mask scan. Small-domain decisions and emitted
+counterexamples match the original arithmetic search.
+
+My shor_one and schutte_one executables use the same baked IMASM numeral reader.
+The baked Shor run recovers period 6 and factors 7*3 for 21; the Schutte run
+checks all pairs and triples for n=23. I record the source hashes and commands.
+
+I extract Landau's partition-LCM search and the distinct-triple-sum search from
+erdos_walks. My Landau table nests alternative prime powers inside prime stages
+and shares its capacity maxima across requested N values. My triple-sum search
+retains enclosing sums and rolls back only each child's additions.
+
+Original exhaustive searches remain as controls. Landau agrees through 32 and
+at 45, where the nested table takes 5.85 us versus 4.25 ms for partition descent.
+Triple-sum witnesses agree through 18 and at 24, where the same seven-element
+set takes 1.04 ms versus 8.51 ms. Both binaries carry their numeric inputs as
+baked IMASM numeral words and execute with no arguments.
+
+I collect the seven recorded membrane comparisons, including the original factor
+path, in membrane_speed_chart.md. The chart links full current numeral payloads,
+states each timing's measured scope, and computes ratios from recorded timings.
+The operations remain in compiled Rust; the listed words are their numeric
+payloads. I check every emitted payload against its decimal input.

@@ -1,0 +1,7 @@
+ports=64 levels=6 load=57.936009ms prepare=681.641µs prepare_steps=118
+gates=0000000000000001 feedback=0 activate=38.67142ms steps=8664 max_error=0.000e0
+gates=0123456789abcdef feedback=0 activate=13.416112ms steps=8726 max_error=1.066e-14
+gates=ffffffffffffffff feedback=1 activate=10.320617ms steps=8854 max_error=1.409e-14
+gates=0000000000000000 feedback=0 activate=8.383922ms steps=8662 max_error=0.000e0
+gates=8000000000000000 feedback=0 activate=7.962056ms steps=8664 max_error=4.434e-15
+resident: preparations=1 activations=5 median_activation=Some(10.320617ms)

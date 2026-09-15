@@ -1,0 +1,16 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 2.81s
+saved membranes/qft_circuit/8/payload.elf.imasm
+ports=8 levels=3 load=49.773746ms prepare=112.336µs prepare_steps=52
+gates=0000000000000000 feedback=0 activate=541.505µs steps=618 max_error=0.000e0
+gates=0000000000000001 feedback=0 activate=608.607µs steps=619 max_error=0.000e0
+gates=0000000000000003 feedback=0 activate=598.022µs steps=620 max_error=5.551e-17
+gates=0123456789abcdef feedback=0 activate=551.091µs steps=625 max_error=1.277e-15
+gates=ffffffffffffffff feedback=1 activate=652.742µs steps=641 max_error=1.176e-15
+gates=5555555555555555 feedback=1 activate=615.197µs steps=625 max_error=1.090e-15
+gates=0000000000000000 feedback=0 activate=610.304µs steps=618 max_error=0.000e0
+gates=8000000000000000 feedback=0 activate=615.397µs steps=618 max_error=0.000e0
+gates=0000000000000001 feedback=0 activate=604.214µs steps=619 max_error=0.000e0
+resident: preparations=1 activations=9 median_activation=608.607µs
+same_gates_control: cold_parse_prepare_activate=37.305347ms resident_activate=545.599µs ratio=68.38x samples=5

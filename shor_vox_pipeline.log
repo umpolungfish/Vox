@@ -1,0 +1,21 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 11.44s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 5.00s
+saved membranes/shor_one/2_21_12/payload.elf.imasm
+shor_qft: a=2, N=21, 12 index qubits (register size 4096)
+  true period (classical ground truth): 6
+  strongest peaks in the measured distribution (index, probability):
+    k=0      p=0.16675  k/M*r=0.000 (should land near an integer if peaks are where theory predicts)
+    k=2048   p=0.16675  k/M*r=3.000 (should land near an integer if peaks are where theory predicts)
+    k=683    p=0.11400  k/M*r=1.000 (should land near an integer if peaks are where theory predicts)
+    k=2731   p=0.11400  k/M*r=4.000 (should land near an integer if peaks are where theory predicts)
+    k=1365   p=0.11400  k/M*r=2.000 (should land near an integer if peaks are where theory predicts)
+    k=3413   p=0.11400  k/M*r=5.000 (should land near an integer if peaks are where theory predicts)
+    k=682    p=0.02845  k/M*r=0.999 (should land near an integer if peaks are where theory predicts)
+    k=1366   p=0.02845  k/M*r=2.001 (should land near an integer if peaks are where theory predicts)
+  period extracted via continued fractions from a measured peak: 6  (matches true period: true)
+  factors recovered via gcd: 7 * 3 = 21  (verified: true)
+
+entry(...) exited(0)   [1958437 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/shor_one/2_21_12/payload.elf.imasm

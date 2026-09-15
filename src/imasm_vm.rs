@@ -266,7 +266,10 @@ impl Machine {
         }
         let (a, b, size) = self.flags;
         let (zf, sf, cf, of);
-        if self.kind == "add" {
+        if self.kind == "explicit" {
+            zf = a & mask(size) == 0; sf = sign(a, size) < 0;
+            cf = b & 1 != 0; of = b & 2 != 0;
+        } else if self.kind == "add" {
             // a and b are the two addends; CF is the unsigned carry-out.
             let r = a.wrapping_add(b) & mask(size);
             zf = r == 0; sf = sign(r, size) < 0;
@@ -533,10 +536,25 @@ impl Machine {
         if f.is_empty() { return; }
         let size = self.width(&f[0]);
         let a = self.read(&f[0], size).0;
+        if op == "bswap" {
+            let r = if size == 8 { (a as u64).swap_bytes() as u128 }
+                    else { (a as u32).swap_bytes() as u128 };
+            self.write(&f[0], r);
+            return;
+        }
         if matches!(op, "not"|"neg"|"inc"|"dec") {
             let r = match op { "not" => !a, "neg" => (a as i128).wrapping_neg() as u128, "inc" => a.wrapping_add(1), _ => a.wrapping_sub(1) };
             self.write(&f[0], r & mask(size));
-            if op != "not" { self.set_flags(r & mask(size), 0, size, "cmp"); }
+            if op != "not" {
+                let cf = if op == "neg" { a & mask(size) != 0 } else { self.cf() };
+                let signbit = 1u128 << (size * 8 - 1);
+                let of = match op {
+                    "neg" => a & mask(size) == signbit,
+                    "inc" => a & mask(size) == signbit - 1,
+                    _ => a & mask(size) == signbit,
+                };
+                self.set_flags(r & mask(size), cf as u128 | ((of as u128) << 1), size, "explicit");
+            }
             return;
         }
         // One-operand imul/mul: the full 2*size product lands in edx:eax
@@ -586,8 +604,15 @@ impl Machine {
         // the real overflow; sub/sbb route through the subtract path; the
         // logical ops clear CF.
         match op {
-            "add"|"adc" => self.set_flags(a & mask(size), b.wrapping_add(cin) & mask(size), size, "add"),
-            "sub"|"sbb" => self.set_flags(a & mask(size), b.wrapping_add(cin) & mask(size), size, "sub"),
+            "add"|"adc"|"sub"|"sbb" => {
+                let a = a & mask(size); let b = b & mask(size);
+                let subtract = op == "sub" || op == "sbb";
+                let cf = if subtract { a < b + cin } else { a + b + cin > mask(size) };
+                let signbit = 1u128 << (size * 8 - 1);
+                let of = if subtract { ((a ^ b) & (a ^ r) & signbit) != 0 }
+                         else { (!(a ^ b) & (a ^ r) & signbit) != 0 };
+                self.set_flags(r & mask(size), cf as u128 | ((of as u128) << 1), size, "explicit");
+            }
             "and"|"or"|"xor" => self.set_flags(r & mask(size), 0, size, "logic"),
             "shl"|"sal"|"shr"|"sar" => {
                 // CF is the last bit shifted out; a count of zero leaves the
@@ -608,6 +633,19 @@ impl Machine {
         let dst = f[0].clone();
         match op {
             "movdqa"|"movdqu"|"movaps"|"movups" => { let v = self.read(&f[1], 16).0; self.write(&dst, v & mask(16)); }
+            "movlps"|"movhps"|"movhlps"|"movlhps" => {
+                let source = self.read(&f[1],16).0;
+                let high = op == "movhps" || op == "movlhps";
+                if dst.starts_with("m:") {
+                    let (addr, _) = self.ea(&dst);
+                    self.store(addr, if high {source >> 64} else {source}, 8);
+                } else {
+                    let old = self.read(&dst,16).0;
+                    let source = if op == "movhlps" {source >> 64} else {source};
+                    let shift = if high {64} else {0};
+                    self.write(&dst, (old & !(mask(8) << shift)) | ((source & mask(8)) << shift));
+                }
+            }
             "movd"|"movq" => {
                 let w = if op == "movd" { 4 } else { 8 };
                 let src_is_x = f[1].starts_with("r:xmm");
@@ -623,6 +661,38 @@ impl Machine {
                 let r: [u128;2] = if op=="psrlq" { [lanes[0]>>n, lanes[1]>>n] } else { [(lanes[0]<<n)&mask(8), (lanes[1]<<n)&mask(8)] };
                 self.write(&dst, r[0] | (r[1] << 64));
             }
+            "unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps" => {
+                let a = self.read(&dst,16).0; let b = self.read(&f[1],16).0;
+                let w = if op.ends_with("pd") {8} else {4};
+                let start = if op.starts_with("unpckh") {8 / w} else {0};
+                let mut result = 0;
+                for k in 0..8/w {
+                    let shift = (start + k) * w * 8;
+                    result |= ((a >> shift) & mask(w)) << (2*k*w*8);
+                    result |= ((b >> shift) & mask(w)) << ((2*k+1)*w*8);
+                }
+                self.write(&dst, result);
+            }
+            "shufpd"|"shufps" => {
+                let a = self.read(&dst,16).0; let b = self.read(&f[1],16).0;
+                let sel = parse_imm(&f[2][2..]) as u32;
+                let result = if op == "shufpd" {
+                    ((a >> ((sel & 1)*64)) & mask(8)) |
+                    (((b >> (((sel >> 1) & 1)*64)) & mask(8)) << 64)
+                } else {
+                    let mut r = 0;
+                    for k in 0..4 { let source = if k < 2 {a} else {b};
+                        r |= ((source >> (((sel >> (k*2)) & 3)*32)) & mask(4)) << (k*32);
+                    } r
+                };
+                self.write(&dst, result);
+            }
+            "pinsrw" => {
+                let a = self.read(&dst,16).0;
+                let b = self.read(&f[1],2).0 & mask(2);
+                let shift = (parse_imm(&f[2][2..]) as u32 & 7) * 16;
+                self.write(&dst, (a & !(mask(2) << shift)) | (b << shift));
+            }
             "pshufd" => {
                 let a = self.read(&f[1],16).0; let sel = parse_imm(&f[2][2..]) as u128;
                 let l = [a&mask(4),(a>>32)&mask(4),(a>>64)&mask(4),(a>>96)&mask(4)];
@@ -630,6 +700,7 @@ impl Machine {
                 self.write(&dst, o);
             }
             "punpcklqdq" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; self.write(&dst, (a&mask(8))|((b&mask(8))<<64)); }
+            "punpckhqdq" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; self.write(&dst, (a>>64)|(b & !mask(8))); }
             "punpckldq" => {
                 let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
                 let x=[a&mask(4),(a>>32)&mask(4)]; let y=[b&mask(4),(b>>32)&mask(4)];
@@ -1008,11 +1079,77 @@ impl Machine {
 }
 
 fn is_simd(op: &str) -> bool {
-    matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"pxor"|"pand"|"por"
+    matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
-        |"psrlq"|"psllq"|"psrldq"|"pshufd"|"punpckldq"|"punpcklqdq"
+        |"psrlq"|"psllq"|"psrldq"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pminub"|"pmaxub"|"pmovmskb"
-        |"xorps"|"andps"|"orps")
+        |"xorps"|"andps"|"orps"|"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
+}
+
+#[cfg(test)]
+mod membrane_simd_tests {
+    use super::*;
+
+    #[test]
+    fn carry_survives_increment_and_full_width_borrow() {
+        let mut machine = Machine::new("");
+        machine.set_flags(0, 1, 8, "sub");
+        machine.write("r:rcx", 4);
+        machine.alu("dec", &["r:rcx".into()]);
+        assert!(machine.cf());
+        machine.write("r:rax", 0);
+        machine.alu("sbb", &["r:rax".into(), "i:-0x1".into()]);
+        assert_eq!(machine.reg("rax"), 0);
+        assert!(machine.cf());
+        machine.alu("adc", &["r:rax".into(), "i:-0x1".into()]);
+        assert_eq!(machine.reg("rax"), 0);
+        assert!(machine.cf());
+    }
+
+    #[test]
+    fn byte_swap_preserves_flags() {
+        let mut machine = Machine::new("");
+        machine.set_flags(0, 1, 8, "sub");
+        machine.write("r:rax", 0x0123456789abcdef);
+        machine.alu("bswap", &["r:rax".into()]);
+        assert_eq!(machine.reg("rax"), 0xefcdab8967452301);
+        assert!(machine.cf());
+    }
+
+    #[test]
+    fn packed_moves_preserve_adjacent_memory_and_lanes() {
+        let mut machine = Machine::new("");
+        machine.write("r:xmm0", (22u128 << 64) | 11);
+        machine.store(0x1008, 99, 8);
+        machine.simd("movq", &["m:::1:0x1000:8".into(), "r:xmm0".into()]);
+        assert_eq!(machine.load(0x1000, 8), 11);
+        assert_eq!(machine.load(0x1008, 8), 99);
+        machine.simd("movhps", &["r:xmm0".into(), "m:::1:0x1008:8".into()]);
+        assert_eq!(machine.reg("xmm0"), (99u128 << 64) | 11);
+        machine.write("r:xmm1", (44u128 << 64) | 33);
+        machine.simd("unpckhpd", &["r:xmm0".into(), "r:xmm1".into()]);
+        assert_eq!(machine.reg("xmm0"), (44u128 << 64) | 99);
+        machine.simd("shufpd", &["r:xmm0".into(), "r:xmm1".into(), "i:0x1".into()]);
+        assert_eq!(machine.reg("xmm0"), (33u128 << 64) | 44);
+        machine.simd("punpckhqdq", &["r:xmm0".into(), "r:xmm1".into()]);
+        assert_eq!(machine.reg("xmm0"), (44u128 << 64) | 33);
+    }
+
+    #[test]
+    fn pinsrw_preserves_other_lanes_and_masks_the_selector() {
+        for selector in 0..16 {
+            let mut machine = Machine::new("");
+            let original = 0x00112233445566778899aabbccddeeffu128;
+            machine.write("r:xmm0", original);
+            machine.write("r:eax", 0xdead1234);
+            let fields = ["r:xmm0".into(), "r:eax".into(), format!("i:0x{:x}", selector)];
+            machine.simd("pinsrw", &fields);
+            let shift = (selector & 7) * 16;
+            assert_eq!(machine.reg("xmm0"),
+                (original & !(0xffffu128 << shift)) | (0x1234u128 << shift));
+        }
+        assert!(is_simd("pinsrw"));
+    }
 }
 
 /// Square root without std: a couple of Newton steps off a bit-halving seed.

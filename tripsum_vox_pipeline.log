@@ -1,0 +1,8 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Blocking waiting for file lock on artifact directory
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 5.79s
+saved membranes/tripsum_one/24/payload.elf.imasm
+limit=24 size=7 witness=[1, 2, 3, 11, 17, 20, 23]
+entry(...) exited(0)   [11934728 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/tripsum_one/24/payload.elf.imasm

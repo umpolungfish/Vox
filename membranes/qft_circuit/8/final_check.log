@@ -1,0 +1,6 @@
+ports=8 levels=3 load=71.58106ms prepare=151.479µs prepare_steps=52
+gates=0000000000000001 feedback=0 activate=724.037µs steps=619 max_error=0.000e0
+gates=ffffffffffffffff feedback=1 activate=738.564µs steps=641 max_error=4.416e-16
+gates=0000000000000000 feedback=0 activate=747.881µs steps=618 max_error=0.000e0
+resident: preparations=1 activations=3 median_activation=738.564µs
+same_gates_control: cold_parse_prepare_activate=38.483752ms resident_activate=629.462µs ratio=61.14x samples=5
