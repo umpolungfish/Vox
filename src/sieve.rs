@@ -372,8 +372,16 @@ pub fn qs(n: &Tape, b_bound: usize, m_interval: usize, extra: usize) -> Option<T
 /// square of the digit count, the window a few hundred thousand.
 pub fn sieve_params(n: &Tape) -> (usize, usize) {
     let bits = trim(n.clone()).len();
-    let bound = ((bits * bits) / 3 + 300).min(40_000);
-    let m = 1_500_000usize;
+    let bound = ((bits * bits) / 3 + 300).min(60_000);
+    // Single-polynomial window: a^2-N grows across the interval, so the count of
+    // smooth values is thin and the window must widen with N to collect ~B
+    // relations. Below 64 bits the narrow window already suffices; above it the
+    // window grows with the extra width.
+    let m = if bits <= 64 {
+        1_500_000usize
+    } else {
+        1_500_000usize + (bits - 64) * 1_500_000usize
+    };
     (bound, m)
 }
 
