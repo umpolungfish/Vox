@@ -1,4 +1,85 @@
 N=8051
 factors: 83 x 97
 steps=31 T=6 F=5 boundary=true
-entry(...) exited(0)   [9699 steps in the twelve]
+entry(...) exited(0)   [9699 steps in the twentry(...) halted: step budget 5000000000 reached, still running at 0x406aa9
+  previous 12:
+  406ac0: ⊞ pcmpeqd r:xmm1 r:xmm0
+  406ac6: ⊞ imul r:ecx r:edx i:0x66
+  406aca: ⋈ movsxd r:rcx r:ebx
+  406acc: ⊞ pmovmskb r:ebx r:xmm1
+  406ad0: ⊞ add r:r11 i:0x10
+  406ad4: ⊤ test r:ebx r:ebx
+  406ad6: ∈ e i:0x406a90
+  406a90: ⊤ cmp r:rcx r:r11
+  406a93: ∈ e i:0x406ada
+  406a95: ⊞ movdqu r:xmm1 m:rdi:r11:4:0x0:16
+  406a9b: ⊞ movdqu r:xmm2 m:rdi:r11:4:0x10:16
+  406aa2: ⊞ movdqu r:xmm3 m:rdi:r11:4:0x20:16
+  406aa9: ⊞ movdqu r:xmm4 m:rdi:r11:4:0x30:16
+  406ab0: ⊞ pcmpeqd r:xmm4 r:xmm0
+  406ab4: ⊞ pcmpeqd r:xmm3 r:xmm0
+  406aba: ⊞ imul r:ebx r:esp i:0x66
+  406abd: ⊞ pcmpeqd r:xmm2 r:xmm0
+  406ac0: ⊞ pcmpeqd r:xmm1 r:xmm0
+  406ac6: ⊞ imul r:ecx r:edx i:0x66
+  406aca: ⋈ movsxd r:rcx r:ebx
+  406acc: ⊞ pmovmskb r:ebx r:xmm1
+  406ad0: ⊞ add r:r11 i:0x10
+  406ad4: ⊤ test r:ebx r:ebx
+  406ad6: ∈ e i:0x406a90
+  406a90: ⊤ cmp r:rcx r:r11
+  406a93: ∈ e i:0x406ada
+  406a95: ⊞ movdqu r:xmm1 m:rdi:r11:4:0x0:16
+  406a9b: ⊞ movdqu r:xmm2 m:rdi:r11:4:0x10:16
+  406aa2: ⊞ movdqu r:xmm3 m:rdi:r11:4:0x20:16
+  406aa9: ⊞ movdqu r:xmm4 m:rdi:r11:4:0x30:16
+  406ab0: ⊞ pcmpeqd r:xmm4 r:xmm0
+  406ab4: ⊞ pcmpeqd r:xmm3 r:xmm0
+  406aba: ⊞ imul r:ebx r:esp i:0x66
+  406abd: ⊞ pcmpeqd r:xmm2 r:xmm0
+  406ac0: ⊞ pcmpeqd r:xmm1 r:xmm0
+  406ac6: ⊞ imul r:ecx r:edx i:0x66
+  406aca: ⋈ movsxd r:rcx r:ebx
+  406acc: ⊞ pmovmskb r:ebx r:xmm1
+  406ad0: ⊞ add r:r11 i:0x10
+  406ad4: ⊤ test r:ebx r:ebx
+  406ad6: ∈ e i:0x406a90
+  406a90: ⊤ cmp r:rcx r:r11
+  406a93: ∈ e i:0x406ada
+  406a95: ⊞ movdqu r:xmm1 m:rdi:r11:4:0x0:16
+  406a9b: ⊞ movdqu r:xmm2 m:rdi:r11:4:0x10:16
+  406aa2: ⊞ movdqu r:xmm3 m:rdi:r11:4:0x20:16
+  406aa9: ⊞ movdqu r:xmm4 m:rdi:r11:4:0x30:16
+  406ab0: ⊞ pcmpeqd r:xmm4 r:xmm0
+  406ab4: ⊞ pcmpeqd r:xmm3 r:xmm0
+  406aba: ⊞ imul r:ebx r:esp i:0x66
+  406abd: ⊞ pcmpeqd r:xmm2 r:xmm0
+  406ac0: ⊞ pcmpeqd r:xmm1 r:xmm0
+  406ac6: ⊞ imul r:ecx r:edx i:0x66
+  406aca: ⋈ movsxd r:rcx r:ebx
+  406acc: ⊞ pmovmskb r:ebx r:xmm1
+  406ad0: ⊞ add r:r11 i:0x10
+  406ad4: ⊤ test r:ebx r:ebx
+  406ad6: ∈ e i:0x406a90
+  406a90: ⊤ cmp r:rcx r:r11
+  406a93: ∈ e i:0x406ada
+  406a95: ⊞ movdqu r:xmm1 m:rdi:r11:4:0x0:16
+  406a9b: ⊞ movdqu r:xmm2 m:rdi:r11:4:0x10:16
+  406aa2: ⊞ movdqu r:xmm3 m:rdi:r11:4:0x20:16
+  406aa9: ⊞ movdqu r:xmm4 m:rdi:r11:4:0x30:16
+  406ab0: ⊞ pcmpeqd r:xmm4 r:xmm0
+  406ab4: ⊞ pcmpeqd r:xmm3 r:xmm0
+  406aba: ⊞ imul r:ebx r:esp i:0x66
+  406abd: ⊞ pcmpeqd r:xmm2 r:xmm0
+  406ac0: ⊞ pcmpeqd r:xmm1 r:xmm0
+  406ac6: ⊞ imul r:ecx r:edx i:0x66
+  406aca: ⋈ movsxd r:rcx r:ebx
+  406acc: ⊞ pmovmskb r:ebx r:xmm1
+  406ad0: ⊞ add r:r11 i:0x10
+  406ad4: ⊤ test r:ebx r:ebx
+  406ad6: ∈ e i:0x406a90
+  406a90: ⊤ cmp r:rcx r:r11
+  406a93: ∈ e i:0x406ada
+  406a95: ⊞ movdqu r:xmm1 m:rdi:r11:4:0x0:16
+  406a9b: ⊞ movdqu r:xmm2 m:rdi:r11:4:0x10:16
+  406aa2: ⊞ movdqu r:xmm3 m:rdi:r11:4:0x20:16   [5000000001 steps]

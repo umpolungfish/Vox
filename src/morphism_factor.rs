@@ -627,24 +627,32 @@ fn lucas_v(m: &[char], a: &[char], n: &[char]) -> Tape {
     v0
 }
 
-/// Floor integer square root over numeral tapes, by binary search on the
-/// largest x with x*x <= n. Used to seed and test the square-frontier arm.
+/// Floor integer square root over numeral tapes.
+///
+/// The old binary search performed one full tape division for every bit of
+/// the answer.  That made the square-frontier arm re-scan the same nested
+/// membrane for large operands.  Newton's decreasing iteration keeps the
+/// resident value folded and reaches the floor in O(log bits) divisions.
 pub fn isqrt(n: &[char]) -> Tape {
     if cmp(n, &two()) == core::cmp::Ordering::Less {
         return trim(n.to_vec());
     }
-    let mut lo = one();
-    let mut hi = n.to_vec();
-    while cmp(&lo, &hi) == core::cmp::Ordering::Less {
-        // ceil midpoint (lo+hi+1)/2 so lo can reach hi without stalling
-        let mid = divmod(&add(&add(&lo, &hi), &one()), &two()).0;
-        if cmp(&mul(&mid, &mid), n) != core::cmp::Ordering::Greater {
-            lo = mid;
-        } else {
-            hi = sub(&mid, &one());
+    let bits = trim(n.to_vec()).len();
+    // Tapes are LSB-first, so this is 2^ceil(bits/2), an upper bound.
+    let mut x = vec![EVALT; (bits + 1) / 2];
+    x.push(EVALF);
+    loop {
+        let q = divmod(n, &x).0;
+        let next = divmod(&add(&x, &q), &two()).0;
+        if cmp(&next, &x) != core::cmp::Ordering::Less {
+            break;
         }
+        x = next;
     }
-    trim(lo)
+    while cmp(&mul(&x, &x), n) == core::cmp::Ordering::Greater {
+        x = sub(&x, &one());
+    }
+    trim(x)
 }
 
 pub fn one() -> Tape {
@@ -1341,8 +1349,12 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
     }
     // perfect power
     let bits = n.len();
+    // High exponents are a preparation-only probe.  Walking every exponent
+    // before MPQS made a separated semiprime pay one full root search per bit.
+    // The decisive sieve arm owns the wide case; retain the cheap low-exponent
+    // perfect-power closures here.
     let mut b = 2usize;
-    while b <= bits {
+    while b <= bits.min(16) {
         let r = iroot(&n, b);
         if cmp(&r, &one()) == Greater && cmp(&ipow(&r, b), &n) == Equal {
             let q = divmod(&n, &r).0;

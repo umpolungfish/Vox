@@ -28,6 +28,7 @@ pub mod imasm_vm;
 pub mod morphism_factor;
 pub mod factor_operator;
 pub mod factorization_31_membrane;
+pub mod complete_membrane;
 pub mod sieve;
 pub mod perfect_membrane;
 pub mod divisor_membrane;

@@ -30,10 +30,11 @@ fn exit(code: i32) -> ! {
 }
 
 fn print_hex(n: u64) {
-    let digits = *b"0123456789abcdef";
-    let mut b = [0u8; 16];
-    for i in 0..16 { b[i] = digits[((n >> (60 - i * 4)) & 0xf) as usize]; }
-    unsafe { write(&b); }
+    let digits = b"0123456789abcdef";
+    for i in 0..16 {
+        let b = [digits[((n >> (60 - i * 4)) & 0xf) as usize]];
+        unsafe { write(&b); }
+    }
 }
 
 fn rem(n: u64, d: u64) -> u64 {
@@ -79,11 +80,11 @@ pub extern "C" fn _start() -> ! {
     exit(0)
 }
 
-fn div_exact(mut n: u64, d: u64) -> u64 {
-    let mut q = 0u64;
+fn div_exact(n: u64, d: u64) -> u64 {
+    let mut q = 0u64; let mut r = 0u64;
     for i in (0..64).rev() {
-        let shifted = d.checked_shl(i).unwrap_or(u64::MAX);
-        if shifted <= n { n -= shifted; q |= 1u64 << i; }
+        r = (r << 1) | ((n >> i) & 1);
+        if r >= d { r -= d; q |= 1u64 << i; }
     }
     q
 }

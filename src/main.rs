@@ -32,6 +32,7 @@ fn usage() {
     eprintln!("  vox factor-operator resolve|full <N>         the CL9NK moat resolver over folded tapes");
     eprintln!("  vox scout <N>                                read the shape of N and hand the factor");
     eprintln!("  vox factor <N>                               shape-routed full factorization");
+    eprintln!("  vox membrane tower <levels>                  build a complete bidirectional tower");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
@@ -1252,8 +1253,20 @@ fn main() {
             else { match ::vox::morphism_factor::factor_with(&args[1], &args[2]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
         }
         Some("membrane") | Some("divisor-membrane") | Some("divisor_membrane") => {
+            if args.get(1).map(String::as_str) == Some("tower") {
+                let levels = args.get(2).and_then(|s| s.parse::<usize>().ok());
+                match levels.and_then(|n| ::vox::complete_membrane::CompleteMembrane::new(n).ok()) {
+                    Some(m) => {
+                        println!("tower levels={} forward_sidearms={} reverse_sidearms={} relation=μ∘δ=id",
+                            m.levels(), m.forward_pairs().len(), m.reverse_pairs().len());
+                        0
+                    }
+                    None => { eprintln!("vox membrane tower <levels>   levels must be greater than two"); 1 }
+                }
+            } else {
             let rest: Vec<&str> = args[1..].iter().map(|x| x.as_str()).collect();
             println!("{}", divisor_membrane::repl_divisor_membrane(&rest)); 0
+            }
         }
         Some("safetensors") | Some("safetensor") => {
             if args.len() < 2 { eprintln!("vox safetensors <file.safetensors>"); 1 }

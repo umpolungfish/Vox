@@ -1,0 +1,555 @@
+; ⊙ module (elf x86-64)
+; entry 0x4011d0
+; bits 64
+; sym _RNvCskbaMqEG8zoO_25factorization_31_resident9print_hex 0x401000
+; sym _start 0x4011d0
+=0x402000	303132333435363738396162636465664e3d307820666163746f72733d307820782030782073746570733d333120626f756e646172793d747275650a
+=0x40203c	011b033b1800000002000000c4efffff3400000094f1ffff50000000
+@0x401000
+⋈	push	r:rax
+@0x401001
+⋈	mov	r:r8	r:rdi
+@0x401004
+⋈	mov	r:rax	r:rdi
+@0x401007
+⊞	shr	r:rax	i:0x3c
+@0x40100b
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401012
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401016
+⊞	lea	r:rsi	m:rsp::1:0x7:8
+@0x40101b
+⋈	mov	r:eax	i:0x1
+@0x401020
+⋈	mov	r:edi	i:0x1
+@0x401025
+⋈	mov	r:edx	i:0x1
+@0x40102a
+⊙	syscall
+@0x40102c
+⋈	mov	r:rax	r:r8
+@0x40102f
+⊞	shr	r:rax	i:0x38
+@0x401033
+⊞	and	r:eax	i:0xf
+@0x401036
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x40103d
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401041
+⋈	mov	r:eax	i:0x1
+@0x401046
+⊙	syscall
+@0x401048
+⋈	mov	r:rax	r:r8
+@0x40104b
+⊞	shr	r:rax	i:0x34
+@0x40104f
+⊞	and	r:eax	i:0xf
+@0x401052
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401059
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x40105d
+⋈	mov	r:eax	i:0x1
+@0x401062
+⊙	syscall
+@0x401064
+⋈	mov	r:rax	r:r8
+@0x401067
+⊞	shr	r:rax	i:0x30
+@0x40106b
+⊞	and	r:eax	i:0xf
+@0x40106e
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401075
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401079
+⋈	mov	r:eax	i:0x1
+@0x40107e
+⊙	syscall
+@0x401080
+⋈	mov	r:rax	r:r8
+@0x401083
+⊞	shr	r:rax	i:0x2c
+@0x401087
+⊞	and	r:eax	i:0xf
+@0x40108a
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401091
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401095
+⋈	mov	r:eax	i:0x1
+@0x40109a
+⊙	syscall
+@0x40109c
+⋈	mov	r:rax	r:r8
+@0x40109f
+⊞	shr	r:rax	i:0x28
+@0x4010a3
+⊞	and	r:eax	i:0xf
+@0x4010a6
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x4010ad
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x4010b1
+⋈	mov	r:eax	i:0x1
+@0x4010b6
+⊙	syscall
+@0x4010b8
+⋈	mov	r:rax	r:r8
+@0x4010bb
+⊞	shr	r:rax	i:0x24
+@0x4010bf
+⊞	and	r:eax	i:0xf
+@0x4010c2
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x4010c9
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x4010cd
+⋈	mov	r:eax	i:0x1
+@0x4010d2
+⊙	syscall
+@0x4010d4
+⋈	mov	r:rax	r:r8
+@0x4010d7
+⊞	shr	r:rax	i:0x20
+@0x4010db
+⊞	and	r:eax	i:0xf
+@0x4010de
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x4010e5
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x4010e9
+⋈	mov	r:eax	i:0x1
+@0x4010ee
+⊙	syscall
+@0x4010f0
+⋈	mov	r:eax	r:r8d
+@0x4010f3
+⊞	shr	r:eax	i:0x1c
+@0x4010f6
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x4010fd
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401101
+⋈	mov	r:eax	i:0x1
+@0x401106
+⊙	syscall
+@0x401108
+⋈	mov	r:eax	r:r8d
+@0x40110b
+⊞	shr	r:eax	i:0x18
+@0x40110e
+⊞	and	r:eax	i:0xf
+@0x401111
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401118
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x40111c
+⋈	mov	r:eax	i:0x1
+@0x401121
+⊙	syscall
+@0x401123
+⋈	mov	r:eax	r:r8d
+@0x401126
+⊞	shr	r:eax	i:0x14
+@0x401129
+⊞	and	r:eax	i:0xf
+@0x40112c
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401133
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401137
+⋈	mov	r:eax	i:0x1
+@0x40113c
+⊙	syscall
+@0x40113e
+⋈	mov	r:eax	r:r8d
+@0x401141
+⊞	shr	r:eax	i:0x10
+@0x401144
+⊞	and	r:eax	i:0xf
+@0x401147
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x40114e
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401152
+⋈	mov	r:eax	i:0x1
+@0x401157
+⊙	syscall
+@0x401159
+⋈	mov	r:eax	r:r8d
+@0x40115c
+⊞	shr	r:eax	i:0xc
+@0x40115f
+⊞	and	r:eax	i:0xf
+@0x401162
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401169
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x40116d
+⋈	mov	r:eax	i:0x1
+@0x401172
+⊙	syscall
+@0x401174
+⋈	mov	r:eax	r:r8d
+@0x401177
+⊞	shr	r:eax	i:0x8
+@0x40117a
+⊞	and	r:eax	i:0xf
+@0x40117d
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x401184
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x401188
+⋈	mov	r:eax	i:0x1
+@0x40118d
+⊙	syscall
+@0x40118f
+⋈	mov	r:eax	r:r8d
+@0x401192
+⊞	shr	r:eax	i:0x4
+@0x401195
+⊞	and	r:eax	i:0xf
+@0x401198
+⋈	movzx	r:eax	m:rax::1:0x402000:1
+@0x40119f
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x4011a3
+⋈	mov	r:eax	i:0x1
+@0x4011a8
+⊙	syscall
+@0x4011aa
+⊞	and	r:r8d	i:0xf
+@0x4011ae
+⋈	movzx	r:eax	m:r8::1:0x402000:1
+@0x4011b6
+⋈	mov	m:rsp::1:0x7:1	r:al
+@0x4011ba
+⋈	mov	r:eax	i:0x1
+@0x4011bf
+⊙	syscall
+@0x4011c1
+⋈	pop	r:rax
+@0x4011c2
+⊣	ret
+@0x4011c3
+⊞	nop
+@0x4011cd
+⊞	nop
+@0x4011d0
+⋈	push	r:r15
+@0x4011d2
+⋈	push	r:r14
+@0x4011d4
+⋈	push	r:rbx
+@0x4011d5
+⋈	mov	r:ecx	i:0x4
+@0x4011da
+⋈	movabs	r:r9	i:0x4000000000000000
+@0x4011e4
+⊞	xor	r:r10d	r:r10d
+@0x4011e7
+⋈	mov	r:r11d	i:0xf
+@0x4011ed
+≺	jmp	i:0x4011fc
+@0x4011ef
+⊞	nop
+@0x4011f0
+⊤	test	r:rdx	r:rdx
+@0x4011f3
+∈	e	i:0x401303
+@0x4011f9
+⊞	inc	r:rcx
+@0x4011fc
+⋈	mov	r:rax	r:rcx
+@0x4011ff
+⊞	mul	r:rcx
+@0x401202
+⋈	mov	r:rdi	r:rdx
+@0x401205
+⋈	mov	r:rsi	r:rax
+@0x401208
+⊞	add	r:rsi	i:-0xf
+@0x40120c
+⊞	adc	r:rdi	i:-0x1
+@0x401210
+⋈	mov	r:rdx	r:r9
+@0x401213
+⊞	nop
+@0x401220
+⋈	mov	r:rax	r:rdx
+@0x401223
+⊞	shr	r:rdx	i:0x2
+@0x401227
+⊤	cmp	r:rax	r:rsi
+@0x40122a
+∈	a	i:0x401220
+@0x40122c
+⊤	test	r:rax	r:rax
+@0x40122f
+∈	e	i:0x401270
+@0x401231
+⋈	mov	r:rdx	r:rsi
+@0x401234
+⊞	xor	r:r8d	r:r8d
+@0x401237
+⋈	mov	r:rbx	r:rax
+@0x40123a
+⊞	nop
+@0x401240
+⊞	lea	r:r14	m:rax:r8:1:0x0:8
+@0x401244
+⊞	shr	r:r8	i:0x1
+@0x401247
+⊤	cmp	r:rdx	r:r14
+@0x40124a
+⋈	mov	r:r15	r:rax
+@0x40124d
+⊥	b	cmov	r:r15	r:r10
+@0x401251
+⊥	b	cmov	r:r14	r:r10
+@0x401255
+⊞	add	r:r8	r:r15
+@0x401258
+⊞	sub	r:rdx	r:r14
+@0x40125b
+⊞	shr	r:rbx	i:0x2
+@0x40125f
+⊤	cmp	r:rax	i:0x3
+@0x401263
+⋈	mov	r:rax	r:rbx
+@0x401266
+∈	a	i:0x401240
+@0x401268
+≺	jmp	i:0x401273
+@0x40126a
+⊞	nop
+@0x401270
+⊞	xor	r:r8d	r:r8d
+@0x401273
+⋈	mov	r:rax	r:r8
+@0x401276
+⊞	mul	r:r8
+@0x401279
+⊞	xor	r:rdx	r:rdi
+@0x40127c
+⊞	xor	r:rax	r:rsi
+@0x40127f
+⊞	or	r:rax	r:rdx
+@0x401282
+∈	ne	i:0x4011f9
+@0x401288
+⋈	mov	r:rbx	r:rcx
+@0x40128b
+⊞	sub	r:rbx	r:r8
+@0x40128e
+⊞	lea	r:rax	m:rbx::1:-0x2:8
+@0x401292
+⊤	cmp	r:rax	i:0xc
+@0x401296
+∈	a	i:0x4011f9
+@0x40129c
+⋈	mov	r:eax	i:0x3e
+@0x4012a1
+⊞	xor	r:edx	r:edx
+@0x4012a3
+≺	jmp	i:0x4012c1
+@0x4012a5
+⊞	nop
+@0x4012b0
+⊞	sub	r:rdx	r:rsi
+@0x4012b3
+⊞	add	r:rax	i:-0x2
+@0x4012b7
+⊤	cmp	r:rax	i:-0x2
+@0x4012bb
+∈	e	i:0x4011f0
+@0x4012c1
+⊞	lea	r:esi	m:rax::1:0x1:4
+@0x4012c4
+⋈	movzx	r:esi	r:sil
+@0x4012c8
+⊞	xor	r:edi	r:edi
+@0x4012ca
+⊞	bt	r:r11	r:rsi
+@0x4012ce
+⊥	b	set	r:dil
+@0x4012d2
+⊞	lea	r:rdx	m:rdi:rdx:2:0x0:8
+@0x4012d6
+⋈	mov	r:esi	i:0x0
+@0x4012db
+⊤	cmp	r:rdx	r:rbx
+@0x4012de
+∈	b	i:0x4012e3
+@0x4012e0
+⋈	mov	r:rsi	r:rbx
+@0x4012e3
+⊞	sub	r:rdx	r:rsi
+@0x4012e6
+⊞	xor	r:esi	r:esi
+@0x4012e8
+⊞	bt	r:r11	r:rax
+@0x4012ec
+⊥	b	set	r:sil
+@0x4012f0
+⊞	lea	r:rdx	m:rsi:rdx:2:0x0:8
+@0x4012f4
+⋈	mov	r:esi	i:0x0
+@0x4012f9
+⊤	cmp	r:rdx	r:rbx
+@0x4012fc
+∈	b	i:0x4012b0
+@0x4012fe
+⋈	mov	r:rsi	r:rbx
+@0x401301
+≺	jmp	i:0x4012b0
+@0x401303
+⋈	mov	r:eax	i:0x3e
+@0x401308
+⊞	xor	r:r14d	r:r14d
+@0x40130b
+⋈	mov	r:edx	i:0xf
+@0x401310
+⊞	xor	r:esi	r:esi
+@0x401312
+≺	jmp	i:0x401333
+@0x401314
+⊞	nop
+@0x401320
+⊞	or	r:r14	r:rdi
+@0x401323
+⊞	or	r:r14	r:r9
+@0x401326
+⊞	sub	r:rsi	r:rcx
+@0x401329
+⊞	add	r:rax	i:-0x2
+@0x40132d
+⊤	cmp	r:rax	i:-0x2
+@0x401331
+∈	e	i:0x40139a
+@0x401333
+⊞	lea	r:ecx	m:rax::1:0x1:4
+@0x401336
+⋈	movzx	r:ecx	r:cl
+@0x401339
+⊞	xor	r:edi	r:edi
+@0x40133b
+⊞	bt	r:rdx	r:rcx
+@0x40133f
+⊥	b	set	r:dil
+@0x401343
+⋈	mov	r:r8d	i:0x1
+@0x401349
+⊞	shl	r:r8	r:cl
+@0x40134c
+⊞	lea	r:rsi	m:rdi:rsi:2:0x0:8
+@0x401350
+⋈	mov	r:ecx	i:0x0
+@0x401355
+⋈	mov	r:edi	i:0x0
+@0x40135a
+⊤	cmp	r:rsi	r:rbx
+@0x40135d
+∈	b	i:0x401365
+@0x40135f
+⋈	mov	r:rcx	r:rbx
+@0x401362
+⋈	mov	r:rdi	r:r8
+@0x401365
+⊞	sub	r:rsi	r:rcx
+@0x401368
+⊞	xor	r:r9d	r:r9d
+@0x40136b
+⊞	bt	r:rdx	r:rax
+@0x40136f
+⊥	b	set	r:r9b
+@0x401373
+⋈	mov	r:r8d	i:0x1
+@0x401379
+⋈	mov	r:ecx	r:eax
+@0x40137b
+⊞	shl	r:r8	r:cl
+@0x40137e
+⊞	lea	r:rsi	m:r9:rsi:2:0x0:8
+@0x401382
+⋈	mov	r:ecx	i:0x0
+@0x401387
+⋈	mov	r:r9d	i:0x0
+@0x40138d
+⊤	cmp	r:rsi	r:rbx
+@0x401390
+∈	b	i:0x401320
+@0x401392
+⋈	mov	r:rcx	r:rbx
+@0x401395
+⋈	mov	r:r9	r:r8
+@0x401398
+≺	jmp	i:0x401320
+@0x40139a
+⋈	mov	r:eax	i:0x1
+@0x40139f
+⋈	mov	r:edi	i:0x1
+@0x4013a4
+⋈	mov	r:esi	i:0x402010
+@0x4013a9
+⋈	mov	r:edx	i:0x4
+@0x4013ae
+⊙	syscall
+@0x4013b0
+⋈	mov	r:edi	i:0xf
+@0x4013b5
+≻	call	i:0x401000
+@0x4013ba
+⋈	mov	r:eax	i:0x1
+@0x4013bf
+⋈	mov	r:edi	i:0x1
+@0x4013c4
+⋈	mov	r:esi	i:0x402014
+@0x4013c9
+⋈	mov	r:edx	i:0xb
+@0x4013ce
+⊙	syscall
+@0x4013d0
+⋈	mov	r:rdi	r:rbx
+@0x4013d3
+≻	call	i:0x401000
+@0x4013d8
+⊤	cmp	r:r14	i:0x1
+@0x4013dc
+∈	be	i:0x4013fc
+@0x4013de
+⋈	mov	r:eax	i:0x1
+@0x4013e3
+⋈	mov	r:edi	i:0x1
+@0x4013e8
+⋈	mov	r:esi	i:0x40201f
+@0x4013ed
+⋈	mov	r:edx	i:0x5
+@0x4013f2
+⊙	syscall
+@0x4013f4
+⋈	mov	r:rdi	r:r14
+@0x4013f7
+≻	call	i:0x401000
+@0x4013fc
+⋈	mov	r:eax	i:0x1
+@0x401401
+⋈	mov	r:edi	i:0x1
+@0x401406
+⋈	mov	r:esi	i:0x402024
+@0x40140b
+⋈	mov	r:edx	i:0x18
+@0x401410
+⊙	syscall
+@0x401412
+⋈	mov	r:eax	i:0x3c
+@0x401417
+⊞	xor	r:edi	r:edi
+@0x401419
+⊙	syscall
+@0x40141b
+⊣	ud2

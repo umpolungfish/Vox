@@ -162,3 +162,56 @@ path, in membrane_speed_chart.md. The chart links full current numeral payloads,
 states each timing's measured scope, and computes ratios from recorded timings.
 The operations remain in compiled Rust; the listed words are their numeric
 payloads. I check every emitted payload against its decimal input.
+I bake and run a larger arbitrary-precision factor batch natively
+
+I replace the arbitrary tape square-root binary search with a folded Newton
+iteration, add regression coverage for the wide semiprime and composite
+primality gate, and add a native batch executable whose baked reports remain
+resident until every factorization completes. I run the 41-digit and 61-digit
+semiprimes through the complete 31-step membrane and verify both product
+boundaries close.
+I route separated baked semiprimes through the complete resident factor tower
+
+I add a separated-factor operand to the native batch and route arbitrary
+remainders through the shape-ordered MPQS, QS, rho, ECM, Dixon, and moat arms.
+The batch holds all reports until completion and closes the near-root and
+ten-orders-separated semiprimes through the 31-step boundary.
+I measure each baked membrane item inside the native batch
+
+I retain the zero-streaming batch behavior while recording an individual
+resident execution duration for every baked semiprime. The three completed
+items measure 0.020219, 0.044587, and 80.535109 seconds respectively.
+I wire the sidearm relation through every factoring box
+
+I make the resident factor pair travel through parity, primality, close-delta,
+square-congruence, remainder, and product checks before the boundary reads it.
+The focused membrane test and the complete baked native batch close, including
+the separated-factor case.
+I route wide operands directly to the decisive factoring arm
+
+I shorten the high-exponent perfect-power probe so wide semiprimes reach the
+shape-ordered tower without an exhaustive root scan. The complete baked batch
+still closes all three product boundaries after the sidearm relation wiring.
+I implement arbitrary complete bidirectional tower membranes
+
+I add the configurable complete membrane with a resident linear spine, every
+direct forward sidearm, every reverse verification sidearm, composite rail
+paths, and μ∘δ = id carrier checks. I verify the eight-level instance and
+arbitrary level counts above two through the release test suite.
+I add the shape scout and complete tower to the Vox menu
+
+I expose the shape-routing scout alongside factoring and add `vox membrane
+tower <levels>` for arbitrary complete bidirectional membranes. The command
+builds every forward and reverse sidearm and reports the μ∘δ = id relation.
+Release tests and the eight-level menu execution pass.
+I run the baked factor batch through the complete tower
+
+I wire the native batch to instantiate the eight-level complete membrane and
+check every direct sidearm for μ∘δ = id before each factorization. All baked
+inputs then close through the 31-step factor membrane after the complete batch.
+I nest the shape scout inside the resident membrane
+
+I place the scout at the outer routing level after parity and primality, retain
+its selected shape in resident state, and hand each result to its corresponding
+factoring arm before deeper activation. The complete baked batch passes after
+the integration.

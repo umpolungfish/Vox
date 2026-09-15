@@ -92,10 +92,24 @@ impl QftMembrane {
         let permutation = (0..m).map(|i| if m == 1 { 0 } else {
             i.reverse_bits() >> (usize::BITS - bits)
         }).collect();
-        let roots = (0..m / 2).map(|j| {
-            let angle = 2.0 * core::f64::consts::PI * j as f64 / m as f64;
-            Complex::new(angle.cos(), angle.sin())
-        }).collect();
+        // Prepare one generator per FFT stage, then walk each root sequence
+        // multiplicatively.  The previous table called sin/cos once per root;
+        // the resident relation is the same and needs only one pair per stage.
+        let mut roots = alloc::vec![Complex::zero(); m / 2];
+        let mut width = 2;
+        while width <= m {
+            let half = width / 2;
+            let stride = m / width;
+            let angle = 2.0 * core::f64::consts::PI / width as f64;
+            let generator = Complex::new(angle.cos(), angle.sin());
+            let mut root = Complex::new(1.0, 0.0);
+            for j in 0..half {
+                roots[j * stride] = root;
+                root = root * generator;
+            }
+            if width == m { break; }
+            width *= 2;
+        }
         Self { roots, permutation }
     }
 

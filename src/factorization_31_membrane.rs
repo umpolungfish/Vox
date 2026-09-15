@@ -282,6 +282,181 @@ pub fn dispatch_report(n: u64) -> Result<String, String> {
     Ok(report)
 }
 
+/// Arbitrary-length resident state. These are the actual folded IMASM tapes,
+/// least-significant cell first; their size is limited only by available
+/// memory, not by a machine-word width.
+pub struct UnboundedResident {
+    pub n: Vec<char>,
+    pub remainder: Vec<char>,
+    pub candidate: Vec<char>,
+    pub factors: Vec<Vec<char>>,
+    pub fold: usize,
+    pub branch_open: bool,
+    pub t_count: usize,
+    pub f_count: usize,
+    pub boundary_ok: bool,
+    pub box_state: usize,
+    pub forward_transitions: usize,
+    pub reverse_transitions: usize,
+    pub sidearm_round_trip: bool,
+    pub shape_route: String,
+}
+
+impl UnboundedResident {
+    pub fn new(n: Vec<char>) -> Self {
+        Self { remainder: n.clone(), n, candidate: vec![crate::vox::EVALT], factors: Vec::new(), fold: 0,
+            branch_open: false, t_count: 0, f_count: 0, boundary_ok: false, box_state: 0,
+            forward_transitions: 0, reverse_transitions: 0, sidearm_round_trip: true,
+            shape_route: String::from("unprobed") }
+    }
+
+    fn forward(&mut self, from: usize, to: usize) {
+        if let Some(path) = forward_rail(from, to) { self.box_state = to; self.forward_transitions += path.len(); }
+    }
+    fn reverse(&mut self, from: usize, to: usize) {
+        if let Some(path) = reverse_rail(from, to) { self.box_state = to; self.reverse_transitions += path.len(); }
+    }
+
+    /// Carry one factor pair through every adjacent sidearm and back.  The
+    /// reverse rail checks the parity, primality, close-delta and square
+    /// congruence relations before the product boundary is allowed to read it.
+    fn preserve_sidearm_relation(&mut self, factor: &[char]) {
+        let (q, rem) = crate::morphism_factor::divmod(&self.remainder, factor);
+        if !crate::morphism_factor::zero(&rem) {
+            self.sidearm_round_trip = false;
+            return;
+        }
+        let two = crate::morphism_factor::tape_u64(2);
+        let p_mod_2 = crate::morphism_factor::modulo(factor, &two);
+        let q_mod_2 = crate::morphism_factor::modulo(&q, &two);
+        let product = crate::morphism_factor::mul(factor, &q);
+        let source_mod_2 = crate::morphism_factor::modulo(&self.remainder, &two);
+        let parity_ok = crate::morphism_factor::modulo(&product, &two) == source_mod_2;
+        let delta = if crate::morphism_factor::cmp(factor, &q) == core::cmp::Ordering::Greater {
+            crate::morphism_factor::sub(factor, &q)
+        } else {
+            crate::morphism_factor::sub(&q, factor)
+        };
+        let sum = crate::morphism_factor::add(factor, &q);
+        let lhs = crate::morphism_factor::sub(
+            &crate::morphism_factor::mul(&sum, &sum),
+            &crate::morphism_factor::mul(&delta, &delta));
+        let four_product = crate::morphism_factor::mul(&two, &crate::morphism_factor::mul(&two, &product));
+        let congruence_ok = lhs == four_product;
+        let _ = (p_mod_2, q_mod_2); // the pair is retained as the parity sidearm image
+        self.sidearm_round_trip = self.sidearm_round_trip && parity_ok && congruence_ok
+            && crate::morphism_factor::cmp(&product, &self.remainder) == core::cmp::Ordering::Equal;
+    }
+
+    fn next_factor(&mut self) -> Option<Vec<char>> {
+        self.forward(0, 1);
+        let two = crate::morphism_factor::tape_u64(2);
+        if crate::morphism_factor::zero(&crate::morphism_factor::modulo(&self.remainder, &two)) {
+            self.preserve_sidearm_relation(&two);
+            self.reverse(1, 0); return Some(two);
+        }
+        self.forward(1, 2);
+        if crate::morphism_factor::miller_rabin(&self.remainder) {
+            self.reverse(2, 0); return Some(self.remainder.clone());
+        }
+        self.forward(2, 3);
+        let (scouted, shape_log) = crate::morphism_factor::scout_factor(&self.remainder);
+        self.shape_route = scouted.as_ref().map(|(_, _, shape)| (*shape).into())
+            .unwrap_or_else(|| if shape_log.contains("near-root") { String::from("near-root") } else { String::from("HARD") });
+        if let Some((factor, _, _)) = scouted {
+            self.preserve_sidearm_relation(&factor);
+            self.reverse(3, 0);
+            return Some(factor);
+        }
+        if let Some(factor) = fermat_tape(&self.remainder) {
+            self.preserve_sidearm_relation(&factor);
+            self.reverse(3, 0);
+            return Some(factor);
+        }
+        // The arbitrary-length factoring carrier is the resident deep arm.
+        // Route through the complete shape-ordered tower so MPQS and its
+        // nested fallbacks receive far-separated cofactors before the moat.
+        let (parts, _) = crate::morphism_factor::smart_factor(&self.remainder);
+        let factor = parts.into_iter().find(|p| crate::morphism_factor::cmp(p, &self.remainder) == core::cmp::Ordering::Less)?;
+        self.reverse(3, 0);
+        self.preserve_sidearm_relation(&factor);
+        Some(factor)
+    }
+
+    fn dispatch(&mut self, slot: usize) {
+        match GLYPHS[slot] {
+            '≻' => { self.candidate = self.next_factor().unwrap_or_else(|| vec![crate::vox::EVALT]); }
+            '∈' => { self.branch_open = crate::morphism_factor::cmp(&self.candidate, &crate::morphism_factor::tape_u64(1)) == core::cmp::Ordering::Greater; }
+            '⊤' => { if self.branch_open { self.t_count += 1; } }
+            '⋈' => {
+                if self.branch_open {
+                    self.factors.push(self.candidate.clone());
+                    self.remainder = crate::morphism_factor::divmod(&self.remainder, &self.candidate).0;
+                }
+                self.fold += 1;
+                self.candidate = vec![crate::vox::EVALT];
+                if self.fold < 5 && !crate::morphism_factor::zero(&self.remainder) {
+                    if let Some(next) = self.next_factor() { self.candidate = next; self.branch_open = true; }
+                }
+            }
+            '≺' => { self.remainder = crate::morphism_factor::trim(self.remainder.clone()); }
+            '⊥' => { self.f_count += 1; self.branch_open = false; }
+            '⊞' => { self.branch_open = self.branch_open || !crate::morphism_factor::zero(&self.remainder); }
+            '⊙' => { self.branch_open = false; }
+            '∋' => {
+                self.forward(5, 6);
+                let mut product = crate::morphism_factor::tape_u64(1);
+                for factor in &self.factors { product = crate::morphism_factor::mul(&product, factor); }
+                let primes_ok = self.factors.iter().all(|factor| crate::morphism_factor::miller_rabin(factor))
+                    && (crate::morphism_factor::cmp(&self.remainder, &crate::morphism_factor::tape_u64(1))
+                        != core::cmp::Ordering::Greater
+                        || crate::morphism_factor::miller_rabin(&self.remainder));
+                self.boundary_ok = self.sidearm_round_trip && primes_ok
+                    && (crate::morphism_factor::cmp(&product, &self.n) == core::cmp::Ordering::Equal
+                        || crate::morphism_factor::cmp(&crate::morphism_factor::mul(&product, &self.remainder), &self.n) == core::cmp::Ordering::Equal);
+                self.reverse(6, 5);
+            }
+            '⊡' => { if self.boundary_ok { self.t_count = self.t_count.max(6); } }
+            _ => {}
+        }
+    }
+
+    pub fn run(&mut self) {
+        for slot in 0..GLYPHS.len() { self.dispatch(slot); }
+    }
+}
+
+fn fermat_tape(n: &[char]) -> Option<Vec<char>> {
+    let one = crate::morphism_factor::tape_u64(1);
+    let mut a = crate::morphism_factor::isqrt(n);
+    if crate::morphism_factor::cmp(&crate::morphism_factor::mul(&a, &a), n) == core::cmp::Ordering::Less {
+        a = crate::morphism_factor::add(&a, &one);
+    }
+    for _ in 0..1_000_000usize {
+        let aa = crate::morphism_factor::mul(&a, &a);
+        let b2 = crate::morphism_factor::sub(&aa, n);
+        let b = crate::morphism_factor::isqrt(&b2);
+        if crate::morphism_factor::mul(&b, &b) == b2 {
+            let p = crate::morphism_factor::sub(&a, &b);
+            if crate::morphism_factor::cmp(&p, &one) == core::cmp::Ordering::Greater
+                && crate::morphism_factor::cmp(&p, n) == core::cmp::Ordering::Less
+                && crate::morphism_factor::zero(&crate::morphism_factor::modulo(n, &p)) { return Some(p); }
+        }
+        a = crate::morphism_factor::add(&a, &one);
+    }
+    None
+}
+
+pub fn dispatch_report_word(n_word: &str) -> Result<String, String> {
+    let n = crate::morphism_factor::parse_numeral(n_word)?;
+    let mut r = UnboundedResident::new(n.clone());
+    r.run();
+    if !r.boundary_ok { return Err("arbitrary-length factorization boundary did not close".into()); }
+    let mut factors: Vec<String> = r.factors.iter().map(|f| crate::morphism_factor::dec_of(f)).collect();
+    if crate::morphism_factor::cmp(&r.remainder, &crate::morphism_factor::tape_u64(1)) == core::cmp::Ordering::Greater { factors.push(crate::morphism_factor::dec_of(&r.remainder)); }
+    Ok(alloc::format!("N={}\nfactors: {}\nsteps=31 T={} F={} boundary=true forward_edges={} reverse_edges={}", crate::morphism_factor::dec_of(&n), factors.join(" x "), r.t_count, r.f_count, r.forward_transitions, r.reverse_transitions))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -320,6 +495,48 @@ mod tests {
         assert_eq!(fermat_factor(n), Some(10_000_019));
         let report = dispatch_report(n).unwrap();
         assert!(report.contains("10,000") || report.contains("10000019"));
+    }
+
+    #[test]
+    fn arbitrary_fermat_arm_handles_a_wide_close_semiprime() {
+        let n = crate::morphism_factor::mul(
+            &crate::morphism_factor::decimal_to_tape("1000000007").unwrap(),
+            &crate::morphism_factor::decimal_to_tape("1000000009").unwrap());
+        assert!(fermat_tape(&n).is_some());
+    }
+
+    #[test]
+    fn arbitrary_fermat_arm_handles_the_baked_41_digit_case() {
+        let n = crate::morphism_factor::decimal_to_tape(
+            "10000000000000000016800000000000000005031").unwrap();
+        let root = crate::morphism_factor::isqrt(&n);
+        let root_sq = crate::morphism_factor::mul(&root, &root);
+        assert!(crate::morphism_factor::cmp(&root_sq, &n) != core::cmp::Ordering::Greater);
+        let factor = fermat_tape(&n).expect("close semiprime must close in Fermat arm");
+        assert_eq!(crate::morphism_factor::dec_of(&factor), "100000000000000000039");
+    }
+
+    #[test]
+    fn arbitrary_dispatch_handles_the_baked_41_digit_case() {
+        let n = crate::morphism_factor::decimal_to_tape(
+            "10000000000000000016800000000000000005031").unwrap();
+        let mut r = UnboundedResident::new(n);
+        r.run();
+        assert!(r.boundary_ok);
+    }
+
+    #[test]
+    fn arbitrary_primality_gate_handles_the_baked_factor() {
+        let q = crate::morphism_factor::decimal_to_tape(
+            "100000000000000000039").unwrap();
+        assert!(crate::morphism_factor::miller_rabin(&q));
+    }
+
+    #[test]
+    fn arbitrary_primality_gate_rejects_the_old_composite_cofactor() {
+        let q = crate::morphism_factor::decimal_to_tape(
+            "100000000000000000061").unwrap();
+        assert!(!crate::morphism_factor::miller_rabin(&q));
     }
 
     #[test]

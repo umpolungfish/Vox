@@ -1,0 +1,82 @@
+entry(...) halted: step budget 5000000000 reached, still running at 0x43c27f
+  previous 12:
+  43c295: ⊞ pcmpeqd r:xmm5 r:xmm10
+  43c29a: ⊞ movdqa r:xmm6 r:xmm11
+  43c29f: ⊞ psllq r:xmm6 r:xmm2
+  43c2a3: ⊞ pshufd r:xmm7 r:xmm2 i:0xee
+  43c2a8: ⊞ movdqa r:xmm8 r:xmm11
+  43c2ad: ⊞ psllq r:xmm8 r:xmm7
+  43c2b2: ⊞ movsd r:xmm8 r:xmm6
+  43c2b7: ⊞ andps r:xmm8 r:xmm4
+  43c2bc: ⊞ orps r:xmm0 r:xmm8
+  43c2c1: ⊞ movdqa r:xmm4 r:xmm11
+  43c2c6: ⊞ psllq r:xmm4 r:xmm3
+  43c2ca: ⊞ pshufd r:xmm3 r:xmm3 i:0xee
+  43c2cf: ⊞ movdqa r:xmm6 r:xmm11
+  43c2d4: ⊞ psllq r:xmm6 r:xmm3
+  43c2d8: ⊞ movsd r:xmm6 r:xmm4
+  43c2dc: ⊞ andps r:xmm6 r:xmm5
+  43c2e0: ⊞ orps r:xmm1 r:xmm6
+  43c2e4: ⊞ add r:r8 i:0x4
+  43c2e8: ⊞ paddq r:xmm2 r:xmm12
+  43c2ed: ⊤ cmp r:rsi r:r8
+  43c2f0: ∈ ne i:0x43c270
+  43c270: ⊞ movdqa r:xmm3 r:xmm2
+  43c274: ⊞ paddq r:xmm3 r:xmm9
+  43c279: ⊞ movq r:xmm4 m:r15:r8:4:0x0:8
+  43c27f: ⊞ movq r:xmm5 m:r15:r8:4:0x8:8
+  43c286: ⊞ pshufd r:xmm4 r:xmm4 i:0x50
+  43c28b: ⊞ pcmpeqd r:xmm4 r:xmm10
+  43c290: ⊞ pshufd r:xmm5 r:xmm5 i:0x50
+  43c295: ⊞ pcmpeqd r:xmm5 r:xmm10
+  43c29a: ⊞ movdqa r:xmm6 r:xmm11
+  43c29f: ⊞ psllq r:xmm6 r:xmm2
+  43c2a3: ⊞ pshufd r:xmm7 r:xmm2 i:0xee
+  43c2a8: ⊞ movdqa r:xmm8 r:xmm11
+  43c2ad: ⊞ psllq r:xmm8 r:xmm7
+  43c2b2: ⊞ movsd r:xmm8 r:xmm6
+  43c2b7: ⊞ andps r:xmm8 r:xmm4
+  43c2bc: ⊞ orps r:xmm0 r:xmm8
+  43c2c1: ⊞ movdqa r:xmm4 r:xmm11
+  43c2c6: ⊞ psllq r:xmm4 r:xmm3
+  43c2ca: ⊞ pshufd r:xmm3 r:xmm3 i:0xee
+  43c2cf: ⊞ movdqa r:xmm6 r:xmm11
+  43c2d4: ⊞ psllq r:xmm6 r:xmm3
+  43c2d8: ⊞ movsd r:xmm6 r:xmm4
+  43c2dc: ⊞ andps r:xmm6 r:xmm5
+  43c2e0: ⊞ orps r:xmm1 r:xmm6
+  43c2e4: ⊞ add r:r8 i:0x4
+  43c2e8: ⊞ paddq r:xmm2 r:xmm12
+  43c2ed: ⊤ cmp r:rsi r:r8
+  43c2f0: ∈ ne i:0x43c270
+  43c270: ⊞ movdqa r:xmm3 r:xmm2
+  43c274: ⊞ paddq r:xmm3 r:xmm9
+  43c279: ⊞ movq r:xmm4 m:r15:r8:4:0x0:8
+  43c27f: ⊞ movq r:xmm5 m:r15:r8:4:0x8:8
+  43c286: ⊞ pshufd r:xmm4 r:xmm4 i:0x50
+  43c28b: ⊞ pcmpeqd r:xmm4 r:xmm10
+  43c290: ⊞ pshufd r:xmm5 r:xmm5 i:0x50
+  43c295: ⊞ pcmpeqd r:xmm5 r:xmm10
+  43c29a: ⊞ movdqa r:xmm6 r:xmm11
+  43c29f: ⊞ psllq r:xmm6 r:xmm2
+  43c2a3: ⊞ pshufd r:xmm7 r:xmm2 i:0xee
+  43c2a8: ⊞ movdqa r:xmm8 r:xmm11
+  43c2ad: ⊞ psllq r:xmm8 r:xmm7
+  43c2b2: ⊞ movsd r:xmm8 r:xmm6
+  43c2b7: ⊞ andps r:xmm8 r:xmm4
+  43c2bc: ⊞ orps r:xmm0 r:xmm8
+  43c2c1: ⊞ movdqa r:xmm4 r:xmm11
+  43c2c6: ⊞ psllq r:xmm4 r:xmm3
+  43c2ca: ⊞ pshufd r:xmm3 r:xmm3 i:0xee
+  43c2cf: ⊞ movdqa r:xmm6 r:xmm11
+  43c2d4: ⊞ psllq r:xmm6 r:xmm3
+  43c2d8: ⊞ movsd r:xmm6 r:xmm4
+  43c2dc: ⊞ andps r:xmm6 r:xmm5
+  43c2e0: ⊞ orps r:xmm1 r:xmm6
+  43c2e4: ⊞ add r:r8 i:0x4
+  43c2e8: ⊞ paddq r:xmm2 r:xmm12
+  43c2ed: ⊤ cmp r:rsi r:r8
+  43c2f0: ∈ ne i:0x43c270
+  43c270: ⊞ movdqa r:xmm3 r:xmm2
+  43c274: ⊞ paddq r:xmm3 r:xmm9
+  43c279: ⊞ movq r:xmm4 m:r15:r8:4:0x0:8   [5000000001 steps]

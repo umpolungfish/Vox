@@ -1,0 +1,7 @@
+membranes/shor_one/2_21_12/payload.elf  elf  entry 0x40678e  353691 byte(s) of code
+  1244 function(s), 72615 instruction(s)
+  claimed 81% of the image (289659 of 353691 bytes)
+
+  1244 function(s) by descent, 1658 more by fallback sweep
+  covered 100% of the image (353691 of 353691 bytes)
+  verdicts  T 155   B 937   N 1810   F 0  (F: 0 from descent, 0 from fallback sweep)
