@@ -202,6 +202,8 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
         })
         .collect();
     let mut pivot_row = vec![usize::MAX; width];
+    #[cfg(feature = "mpqs_debug")]
+    let (mut _deps, mut _trivial) = (0usize, 0usize);
     for r in 0..rel {
         loop {
             let col = (0..width).find(|&c| (mat[r][c / 64] >> (c % 64)) & 1 == 1);
@@ -253,10 +255,23 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
                 continue;
             }
             let g = gcd(diff, n.clone());
+            #[cfg(feature = "mpqs_debug")]
+            {
+                extern crate std;
+                _deps += 1;
+                if cmp(&g, &one()) == core::cmp::Ordering::Equal || cmp(&g, n) == core::cmp::Ordering::Equal {
+                    _trivial += 1;
+                }
+            }
             if cmp(&g, &one()) == core::cmp::Ordering::Greater && cmp(&g, n) == core::cmp::Ordering::Less {
                 return Some(trim(g));
             }
         }
+    }
+    #[cfg(feature = "mpqs_debug")]
+    {
+        extern crate std;
+        std::eprintln!("[combine] rel={} width={} deps_tried={} trivial={}", rel, width, _deps, _trivial);
     }
     None
 }
@@ -390,18 +405,59 @@ fn tape_to_u128(n: &Tape) -> Option<u128> {
     Some(v)
 }
 
-fn isqrt_u128(n: u128) -> u128 {
-    if n < 2 {
-        return n;
+/// Write a u128 as a little-endian tape (cell EVALF at each set bit).
+fn u128_to_tape(mut v: u128) -> Tape {
+    if v == 0 {
+        return vec![crate::vox::EVALT];
     }
-    let mut x = 1u128 << ((127 - n.leading_zeros()) / 2 + 1);
-    loop {
-        let y = (x + n / x) / 2;
-        if y >= x {
-            return x;
+    let mut t = Tape::new();
+    while v > 0 {
+        t.push(if v & 1 == 1 { EVALF } else { crate::vox::EVALT });
+        v >>= 1;
+    }
+    trim(t)
+}
+
+/// Step a k-combination of {0..n} to the next in lex order; false when exhausted.
+fn next_combination(c: &mut [usize], n: usize) -> bool {
+    let k = c.len();
+    let mut i = k;
+    while i > 0 {
+        i -= 1;
+        if c[i] < n - (k - i) {
+            c[i] += 1;
+            for j in i + 1..k {
+                c[j] = c[j - 1] + 1;
+            }
+            return true;
         }
-        x = y;
     }
+    false
+}
+
+/// Integer k-th root of v (largest r with r^k <= v), for the A-prime sizing.
+fn iroot(v: u128, k: u32) -> u128 {
+    if k == 0 || v < 2 {
+        return v.max(1);
+    }
+    let mut r = 1u128;
+    while {
+        let mut p = 1u128;
+        let mut over = false;
+        for _ in 0..k {
+            match p.checked_mul(r + 1) {
+                Some(np) => p = np,
+                None => {
+                    over = true;
+                    break;
+                }
+            }
+        }
+        !over && p <= v
+    } {
+        r += 1;
+    }
+    r
 }
 
 /// Multiple-polynomial quadratic sieve over machine integers, exact for N up to
@@ -412,30 +468,47 @@ fn isqrt_u128(n: u128) -> u128 {
 /// N. The -1 sign of g rides a phantom base column so the GF(2) combine, shared
 /// with Dixon and single-poly QS, needs no change. Returns a factor or None.
 pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<Tape> {
-    let nn = tape_to_u128(n)?;
-    let bits = 128 - nn.leading_zeros();
-    // (A x + B)^2 must stay under 2^127; A ~ sqrt(2N)/M, x <= M, so (Ax+B) ~
-    // sqrt(2N) and its square ~ 2N. Guard the machine path.
-    if bits as u32 + 2 >= 127 {
-        return None;
+    let n = trim(n.clone());
+    let bits = n.len();
+    // N stays on the tape (it may exceed 128 bits). Only the per-polynomial and
+    // per-x machine values live in i128: A, B, C, g(x), and A x + B. The binding
+    // one is g(x) ~ M * sqrt(2N); guard so it fits an i128.
+    let sqrt2n = isqrt(&mul(&tape_u64(2), &n));
+    let sqrt2n_u = tape_to_u128(&sqrt2n)?;
+    if sqrt2n_u >= (1u128 << 108) {
+        return None; // sqrt(2N) too large for the machine inner loop
     }
-    // Target A ~ sqrt(2N)/M, built from three base primes near its cube root, so
-    // the factor base must reach those primes. Size the base to cover them.
-    let a_target = (isqrt_u128(2 * nn) / (m_half as u128).max(1)).max(8);
-    let mut root3 = 1u128;
-    while (root3 + 1) * (root3 + 1) * (root3 + 1) <= a_target {
-        root3 += 1;
-    }
-    let lo = (root3 * 2 / 5).max(3);
-    let hi = (root3 * 3).max(8);
-    let eff_bound = base_bound.max(hi as usize + 100);
+    let flog2 = |x: u128| -> u32 {
+        if x < 2 {
+            0
+        } else {
+            127 - x.leading_zeros()
+        }
+    };
+    // Target A ~ sqrt(2N)/M.
+    let a_target = (sqrt2n_u / (m_half as u128).max(1)).max(8);
+    // Factor-base bound near the sieve optimum exp(0.5*sqrt(ln N ln ln N)), which
+    // grows slowly with N. Too small a base makes smooth values too rare to
+    // collect; this table tracks the optimum by width (no float in no_std).
+    let opt_bound = match bits {
+        0..=70 => base_bound,
+        71..=90 => 6_000,
+        91..=110 => 9_000,
+        111..=125 => 15_000,
+        126..=140 => 30_000,
+        141..=155 => 55_000,
+        156..=170 => 90_000,
+        171..=185 => 150_000,
+        _ => 250_000,
+    };
+    let eff_bound = base_bound.max(opt_bound);
     let primes = small_primes(eff_bound);
     // QR base: primes where N is a residue, each with a root of N. Index 0 is the
     // phantom -1 (sign), value 1 so it contributes nothing to the reconstruction.
     let mut base: Vec<u64> = vec![1];
     let mut sqrt_n: Vec<u64> = vec![0];
     for &p in &primes {
-        let np = (nn % p as u128) as u64;
+        let np = n_mod_u64(&n, p);
         if np == 0 {
             return Some(tape_u64(p));
         }
@@ -450,57 +523,79 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         }
     }
     let width = base.len();
-    if width < 3 {
+    if width < 4 {
         return None;
     }
     let need = width + extra;
-    // candidate primes for A: odd base primes near the cube root of the target.
+    // A is a product of k distinct QR primes each near a_target^(1/k), so their
+    // product lands close to the optimal A that keeps the polynomial values small.
+    // k grows with N so the per-prime size stays inside the factor base, which is
+    // what lifts the arm past the width where three big primes would need an
+    // unreachable base. Choosing near the k-th root, not the largest primes, is
+    // what keeps the values minimal and the smooth hits frequent.
+    let mut k = 3usize;
+    let mut s = iroot(a_target, k as u32);
+    while s as usize > base_bound * 3 / 5 && k < 16 {
+        k += 1;
+        s = iroot(a_target, k as u32);
+    }
+    // A-prime band around the per-prime size s. A wide band gives many distinct
+    // k-subsets, which is what keeps each polynomial's A fresh so relations do not
+    // repeat before a dependency forms.
+    let lo = (s * 2 / 5).max(3);
+    let hi = (s * 3).max(8);
     let a_pool: Vec<usize> = (1..width)
-        .filter(|&k| base[k] > 2 && base[k] as u128 >= lo && base[k] as u128 <= hi)
+        .filter(|&i| base[i] > 2 && base[i] as u128 >= lo && base[i] as u128 <= hi)
         .collect();
-    if a_pool.len() < 3 {
+    if a_pool.len() < k {
         return None;
     }
-
-    let flog2 = |x: u128| -> u32 {
-        if x < 2 {
-            0
-        } else {
-            127 - x.leading_zeros()
-        }
-    };
+    let npool = a_pool.len();
     let m = m_half as i128;
     let mut a_of: Vec<Tape> = Vec::new();
     let mut exp_of: Vec<Vec<u32>> = Vec::new();
+    let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
+    let n_tape = n.clone();
 
-    // Walk triples of the A-pool for successive polynomials.
-    let np = a_pool.len();
+    // Walk DISTINCT k-subsets of the A-pool, one per polynomial, by stepping a
+    // combination in lex order. Distinct A-sets are what keep the relations
+    // independent; reusing an A re-collects the same relations and starves the
+    // GF(2) dependency.
+    let mut combo: Vec<usize> = (0..k).collect();
     let mut poly = 0usize;
-    let max_polys = 20_000usize;
+    let max_polys = 200_000usize;
     'outer: while a_of.len() < need && poly < max_polys {
-        // pick three distinct pool indices from a rotating base
-        let i0 = poly % np;
-        let i1 = (poly / np + i0 + 1) % np;
-        let i2 = (poly / (np * np) + i1 + 1) % np;
+        let ks: Vec<usize> = combo.iter().map(|&c| a_pool[c]).collect();
+        let mut a_val: u128 = 1;
+        for &kk in &ks {
+            a_val *= base[kk] as u128;
+        }
         poly += 1;
-        if i0 == i1 || i1 == i2 || i0 == i2 {
+        // advance to the next distinct combination for the following polynomial
+        if !next_combination(&mut combo, npool) {
+            combo = (0..k).collect(); // exhausted the pool; wrap (rare)
+        }
+        if ks.len() < 3 {
             continue;
         }
-        let ks = [a_pool[i0], a_pool[i1], a_pool[i2]];
-        let qs: [u64; 3] = [base[ks[0]], base[ks[1]], base[ks[2]]];
-        let a_val = qs[0] as u128 * qs[1] as u128 * qs[2] as u128;
         // B by CRT: B == sqrt_n[k] (mod q) for each q in the A-set.
         let mut b_val: u128 = 0;
-        for j in 0..3 {
-            let q = qs[j] as u128;
-            let rest = a_val / q;
-            let inv = modinv((rest % q) as u64, qs[j]) as u128;
-            let term = (sqrt_n[ks[j]] as u128 % q) * ((rest * inv) % a_val) % a_val;
+        for &kk in &ks {
+            let q = base[kk] as u128;
+            let mj = a_val / q; // product of the other A-primes
+            let inv = modinv((mj % q) as u64, base[kk]) as u128;
+            let rj = sqrt_n[kk] as u128 % q;
+            let term = ((rj * (mj % a_val)) % a_val) * inv % a_val;
             b_val = (b_val + term) % a_val;
         }
-        // C = (B^2 - N) / A, exact. B^2 < A^2 <= 2N, so use i128.
-        let b2 = (b_val as i128) * (b_val as i128);
-        let cc = (b2 - nn as i128) / (a_val as i128);
+        // C = (B^2 - N) / A, exact (B^2 == N mod A), on the tapes since B^2 and N
+        // exceed a machine word. B^2 < A^2 < N, so N - B^2 > 0 and C is negative.
+        let a_tape = u128_to_tape(a_val);
+        let b_tape = u128_to_tape(b_val);
+        let b2 = mul(&b_tape, &b_tape);
+        let (mag, _r) = divmod(&sub(&n_tape, &b2), &a_tape);
+        let c_mag = tape_to_u128(&mag)?;
+        let cc = -(c_mag as i128);
         let a_i = a_val as i128;
         let b_i = b_val as i128;
         // log sieve over x in [-m, m], index shifted by +m. Record each prime's
@@ -578,19 +673,54 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             if val != 1 {
                 continue; // not smooth over the base
             }
-            // A's factorization (the three chosen primes) joins the exponents.
+            // A's factorization (the chosen A-primes) joins the exponents.
             for &k in &ks {
                 exps[k] += 1;
             }
-            // relation value: |A x + B| mod N, which is just A x + B in size.
+            // relation value: |A x + B|, which is below N, so it is already its own
+            // residue mod N. Carry it as a tape for the reconstruction.
             let axb = a_i * x + b_i;
             let axb_abs = if axb < 0 { (-axb) as u128 } else { axb as u128 };
-            let axb_mod = (axb_abs % nn) as u64;
-            a_of.push(tape_u64(axb_mod));
+            let axb_t = u128_to_tape(axb_abs);
+            if !seen.insert(axb_t.clone()) {
+                continue; // duplicate relation carries no new information
+            }
+            #[cfg(feature = "mpqs_debug")]
+            if a_of.is_empty() {
+                extern crate std;
+                // identity: (Ax+B)^2 == A*g + N exactly (g may be negative)
+                let lhs = mul(&axb_t, &axb_t);
+                let ag = mul(&u128_to_tape(a_val), &u128_to_tape(if g < 0 { (-g) as u128 } else { g as u128 }));
+                let rhs = if g < 0 { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
+                // reconstruct prod(base^exps) and compare to A*|g|
+                let mut recon = one();
+                for c in 0..width {
+                    for _ in 0..exps[c] {
+                        recon = mul(&recon, &u128_to_tape(base[c] as u128));
+                    }
+                }
+                std::eprintln!(
+                    "[mpqs] identity (Ax+B)^2==A*g+N : {} ; exps==A*|g| : {}",
+                    if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" },
+                    if trim(recon) == trim(ag) { "PASS" } else { "FAIL" }
+                );
+            }
+            a_of.push(axb_t);
             exp_of.push(exps);
         }
     }
-    combine(n, &a_of, &exp_of, &base)
+    #[cfg(feature = "mpqs_debug")]
+    {
+        extern crate std;
+        let mut sorted = a_of.clone();
+        sorted.sort();
+        sorted.dedup();
+        std::eprintln!(
+            "[mpqs] bits={} k={} s={} eff_bound={} pool={} width={} need={} relations={} distinct={} polys={}",
+            bits, k, s, eff_bound, a_pool.len(), width, need, a_of.len(), sorted.len(), poly
+        );
+    }
+    combine(&n, &a_of, &exp_of, &base)
 }
 
 /// Base bound and window sized from the width of N: B grows about like the

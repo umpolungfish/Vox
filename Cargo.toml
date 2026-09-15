@@ -16,6 +16,9 @@ path = "src/lib.rs"
 name = "vox"
 path = "src/main.rs"
 
+[features]
+mpqs_debug = []
+
 [profile.release]
 opt-level = 3
 lto = true
