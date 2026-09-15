@@ -1,0 +1,4 @@
+N=8051
+factors: 83 x 97
+steps=31 T=6 F=5 boundary=true
+entry(...) exited(0)   [9699 steps in the twelve]

@@ -1,0 +1,7 @@
+membranes/words/binomial.elf  elf  entry 0x4064b2  318927 byte(s) of code
+  1203 function(s), 64372 instruction(s)
+  claimed 80% of the image (255424 of 318927 bytes)
+
+  1203 function(s) by descent, 1635 more by fallback sweep
+  covered 100% of the image (318927 of 318927 bytes)
+  verdicts  T 147   B 921   N 1770   F 0  (F: 0 from descent, 0 from fallback sweep)

@@ -1,0 +1,17 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+warning: constant `ENTRY` is never used
+  --> src/imasm_module.rs:21:7
+   |
+21 | const ENTRY: char = '⊢'; const TERM: char = '⊣'; const SPLIT: char = '∈'; const FUSE: char = '∋';
+   |       ^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `merges_of` is never used
+  --> src/imasm_module.rs:85:4
+   |
+85 | fn merges_of(insns: &[x86::Insn]) -> BTreeSet<u64> {
+   |    ^^^^^^^^^
+
+warning: `vox` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 12.34s

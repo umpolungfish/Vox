@@ -1,0 +1,173 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 18.35s
+     Running unittests src/lib.rs (target/release/deps/vox-aa338126806b3fc1)
+
+running 47 tests
+test divisor_membrane::tests::membrane_35_closes_over_tapes ... ok
+test factor_operator::tests::full_resolve_gives_multiset ... ok
+test divisor_membrane::tests::membrane_143_closes_over_tapes ... ok
+test divisor_membrane::tests::operators_are_imasm_words ... ok
+test fold3d::tests::build_backbone_produces_one_atom_set_per_residue_at_real_bond_lengths ... ok
+test fold3d::tests::sin_cos_match_known_values ... ok
+test imasm_vm::membrane_simd_tests::byte_swap_preserves_flags ... ok
+test fold3d::tests::written_pdb_round_trips_through_vox_own_pdb_reader ... ok
+test imasm_vm::membrane_simd_tests::carry_survives_increment_and_full_width_borrow ... ok
+test imasm_vm::membrane_simd_tests::packed_moves_preserve_adjacent_memory_and_lanes ... ok
+test imasm_vm::membrane_simd_tests::pinsrw_preserves_other_lanes_and_masks_the_selector ... ok
+test factor_operator::tests::moat_reports_prime ... ok
+test imasm_vm::membrane_simd_tests::multiplication_flags_and_full_product ... ok
+test morphism_factor::tests::constructor_recovers_the_full_tower ... ok
+test morphism_factor::tests::constructed_carrier_factors_like_the_fixed_tower ... ok
+test morphism_factor::tests::incomplete_operator_word_is_named_not_run ... ok
+test morphism_factor::tests::frontier_arm_clears_a_balanced_semiprime_fast ... ok
+test morphism_factor::tests::factors_marks_without_numeric_state ... ok
+test morphism_factor::tests::instant_extractor_decomposes_and_factors ... ok
+test morphism_factor::tests::lehman_step_finds_a_mid_range_factor ... ok
+test morphism_factor::tests::power_and_lucas_helpers_are_exact ... ok
+test morphism_factor::tests::ecm_arm_factors_and_nests ... ok
+test morphism_factor::tests::smart_factor_gives_full_multiset ... ok
+test morphism_factor::tests::nested_p_minus_catches_a_far_large_smooth_predecessor_factor ... ok
+test imasm_vm::membrane_simd_tests::double_shifts_decode_and_execute ... ok
+test perfect_membrane::tests::closes_with_identity_at_every_depth ... ok
+test morphism_factor::tests::full_membrane_certifies_factors_and_takes_perfect_powers ... ok
+test perfect_membrane::tests::operculum_recovers_through_one_puncture ... ok
+test morphism_factor::tests::witness_first_certifies_a_large_prime_without_the_sqrt_walk ... ok
+test protein::tests::full_translation_keeps_ground_layer_residues_lift_rna_drops ... ok
+test protein::tests::mitochondrial_dialect_changes_degeneracy_and_choice ... ok
+test protein::tests::parse_chain_reads_one_letter_and_three_letter_forms_the_same ... ok
+test protein::tests::preferred_codon_ala_is_gcc ... ok
+test protein::tests::preferred_codon_leu_is_cuc_via_the_fourfold_tier ... ok
+test protein::tests::preferred_codon_met_is_its_only_codon ... ok
+test protein::tests::reverse_of_full_translation_round_trips ... ok
+test morphism_factor::tests::phase_family_reaches_a_forty_bit_semiprime ... ok
+test safetensors::tests::test_roundtrip_f32_scalar ... ok
+test morphism_factor::tests::squfof_finds_factors ... ok
+test x86::membrane_decode_tests::pinsrw_consumes_the_complete_formatting_instruction ... ok
+test x86::membrane_decode_tests::packed_membrane_instructions_keep_their_boundaries ... ok
+test factor_operator::tests::moat_resolves_semiprimes ... ok
+test sieve::tests::qs_factors_through_the_full_pipeline ... ok
+test morphism_factor::tests::scout_reads_the_shape_and_routes ... ok
+test sieve::tests::dixon_factors ... ok
+test morphism_factor::tests::phase_family_reaches_a_sixty_bit_semiprime ... ok
+test sieve::tests::mpqs_siblings_return_exact_divisors ... ok
+
+test result: ok. 47 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.20s
+
+     Running unittests src/bin/abc_one.rs (target/release/deps/abc_one-204eb7b8b8909941)
+
+running 16 tests
+test abc_iutt::tests::enumerate_window_matches_certified_c32_window ... ok
+test abc_iutt::tests::enumerate_window_matches_certified_small_window ... ok
+test abc_iutt::tests::example_189_rejects_the_stronger_false_bound ... ok
+test abc_iutt::tests::packet_calibrations_hold_for_known_triples ... ok
+test abc_iutt::tests::radical_matches_known_values ... ok
+test abc_iutt::tests::scale_link_nine_to_thirty_two_holds ... ok
+test abc_iutt::tests::squarefree_matches_known_values ... ok
+test abc_iutt::tests::tail_reading_matches_window_maximum_at_the_same_scale ... ok
+test abc_iutt::tests::weighted_packet_matches_log_c_directly ... ok
+test abc_iutt::tests::window_maximum_matches_certified_nine_window ... ok
+test abc_iutt::tests::window_maximum_matches_certified_c32_window ... ok
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test abc_iutt::tests::membrane_matches_independent_windows_in_requested_order ... ok
+test abc_iutt::tests::squarefree_c_never_has_positive_prime_excess ... ok
+test abc_iutt::tests::membrane_timing_control ... ok
+test abc_iutt::tests::cofinal_holds_for_every_triple_in_a_real_window ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.88s
+
+     Running unittests src/bin/binomial_one.rs (target/release/deps/binomial_one-67f15d382278985e)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test prime_power_membrane::tests::exhaustive_controls_and_boundaries ... ok
+test prime_power_membrane::tests::timing_controls ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/bin/divisor_one.rs (target/release/deps/divisor_one-65c8ff13c77fe009)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test divisor_ring::membrane_tests::generated_ring_matches_trial_divisors_and_exponent_sort ... ok
+test divisor_ring::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running unittests src/bin/factor_bench.rs (target/release/deps/factor_bench-dfbf49d396cbebbc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/factor_one.rs (target/release/deps/factor_one-7d442256102d1a0e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/landau_one.rs (target/release/deps/landau_one-e5a87b0a3f91c12d)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test landau_membrane::tests::membrane_matches_partition_descent ... ok
+test landau_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/lcm_one.rs (target/release/deps/lcm_one-75ab432ac363217c)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test prime_power_membrane::tests::exhaustive_controls_and_boundaries ... ok
+test prime_power_membrane::tests::timing_controls ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/bin/perfect_one.rs (target/release/deps/perfect_one-b871f7c8104aaf41)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/qft_circuit.rs (target/release/deps/qft_circuit-62dae77fdc04139f)
+
+running 1 test
+test qft_circuit::tests::resident_gates_and_feedback_match_direct_transform ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/schutte_one.rs (target/release/deps/schutte_one-f5470ad2bcf4741d)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test schutte_membrane::tests::membrane_matches_original_search ... ok
+test schutte_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/bin/shor_one.rs (target/release/deps/shor_one-89e117e38fe4cb6e)
+
+running 4 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test shor_qft::membrane_tests::membrane_orbit_and_period_controls ... ok
+test shor_qft::membrane_tests::membrane_amplitudes_match_direct_transform ... ok
+test shor_qft::membrane_tests::membrane_timing_control ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/bin/tripsum_one.rs (target/release/deps/tripsum_one-4be788c5c9320240)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test tripsum_membrane::tests::membrane_matches_original_witness_and_restores_siblings ... ok
+test tripsum_membrane::tests::membrane_timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (target/release/deps/vox-e233009c35d2efb5)
+
+running 1 test
+test circuit_cli::tests::gate_syntax_and_controls_reject_invalid_readings ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,7 @@
+membranes/factorization_31/8051/payload.elf  elf  entry 0x406347  314607 byte(s) of code
+  1192 function(s), 63309 instruction(s)
+  claimed 79% of the image (250926 of 314607 bytes)
+
+  1192 function(s) by descent, 1623 more by fallback sweep
+  covered 100% of the image (314607 of 314607 bytes)
+  verdicts  T 146   B 922   N 1747   F 0  (F: 0 from descent, 0 from fallback sweep)

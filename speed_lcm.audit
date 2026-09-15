@@ -1,0 +1,7 @@
+membranes/words/lcm.elf  elf  entry 0x4064b2  320063 byte(s) of code
+  1207 function(s), 64678 instruction(s)
+  claimed 80% of the image (256634 of 320063 bytes)
+
+  1207 function(s) by descent, 1631 more by fallback sweep
+  covered 100% of the image (320063 of 320063 bytes)
+  verdicts  T 147   B 921   N 1770   F 0  (F: 0 from descent, 0 from fallback sweep)

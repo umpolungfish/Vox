@@ -1,0 +1,31 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+warning: unused variable: `rho_steps`
+    --> src/morphism_factor.rs:1360:23
+     |
+1360 |     let (trial_bound, rho_steps): (u64, u64) = if bits <= 40 {
+     |                       ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_rho_steps`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `vox` (lib) generated 1 warning (run `cargo fix --lib -p vox` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 8.34s
+     Running unittests src/bin/binomial_one.rs (target/release/deps/binomial_one-67f15d382278985e)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test prime_power_membrane::tests::exhaustive_controls_and_boundaries ... ok
+prime-power repeats=1000 prepare=14.4µs original_rows=37.462488ms prepared_rows=25.1µs original_lcms=21.994393ms prepared_lcms=60.8µs
+test prime_power_membrane::tests::timing_controls ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/bin/lcm_one.rs (target/release/deps/lcm_one-75ab432ac363217c)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test prime_power_membrane::tests::exhaustive_controls_and_boundaries ... ok
+prime-power repeats=1000 prepare=12.6µs original_rows=36.590988ms prepared_rows=18.7µs original_lcms=21.778992ms prepared_lcms=42µs
+test prime_power_membrane::tests::timing_controls ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+

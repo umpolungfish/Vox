@@ -1,0 +1,79 @@
+    Blocking waiting for file lock on artifact directory
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+warning: field `lcms` is never read
+ --> src/bin/../prime_power_membrane.rs:5:5
+  |
+3 | pub struct PrimePowerMembrane {
+  |            ------------------ field in this struct
+4 |     rows: Vec<u64>,
+5 |     lcms: Vec<Option<u128>>,
+  |     ^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `lcm` is never used
+  --> src/bin/../prime_power_membrane.rs:36:12
+   |
+ 8 | impl PrimePowerMembrane {
+   | ----------------------- method in this implementation
+...
+36 |     pub fn lcm(&self, n: usize) -> Option<Option<u128>> { self.lcms.get(n).copied() }
+   |            ^^^
+
+warning: `vox` (bin "binomial_one") generated 2 warnings
+warning: field `rows` is never read
+ --> src/bin/../prime_power_membrane.rs:4:5
+  |
+3 | pub struct PrimePowerMembrane {
+  |            ------------------ field in this struct
+4 |     rows: Vec<u64>,
+  |     ^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `row_gcd` is never used
+  --> src/bin/../prime_power_membrane.rs:34:12
+   |
+ 8 | impl PrimePowerMembrane {
+   | ----------------------- method in this implementation
+...
+34 |     pub fn row_gcd(&self, n: usize) -> Option<u64> { self.rows.get(n).copied() }
+   |            ^^^^^^^
+
+warning: `vox` (bin "lcm_one") generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 19.67s
+     Running tests/cfg_framing.rs (target/release/deps/cfg_framing-8aaab739b30b9aa8)
+
+running 5 tests
+test sparse_addresses_do_not_invent_fallthrough_and_three_way_joins_keep_arity ... ok
+test backward_shared_tail_is_not_a_loop_and_abort_has_no_continuation ... ok
+test existing_verdicts_remain_strict ... ok
+test syscall_retry_loop_has_a_real_header_and_latch_frame ... ok
+binomial _Exit 0x44d9ff T ⊢⋈⋈⊙⋈∈⋈⊙≺∋
+binomial _Unwind_GetDataRelBase 0x43b140 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+binomial _Unwind_GetTextRelBase 0x43b1b0 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+binomial _Unwind_Resume 0x43bf20 T ⊢⋈⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈≻⋈⋈⊤∈⋈⋈≻≺⋈⋈⋈≻∋⋈⋈⋈⊞⋈≻⋈≻≻
+lcm _Exit 0x44de6f T ⊢⋈⋈⊙⋈∈⋈⊙≺∋
+lcm _Unwind_GetDataRelBase 0x43b5b0 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+lcm _Unwind_GetTextRelBase 0x43b620 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+lcm _Unwind_Resume 0x43c390 T ⊢⋈⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈≻⋈⋈⊤∈⋈⋈≻≺⋈⋈⋈≻∋⋈⋈⋈⊞⋈≻⋈≻≻
+divisor _Exit 0x45670f T ⊢⋈⋈⊙⋈∈⋈⊙≺∋
+divisor _Unwind_GetDataRelBase 0x443d80 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+divisor _Unwind_GetTextRelBase 0x443df0 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+divisor _Unwind_Resume 0x444b60 T ⊢⋈⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈≻⋈⋈⊤∈⋈⋈≻≺⋈⋈⋈≻∋⋈⋈⋈⊞⋈≻⋈≻≻
+landau _Exit 0x44e25f T ⊢⋈⋈⊙⋈∈⋈⊙≺∋
+landau _Unwind_GetDataRelBase 0x43b9a0 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+landau _Unwind_GetTextRelBase 0x43ba10 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+landau _Unwind_Resume 0x43c780 T ⊢⋈⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈≻⋈⋈⊤∈⋈⋈≻≺⋈⋈⋈≻∋⋈⋈⋈⊞⋈≻⋈≻≻
+schutte _Exit 0x44d76f T ⊢⋈⋈⊙⋈∈⋈⊙≺∋
+schutte _Unwind_GetDataRelBase 0x43aeb0 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+schutte _Unwind_GetTextRelBase 0x43af20 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+schutte _Unwind_Resume 0x43bc90 T ⊢⋈⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈≻⋈⋈⊤∈⋈⋈≻≺⋈⋈⋈≻∋⋈⋈⋈⊞⋈≻⋈≻≻
+shor _Exit 0x4555a4 T ⊢⋈⋈⊙⋈∈⋈⊙≺∋
+shor _Unwind_GetDataRelBase 0x442b30 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+shor _Unwind_GetTextRelBase 0x442ba0 T ⊢⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈⋈⊞⋈≻⋈≻≻
+shor _Unwind_Resume 0x443910 T ⊢⋈⋈⋈⋈⊞≻⋈⋈⊤∈⋈⋈⋈⊞≻⋈≻≺∋⋈⋈≻⋈⋈⊤∈⋈⋈≻≺⋈⋈⋈≻∋⋈⋈⋈⊞⋈≻⋈≻≻
+test all_six_membranes_retain_the_four_runtime_functions_without_f_verdicts ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+

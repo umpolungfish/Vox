@@ -298,7 +298,16 @@ impl Machine {
             "be"|"na" => cf||zf, "a"|"nbe" => !(cf||zf),
             "l"|"nge" => sf!=of, "ge"|"nl" => sf==of,
             "le"|"ng" => zf||(sf!=of), "g"|"nle" => !zf&&sf==of,
-            "o" => of, "no" => !of, "p" => false, "np" => true,
+            "o" => of, "no" => !of,
+            "p"|"np" => {
+                let result = match self.kind.as_str() {
+                    "add" => a.wrapping_add(b),
+                    "explicit"|"logic"|"shift" => a,
+                    _ => a.wrapping_sub(b),
+                };
+                let even = (result as u8).count_ones() % 2 == 0;
+                if name == "p" { even } else { !even }
+            }
             _ => false,
         }
     }
@@ -536,6 +545,26 @@ impl Machine {
         if f.is_empty() { return; }
         let size = self.width(&f[0]);
         let a = self.read(&f[0], size).0;
+        if op == "shrd" || op == "shld" {
+            let bits = size as u32 * 8;
+            let count = (self.read(&f[2],1).0 & if size == 8 {63} else {31}) as u32;
+            if count == 0 { return; }
+            // For architecturally undefined 16-bit counts 17..31 we retain
+            // deterministic concatenated-shift semantics. OF for counts >1
+            // is likewise deterministic, not asserted as a hardware guarantee.
+            let source = self.read(&f[1],size).0 & mask(size);
+            let a = a & mask(size);
+            let (result, carry) = if op == "shrd" {
+                (((source << bits) | a) >> count, (((source << bits) | a) >> (count-1)) & 1)
+            } else {
+                ((((a << bits) | source) << count) >> bits, (((a << bits) | source) >> (2*bits-count)) & 1)
+            };
+            let result = result & mask(size);
+            let overflow = ((a ^ result) >> (bits-1)) & 1;
+            self.write(&f[0],result);
+            self.set_flags(result,carry | (overflow << 1),size,"explicit");
+            return;
+        }
         if op == "bswap" {
             let r = if size == 8 { (a as u64).swap_bytes() as u128 }
                     else { (a as u32).swap_bytes() as u128 };
@@ -570,14 +599,17 @@ impl Machine {
             self.set_reg(lo_r, prod & mask(size));
             let hi = (prod >> (size as u32 * 8)) & mask(size);
             self.set_reg(hi_r, hi);
-            self.set_flags(prod & mask(size), 0, size, "cmp");
+            let overflow = if op == "mul" { hi != 0 }
+                else { prod as i128 != sign(prod & mask(size), size) };
+            self.set_flags(prod & mask(size), if overflow {3} else {0}, size, "explicit");
             return;
         }
         if op == "imul" && f.len() == 3 {
             let x = self.read(&f[1], size).0; let y = self.read(&f[2], size).0;
             let r = (sign(x, size) * sign(y, size)) as u128;
             self.write(&f[0], r & mask(size));
-            self.set_flags(r & mask(size), 0, size, "cmp");
+            let overflow = r as i128 != sign(r & mask(size),size);
+            self.set_flags(r & mask(size), if overflow {3} else {0}, size, "explicit");
             return;
         }
         let b = self.read(&f[f.len()-1], size).0;
@@ -604,6 +636,10 @@ impl Machine {
         // the real overflow; sub/sbb route through the subtract path; the
         // logical ops clear CF.
         match op {
+            "imul" => {
+                let overflow = r as i128 != sign(r & mask(size),size);
+                self.set_flags(r & mask(size), if overflow {3} else {0},size,"explicit");
+            }
             "add"|"adc"|"sub"|"sbb" => {
                 let a = a & mask(size); let b = b & mask(size);
                 let subtract = op == "sub" || op == "sbb";
@@ -711,8 +747,8 @@ impl Machine {
                 let x0=a&mask(4); let x2=(a>>64)&mask(4); let y0=b&mask(4); let y2=(b>>64)&mask(4);
                 self.write(&dst, (x0*y0) | ((x2*y2)<<64));
             }
-            "pxor"|"pand"|"por"|"xorps"|"andps"|"orps" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
-                self.write(&dst, match op {"pxor"|"xorps"=>a^b,"pand"|"andps"=>a&b,_=>a|b}); }
+            "pxor"|"pand"|"pandn"|"por"|"xorps"|"andps"|"orps" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
+                self.write(&dst, match op {"pxor"|"xorps"=>a^b,"pand"|"andps"=>a&b,"pandn"=>(!a)&b,_=>a|b}); }
             // Byte/word/dword equality: each lane becomes all-ones on a match,
             // zero otherwise. The SSE2 string routines lean on this and pmovmskb.
             "pcmpeqb"|"pcmpeqw"|"pcmpeqd" => {
@@ -720,6 +756,17 @@ impl Machine {
                 let w:u8 = match op.chars().last().unwrap(){'b'=>1,'w'=>2,_=>4};
                 let n=16/w; let mut o=0u128;
                 for k in 0..n { let sh=(k*w) as u32*8; if ((a>>sh)&mask(w))==((b>>sh)&mask(w)) { o |= mask(w) << sh; } }
+                self.write(&dst,o);
+            }
+            // Signed 32-bit greater-than comparison, as defined by PCMPGTD.
+            "pcmpgtd" => {
+                let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; let mut o=0u128;
+                for k in 0..4u32 {
+                    let sh=k*32;
+                    let x=((a>>sh)&0xffff_ffff) as u32 as i32;
+                    let y=((b>>sh)&0xffff_ffff) as u32 as i32;
+                    if x > y { o |= 0xffff_ffffu128 << sh; }
+                }
                 self.write(&dst,o);
             }
             // Per-byte unsigned min/max, used by strcmp/memcmp fast paths.
@@ -1079,16 +1126,89 @@ impl Machine {
 }
 
 fn is_simd(op: &str) -> bool {
-    matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"por"
+    matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
-        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pminub"|"pmaxub"|"pmovmskb"
+        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
         |"xorps"|"andps"|"orps"|"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
 }
 
 #[cfg(test)]
 mod membrane_simd_tests {
     use super::*;
+
+    #[test]
+    fn double_shifts_decode_and_execute() {
+        for (bytes, mnemonic, operands) in [
+            (vec![0x48,0x0f,0xad,0xd7], "shrd", vec!["r:rdi","r:rdx","r:cl"]),
+            (vec![0x48,0x0f,0xac,0xd7,4], "shrd", vec!["r:rdi","r:rdx","i:0x4"]),
+            (vec![0x0f,0xa5,0xd0], "shld", vec!["r:eax","r:edx","r:cl"]),
+            (vec![0x66,0x0f,0xa4,0x10,1], "shld", vec!["m:rax::1:0x0:2","r:dx","i:0x1"]),
+        ] {
+            let ins = crate::x86::decode(&bytes,0x1000).unwrap();
+            assert_eq!(ins.len, bytes.len());
+            assert_eq!(ins.mnemonic, mnemonic);
+            assert_eq!(ins.ops.iter().map(|op| op.field()).collect::<Vec<_>>(), operands);
+        }
+        for (size, dst, src) in [(2,"ax","dx"),(4,"eax","edx"),(8,"rax","rdx")] {
+            let bits = size as u32 * 8;
+            for op in ["shld","shrd"] {
+                for count in 0..=255u32 {
+                    let c = count & if size == 8 {63} else {31};
+                    if c > bits { continue; } // No hardware-defined expected result.
+                    let mut m = Machine::new("");
+                    let a = 0x8123456789abcdefu128 & mask(size);
+                    let b = 0xfedcba9876543210u128 & mask(size);
+                    m.set_reg(dst,a); m.set_reg(src,b); m.set_reg("cl",count as u128);
+                    m.set_flags(0,3,size,"explicit");
+                    let mut expected=a; let mut source=b; let mut carry=1;
+                    for _ in 0..c {
+                        if op == "shrd" {
+                            carry=expected&1;
+                            expected=(expected>>1)|((source&1)<<(bits-1)); source>>=1;
+                        } else {
+                            carry=(expected>>(bits-1))&1;
+                            expected=((expected<<1)|(source>>(bits-1)))&mask(size);
+                            source=(source<<1)&mask(size);
+                        }
+                    }
+                    m.alu(op,&[format!("r:{dst}"),format!("r:{src}"),"r:cl".into()]);
+                    assert_eq!(m.reg(dst),expected,"{op} size={size} count={count}");
+                    assert_eq!(m.cf(),carry!=0);
+                    if c==0 { assert!(m.cc("o")); assert!(m.cc("e")); }
+                    else {
+                        assert_eq!(m.cc("e"),expected==0);
+                        assert_eq!(m.cc("p"),(expected as u8).count_ones()%2==0);
+                        if c==1 { assert_eq!(m.cc("o"),((a^expected)>>(bits-1))!=0); }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn multiplication_flags_and_full_product() {
+        for (size,lo,hi,src) in [(1,"al","ah","bl"),(2,"ax","dx","bx"),
+            (4,"eax","edx","ebx"),(8,"rax","rdx","rbx")] {
+            for (a,b) in [(0,7),(7,9),(mask(size),2),(1u128<<(size*8-1),2),(mask(size),mask(size))] {
+                for op in ["mul","imul"] {
+                    let mut m=Machine::new("");
+                    m.set_reg(lo,a); m.set_reg(src,b);
+                    let product=if op=="mul" {a*b} else {(sign(a,size)*sign(b,size)) as u128};
+                    m.alu(op,&[format!("r:{src}")]);
+                    assert_eq!(m.reg(lo),product&mask(size));
+                    assert_eq!(m.reg(hi),(product>>(size*8))&mask(size));
+                    let overflow=if op=="mul" {product>mask(size)} else {product as i128!=sign(product&mask(size),size)};
+                    assert_eq!(m.cf(),overflow); assert_eq!(m.cc("o"),overflow);
+                }
+            }
+        }
+        for operands in [vec!["r:eax","r:ebx"],vec!["r:eax","r:ebx","i:0x2"]] {
+            let mut m=Machine::new(""); m.set_reg("eax",2); m.set_reg("ebx",0x7fffffff);
+            m.alu("imul",&operands.iter().map(|s|s.to_string()).collect::<Vec<_>>());
+            assert_eq!(m.reg("eax"),0xfffffffe); assert!(m.cf()); assert!(m.cc("o"));
+        }
+    }
 
     #[test]
     fn carry_survives_increment_and_full_width_borrow() {

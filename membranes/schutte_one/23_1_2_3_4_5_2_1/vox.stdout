@@ -1,0 +1,8 @@
+vertices=23 k=1 holds=true subsets=23 counterexample=None
+vertices=23 k=2 holds=true subsets=253 counterexample=None
+vertices=23 k=3 holds=true subsets=1771 counterexample=None
+vertices=23 k=4 holds=false subsets=3 counterexample=Some(27)
+vertices=23 k=5 holds=false subsets=1 counterexample=Some(31)
+vertices=23 k=2 holds=true subsets=253 counterexample=None
+vertices=23 k=1 holds=true subsets=23 counterexample=None
+entry(...) exited(0)   [198583 steps in the twelve]

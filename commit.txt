@@ -1,4 +1,83 @@
-I prepare resident circuits and activate them through runtime gates in Vox
+I correct runtime control-flow framing and verify the installed Vox audit
+
+I retain actual fall-through addresses, apply exact non-returning call contracts,
+frame CFG feedback edges, preserve forward-join arity and emit shared tails in
+control-flow order. I unify structural word export with the audit framing.
+I leave verdict rules unchanged and test that malformed words still return F.
+I verify all four runtime functions as T in all six membranes, all six audits
+with F zero, unchanged glyph execution and all 96 release-target tests passing.
+I install the corrected Vox command and repeat the six audits through it.
+
+I benchmark the corrected installed audit five times per membrane. Medians are
+0.08 to 0.10 seconds, all six report F zero. I record the reduced fallback
+function count and state that the previous F-four run had no wall-clock sample,
+so I do not claim a numeric before/after speedup.
+
+Previous membrane work:
+
+I add prime-power membranes for binomial rows and cumulative LCM
+
+I stress all membrane families through the complete bake, compile, lift, native
+control and Vox execution path. Divisor, Shor, Schutte, Landau, triple-sum,
+factor and rep-tiling pass their boundary, repeated, descending and wide-input
+payloads with exact output agreement. I isolate an ABC cutoff-zero failure that
+depends on query order and retain its controls and logs instead of counting it
+as a pass. I present the full matrix in membrane_stress_results.md.
+
+I add and verify the resident rep-tiling membrane, its complete executable
+IMASM module and glyph-only sequence. I record 1000-query source/prepared
+timings, the n=6 boundary, exact native/Vox agreement and the new word index.
+
+I add a resident rep-tiling membrane. It prepares square membership once and
+answers square, three-times-square and sum-of-two-squares classifications by
+lookup for every baked input. I preserve the source's first blocked value six,
+check the full range through 1000 and retain the complete compile, lift and Vox
+path.
+
+I time five complete glyph-word executions per membrane, retain every sample,
+verify all 30 outputs and record medians, ranges, step counts and peak RSS.
+I distinguish decode/load/execute wall time from resident activation costs.
+
+I implement versioned glyph-only serialization with visible instruction heads
+and nested byte payloads. I preserve the full module exactly, reject malformed
+framing and checksum failures, and add glyphs/unglyphs commands with create-new
+outputs. I execute these words through vox run and the resident circuit path.
+I verify all six membrane words against native output, the QFT circuit controls,
+and all 91 release-target tests. I document the representation and its limits.
+
+I regenerate the six tested complete executable IMASM modules under
+membranes/words, verify each in Vox against its native control, and provide
+an index linking each membrane word to its baked payload.
+
+I run all 87 tests across release targets and verify six compiled/lifted
+payloads in Vox, with five additional executions each. All 36 executions agree
+with native stdout and stderr. I record median/range timings, step counts,
+boundary results and complete-module links in membrane_test_tables.md.
+
+I share one prepared prime-power table across baked queries, preserve empty-row
+semantics and report u128 LCM overflow explicitly. I check original binomial
+controls, exact Pascal rows, independent LCM scans and repeated readouts. I add
+both binaries to the full static compilation, IMASM lift and Vox execution path.
+I document source provenance, preparation costs and measurement scope.
+
+I define SHLD/SHRD decoding, arithmetic lifting and execution, and correct
+MUL/IMUL carry and overflow flags. I cover widths, masked counts, zero shifts,
+product limbs and overflow with regression controls. I retain standard u128
+formatting: the original LCM ELF is byte-identical to the verified payload.
+I update the stale scout test to verify its HARD handoff and the complete
+factorization through the fused sieve route. I remove the unused scout rho
+budget and report the actual trial bound. All 47 library tests now pass.
+
+Previous document work:
+
+I document the theory and realizations of prepared membranes
+
+I prepare the canonical illustrated document in ig-docs, compile its PDF and
+inspect every page. I cover configurable nesting, preparation and activation,
+the complete IMASM execution path, resident gates and sampled feedback, with
+vector diagrams, measurements and reproducible commands.
+
+Previous circuit work:
 
 I generate QFT wiring from a configurable depth and retain its connections,
 phase table and signal buffers across activations. My feedback gate samples the

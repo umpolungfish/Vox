@@ -1,0 +1,32 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 10.37s
+saved membranes/glyphs/binomial.glyphs (24381701 glyphs/characters)
+saved membranes/glyphs/binomial.recovered.imasm (2687192 glyphs/characters)
+binomial: exact module recovery and native-output agreement
+entry(...) exited(0)   [98978 steps in the twelve]
+0.54 seconds elapsed
+saved membranes/glyphs/lcm.glyphs (24460697 glyphs/characters)
+saved membranes/glyphs/lcm.recovered.imasm (2695750 glyphs/characters)
+lcm: exact module recovery and native-output agreement
+entry(...) exited(0)   [70563 steps in the twelve]
+0.45 seconds elapsed
+saved membranes/glyphs/divisor.glyphs (27266139 glyphs/characters)
+saved membranes/glyphs/divisor.recovered.imasm (3005270 glyphs/characters)
+divisor: exact module recovery and native-output agreement
+entry(...) exited(0)   [246788 steps in the twelve]
+0.79 seconds elapsed
+saved membranes/glyphs/landau.glyphs (24513507 glyphs/characters)
+saved membranes/glyphs/landau.recovered.imasm (2701484 glyphs/characters)
+landau: exact module recovery and native-output agreement
+entry(...) exited(0)   [54503 steps in the twelve]
+0.42 seconds elapsed
+saved membranes/glyphs/schutte.glyphs (24333921 glyphs/characters)
+saved membranes/glyphs/schutte.recovered.imasm (2681748 glyphs/characters)
+schutte: exact module recovery and native-output agreement
+entry(...) exited(0)   [35062 steps in the twelve]
+0.36 seconds elapsed
+saved membranes/glyphs/shor.glyphs (26931805 glyphs/characters)
+saved membranes/glyphs/shor.recovered.imasm (2968095 glyphs/characters)
+shor: exact module recovery and native-output agreement
+entry(...) exited(0)   [1958339 steps in the twelve]
+3.05 seconds elapsed

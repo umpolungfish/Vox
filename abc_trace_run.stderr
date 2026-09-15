@@ -1,0 +1,251 @@
+regs at halt: rax=8 rbx=e rcx=b rdx=8 rsi=0 rdi=300002040 rbp=60 rsp=7ffefc78 r12=0 r13=200000000000000b r14=1 r15=7ffefcd0
+call chain:
+          malloc rdi=0x10 rsi=0x280 rdx=0x22a2 @step 1527
+            mmap len=0x1000 -> 0x300000000 @step 1670
+            mmap len=0x1000 -> 0x300001000 @step 2297
+          malloc rdi=0x4 rsi=0x0 rdx=0x280 @step 3117
+            free rdi=0x300001040 rsi=0x0 rdx=0xffffffa0 @step 3711
+     __libc_free rdi=0x300001040 rsi=0x0 rdx=0xffffffa0 @step 3712
+            free rdi=0x300001230 rsi=0x0 rdx=0x0 @step 4051
+     __libc_free rdi=0x300001230 rsi=0x0 rdx=0x0 @step 4052
+          malloc rdi=0x20 rsi=0x1000 rdx=0x0 @step 4771
+            mmap len=0x1000 -> 0x300002000 @step 5461
+          malloc rdi=0x1c rsi=0x280 rdx=0x22a2 @step 6619
+         realloc rdi=0x300002230 rsi=0x38 rdx=0x300002230 @step 7348
+  __libc_realloc rdi=0x300002230 rsi=0x38 rdx=0x300002230 @step 7349
+     __libc_free rdi=0x300002230 rsi=0x30000224c rdx=0x0 @step 8288
+          malloc rdi=0x4 rsi=0x1 rdx=0x7fffffffffffff00 @step 8732
+            free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 9401
+     __libc_free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 9402
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 9734
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 9735
+          malloc rdi=0x2c rsi=0x280 rdx=0x22a2 @step 10883
+         realloc rdi=0x300002070 rsi=0x58 rdx=0x300002070 @step 11344
+  __libc_realloc rdi=0x300002070 rsi=0x58 rdx=0x300002070 @step 11345
+     __libc_free rdi=0x300002070 rsi=0x30000209c rdx=0x0 @step 11958
+          malloc rdi=0x8 rsi=0x2 rdx=0x7fffffffffffff00 @step 12269
+            free rdi=0x300002230 rsi=0x7ffefbc0 rdx=0x300002430 @step 13369
+     __libc_free rdi=0x300002230 rsi=0x7ffefbc0 rdx=0x300002430 @step 13370
+            free rdi=0x300002430 rsi=0x0 rdx=0x0 @step 13724
+     __libc_free rdi=0x300002430 rsi=0x0 rdx=0x0 @step 13725
+          malloc rdi=0x4c rsi=0x280 rdx=0x22a2 @step 15256
+         realloc rdi=0x300002240 rsi=0x98 rdx=0x300002240 @step 16267
+  __libc_realloc rdi=0x300002240 rsi=0x98 rdx=0x300002240 @step 16268
+     __libc_free rdi=0x300002240 rsi=0x30000228c rdx=0x0 @step 17273
+          malloc rdi=0x10 rsi=0x4 rdx=0x7fffffffffffff00 @step 17795
+            free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 18496
+     __libc_free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 18497
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 18853
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 18854
+          malloc rdi=0x68 rsi=0x280 rdx=0x22a2 @step 20782
+         realloc rdi=0x300002230 rsi=0xd0 rdx=0x300002230 @step 21975
+  __libc_realloc rdi=0x300002230 rsi=0xd0 rdx=0x300002230 @step 21976
+     __libc_free rdi=0x300002230 rsi=0x300002298 rdx=0x0 @step 23010
+          malloc rdi=0x18 rsi=0x6 rdx=0x7fffffffffffff00 @step 23610
+            free rdi=0x300002440 rsi=0x7ffefbc0 rdx=0x300002620 @step 24377
+     __libc_free rdi=0x300002440 rsi=0x7ffefbc0 rdx=0x300002620 @step 24378
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 24757
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 24758
+         realloc rdi=0x300002040 rsi=0x40 rdx=0x0 @step 25303
+  __libc_realloc rdi=0x300002040 rsi=0x40 rdx=0x0 @step 25304
+     __libc_free rdi=0x300002040 rsi=0x300002060 rdx=0x0 @step 25915
+          malloc rdi=0x78 rsi=0x280 rdx=0x22a2 @step 27888
+         realloc rdi=0x300002420 rsi=0xf0 rdx=0x300002420 @step 29255
+  __libc_realloc rdi=0x300002420 rsi=0xf0 rdx=0x300002420 @step 29256
+     __libc_free rdi=0x300002420 rsi=0x300002498 rdx=0x0 @step 30224
+          malloc rdi=0x1c rsi=0x7 rdx=0x7fffffffffffff00 @step 30850
+            free rdi=0x300002840 rsi=0x7ffefbc0 rdx=0x300002040 @step 31693
+     __libc_free rdi=0x300002840 rsi=0x7ffefbc0 rdx=0x300002040 @step 31694
+            free rdi=0x300002040 rsi=0x0 rdx=0x0 @step 32257
+     __libc_free rdi=0x300002040 rsi=0x0 rdx=0x0 @step 32258
+          malloc rdi=0x88 rsi=0x280 rdx=0x22a2 @step 34399
+         realloc rdi=0x300002050 rsi=0x110 rdx=0x300002050 @step 35872
+  __libc_realloc rdi=0x300002050 rsi=0x110 rdx=0x300002050 @step 35873
+     __libc_free rdi=0x300002050 rsi=0x3000020d8 rdx=0x0 @step 36520
+          malloc rdi=0x20 rsi=0x8 rdx=0x7fffffffffffff00 @step 37161
+            free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002040 @step 38029
+     __libc_free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002040 @step 38030
+            free rdi=0x300002040 rsi=0x0 rdx=0x0 @step 38428
+     __libc_free rdi=0x300002040 rsi=0x0 rdx=0x0 @step 38429
+          malloc rdi=0x94 rsi=0x280 rdx=0x22a2 @step 40772
+         realloc rdi=0x300002040 rsi=0x128 rdx=0x300002040 @step 42320
+  __libc_realloc rdi=0x300002040 rsi=0x128 rdx=0x300002040 @step 42321
+     __libc_free rdi=0x300002040 rsi=0x3000020d4 rdx=0x0 @step 43039
+          malloc rdi=0x24 rsi=0x9 rdx=0x7fffffffffffff00 @step 43739
+            free rdi=0x300002420 rsi=0x7ffefbc0 rdx=0x300002040 @step 44640
+     __libc_free rdi=0x300002420 rsi=0x7ffefbc0 rdx=0x300002040 @step 44641
+            free rdi=0x300002040 rsi=0x0 rdx=0x0 @step 45047
+     __libc_free rdi=0x300002040 rsi=0x0 rdx=0x0 @step 45048
+          malloc rdi=0xa4 rsi=0x280 rdx=0x22a2 @step 47586
+         realloc rdi=0x300002050 rsi=0x148 rdx=0x300002050 @step 49292
+  __libc_realloc rdi=0x300002050 rsi=0x148 rdx=0x300002050 @step 49293
+     __libc_free rdi=0x300002050 rsi=0x3000020f4 rdx=0x0 @step 50058
+          malloc rdi=0x28 rsi=0xa rdx=0x7fffffffffffff00 @step 50798
+            free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 51679
+     __libc_free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 51680
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 51952
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 51953
+         realloc rdi=0x300002240 rsi=0x80 rdx=0x0 @step 52498
+  __libc_realloc rdi=0x300002240 rsi=0x80 rdx=0x0 @step 52499
+     __libc_free rdi=0x300002240 rsi=0x300002280 rdx=0x0 @step 53131
+          malloc rdi=0xa4 rsi=0x280 rdx=0x22a2 @step 55686
+         realloc rdi=0x300002250 rsi=0x148 rdx=0x300002250 @step 57392
+  __libc_realloc rdi=0x300002250 rsi=0x148 rdx=0x300002250 @step 57393
+     __libc_free rdi=0x300002250 rsi=0x3000022f4 rdx=0x0 @step 58158
+          malloc rdi=0x28 rsi=0xa rdx=0x7fffffffffffff00 @step 58898
+            free rdi=0x300002440 rsi=0x7ffefbc0 rdx=0x300002620 @step 59779
+     __libc_free rdi=0x300002440 rsi=0x7ffefbc0 rdx=0x300002620 @step 59780
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 60052
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 60053
+          malloc rdi=0xa4 rsi=0x280 rdx=0x22a2 @step 62754
+         realloc rdi=0x300002260 rsi=0x148 rdx=0x300002260 @step 64407
+  __libc_realloc rdi=0x300002260 rsi=0x148 rdx=0x300002260 @step 64408
+     __libc_free rdi=0x300002260 rsi=0x300002304 rdx=0x0 @step 65173
+          malloc rdi=0x28 rsi=0xa rdx=0x7fffffffffffff00 @step 65913
+            free rdi=0x300002450 rsi=0x7ffefbc0 rdx=0x300002620 @step 66794
+     __libc_free rdi=0x300002450 rsi=0x7ffefbc0 rdx=0x300002620 @step 66795
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 67067
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 67068
+          malloc rdi=0xa4 rsi=0x280 rdx=0x22a2 @step 69769
+         realloc rdi=0x300002270 rsi=0x148 rdx=0x300002270 @step 71422
+  __libc_realloc rdi=0x300002270 rsi=0x148 rdx=0x300002270 @step 71423
+     __libc_free rdi=0x300002270 rsi=0x300002314 rdx=0x0 @step 72188
+          malloc rdi=0x28 rsi=0xa rdx=0x7fffffffffffff00 @step 72928
+            free rdi=0x300002460 rsi=0x7ffefbc0 rdx=0x300002620 @step 73809
+     __libc_free rdi=0x300002460 rsi=0x7ffefbc0 rdx=0x300002620 @step 73810
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 74082
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 74083
+          malloc rdi=0x2c rsi=0x280 rdx=0x22a2 @step 75224
+         realloc rdi=0x300002230 rsi=0x58 rdx=0x300002230 @step 76045
+  __libc_realloc rdi=0x300002230 rsi=0x58 rdx=0x300002230 @step 76046
+     __libc_free rdi=0x300002230 rsi=0x30000225c rdx=0x0 @step 77042
+          malloc rdi=0x8 rsi=0x2 rdx=0x7fffffffffffff00 @step 77512
+            free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 78222
+     __libc_free rdi=0x300002430 rsi=0x7ffefbc0 rdx=0x300002620 @step 78223
+            free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 78563
+     __libc_free rdi=0x300002620 rsi=0x0 rdx=0x0 @step 78564
+          malloc rdi=0x10 rsi=0x280 rdx=0x22a2 @step 79304
+          malloc rdi=0x4 rsi=0x0 rdx=0x280 @step 79923
+            free rdi=0x300002230 rsi=0x0 rdx=0xffffffa0 @step 80910
+     __libc_free rdi=0x300002230 rsi=0x0 rdx=0xffffffa0 @step 80911
+            free rdi=0x300002430 rsi=0x0 rdx=0x0 @step 81264
+     __libc_free rdi=0x300002430 rsi=0x0 rdx=0x0 @step 81265
+407646: ax=0 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⋈ movabs r:rax i:-0x8000000000000000
+407650: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:r14 r:rax
+407653: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ ne i:0x4084ae
+407659: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbx i:0x3
+40765d: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⋈ mov m:rsp::1:0x0:8 r:rdi
+407661: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⋈ mov m:rsp::1:0x8:8 r:r8
+407666: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x4083e3
+40766c: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⋈ mov r:r14 m:rdi::1:0x8:8
+407670: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ test r:r14 r:r14
+407673: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x4083e3
+407679: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:r9 m:rdi::1:0x10:8
+40767d: ax=8000000000000000 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ xor r:eax r:eax
+40767f: ax=0 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ nop
+407680: ax=0 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=0 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=0 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=0 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=8 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=8 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=8 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=8 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=8 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=10 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=10 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=10 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=10 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=10 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=18 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=18 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=18 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=18 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=18 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=20 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=20 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=20 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=20 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=20 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=28 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=28 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=28 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=28 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=28 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=30 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=30 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=30 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=30 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=30 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=38 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=38 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=38 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=38 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=38 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=40 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=40 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=40 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=40 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=40 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=48 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=48 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=48 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=48 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=48 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=50 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=50 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=50 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=50 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=50 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=58 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=58 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=58 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+407689: ax=58 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+407691: ax=58 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rax::1:0x8:8
+407695: ax=60 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ b i:0x407680
+407680: ax=60 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbp r:rax
+407683: ax=60 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ∈ e i:0x40773c
+40773c: ax=60 bx=e cx=8000000000000000 dx=1 si=1 di=300002040 bp=60 r8=10  | ⋈ mov r:rsi m:rdi::1:0x10:8
+407740: ax=60 bx=e cx=8000000000000000 dx=1 si=2 di=300002040 bp=60 r8=10  | ⊤ cmp r:rbx i:0x3
+407744: ax=60 bx=e cx=8000000000000000 dx=1 si=2 di=300002040 bp=60 r8=10  | ⋈ mov m:rsp::1:0x180:8 r:rbp
+40774c: ax=60 bx=e cx=8000000000000000 dx=1 si=2 di=300002040 bp=60 r8=10  | ∈ e i:0x407904
+407752: ax=60 bx=e cx=8000000000000000 dx=1 si=2 di=300002040 bp=60 r8=10  | ⋈ movabs r:rdx i:0x1ffffffffffffffe
+40775c: ax=60 bx=e cx=8000000000000000 dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ⊞ lea r:rax m:rdx:rbx:1:0x0:8
+407760: ax=200000000000000c bx=e cx=8000000000000000 dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ⊞ dec r:rax
+407763: ax=200000000000000b bx=e cx=8000000000000000 dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ⊞ lea r:rcx m:rdx::1:0x1:8
+407767: ax=200000000000000b bx=e cx=1fffffffffffffff dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ⊞ and r:rcx r:rax
+40776a: ax=200000000000000b bx=e cx=b dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ⊤ cmp r:rcx i:0x4
+40776e: ax=200000000000000b bx=e cx=b dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ∈ ae i:0x407777
+407777: ax=200000000000000b bx=e cx=b dx=1ffffffffffffffe si=2 di=300002040 bp=60 r8=10  | ⊞ add r:rdx i:-0x2
+40777b: ax=200000000000000b bx=e cx=b dx=1ffffffffffffffc si=2 di=300002040 bp=60 r8=10  | ⊞ and r:rax r:rdx
+40777e: ax=8 bx=e cx=b dx=1ffffffffffffffc si=2 di=300002040 bp=60 r8=10  | ⊞ movq r:xmm0 r:rsi
+407783: ax=8 bx=e cx=b dx=1ffffffffffffffc si=2 di=300002040 bp=60 r8=10  | ⊞ pshufd r:xmm1 r:xmm0 i:0x44
+407788: ax=8 bx=e cx=b dx=1ffffffffffffffc si=2 di=300002040 bp=60 r8=10  | ⋈ movabs r:rdx i:0x1ffffffffffffffc
+407792: ax=8 bx=e cx=b dx=1ffffffffffffffc si=2 di=300002040 bp=60 r8=10  | ⊞ and r:rdx r:r13
+407795: ax=8 bx=e cx=b dx=8 si=2 di=300002040 bp=60 r8=10  | ⊞ xor r:esi r:esi
+407797: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqa r:xmm0 m:rip::1:0x4c891:16
+40779f: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqa r:xmm2 r:xmm1
+4077a3: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ nop
+4077b0: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqu r:xmm4 m:rdi:rsi:8:0x18:16
+4077b6: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqu r:xmm3 m:rdi:rsi:8:0x28:16
+4077bc: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqa r:xmm5 r:xmm1
+4077c0: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pxor r:xmm1 r:xmm0
+4077c4: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqa r:xmm6 r:xmm4
+4077c8: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pxor r:xmm6 r:xmm0
+4077cc: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ movdqa r:xmm7 r:xmm1
+4077d2: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊡ dec m:rsi::1:0x44:1
+4077d6: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pshufd r:xmm0 r:xmm7 i:0xa0
+4077da: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pcmpeqd r:xmm6 r:xmm1
+4077de: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pshufd r:xmm1 r:xmm6 i:0xf5
+4077e3: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pand r:xmm1 r:xmm8
+4077e8: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pshufd r:xmm6 r:xmm7 i:0xf5
+4077ed: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ por r:xmm6 r:xmm1
+4077f1: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊞ pand r:xmm5 r:xmm6
+4077f8: ax=8 bx=e cx=b dx=8 si=0 di=300002040 bp=60 r8=10  | ⊣ hlt
+rax = 8  mem[8..] = [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+rbx = e  mem[e..] = [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+rcx = b  mem[b..] = [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+rdx = 8  mem[8..] = [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+rsi = 0  mem[0..] = [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+rdi = 300002040  mem[300002040..] = [00, a0, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 01, 00, 00, 00]
+rbp = 60  mem[60..] = [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]

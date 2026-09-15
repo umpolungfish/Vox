@@ -1,0 +1,7 @@
+membranes/words/schutte.elf  elf  entry 0x4064b2  318271 byte(s) of code
+  1206 function(s), 64265 instruction(s)
+  claimed 80% of the image (254801 of 318271 bytes)
+
+  1206 function(s) by descent, 1631 more by fallback sweep
+  covered 100% of the image (318271 of 318271 bytes)
+  verdicts  T 147   B 919   N 1771   F 0  (F: 0 from descent, 0 from fallback sweep)

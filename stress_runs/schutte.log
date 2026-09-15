@@ -1,0 +1,13 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 2.85s
+saved membranes/schutte_one/23_1_2_3_4_5_2_1/payload.elf.imasm
+vertices=23 k=1 holds=true subsets=23 counterexample=None
+vertices=23 k=2 holds=true subsets=253 counterexample=None
+vertices=23 k=3 holds=true subsets=1771 counterexample=None
+vertices=23 k=4 holds=false subsets=3 counterexample=Some(27)
+vertices=23 k=5 holds=false subsets=1 counterexample=Some(31)
+vertices=23 k=2 holds=true subsets=253 counterexample=None
+vertices=23 k=1 holds=true subsets=23 counterexample=None
+entry(...) exited(0)   [198583 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/schutte_one/23_1_2_3_4_5_2_1/payload.elf.imasm

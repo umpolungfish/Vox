@@ -9,6 +9,9 @@ usage() {
     echo '       membrane_one.sh landau <N>...'
     echo '       membrane_one.sh tripsum <limit>...'
     echo '       membrane_one.sh factor <N>'
+    echo '       membrane_one.sh binomial <N>...'
+    echo '       membrane_one.sh lcm <N>...'
+    echo '       membrane_one.sh reptiling <N>...'
     echo 'Builds a static executable, lifts its complete module, and runs it in Vox.'
 }
 if [[ ${1:-} == --help ]]; then usage; exit 0; fi
@@ -21,6 +24,9 @@ case "$1" in
     landau) membrane_binary=landau_one; minimum=1 ;;
     tripsum) membrane_binary=tripsum_one; minimum=1 ;;
     factor) membrane_binary=factor_one; minimum=1 ;;
+    binomial) membrane_binary=binomial_one; minimum=1 ;;
+    lcm) membrane_binary=lcm_one; minimum=1 ;;
+    reptiling) membrane_binary=reptiling_one; minimum=1 ;;
     *) usage >&2; exit 2 ;;
 esac
 shift

@@ -1,0 +1,12 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 6.37s
+     Running unittests src/bin/reptiling_one.rs (target/release/deps/reptiling_one-b50f8fa9674a0f4f)
+
+running 3 tests
+test baked_membrane::tests::payload_roundtrip_and_errors ... ok
+test reptiling_membrane::tests::source_classification_and_boundaries ... rep-tiling queries=1000 original=2.722768ms prepared=233.282µs
+ok
+test reptiling_membrane::tests::timing_control ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -4108,10 +4108,12 @@
 ⊞	shl	r:r13	i:0x8
 @0x402c31
 ⊞	or	r:r13	r:r8
-@0x402c38
-⊞	or	r:bl	r:ch
-@0x402c3a
-⊞	or	r:eax	i:0x3fa8349
+@0x402c34
+⊞	shrd	r:r13	r:rcx	i:0x8
+@0x402c39
+≺	jmp	i:0x402c48
+@0x402c3b
+⊤	cmp	r:r10	i:0x3
 @0x402c3f
 ∈	be	i:0x4036ef
 @0x402c45
@@ -6710,12 +6712,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x404346
 ⊞	or	r:rax	r:rsi
-@0x40434d
-⊞	or	r:bl	r:ch
-@0x40434f
-∈	ne	i:0x404399
-@0x404351
-⊞	add	r:eax	m:rbp::1:-0x1e0:4
+@0x404349
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x40434e
+≺	jmp	i:0x4043c5
+@0x404350
+⊞	add	r:rax	m:rbp::1:-0x1e0:8
 @0x404357
 ≺	jmp	i:0x4043cc
 @0x404359
@@ -6804,12 +6806,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x40440e
 ⊞	or	r:rax	r:rsi
-@0x404415
-⊞	or	r:bl	r:ch
-@0x404417
-⊞	or	r:al	i:0x48
-@0x404419
-⊤	cmp	r:edx	i:0x3
+@0x404411
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x404416
+≺	jmp	i:0x404424
+@0x404418
+⊤	cmp	r:rdx	i:0x3
 @0x40441c
 ∈	be	i:0x4049f1
 @0x404422
@@ -6866,12 +6868,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x404489
 ⊞	or	r:rax	r:rsi
-@0x404490
-⊞	or	r:bl	r:ch
-@0x404492
-⊞	or	r:al	i:0x48
-@0x404494
-⊤	cmp	r:edx	i:0x3
+@0x40448c
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x404491
+≺	jmp	i:0x40449f
+@0x404493
+⊤	cmp	r:rdx	i:0x3
 @0x404497
 ∈	be	i:0x4049f1
 @0x40449d
@@ -16122,10 +16124,14 @@
 ⊞	movdqu	r:xmm4	m:r10::1:-0x30:16
 @0x408a78
 ⊞	movdqu	r:xmm7	m:r10::1:-0x10:16
+@0x408a7e
+⊞	punpckhqdq	r:xmm2	r:xmm5
 @0x408a82
 ⊞	movdqa	r:xmm5	r:xmm4
 @0x408a86
 ⊞	punpcklqdq	r:xmm5	r:xmm7
+@0x408a8a
+⊞	punpckhqdq	r:xmm4	r:xmm7
 @0x408a8e
 ⊞	movdqu	r:xmm10	m:r10::1:0x30:16
 @0x408a94
@@ -16152,11 +16158,15 @@
 ⊞	paddq	r:xmm8	r:xmm6
 @0x408ace
 ⊞	movdqu	r:xmm6	m:r10::1:0x10:16
+@0x408ad4
+⊞	punpckhqdq	r:xmm9	r:xmm7
 @0x408ad9
 ⊞	movdqa	r:xmm7	r:xmm6
 @0x408add
 ⊞	punpcklqdq	r:xmm7	r:xmm10
-@0x408ae6
+@0x408ae2
+⊞	punpckhqdq	r:xmm6	r:xmm10
+@0x408ae7
 ⊞	movdqa	r:xmm10	r:xmm2
 @0x408aec
 ⊞	pxor	r:xmm10	r:xmm0
@@ -18200,10 +18210,8 @@
 ⊥	b	set	r:dil
 @0x4099bc
 ⊞	pxor	r:xmm0	m:rip::1:0x4568c:16
-@0x4099c6
-⊞	add	r:ax	i:0x5694
-@0x4099ca
-⊞	add	r:al	i:0x0
+@0x4099c4
+⊞	pcmpgtd	r:xmm0	m:rip::1:0x45694:16
 @0x4099ce
 ⋈	push	r:rax
 @0x4099cf
@@ -48406,12 +48414,16 @@
 ⊞	shl	r:rdi	i:0x8
 @0x417c35
 ⊞	or	r:rdi	r:r10
-@0x417c3b
-⋈	mov	m:rax::1:0x0:4	i:0x74cf3948
-@0x417c41
-⊞	sbb	r:eax	i:0x4101ee83
-@0x417c46
-⊥	b	set	r:al
+@0x417c38
+⊞	shrd	r:rdi	r:r8	i:0x8
+@0x417c3d
+⊤	cmp	r:rdi	r:rcx
+@0x417c40
+∈	e	i:0x417c5f
+@0x417c42
+⊞	sub	r:esi	i:0x1
+@0x417c45
+⊥	b	set	r:r8b
 @0x417c49
 ⊤	test	r:rdi	r:rdi
 @0x417c4c
@@ -59574,12 +59586,14 @@
 ⊡	rol	m:rsi::2:0xf:1	i:0x74
 @0x41dac5
 ⊡	shl	m:rsi::1:0xf:4	i:0x70
-@0x41dace
-⊡	shl	m:rsi::1:0xf:4	i:0x6d
-@0x41dad2
-⊣	ret	i:0xf66
+@0x41dacb
+⊞	pandn	r:xmm0	r:xmm1
+@0x41dacf
+⊞	punpckhqdq	r:xmm0	r:xmm2
 @0x41dad5
 ∈	no	i:0x41dac7
+@0x41dad7
+⊞	pcmpgtd	r:xmm1	m:rdi::1:0x0:16
 @0x41dada
 ⋈	movsxd	r:rax	r:eax
 @0x41dadc
@@ -62958,22 +62972,16 @@
 ⊞	shl	r:rax	i:0x8
 @0x41f8e8
 ⊞	or	r:rax	r:rsi
-@0x41f8ef
-⊞	or	r:cl	r:ch
-@0x41f8f2
-⊡	add	m:rax::1:0x0:1	r:al
-@0x41f8f4
-⊡	add	m:rcx::1:-0x50:1	r:al
-@0x41f8f7
-⊡	add	m:rax::1:-0x75:4	r:ecx
-@0x41f8fa
-⊤	test	r:eax	r:ebp
-@0x41f8fe
-⊡	dec	m:rax::1:-0x77:4
-@0x41f901
-⊤	test	r:eax	r:ebx
-@0x41f903
-⊞	dec	r:bh
+@0x41f8eb
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x41f8f0
+≺	jmp	i:0x41f989
+@0x41f8f5
+⋈	mov	r:r8b	i:0x1
+@0x41f8f8
+⋈	mov	r:rax	m:rbp::1:-0x518:8
+@0x41f8ff
+⋈	mov	m:rbp::1:-0x128:8	r:rax
 @0x41f906
 ≺	jmp	i:0x41f961
 @0x41f908
@@ -63074,10 +63082,10 @@
 ⊞	shl	r:rcx	i:0x8
 @0x41f9de
 ⊞	or	r:rcx	r:rsi
-@0x41f9e4
-⊡	ror	m:rax::1:0x0:4	i:0x41
-@0x41f9e7
-⋈	mov	r:al	i:0x1
+@0x41f9e1
+⊞	shrd	r:rcx	r:rax	i:0x8
+@0x41f9e6
+⋈	mov	r:r8b	i:0x1
 @0x41f9e9
 ⋈	mov	m:rbp::1:-0x160:8	r:rcx
 @0x41f9f0
@@ -63128,18 +63136,16 @@
 ⊞	shl	r:rcx	i:0x8
 @0x41fa5b
 ⊞	or	r:rcx	r:rsi
-@0x41fa61
-⊡	ror	m:rax::1:0x0:4	i:0xb0
-@0x41fa64
-⊡	add	m:rcx::1:-0x76b777bb:4	r:ecx
-@0x41fa6a
-⊞	lea	r:esp	r:eax
-@0x41fa6c
-⊞	dec	r:bh
-@0x41fa6e
-⊡	dec	m:rax::1:-0x77:4
-@0x41fa71
-⊞	lea	r:edi	m:rax::1:0x0:4
+@0x41fa5e
+⊞	shrd	r:rcx	r:rax	i:0x8
+@0x41fa63
+⋈	mov	r:al	i:0x1
+@0x41fa65
+⋈	mov	m:rbp::1:-0x78:4	r:eax
+@0x41fa68
+⋈	mov	m:rbp::1:-0x120:8	r:rcx
+@0x41fa6f
+⋈	mov	m:rbp::1:-0xc8:8	r:rcx
 @0x41fa76
 ≺	jmp	i:0x41f969
 @0x41fa7b
@@ -63538,11 +63544,13 @@
 ⊞	shl	r:r13	i:0x8
 @0x41fdd1
 ⊞	or	r:r13	r:rdx
-@0x41fdd8
-⊡	or	m:rbx::1:-0x7cb6f7bf:1	r:cl
-@0x41fdde
-⊣	ret
-@0x41fddf
+@0x41fdd4
+⊞	shrd	r:r13	r:rax	i:0x8
+@0x41fdd9
+⋈	mov	r:eax	m:rcx::1:0x8:4
+@0x41fddc
+⊞	add	r:r11	i:-0x10
+@0x41fde0
 ⋈	movzx	r:edx	m:rcx::1:0xf:1
 @0x41fde4
 ⋈	mov	r:r14	r:r11
@@ -63566,8 +63574,8 @@
 ⊞	shl	r:rax	i:0x8
 @0x41fe05
 ⊞	or	r:rax	r:rdi
-@0x41fe0b
-⊡	ror	m:rax::1:0x0:1	i:0x1
+@0x41fe08
+⊞	shrd	r:rax	r:rdx	i:0x8
 @0x41fe0d
 ⊞	lea	r:r14	m:rcx::1:0x10:8
 @0x41fe11
@@ -68008,10 +68016,12 @@
 ⊞	shl	r:r14	i:0x8
 @0x4223e9
 ⊞	or	r:r14	r:r15
-@0x4223f0
-⊡	or	m:rcx::1:-0x4d:1	r:al
-@0x4223f3
-⊡	or	m:rbp::1:0x29:1	r:cl
+@0x4223ec
+⊞	shrd	r:r14	r:r11	i:0x8
+@0x4223f1
+⋈	mov	r:r11b	i:0x8
+@0x4223f4
+⊞	sub	r:r9	r:r14
 @0x4223f7
 ∈	b	i:0x4223a2
 @0x4223f9
@@ -68070,16 +68080,12 @@
 ⊞	or	r:r15	r:r12
 @0x422467
 ⋈	mov	r:r12	r:r13
-@0x42246e
-⊞	or	r:cl	r:ch
-@0x422471
-⊡	add	m:rax::1:0x0:1	r:al
-@0x422473
-⊡	add	m:rsi::1:-0x39:1	r:ah
-@0x422476
-⊞	and	r:al	i:-0x8
-@0x422479
-⊡	add	m:rax::1:0x0:1	r:al
+@0x42246a
+⊞	shrd	r:r15	r:rcx	i:0x8
+@0x42246f
+≺	jmp	i:0x422538
+@0x422474
+⋈	mov	m:rsp::1:-0x8:2	i:0x0
 @0x42247b
 ⋈	mov	m:rsp::1:-0x6:4	i:0x0
 @0x422483
@@ -68326,10 +68332,12 @@
 ⊞	or	r:r15	r:r12
 @0x422669
 ⋈	mov	r:r12	m:rsp::1:-0x28:8
-@0x422672
-⊞	or	r:bl	r:ch
-@0x422674
-⊡	sub	m:rcx::1:-0x77:4	r:ecx
+@0x42266e
+⊞	shrd	r:r15	r:r12	i:0x8
+@0x422673
+≺	jmp	i:0x42269e
+@0x422675
+⋈	mov	r:r12	r:rax
 @0x422678
 ⊞	shr	r:r12	i:0x8
 @0x42267c
@@ -68390,10 +68398,10 @@
 ⊞	or	r:r13	r:r12
 @0x4226f7
 ⋈	mov	r:r12	m:rsp::1:-0x28:8
-@0x422700
-⊡	or	m:rcx:rcx:4:0x6c:1	r:cl
-@0x422704
-⊞	and	r:al	i:-0x28
+@0x4226fc
+⊞	shrd	r:r13	r:r12	i:0x8
+@0x422701
+⋈	mov	m:rsp::1:-0x28:8	r:r13
 @0x422706
 ⊤	cmp	r:r10d	i:-0x10
 @0x42270a
@@ -68426,12 +68434,10 @@
 ⊞	shl	r:r13	i:0x8
 @0x42274f
 ⊞	or	r:r13	r:r12
-@0x422756
-⊞	or	r:cl	r:ch
-@0x422758
-⊤	test	m:rcx::1:0x0:1	r:al
-@0x42275a
-⊡	add	m:rax::1:0x0:1	r:al
+@0x422752
+⊞	shrd	r:r13	r:r10	i:0x8
+@0x422757
+≺	jmp	i:0x4228e0
 @0x42275c
 ⊞	add	r:rax	i:0x4
 @0x422760
@@ -68468,12 +68474,10 @@
 ⊞	shl	r:r10	i:0x8
 @0x4227a9
 ⊞	or	r:r10	r:r12
-@0x4227b0
-⊡	or	m:rcx::1:-0x44:1	r:al
-@0x4227b3
-⊞	add	r:al	i:0x0
-@0x4227b5
-⊡	add	m:rax::1:0x0:1	r:al
+@0x4227ac
+⊞	shrd	r:r10	r:r13	i:0x8
+@0x4227b1
+⋈	mov	r:r12d	i:0x4
 @0x4227b7
 ≺	jmp	i:0x422573
 @0x4227bc
@@ -68512,12 +68516,10 @@
 ⊞	shl	r:r10	i:0x8
 @0x42280b
 ⊞	or	r:r10	r:r12
-@0x422812
-⊡	or	m:rcx::1:-0x44:1	r:al
-@0x422815
-⊞	add	r:eax	m:rax::1:0x0:4
-@0x422817
-⊡	add	m:rax::1:0x0:1	r:al
+@0x42280e
+⊞	shrd	r:r10	r:r13	i:0x8
+@0x422813
+⋈	mov	r:r12d	i:0x3
 @0x422819
 ≺	jmp	i:0x422573
 @0x42281e
@@ -68552,10 +68554,10 @@
 ⊞	or	r:r13	r:r12
 @0x42285f
 ⋈	mov	r:r12	m:rsp::1:-0x28:8
-@0x422868
-⊡	or	m:rcx:rcx:4:0x6c:1	r:cl
-@0x42286c
-⊞	and	r:al	i:-0x28
+@0x422864
+⊞	shrd	r:r13	r:r12	i:0x8
+@0x422869
+⋈	mov	m:rsp::1:-0x28:8	r:r13
 @0x42286e
 ⊤	cmp	r:r10d	i:-0x10
 @0x422872
@@ -68588,12 +68590,12 @@
 ⊞	shl	r:r13	i:0x8
 @0x4228b3
 ⊞	or	r:r13	r:r12
-@0x4228ba
-⊞	or	r:bl	r:ch
-@0x4228bc
-⊞	inc	r:rcx
-@0x4228be
-⋈	mov	r:ebp	i:0x42
+@0x4228b6
+⊞	shrd	r:r13	r:r10	i:0x8
+@0x4228bb
+≺	jmp	i:0x422906
+@0x4228bd
+⋈	mov	r:r13d	i:0x42
 @0x4228c3
 ⊞	xor	r:eax	r:eax
 @0x4228c5
@@ -70860,8 +70862,10 @@
 ⊞	shl	r:rdi	i:0x8
 @0x423e1c
 ⊞	or	r:rdi	r:r8
-@0x423e22
-⊤	test	m:rax::1:0x0:4	i:0x8d745c6
+@0x423e1f
+⊞	shrd	r:rdi	r:rsi	i:0x8
+@0x423e24
+⋈	mov	m:rbp::1:-0x29:1	i:0x8
 @0x423e28
 ⋈	mov	r:rsi	r:rdx
 @0x423e2b
@@ -71120,10 +71124,10 @@
 ⊞	shl	r:rax	i:0x8
 @0x424050
 ⊞	or	r:rax	r:rsi
-@0x424057
-⊞	or	r:cl	r:ch
-@0x424059
-⋈	push	r:rsp
+@0x424053
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x424058
+≺	jmp	i:0x423db1
 @0x42405d
 ⋈	mov	r:ecx	i:0x13
 @0x424062
@@ -71226,22 +71230,18 @@
 ⊞	or	r:rcx	r:rdx
 @0x424120
 ⋈	mov	r:rdx	r:rsi
-@0x424126
-⊡	ror	m:rax::1:0x0:4	i:0xeb
-@0x424129
-⊡	and	m:rax::1:-0x7d:1	r:cl
-@0x42412d
-⊞	add	r:ecx	m:rdi::1:0x0:4
-@0x42412f
-⋈	xchg	r:ah	r:ch
-@0x424131
-⊡	add	m:rax::1:0x0:1	r:al
-@0x424133
-⊡	add	m:rax::1:-0x7d:1	r:cl
-@0x424136
-⊣	ret	i:0x49fc
-@0x424139
-⊞	lea	r:eax	m:rdx::1:0x4:4
+@0x424123
+⊞	shrd	r:rcx	r:rax	i:0x8
+@0x424128
+≺	jmp	i:0x42414a
+@0x42412a
+⊤	cmp	r:rdx	i:0x3
+@0x42412e
+∈	be	i:0x424220
+@0x424134
+⊞	add	r:rdx	i:-0x4
+@0x424138
+⊞	lea	r:rax	m:r10::1:0x4:8
 @0x42413c
 ⋈	mov	m:rbp::1:-0xa0:8	r:rax
 @0x424143
@@ -75914,12 +75914,12 @@
 ⊞	shl	r:rdx	i:0x8
 @0x426642
 ⊞	or	r:rdx	r:r8
-@0x426649
-⊞	or	r:bl	r:ch
-@0x42664b
-⊞	or	r:al	i:0x49
-@0x42664d
-⊤	cmp	r:ecx	i:0x3
+@0x426645
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x42664a
+≺	jmp	i:0x426658
+@0x42664c
+⊤	cmp	r:r9	i:0x3
 @0x426650
 ∈	be	i:0x42654e
 @0x426656
@@ -78540,9 +78540,11 @@
 ⊞	shl	r:rdx	i:0x8
 @0x427a0d
 ⊞	or	r:rdx	r:rsi
-@0x427a14
-⊞	or	r:bl	r:ch
-@0x427a16
+@0x427a10
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x427a15
+≺	jmp	i:0x427a7d
+@0x427a17
 ⊤	cmp	r:r9b	i:0x8
 @0x427a1b
 ∈	ne	i:0x428437
@@ -78576,20 +78578,18 @@
 ⊞	shl	r:rdx	i:0x8
 @0x427a55
 ⊞	or	r:rdx	r:rsi
-@0x427a5c
-⊞	or	r:cl	r:ch
-@0x427a5e
-⊡	or	m:rax::1:0x0:4	r:eax
-@0x427a61
-⊡	add	m:rcx::1:-0x7d:1	r:cl
-@0x427a65
-⊞	add	r:ecx	m:rdi::1:0x0:4
-@0x427a67
-⋈	xchg	m:rbx:rcx:1:-0x7cb70000:1	r:al
-@0x427a6e
-⊞	sar	r:ah	i:0x48
-@0x427a71
-⊞	lea	r:ecx	m:rax::1:0x4:4
+@0x427a58
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x427a5d
+≺	jmp	i:0x428452
+@0x427a62
+⊤	cmp	r:r8	i:0x3
+@0x427a66
+∈	be	i:0x4285f0
+@0x427a6c
+⊞	add	r:r8	i:-0x4
+@0x427a70
+⊞	lea	r:rcx	m:rax::1:0x4:8
 @0x427a74
 ⋈	mov	m:rsi::1:0x0:8	r:rcx
 @0x427a77
@@ -78674,12 +78674,10 @@
 ⊞	shl	r:rdx	i:0x8
 @0x427b14
 ⊞	or	r:rdx	r:rsi
-@0x427b1b
-⊞	or	r:cl	r:ch
-@0x427b1d
-∈	o	i:0x427b28
-@0x427b1f
-⊡	add	m:rax::1:0x0:1	r:al
+@0x427b17
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x427b1c
+≺	jmp	i:0x428491
 @0x427b21
 ⊤	cmp	r:r8	i:0x3
 @0x427b25
@@ -79046,8 +79044,12 @@
 ⊞	shl	r:rdx	i:0x8
 @0x427dd2
 ⊞	or	r:rdx	r:rsi
-@0x427dd9
-⊡	or	m:rcx::1:0x8e9c1d1:1	r:cl
+@0x427dd5
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x427dda
+⋈	mov	r:ecx	r:edx
+@0x427ddc
+⊞	shr	r:ecx	i:0x8
 @0x427ddf
 ⋈	mov	r:rsi	r:rdx
 @0x427de2
@@ -79218,18 +79220,14 @@
 ⊞	shl	r:rdx	i:0x8
 @0x427f24
 ⊞	or	r:rdx	r:rsi
-@0x427f2b
-⊞	or	r:cl	r:ch
-@0x427f2e
-⊡	or	m:rax::1:0x0:1	r:al
-@0x427f30
-⊡	add	m:rbp::1:-0x7b:1	r:cl
-@0x427f33
-⊡	ror	m:rdi::1:0x0:1	i:0x84
-@0x427f36
-⊤	test	r:al	i:0x2
-@0x427f38
-⊡	add	m:rax::1:0x0:1	r:al
+@0x427f27
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x427f2c
+≺	jmp	i:0x428748
+@0x427f31
+⊤	test	r:r8	r:r8
+@0x427f34
+∈	e	i:0x4281e2
 @0x427f3a
 ⊞	dec	r:r8
 @0x427f3d
@@ -79370,22 +79368,18 @@
 ⊞	shl	r:rdx	i:0x8
 @0x428050
 ⊞	or	r:rdx	r:rsi
-@0x428057
-⊞	or	r:cl	r:ch
-@0x42805a
-⊞	add	r:al	i:0x0
-@0x42805c
-⊡	add	m:rcx::1:-0x77:1	r:cl
-@0x42805f
-⊡	inc	m:rbx::1:-0x7af0fd07:1
-@0x428065
-⊡	stos	i:0x4
-@0x428066
-⊞	add	r:al	i:0x0
-@0x428068
-⊡	add	m:rdi::1:0x0:1	r:cl
-@0x42806a
-⋈	mov	r:dh	i:0xd2
+@0x428053
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x428058
+≺	jmp	i:0x4284f0
+@0x42805d
+⋈	mov	r:r14	r:rdi
+@0x428060
+⊤	cmp	r:ecx	i:0x2
+@0x428063
+∈	ne	i:0x428514
+@0x428069
+⋈	movzx	r:edx	r:dl
 @0x42806c
 ⊞	lea	r:rdi	m:rbp::1:-0x38:8
 @0x428070
@@ -79540,8 +79534,12 @@
 ⊞	shl	r:rdx	i:0x8
 @0x428193
 ⊞	or	r:rdx	r:rsi
-@0x42819a
-⊡	or	m:rcx::1:0x8e9c1d1:1	r:cl
+@0x428196
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x42819b
+⋈	mov	r:ecx	r:edx
+@0x42819d
+⊞	shr	r:ecx	i:0x8
 @0x4281a0
 ⋈	mov	r:rsi	r:rdx
 @0x4281a3
@@ -79700,16 +79698,12 @@
 ⊞	shl	r:rdx	i:0x8
 @0x4282d2
 ⊞	or	r:rdx	r:rsi
-@0x4282d9
-⊞	or	r:cl	r:ch
-@0x4282dc
-⊞	add	r:al	m:rax::1:0x0:1
-@0x4282de
-⊡	add	m:rcx::1:-0x46:1	r:al
-@0x4282e1
-⊡	or	m:rax::1:0x0:4	r:eax
-@0x4282e3
-⊡	add	m:rax::1:0x0:1	r:al
+@0x4282d5
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x4282da
+≺	jmp	i:0x4285cc
+@0x4282df
+⋈	mov	r:r10d	i:0x9
 @0x4282e5
 ⊞	xor	r:ecx	r:ecx
 @0x4282e7
@@ -80430,8 +80424,12 @@
 ⊞	shl	r:rdx	i:0x8
 @0x42888b
 ⊞	or	r:rdx	r:rsi
-@0x428892
-⊡	or	m:rcx::1:0x8e9c1d1:1	r:cl
+@0x42888e
+⊞	shrd	r:rdx	r:rcx	i:0x8
+@0x428893
+⋈	mov	r:ecx	r:edx
+@0x428895
+⊞	shr	r:ecx	i:0x8
 @0x428898
 ⋈	mov	r:rsi	r:rdx
 @0x42889b
@@ -81698,8 +81696,10 @@
 ⊞	shl	r:r8	i:0x8
 @0x4293b4
 ⊞	or	r:r8	r:rdi
-@0x4293bb
-⊞	or	r:bl	r:ch
+@0x4293b7
+⊞	shrd	r:r8	r:rcx	i:0x8
+@0x4293bc
+≺	jmp	i:0x42942d
 @0x4293be
 ⋈	mov	m:rbp::1:-0x48:4	i:0x0
 @0x4293c5
@@ -81840,12 +81840,12 @@
 ⊞	shl	r:r9	i:0x8
 @0x4294f7
 ⊞	or	r:r9	r:rdi
-@0x4294fd
-⋈	leave
-@0x4294fe
-⊞	or	r:bl	r:ch
-@0x429500
-⊞	or	r:eax	i:0x3f88349
+@0x4294fa
+⊞	shrd	r:r9	r:rcx	i:0x8
+@0x4294ff
+≺	jmp	i:0x42950e
+@0x429501
+⊤	cmp	r:r8	i:0x3
 @0x429505
 ∈	be	i:0x42993a
 @0x42950b
@@ -81888,10 +81888,12 @@
 ⊞	shl	r:r8	i:0x8
 @0x429559
 ⊞	or	r:r8	r:rdi
-@0x429560
-⊞	or	r:bl	r:ch
-@0x429562
-⊞	or	r:eax	i:0x3f88349
+@0x42955c
+⊞	shrd	r:r8	r:rcx	i:0x8
+@0x429561
+≺	jmp	i:0x429570
+@0x429563
+⊤	cmp	r:r8	i:0x3
 @0x429567
 ∈	be	i:0x429943
 @0x42956d
@@ -88432,10 +88434,12 @@
 ⊞	or	r:r14	r:r8
 @0x42c783
 ⊞	shl	r:r14	i:0x8
-@0x42c78b
-⊡	or	m:rax::1:-0x7d:1	r:cl
-@0x42c78e
-⋈	mov	r:eax	i:0x104d8d49
+@0x42c787
+⊞	shrd	r:r14	r:rcx	i:0x8
+@0x42c78c
+⊞	add	r:rdi	i:-0x10
+@0x42c790
+⊞	lea	r:rcx	m:r13::1:0x10:8
 @0x42c794
 ⋈	mov	m:rsi::1:0x20:8	r:rcx
 @0x42c798
@@ -88460,8 +88464,8 @@
 ⊞	or	r:r8	r:r9
 @0x42c7c1
 ⋈	mov	r:r9	m:rsp::1:-0x68:8
-@0x42c7c9
-⊡	ror	m:rax::1:0x0:1	i:0x1
+@0x42c7c6
+⊞	shrd	r:r8	r:rdx	i:0x8
 @0x42c7cb
 ≺	jmp	i:0x42c809
 @0x42c7cd
@@ -89102,10 +89106,10 @@
 ⊞	shl	r:r14	i:0x8
 @0x42ccc2
 ⊞	or	r:r14	r:r8
-@0x42ccc8
-⋈	mov	m:rax::1:0x0:1	i:0x45
-@0x42cccb
-⋈	mov	r:ebx	r:esi
+@0x42ccc5
+⊞	shrd	r:r14	r:rax	i:0x8
+@0x42ccca
+⋈	mov	r:r11d	r:r14d
 @0x42cccd
 ⊞	shr	r:r11d	i:0x8
 @0x42ccd1
@@ -89238,10 +89242,10 @@
 ⊞	or	r:r14	r:rdx
 @0x42cde4
 ⊞	shl	r:r14	i:0x8
-@0x42cdeb
-⋈	mov	m:rax::1:0x0:1	i:0x48
-@0x42cdee
-⊞	add	r:edi	i:-0x11
+@0x42cde8
+⊞	shrd	r:r14	r:rax	i:0x8
+@0x42cded
+⊞	add	r:rdi	i:-0x11
 @0x42cdf1
 ⊞	lea	r:rdx	m:r13::1:0x11:8
 @0x42cdf5
@@ -89268,10 +89272,10 @@
 ⊞	or	r:r8	r:r9
 @0x42ce22
 ⋈	mov	r:r9	m:rsp::1:-0x68:8
-@0x42ce2a
-⊡	ror	m:rax::1:0x0:1	i:0x45
-@0x42ce2d
-⋈	mov	r:ebx	r:esi
+@0x42ce27
+⊞	shrd	r:r8	r:rax	i:0x8
+@0x42ce2c
+⋈	mov	r:r11d	r:r14d
 @0x42ce2f
 ⊞	shr	r:r11d	i:0x8
 @0x42ce33
@@ -89314,12 +89318,12 @@
 ⊞	shl	r:r14	i:0x8
 @0x42ce83
 ⊞	or	r:r14	r:rdx
-@0x42ce89
-⋈	mov	m:rax::1:0x0:1	i:-0x15
-@0x42ce8c
-∈	a	i:0x42ced6
-@0x42ce8e
-⊤	cmp	r:ebx	i:0x3
+@0x42ce86
+⊞	shrd	r:r14	r:rax	i:0x8
+@0x42ce8b
+≺	jmp	i:0x42cf04
+@0x42ce8d
+⊤	cmp	r:rbx	i:0x3
 @0x42ce91
 ∈	be	i:0x42d459
 @0x42ce97
@@ -89800,20 +89804,16 @@
 ⊞	shl	r:r14	i:0x8
 @0x42d268
 ⊞	or	r:r14	r:r9
-@0x42d26e
-⋈	mov	m:rax::1:0x0:1	i:-0x17
-@0x42d272
-⊞	dec	r:bh
-@0x42d274
-⊡	dec	m:rcx::1:-0x7d:4
-@0x42d278
-⊞	add	r:ecx	m:rdi::1:0x0:4
-@0x42d27a
-⋈	xchg	m:rax::1:0x0:1	r:ah
-@0x42d27c
-⊞	add	r:eax	m:rax::1:0x0:4
-@0x42d27e
-⊡	add	m:rbx:rcx:4:0x32:1	r:al
+@0x42d26b
+⊞	shrd	r:r14	r:rax	i:0x8
+@0x42d270
+≺	jmp	i:0x42d0a4
+@0x42d275
+⊤	cmp	r:r9	i:0x3
+@0x42d279
+∈	be	i:0x42d59f
+@0x42d27f
+⋈	mov	r:r14d	m:rdx::1:0x0:4
 @0x42d282
 ≺	jmp	i:0x42d0a4
 @0x42d287
@@ -89846,10 +89846,10 @@
 ⊞	shl	r:rdx	i:0x8
 @0x42d2c2
 ⊞	or	r:rdx	r:r9
-@0x42d2c8
-⊣	ret	i:0x4808
-@0x42d2cb
-⋈	mov	m:rsp::1:-0x48:4	r:edx
+@0x42d2c5
+⊞	shrd	r:rdx	r:rax	i:0x8
+@0x42d2ca
+⋈	mov	m:rsp::1:-0x48:8	r:rdx
 @0x42d2cf
 ⋈	mov	m:rsi::1:0x10:8	r:rdx
 @0x42d2d3
@@ -89892,10 +89892,12 @@
 ⊞	shl	r:r14	i:0x8
 @0x42d323
 ⊞	or	r:r14	r:r10
-@0x42d329
-⋈	mov	m:rax::1:0x0:1	i:-0x15
-@0x42d32c
-⊞	or	r:eax	i:0x3fb8349
+@0x42d326
+⊞	shrd	r:r14	r:rax	i:0x8
+@0x42d32b
+≺	jmp	i:0x42d33a
+@0x42d32d
+⊤	cmp	r:r11	i:0x3
 @0x42d331
 ∈	be	i:0x42d59f
 @0x42d337
@@ -89962,10 +89964,10 @@
 ⊞	shl	r:r9	i:0x8
 @0x42d3c7
 ⊞	or	r:r9	r:r10
-@0x42d3cd
-⊡	ror	m:rax::1:0x0:4	i:0x4c
-@0x42d3d0
-⋈	mov	m:rsp::1:-0x40:4	r:ecx
+@0x42d3ca
+⊞	shrd	r:r9	r:rax	i:0x8
+@0x42d3cf
+⋈	mov	m:rsp::1:-0x40:8	r:r9
 @0x42d3d4
 ≺	jmp	i:0x42d0ca
 @0x42d3d9
@@ -90360,12 +90362,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x42d6bc
 ⊞	or	r:rax	r:rsi
-@0x42d6c3
-⊡	or	m:rax::1:-0x77:1	r:cl
-@0x42d6c6
-⊞	or	r:r14b	r:r8b
-@0x42d6ca
-⋈	push	r:rdx
+@0x42d6bf
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x42d6c4
+⋈	mov	m:rdi::1:0x8:8	r:rax
+@0x42d6c8
+⋈	mov	m:rdi::1:0x0:1	i:0x52
 @0x42d6cb
 ⊣	ret
 @0x42d6cc
@@ -90426,12 +90428,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x42d72c
 ⊞	or	r:rax	r:rsi
-@0x42d733
-⊡	or	m:rax::1:-0x77:1	r:cl
-@0x42d736
-⊞	or	r:r14b	r:r8b
-@0x42d73a
-⋈	push	r:rdx
+@0x42d72f
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x42d734
+⋈	mov	m:rdi::1:0x8:8	r:rax
+@0x42d738
+⋈	mov	m:rdi::1:0x0:1	i:0x52
 @0x42d73b
 ⊣	ret
 @0x42d73c
@@ -95846,12 +95848,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x42ff50
 ⊞	or	r:rax	r:rsi
-@0x42ff57
-⊞	or	r:cl	r:ch
-@0x42ff59
-≺	jmp	i:0x4c42ff63
-@0x42ff5e
-⋈	mov	r:eax	m:rsi::1:0x0:4
+@0x42ff53
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x42ff58
+≺	jmp	i:0x430546
+@0x42ff5d
+⋈	mov	r:r8	m:rsi::1:0x0:8
 @0x42ff60
 ⋈	mov	r:r9	m:rsi::1:0x8:8
 @0x42ff64
@@ -96190,12 +96192,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x4301cd
 ⊞	or	r:rax	r:rsi
-@0x4301d4
-⊞	or	r:cl	r:ch
-@0x4301d7
-⊞	add	r:eax	m:rax::1:0x0:4
-@0x4301d9
-⊡	add	m:rax::1:-0x75:1	r:cl
+@0x4301d0
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x4301d5
+≺	jmp	i:0x4305d6
+@0x4301da
+⋈	mov	r:rax	m:rsi::1:0x0:8
 @0x4301dd
 ⋈	mov	r:rcx	m:rsi::1:0x8:8
 @0x4301e1
@@ -96276,8 +96278,12 @@
 ⊞	shl	r:rax	i:0x8
 @0x430273
 ⊞	or	r:rax	r:rsi
-@0x43027a
-⊡	or	m:rcx::1:0x8e9c1c1:1	r:cl
+@0x430276
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x43027b
+⋈	mov	r:ecx	r:eax
+@0x43027d
+⊞	shr	r:ecx	i:0x8
 @0x430280
 ⋈	mov	r:rdx	r:rax
 @0x430283
@@ -96576,12 +96582,10 @@
 ⊞	shl	r:rax	i:0x8
 @0x4304c6
 ⊞	or	r:rax	r:rsi
-@0x4304cd
-⊞	or	r:cl	r:ch
-@0x4304cf
-⊞	adc	r:al	m:rdx::1:0x0:1
-@0x4304d1
-⊡	add	m:rax::1:0x0:1	r:al
+@0x4304c9
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x4304ce
+≺	jmp	i:0x4306e5
 @0x4304d3
 ⊤	cmp	r:dl	i:0x8
 @0x4304d6
@@ -96620,12 +96624,10 @@
 ⊞	shl	r:rax	i:0x8
 @0x430517
 ⊞	or	r:rax	r:rsi
-@0x43051e
-⊞	or	r:cl	r:ch
-@0x430520
-⊞	add	r:eax	m:rdx::1:0x0:4
-@0x430522
-⊡	add	m:rax::1:0x0:1	r:al
+@0x43051a
+⊞	shrd	r:rax	r:rcx	i:0x8
+@0x43051f
+≺	jmp	i:0x430727
 @0x430524
 ⋈	mov	r:rax	m:rsi::1:0x0:8
 @0x430527
@@ -98654,10 +98656,10 @@
 ⊞	shl	r:rcx	i:0x8
 @0x4314b5
 ⊞	or	r:rcx	r:rbx
-@0x4314bb
-⊡	ror	m:rax::1:0x0:4	i:0x41
-@0x4314be
-⋈	mov	r:al	i:0x8
+@0x4314b8
+⊞	shrd	r:rcx	r:r8	i:0x8
+@0x4314bd
+⋈	mov	r:r8b	i:0x8
 @0x4314c0
 ⋈	mov	r:r11	r:r10
 @0x4314c3
@@ -98716,10 +98718,10 @@
 ⊞	shl	r:rbx	i:0x8
 @0x431530
 ⊞	or	r:rbx	r:r15
-@0x431536
-⊞	or	r:bl	r:ch
-@0x431539
-⊞	pushad
+@0x431533
+⊞	shrd	r:rbx	r:r14	i:0x8
+@0x431538
+≺	jmp	i:0x43159a
 @0x43153a
 ⋈	mov	m:rsp::1:-0x8:2	i:0x0
 @0x431541
@@ -108964,12 +108966,14 @@
 ⊡	rol	m:rsi::2:0xf:1	i:0x74
 @0x436251
 ⊡	shl	m:rsi::1:0xf:4	i:0x70
-@0x43625a
-⊡	shl	m:rsi::1:0xf:4	i:0x6d
-@0x43625e
-⊣	ret	i:0xf66
+@0x436257
+⊞	pandn	r:xmm0	r:xmm1
+@0x43625b
+⊞	punpckhqdq	r:xmm0	r:xmm2
 @0x436261
 ∈	no	i:0x436253
+@0x436263
+⊞	pcmpgtd	r:xmm1	m:rdi::1:0x0:16
 @0x436266
 ⋈	movsxd	r:rax	r:eax
 @0x436268

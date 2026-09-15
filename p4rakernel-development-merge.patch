@@ -1,0 +1,9 @@
+*** Begin Patch
+*** Update File: /home/mrnob0dy666/imsgct/p4rakernel/commit.txt
+@@
+-I execute the nested factor machine through vox
++I restore the development branch to the primary p4rakernel checkout
+@@
+-I add an unboxed Lean factor machine whose phase generation, arithmetic, branch control, selection, continuation, fixation, and emission compile into the control flow that vox executes in the twelve marks. I include the factorization gate checks and the working lifted shared-object control.
++I merge crystalline/millennium-ovms-2026-08-23 into p4rakernel, retaining both histories and the latest README.md and README.md.bak from p4rakernel. I restore the development modules and artifacts omitted from the earlier main/p4rakernel reconciliation. I preserve main's additions and keep this merge local.
+*** End Patch

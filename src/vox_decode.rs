@@ -211,6 +211,10 @@ pub fn decode_one(b: &[u8], addr: u64) -> Option<Decoded> {
                 modrm(&mut c)?;
                 Some(Decoded { len: c.i, mnemonic: "imul", target: None, writes_mem: false })
             }
+            0x66 | 0xDF => {
+                let (_, mem) = modrm(&mut c)?;
+                Some(Decoded { len: c.i, mnemonic: if op2 == 0x66 { "pcmpgtd" } else { "pandn" }, target: None, writes_mem: mem })
+            }
             0xA3 | 0xAB | 0xB3 | 0xBB | 0xBC | 0xBD => {
                 let (_, mem) = modrm(&mut c)?;
                 Some(Decoded { len: c.i, mnemonic: "bt", target: None, writes_mem: mem })
@@ -593,6 +597,7 @@ pub fn lift_bytes(base: u64, bytes: &[u8]) -> Lift {
                 };
                 out.push(Instruction {
                     address: addr,
+                    fallthrough: if is_terminal(d.mnemonic) {None} else {Some(addr+d.len as u64)},
                     mnemonic: d.mnemonic.to_string(),
                     op_str,
                 });
@@ -661,6 +666,7 @@ impl Image {
 fn instruction_of(d: &Decoded, addr: u64, raw: &[u8]) -> Instruction {
     Instruction {
         address: addr,
+        fallthrough: if is_terminal(d.mnemonic) {None} else {Some(addr+d.len as u64)},
         mnemonic: d.mnemonic.to_string(),
         op_str: match d.target {
             Some(t) => format!("0x{:x}", t),
@@ -950,5 +956,20 @@ pub fn walk(image: &Image, entry: u64, seeds: &[u64]) -> Walk {
         claimed_bytes: bytes,
         total_bytes: image.total_bytes(),
         functions,
+    }
+}
+
+/// Exact runtime ABI contracts, not guessed from a function's verdict or name
+/// fragments. Unknown calls retain their continuation conservatively.
+pub fn mark_noreturn(functions: &mut [(u64, Vec<Instruction>)], symbols: &BTreeMap<String,u64>) {
+    let targets: BTreeSet<u64> = symbols.iter().filter_map(|(name,&addr)| {
+        if matches!(name.as_str(),"abort"|"_Exit"|"_exit"|"exit"|"__stack_chk_fail") {Some(addr)} else {None}
+    }).collect();
+    for (_,body) in functions {
+        for ins in body {
+            if ins.mnemonic=="call" && direct_target(ins).map(|a|targets.contains(&a)).unwrap_or(false) {
+                ins.fallthrough=None;
+            }
+        }
     }
 }

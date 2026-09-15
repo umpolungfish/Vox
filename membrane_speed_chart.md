@@ -1,5 +1,7 @@
 # Membrane speeds and complete IMASM modules
 
+Latest run: [87-test regression suite and five-run execution tables](membrane_test_tables.md).
+
 The linked `.imasm` files contain the lifted executable operations, symbols and
 baked data. Each listed run executes the saved module through `vox run`, exits
 with status zero inside the VM, and matches its native executable's stdout and
@@ -14,6 +16,9 @@ stderr exactly. `membrane_one.sh` performs and checks the whole pipeline.
 | Schütte | 23 vertices; k=2,3 | [Module](membranes/schutte_one/23_2_3/payload.elf.imasm) | 0.17 s | 148,959 |
 | Landau | 10, 15, 45 | [Module](membranes/landau_one/10_15_45/payload.elf.imasm) | 0.11 s | 63,650 |
 | Distinct triple sums | 24 | [Module](membranes/tripsum_one/24/payload.elf.imasm) | 11.50 s | 11,934,728 |
+| Binomial-row GCD | 0, 1, 2, 8, 9, 12, 25, 27, 30, 81, 120, 81 | [Module](membranes/binomial_one/0_1_2_8_9_12_25_27_30_81_120_81/payload.elf.imasm) | 0.14 s | 99,220 |
+| Cumulative LCM | 0, 1, 10, 20, 40, 80, 100, 10 | [Module](membranes/lcm_one/0_1_10_20_40_80_100_10/payload.elf.imasm) | 0.12 s | 70,751 |
+| Rep-tiling | 1,2,3,4,5,6,7,8,9,10,18,20,25,26,100,1000,6 | [Module](membranes/reptiling_one/1_2_3_4_5_6_7_8_9_10_18_20_25_26_100_1000_6/payload.elf.imasm) | 1.80 s | 2,717,665 |
 
 Each module's directory contains `native.stdout`, `vox.stdout`, both stderr
 streams, `output.diff` (empty on agreement), and `vox.time`. Vox elapsed time is
@@ -21,6 +26,18 @@ a single whole-process wall-clock reading, including module loading and
 interpretation. Compilation and lifting are excluded. These are different
 measurements from the native kernel timings below; they do not establish a Vox
 speedup. The historical 160-bit factor payload has not been verified in Vox.
+
+The prime-power membranes share preparation across each payload's readouts.
+LCM uses checked u128 and reports overflow at n=100. Its n=80 result is
+32433859254793982911622772305630400, verified with standard decimal formatting.
+See [source, controls and instruction diagnosis](membrane_prime_power_notes.md).
+
+The first native timing sample in `membrane_wave4_checks.log` records 1,000
+sweeps of rows 2..30 and LCM queries 0..40. Shared preparation took 14.400 µs;
+row readouts took 25.100 µs versus 37.462488 ms for repeated original row
+construction (948.42× including preparation). LCM readouts took 60.800 µs
+versus 21.994393 ms for repeated checked-u128 LCM scans (292.48× including
+preparation). These are amortized native controls, not Vox speedup measurements.
 
 ## Resident circuit controls
 

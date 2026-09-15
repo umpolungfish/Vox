@@ -1,0 +1,7 @@
+membranes/words/landau.elf  elf  entry 0x4065a2  321071 byte(s) of code
+  1205 function(s), 64839 instruction(s)
+  claimed 80% of the image (257477 of 321071 bytes)
+
+  1205 function(s) by descent, 1633 more by fallback sweep
+  covered 100% of the image (321071 of 321071 bytes)
+  verdicts  T 147   B 922   N 1769   F 0  (F: 0 from descent, 0 from fallback sweep)

@@ -1,0 +1,12 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 12.48s
+     Running unittests src/lib.rs (target/release/deps/vox-aa338126806b3fc1)
+
+running 4 tests
+test glyph_module::tests::nested_byte_payload_preserves_all_bytes ... ok
+test glyph_module::tests::execution_and_symbols_survive_roundtrip ... ok
+test glyph_module::tests::lossless_glyph_only_roundtrip ... ok
+test glyph_module::tests::malformed_words_fail_closed ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 47 filtered out; finished in 0.00s
+

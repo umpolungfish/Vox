@@ -1,0 +1,7 @@
+membranes/words/shor.elf  elf  entry 0x40674e  354571 byte(s) of code
+  1245 function(s), 72652 instruction(s)
+  claimed 81% of the image (290504 of 354571 bytes)
+
+  1245 function(s) by descent, 1663 more by fallback sweep
+  covered 100% of the image (354571 of 354571 bytes)
+  verdicts  T 156   B 936   N 1816   F 0  (F: 0 from descent, 0 from fallback sweep)

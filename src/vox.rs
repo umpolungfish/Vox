@@ -27,6 +27,8 @@ pub const ENGAGR: char = '⊞';
 #[derive(Clone, Debug)]
 pub struct Instruction {
     pub address: u64,
+    /// Actual next instruction address, absent for terminal/non-returning flow.
+    pub fallthrough: Option<u64>,
     pub mnemonic: String,
     pub op_str: String,
 }
@@ -73,8 +75,8 @@ const MOVE_OPS: &[&str] = &["mov", "movzx", "movsx", "movsxd", "movabs",
 
 /// Arithmetic/logic instructions (engagement)
 const ENGAGE_OPS: &[&str] = &["add", "sub", "adc", "sbb", "imul", "mul", "idiv", "div",
-    "and", "or", "xor", "not", "neg", "inc", "dec", "shl", "shr", "sar", "rol",
-    "ror", "sal", "bt", "bsf", "bsr", "popcnt", "cdq", "cqo", "cwde",
+    "and", "or", "xor", "not", "neg", "inc", "dec", "shl", "shr", "shld", "shrd", "sar", "rol",
+    "ror", "sal", "bt", "bsf", "bsr", "popcnt", "cdq", "cqo", "cwde", "pcmpgtd", "pandn",
     "pushfd", "pushfq", "popfd", "popfq", "lahf", "sahf"];
 
 /// Terminal instructions
@@ -172,47 +174,76 @@ impl AddrSet {
     }
 }
 
-/// Compute merge points: addresses with ≥2 predecessors
-pub fn compute_merges(insns: &[Instruction]) -> Vec<u64> {
-    let aset = AddrSet::from_sorted(insns.iter().map(|i| i.address).collect());
+struct FlowFrames {
+    reachable: Vec<bool>,
+    order: Vec<usize>,
+    joins: Vec<usize>,
+    loop_open: Vec<usize>,
+    loop_close: Vec<usize>,
+}
 
-    let mut preds: BTreeMap<u64, u32> = BTreeMap::new();
-
-    for idx in 0..insns.len() {
-        let mn = strip_prefix(&insns[idx].mnemonic);
-        let terminates = mn == "jmp" || mn.starts_with("ret");
-
-        // Fall-through edge
-        if !terminates && idx + 1 < insns.len() {
-            let target = insns[idx + 1].address;
-            *preds.entry(target).or_insert(0) += 1;
-        }
-
-        // Jump edge
+/// Separate feedback from forward joins by a DFS of actual CFG edges.
+/// Each DFS backedge owns a loop frame, opened at its header and closed at
+/// its latch. Other predecessors contribute arity-1 forward fuses. Address
+/// order alone cannot distinguish a backedge from a backwards shared tail.
+fn flow_frames(insns: &[Instruction]) -> FlowFrames {
+    let n=insns.len();
+    let mut result=FlowFrames { reachable:vec![false;n], order:Vec::new(), joins:vec![0;n],
+        loop_open:vec![0;n], loop_close:vec![0;n] };
+    if n==0 { return result; }
+    let addresses: BTreeMap<_,_>=insns.iter().enumerate().map(|(i,ins)|(ins.address,i)).collect();
+    let mut edges=vec![Vec::new();n];
+    for (i,ins) in insns.iter().enumerate() {
+        if let Some(j)=ins.fallthrough.and_then(|a|addresses.get(&a).copied()) { edges[i].push(j); }
+        let mn=strip_prefix(&ins.mnemonic);
         if mn.starts_with('j') {
-            if let Some(t) = parse_imm(&insns[idx].op_str) {
-                if aset.contains(t) {
-                    *preds.entry(t).or_insert(0) += 1;
-                }
+            if let Some(j)=parse_imm(&ins.op_str).and_then(|a|addresses.get(&a).copied()) { edges[i].push(j); }
+        }
+    }
+    let mut color=vec![0u8;n];
+    let mut predecessors=vec![0usize;n];
+    let mut stack=vec![(0usize,0usize)];
+    color[0]=1; result.reachable[0]=true;
+    while let Some((i,next))=stack.last_mut() {
+        if *next==edges[*i].len() { color[*i]=2; result.order.push(*i); stack.pop(); continue; }
+        let source=*i;
+        let target=edges[source][*next]; *next+=1;
+        if color[target]==1 {
+            result.loop_open[target]+=1;
+            result.loop_close[source]+=1;
+        } else {
+            predecessors[target]+=1;
+            if color[target]==0 {
+                color[target]=1; result.reachable[target]=true; stack.push((target,0));
             }
         }
     }
+    for i in 0..n { result.joins[i]=predecessors[i].saturating_sub(1); }
+    // Reverse postorder is topological once DFS feedback edges are framed.
+    // A shared tail may be earlier in memory than an incoming branch; emitting
+    // address order would close that branch before its work appears in the word.
+    result.order.reverse();
+    result
+}
 
-    preds.into_iter().filter(|(_, c)| *c >= 2).map(|(a, _)| a).collect()
+/// Forward-join addresses, repeated for each arity-reducing fuse. Feedback
+/// uses explicit loop frames instead of orphan joins.
+pub fn compute_merges(insns: &[Instruction]) -> Vec<u64> {
+    let frames=flow_frames(insns);
+    insns.iter().enumerate().flat_map(|(i,ins)|core::iter::repeat(ins.address).take(frames.joins[i])).collect()
 }
 
 /// Lift a function's instruction list to an IMASM word
 pub fn recompile_function(insns: &[Instruction]) -> Vec<char> {
-    // `compute_merges` returns ascending addresses, so membership is a binary
-    // search. `Vec::contains` here would make the lift quadratic again.
-    let merges = compute_merges(insns);
+    let frames = flow_frames(insns);
     let mut tokens = vec![VINIT];
 
-    for ins in insns {
-        if merges.binary_search(&ins.address).is_ok() {
-            tokens.push(FFUSE);
-        }
+    for &i in &frames.order {
+        let ins=&insns[i];
+        tokens.extend(core::iter::repeat(FFUSE).take(frames.joins[i]));
+        tokens.extend(core::iter::repeat(FSPLIT).take(frames.loop_open[i]));
         tokens.push(classify_instruction(ins));
+        tokens.extend(core::iter::repeat(FFUSE).take(frames.loop_close[i]));
     }
 
     tokens

@@ -1,0 +1,12 @@
+ports=8 levels=3 load=263.60188ms prepare=112.2µs prepare_steps=52
+gates=0000000000000000 feedback=0 activate=584.198µs steps=618 max_error=0.000e0
+gates=0000000000000001 feedback=0 activate=520.698µs steps=619 max_error=0.000e0
+gates=0000000000000003 feedback=0 activate=651.697µs steps=620 max_error=5.551e-17
+gates=0123456789abcdef feedback=0 activate=513.897µs steps=625 max_error=1.277e-15
+gates=ffffffffffffffff feedback=1 activate=538.698µs steps=641 max_error=1.176e-15
+gates=5555555555555555 feedback=1 activate=556.297µs steps=625 max_error=1.090e-15
+gates=0000000000000000 feedback=0 activate=605.997µs steps=618 max_error=0.000e0
+gates=8000000000000000 feedback=0 activate=590.297µs steps=618 max_error=0.000e0
+gates=0000000000000001 feedback=0 activate=605.897µs steps=619 max_error=0.000e0
+resident: preparations=1 activations=9 median_activation=584.198µs
+same_gates_control: cold_parse_prepare_activate=38.115724ms resident_activate=611.097µs ratio=62.37x samples=5

@@ -9,7 +9,7 @@
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::collections::BTreeMap;
 use alloc::format;
 
 use crate::x86::{self, Op};
@@ -18,7 +18,7 @@ use crate::loader;
 
 fn bits_of(arch: &str) -> u8 { if arch == "x86-32" { 32 } else { 64 } }
 
-const ENTRY: char = '⊢'; const TERM: char = '⊣'; const SPLIT: char = '∈'; const FUSE: char = '∋';
+const TERM: char = '⊣'; const SPLIT: char = '∈'; const FUSE: char = '∋';
 const CALL: char = '≻'; const XFER: char = '≺'; const INDIRECT: char = '⊙'; const COMMIT: char = '⊡';
 const LINK: char = '⋈'; const TRUTH: char = '⊤'; const CONSUME: char = '⊥'; const ENGAGE: char = '⊞';
 
@@ -81,21 +81,6 @@ fn encode(i: &x86::Insn, is_merge: bool) -> Vec<String> {
     lines
 }
 
-/// Merge points of one function: addresses with ≥2 predecessors.
-fn merges_of(insns: &[x86::Insn]) -> BTreeSet<u64> {
-    let aset: BTreeSet<u64> = insns.iter().map(|i| i.addr).collect();
-    let mut succ: BTreeMap<u64, u32> = BTreeMap::new();
-    for (idx, i) in insns.iter().enumerate() {
-        let mn = i.mnemonic.as_str();
-        let falls = !(mn == "jmp" || mn.starts_with("ret"));
-        if falls && idx + 1 < insns.len() { *succ.entry(insns[idx+1].addr).or_insert(0) += 1; }
-        if mn.starts_with('j') {
-            if let Some(t) = i.target { if aset.contains(&t) { *succ.entry(t).or_insert(0) += 1; } }
-        }
-    }
-    succ.into_iter().filter(|&(_, c)| c >= 2).map(|(a, _)| a).collect()
-}
-
 /// The whole binary as an executable IMASM module. Every executable byte is
 /// decoded linearly, so an address reached only through an indirect jump — a
 /// switch's jump-table arm, a call through a function pointer — is in the module
@@ -150,24 +135,14 @@ pub fn words(raw: &[u8]) -> String {
     let l = loader::load(raw);
     let image = vox_decode::Image { segments: l.code };
     let mut seeds: Vec<u64> = l.symbols.values().copied().collect(); seeds.push(l.entry);
-    let w = vox_decode::walk(&image, l.entry, &seeds);
+    let mut w = vox_decode::walk(&image, l.entry, &seeds);
+    vox_decode::mark_noreturn(&mut w.functions, &l.symbols);
     let mut out: Vec<String> = Vec::new();
     for (start, f) in &w.functions {
-        let mut insns: Vec<x86::Insn> = Vec::new();
-        for ins in f {
-            if let Some(bytes) = image.bytes_at(ins.address) {
-                if let Some(d) = x86::decode(bytes, ins.address) { insns.push(d); }
-            }
-        }
-        if insns.is_empty() { continue; }
-        let merges = merges_of(&insns);
-        // ENTRY, not a second "⊢" written out beside the constant that names it.
-        let mut word = String::new();
-        word.push(ENTRY);
-        for i in &insns {
-            if merges.contains(&i.addr) { word.push('∋'); }
-            word.push(classify(i));
-        }
+        if f.is_empty() { continue; }
+        // Audit and word export use the same CFG framing, including loop
+        // regions and non-returning calls. The executable module is unchanged.
+        let word = crate::vox::glyphs(&crate::vox::recompile_function(f));
         out.push(format!("0x{:x}\t{}", start, word));
     }
     out.join("\n")

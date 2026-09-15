@@ -1,0 +1,20 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+error[E0308]: `match` arms have incompatible types
+    --> src/main.rs:1099:13
+     |
+ 763 |       let code = match args.first().map(|s| s.as_str()) {
+     |                  -------------------------------------- `match` arms have incompatible types
+...
+ 966 | /             if let Err(error) = circuit_cli::run(&args[1..]) {
+ 967 | |                 eprintln!("{error}");
+ 968 | |                 1
+ 969 | |             } else { 0 }
+     | |________________________- this and all prior arms are found to be of type `i32`
+...
+1099 |               println!("saved {} ({} glyphs/characters)",args[2],result.chars().count());
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `i32`, found `()`
+     |
+     = note: this error originates in the macro `println` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `vox` (bin "vox") due to 1 previous error

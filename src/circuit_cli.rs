@@ -67,6 +67,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     let start = Instant::now();
     let module = std::fs::read_to_string(file).map_err(|e| e.to_string())?;
+    let module = if file.ends_with(".glyphs") || module.starts_with(vox::glyph_module::PREFIX) {
+        vox::glyph_module::decode(&module)?
+    } else { module };
     let mut machine = Machine::new(&module);
     let resolve = |name: &str| machine.resolve(name).ok_or_else(|| format!("missing circuit ABI symbol {name}"));
     let prepare = resolve("membrane_prepare")?;

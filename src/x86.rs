@@ -337,6 +337,12 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x40..=0x4F => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,format!("cmov{}",CC[(op2-0x40) as usize]),vec![rop(r,osz,rex.p),rm],false,None) }
         0x80..=0x8F => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,format!("j{}",CC[(op2-0x80) as usize]),vec![Op::Imm(t as i64)],false,Some(t)) }
         0x90..=0x9F => { let (rm,_)=modrm(c,rex,1,1)?; let wm=rm.is_mem(); ins!(addr,c,format!("set{}",CC[(op2-0x90) as usize]),vec![rm],wm,None) }
+        0xA4|0xA5|0xAC|0xAD => {
+            let (rm,r)=modrm(c,rex,osz,osz)?;
+            let count = if op2 & 1 == 0 { Op::Imm(c.imm(1,false)?) } else { rop(1,1,true) };
+            let wm=rm.is_mem();
+            ins!(addr,c,if op2 & 8 == 0 {"shld"} else {"shrd"},vec![rm,rop(r,osz,rex.p),count],wm,None)
+        }
         0xAF => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,"imul",vec![rop(r,osz,rex.p),rm],false,None) }
         // cmpxchg r/m, reg — the compare-and-swap glibc's locks turn on. Without
         // it the linear sweep desynced on the 0F B1 bytes, read the tail as a
@@ -426,11 +432,13 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xFB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubq",vec![rop(r,16,rex.p),rm],false,None) }
         0xEF => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pxor",vec![rop(r,16,rex.p),rm],false,None) }
         0xDB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pand",vec![rop(r,16,rex.p),rm],false,None) }
+        0xDF => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pandn",vec![rop(r,16,rex.p),rm],false,None) }
         0xEB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"por",vec![rop(r,16,rex.p),rm],false,None) }
         0xF4 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmuludq",vec![rop(r,16,rex.p),rm],false,None) }
         0x38 => { let op3=c.u8()?; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if op3==0x40{"pmulld"}else{"pshufb"},vec![rop(r,16,rex.p),rm],false,None) }
         0xC4 if o66 => { let (rm,r)=modrm(c,rex,4,2)?; let im=c.imm(1,false)?; ins!(addr,c,"pinsrw",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         0x70 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?; ins!(addr,c,"pshufd",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
+        0x66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpgtd",vec![rop(r,16,rex.p),rm],false,None) }
         0x73 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
                   ins!(addr,c,match g&7 {2=>"psrlq",3=>"psrldq",6=>"psllq",7=>"pslldq",_=>"psrlq"},vec![rm,Op::Imm(im)],false,None) }
         0x72 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;

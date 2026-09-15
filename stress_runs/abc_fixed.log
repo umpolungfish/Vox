@@ -1,0 +1,18 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 4.99s
+saved membranes/abc_one/0_1_2_9_32_81_200_400_600_800_1000_1000_2_0/payload.elf.imasm
+cutoff=2 a=1 b=1 c=2 discrepancy=0.000000000000
+cutoff=9 a=1 b=8 c=9 discrepancy=0.405465108108
+cutoff=32 a=1 b=8 c=9 discrepancy=0.405465108108
+cutoff=81 a=1 b=80 c=81 discrepancy=0.993251773010
+cutoff=200 a=3 b=125 c=128 discrepancy=1.450832882257
+cutoff=400 a=3 b=125 c=128 discrepancy=1.450832882257
+cutoff=600 a=1 b=512 c=513 discrepancy=1.504077396776
+cutoff=800 a=1 b=512 c=513 discrepancy=1.504077396776
+cutoff=1000 a=1 b=512 c=513 discrepancy=1.504077396776
+cutoff=1000 a=1 b=512 c=513 discrepancy=1.504077396776
+cutoff=2 a=1 b=1 c=2 discrepancy=0.000000000000
+cutoff=0 empty
+entry(...) exited(0)   [56369755 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/abc_one/0_1_2_9_32_81_200_400_600_800_1000_1000_2_0/payload.elf.imasm

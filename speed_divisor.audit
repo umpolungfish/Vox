@@ -1,0 +1,7 @@
+membranes/words/divisor.elf  elf  entry 0x4066e2  358825 byte(s) of code
+  1283 function(s), 73544 instruction(s)
+  claimed 81% of the image (294061 of 358825 bytes)
+
+  1283 function(s) by descent, 1705 more by fallback sweep
+  covered 100% of the image (358825 of 358825 bytes)
+  verdicts  T 154   B 962   N 1872   F 0  (F: 0 from descent, 0 from fallback sweep)

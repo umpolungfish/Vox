@@ -1,0 +1,41 @@
+    Blocking waiting for file lock on artifact directory
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 27.88s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+warning: field `lcms` is never read
+ --> src/bin/../prime_power_membrane.rs:5:5
+  |
+3 | pub struct PrimePowerMembrane {
+  |            ------------------ field in this struct
+4 |     rows: Vec<u64>,
+5 |     lcms: Vec<Option<u128>>,
+  |     ^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `lcm` is never used
+  --> src/bin/../prime_power_membrane.rs:36:12
+   |
+ 8 | impl PrimePowerMembrane {
+   | ----------------------- method in this implementation
+...
+36 |     pub fn lcm(&self, n: usize) -> Option<Option<u128>> { self.lcms.get(n).copied() }
+   |            ^^^
+
+warning: `vox` (bin "binomial_one") generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 4.86s
+saved membranes/binomial_one/0_1_2_8_9_12_25_27_30_81_120_81/payload.elf.imasm
+n=0 binomial_row_gcd=0
+n=1 binomial_row_gcd=0
+n=2 binomial_row_gcd=2
+n=8 binomial_row_gcd=2
+n=9 binomial_row_gcd=3
+n=12 binomial_row_gcd=1
+n=25 binomial_row_gcd=5
+n=27 binomial_row_gcd=3
+n=30 binomial_row_gcd=1
+n=81 binomial_row_gcd=3
+n=120 binomial_row_gcd=1
+n=81 binomial_row_gcd=3
+entry(...) exited(0)   [99220 steps in the twelve]
+Native control matches Vox output. Complete module: membranes/binomial_one/0_1_2_8_9_12_25_27_30_81_120_81/payload.elf.imasm

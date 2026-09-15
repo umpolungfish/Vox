@@ -1,0 +1,89 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 3.11s
+saved membranes/abc_one/1_10_0_2_9_32_1000/payload.elf.imasm
+entry(...) halted: no instruction at 0x300002230 after 38531 steps
+  previous 12:
+  40762e: ⋈ mov r:r8 m:rsp::1:0xb8:8
+  407636: ⋈ mov r:rdi m:rsp::1:0xc0:8
+  40763e: ⋈ mov r:r14 m:rsp::1:0x120:8
+  407646: ⋈ movabs r:rax i:-0x8000000000000000
+  407650: ⊤ cmp r:r14 r:rax
+  407653: ∈ ne i:0x4084ae
+  407659: ⊤ cmp r:rbx i:0x3
+  40765d: ⋈ mov m:rsp::1:0x0:8 r:rdi
+  407661: ⋈ mov m:rsp::1:0x8:8 r:r8
+  407666: ∈ b i:0x4083e3
+  40766c: ⋈ mov r:r14 m:rdi::1:0x8:8
+  407670: ⊤ test r:r14 r:r14
+  407673: ∈ e i:0x4083e3
+  407679: ⊞ lea r:r9 m:rdi::1:0x10:8
+  40767d: ⊞ xor r:eax r:eax
+  40767f: ⊞ nop
+  407680: ⊤ cmp r:rbp r:rax
+  407683: ∈ e i:0x40773c
+  407689: ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+  407691: ⊞ lea r:rax m:rax::1:0x8:8
+  407695: ∈ b i:0x407680
+  407680: ⊤ cmp r:rbp r:rax
+  407683: ∈ e i:0x40773c
+  407689: ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+  407691: ⊞ lea r:rax m:rax::1:0x8:8
+  407695: ∈ b i:0x407680
+  407680: ⊤ cmp r:rbp r:rax
+  407683: ∈ e i:0x40773c
+  407689: ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+  407691: ⊞ lea r:rax m:rax::1:0x8:8
+  407695: ∈ b i:0x407680
+  407680: ⊤ cmp r:rbp r:rax
+  407683: ∈ e i:0x40773c
+  407689: ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+  407691: ⊞ lea r:rax m:rax::1:0x8:8
+  407695: ∈ b i:0x407680
+  407680: ⊤ cmp r:rbp r:rax
+  407683: ∈ e i:0x40773c
+  407689: ⊤ cmp m:r9:rax:1:0x0:8 i:0xf4241
+  407691: ⊞ lea r:rax m:rax::1:0x8:8
+  407695: ∈ b i:0x407680
+  407680: ⊤ cmp r:rbp r:rax
+  407683: ∈ e i:0x40773c
+  40773c: ⋈ mov r:rsi m:rdi::1:0x10:8
+  407740: ⊤ cmp r:rbx i:0x3
+  407744: ⋈ mov m:rsp::1:0x180:8 r:rbp
+  40774c: ∈ e i:0x407904
+  407752: ⋈ movabs r:rdx i:0x1ffffffffffffffe
+  40775c: ⊞ lea r:rax m:rdx:rbx:1:0x0:8
+  407760: ⊞ dec r:rax
+  407763: ⊞ lea r:rcx m:rdx::1:0x1:8
+  407767: ⊞ and r:rcx r:rax
+  40776a: ⊤ cmp r:rcx i:0x4
+  40776e: ∈ ae i:0x407777
+  407777: ⊞ add r:rdx i:-0x2
+  40777b: ⊞ and r:rax r:rdx
+  40777e: ⊞ movq r:xmm0 r:rsi
+  407783: ⊞ pshufd r:xmm1 r:xmm0 i:0x44
+  407788: ⋈ movabs r:rdx i:0x1ffffffffffffffc
+  407792: ⊞ and r:rdx r:r13
+  407795: ⊞ xor r:esi r:esi
+  407797: ⊞ movdqa r:xmm0 m:rip::1:0x4c891:16
+  40779f: ⊞ movdqa r:xmm2 r:xmm1
+  4077a3: ⊞ nop
+  4077b0: ⊞ movdqu r:xmm4 m:rdi:rsi:8:0x18:16
+  4077b6: ⊞ movdqu r:xmm3 m:rdi:rsi:8:0x28:16
+  4077bc: ⊞ movdqa r:xmm5 r:xmm1
+  4077c0: ⊞ pxor r:xmm1 r:xmm0
+  4077c4: ⊞ movdqa r:xmm6 r:xmm4
+  4077c8: ⊞ pxor r:xmm6 r:xmm0
+  4077cc: ⊞ movdqa r:xmm7 r:xmm1
+  4077d2: ⊡ dec m:rsi::1:0x44:1
+  4077d6: ⊞ pshufd r:xmm0 r:xmm7 i:0xa0
+  4077da: ⊞ pcmpeqd r:xmm6 r:xmm1
+  4077de: ⊞ pshufd r:xmm1 r:xmm6 i:0xf5
+  4077e3: ⊞ pand r:xmm1 r:xmm8
+  4077e8: ⊞ pshufd r:xmm6 r:xmm7 i:0xf5
+  4077ed: ⊞ por r:xmm6 r:xmm1
+  4077f1: ⊞ pand r:xmm5 r:xmm6
+  4077f8: ⊣ hlt   [38531 steps]
+regs at halt: rax=4 rbx=7 rcx=4 rdx=4 rsi=0 rdi=300002230 rbp=28 rsp=7ffefc88 r12=3e8 r13=2000000000000004 r14=a r15=7ffefce0
+call chain:
+Vox execution failed; see membranes/abc_one/1_10_0_2_9_32_1000

@@ -1,0 +1,12 @@
+*** Begin Patch
+*** Update File: /home/mrnob0dy666/imsgct/ig-docs/prepared_membranes_and_resident_circuits.tex
+@@
+-End-of-file closes the controller. Complete-process examples use
+-\code{./membrane_one.sh shor 2 21 12} or
+-\code{./membrane_one.sh divisor 1125899906842624 360 97}.
++End-of-file closes the controller. Complete-process examples use:
++\begin{verbatim}
++./membrane_one.sh shor 2 21 12
++./membrane_one.sh divisor 1125899906842624 360 97
++\end{verbatim}
+*** End Patch

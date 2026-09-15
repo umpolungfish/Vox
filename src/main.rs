@@ -21,6 +21,8 @@ fn usage() {
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
+    eprintln!("  vox glyphs <module.imasm> <output.glyphs>   encode complete module as glyphs");
+    eprintln!("  vox unglyphs <word.glyphs> <output.imasm>  restore exact executable module");
     eprintln!("  vox circuit <module.imasm> [--stdin | hex-mask[:feedback] ...]   prepare once, switch resident QFT gates");
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
@@ -292,7 +294,8 @@ fn hexlift(hexstr: &str) -> i32 {
     let image = vox_decode::Image { segments: l.code.clone() };
     let mut seeds: Vec<u64> = l.symbols.values().copied().collect();
     seeds.push(l.entry);
-    let w = vox_decode::walk(&image, l.entry, &seeds);
+    let mut w = vox_decode::walk(&image, l.entry, &seeds);
+    vox_decode::mark_noreturn(&mut w.functions, &l.symbols);
 
     println!("HEX    {} bytes  {}  {}  {} function(s) by descent",
              raw.len(), l.format, l.arch, w.functions.len());
@@ -474,7 +477,8 @@ fn selfread(path: &str) -> i32 {
     let image = vox_decode::Image { segments: l.code.clone() };
     let mut seeds: Vec<u64> = l.symbols.values().copied().collect();
     seeds.push(l.entry);
-    let w = vox_decode::walk(&image, l.entry, &seeds);
+    let mut w = vox_decode::walk(&image, l.entry, &seeds);
+    vox_decode::mark_noreturn(&mut w.functions, &l.symbols);
 
     let mut tally = [0usize; 4];
     let mut by_exit: std::collections::BTreeMap<i32, (usize, i64)> = std::collections::BTreeMap::new();
@@ -549,6 +553,7 @@ fn audit_linear(path: &str, l: &loader::Loaded, bits: u8) -> i32 {
 fn alloc_word(insns: &[x86::Insn]) -> Vec<char> {
     let lifted: Vec<vox::Instruction> = insns.iter().map(|i| vox::Instruction {
         address: i.addr,
+        fallthrough: if i.mnemonic=="jmp" || i.mnemonic.starts_with("ret") || matches!(i.mnemonic.as_str(),"int3"|"ud2"|"hlt"|"iret") {None} else {Some(i.addr+i.len as u64)},
         mnemonic: i.mnemonic.clone(),
         op_str: if let (true, Some(t)) = (i.ops.len() == 1, i.target) { format!("{:#x}", t) }
                 else { i.ops.iter().map(|o| o.intel()).collect::<Vec<_>>().join(", ") },
@@ -578,7 +583,8 @@ fn lift_file(path: &str) -> i32 {
     let image = vox_decode::Image { segments: l.code };
     println!("{}  {}  entry 0x{:x}  {} byte(s) of code", path, l.format, l.entry, image.total_bytes());
     let mut seeds: Vec<u64> = l.symbols.values().copied().collect(); seeds.push(l.entry);
-    let w = vox_decode::walk(&image, l.entry, &seeds);
+    let mut w = vox_decode::walk(&image, l.entry, &seeds);
+    vox_decode::mark_noreturn(&mut w.functions, &l.symbols);
     let decoded: usize = w.functions.iter().map(|f| f.1.len()).sum();
     println!("  {} function(s), {} instruction(s)", w.functions.len(), decoded);
     println!("  claimed {}% of the image ({} of {} bytes)",
@@ -852,7 +858,7 @@ fn main() {
         Some("classify") => {
             if args.len() < 2 { eprintln!("vox classify <mnemonic> [operands]"); 1 }
             else {
-                let ins = vox::Instruction { address: 0, mnemonic: args[1].to_lowercase(), op_str: args[2..].join(" ") };
+                let ins = vox::Instruction { address: 0, fallthrough: None, mnemonic: args[1].to_lowercase(), op_str: args[2..].join(" ") };
                 println!("{} {}", ins.mnemonic, vox::classify_instruction(&ins));
                 0
             }
@@ -930,7 +936,8 @@ fn main() {
             let l = loader::load(&raw);
             let image = vox_decode::Image { segments: l.code };
             let mut seeds: Vec<u64> = l.symbols.values().copied().collect(); seeds.push(l.entry);
-            let w = vox_decode::walk(&image, l.entry, &seeds);
+            let mut w = vox_decode::walk(&image, l.entry, &seeds);
+            vox_decode::mark_noreturn(&mut w.functions, &l.symbols);
             let mut claimed: std::collections::BTreeSet<u64> = std::collections::BTreeSet::new();
             let mut b: Vec<(u64,String)> = Vec::new();
             for (start,f) in &w.functions {
@@ -1000,16 +1007,23 @@ fn main() {
             // symbol table (`; sym NAME 0xADDR`), so it runs directly with no
             // second read of the original binary. Anything else is read as raw
             // bytes and lifted fresh, same as before.
-            let is_module = file.ends_with(".imasm")
-                || std::fs::read(&file).map(|b| b.starts_with(b"; ")).unwrap_or(false);
+            let raw = read_or_exit(&file);
+            let is_glyph = file.ends_with(".glyphs") || raw.starts_with(::vox::glyph_module::PREFIX.as_bytes());
+            let is_module = is_glyph || file.ends_with(".imasm")
+                || raw.starts_with(b"; ");
             let mut m = if is_module {
-                let text = match std::fs::read_to_string(&file) {
+                let text = match String::from_utf8(raw) {
                     Ok(t) => t,
                     Err(e) => { eprintln!("cannot read {}: {}", file, e); std::process::exit(1); }
                 };
+                let text = if is_glyph {
+                    match ::vox::glyph_module::decode(&text) {
+                        Ok(module) => module,
+                        Err(error) => { eprintln!("invalid glyph module: {error}"); std::process::exit(2); }
+                    }
+                } else { text };
                 imasm_vm::Machine::new(&text)
             } else {
-                let raw = read_or_exit(&file);
                 imasm_vm::Machine::new(&imasm_module::emit(&raw))
             };
             m.set_host(Box::new(StdHost::new()));
@@ -1071,6 +1085,23 @@ fn main() {
                     Err(imasm_vm::Stop::Halt(e)) => println!("{}(...) halted: {}   [{} steps]", sym, e, m.steps),
                 }
             }
+            std::process::exit(0);
+        }
+        Some("glyphs") | Some("unglyphs") => {
+            use std::io::Write;
+            if args.len()!=3 { eprintln!("vox glyphs|unglyphs <input> <new-output>"); std::process::exit(2); }
+            let source = std::fs::read_to_string(&args[1]).unwrap_or_else(|e| {
+                eprintln!("cannot read {}: {e}",args[1]); std::process::exit(1);
+            });
+            let result = if args[0]=="glyphs" { ::vox::glyph_module::encode(&source) }
+                         else { ::vox::glyph_module::decode(&source) };
+            let result = result.unwrap_or_else(|e| { eprintln!("{e}"); std::process::exit(2); });
+            let mut output = std::fs::OpenOptions::new().write(true).create_new(true).open(&args[2])
+                .unwrap_or_else(|e| { eprintln!("cannot create {}: {e}",args[2]); std::process::exit(1); });
+            output.write_all(result.as_bytes()).unwrap_or_else(|e| {
+                eprintln!("cannot write {}: {e}",args[2]); std::process::exit(1);
+            });
+            println!("saved {} ({} glyphs/characters)",args[2],result.chars().count());
             std::process::exit(0);
         }
         Some("imasm") => { if args.len()<2 { eprintln!("vox imasm <file>"); return; }
