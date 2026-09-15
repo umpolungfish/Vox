@@ -1353,12 +1353,14 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
     // Budgets scale down with width: at large width each probe step is
     // expensive and the sieve is the better tool, so the scout should reach
     // HARD quickly rather than burn a big rho/trial budget first.
+    // rho is a cheap probe for a small factor found in few steps; a balanced
+    // semiprime needs ~N^(1/4) steps, which the sieve closes far faster, so cap
+    // rho low and let it fail fast into the sieve. This keeps the membrane's time
+    // at the fastest arm's rather than paying a long rho the sieve would beat.
     let (trial_bound, rho_steps): (u64, u64) = if bits <= 40 {
-        (100_000, 200_000)
-    } else if bits <= 64 {
-        (20_000, 60_000)
+        (100_000, 20_000)
     } else {
-        (3_000, 12_000)
+        (3_000, 4_000)
     };
     // small factor by trial to a cheap bound
     let tb = tape_u64(trial_bound);
@@ -1402,20 +1404,36 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         let mut y = two();
         let mut c = one();
         let mut i = 0u64;
+        // Batch the gcd: accumulate the product of the differences mod n and take
+        // one gcd per batch instead of one per step. The per-step cost drops to a
+        // single mod_mul, so rho stops being the slow arm and the membrane's time
+        // never exceeds the fastest arm's.
+        let mut prod = one();
+        let mut acc = 0u64;
+        let batch = 128u64;
         while i < rho_steps {
             x = mod_add(&mod_mul(&x, &x, &n), &c, &n);
             let y1 = mod_add(&mod_mul(&y, &y, &n), &c, &n);
             y = mod_add(&mod_mul(&y1, &y1, &n), &c, &n);
             let diff = if cmp(&x, &y) != Less { sub(&x, &y) } else { sub(&y, &x) };
-            let g = gcd(trim(diff), n.clone());
-            if cmp(&g, &one()) == Greater && cmp(&g, &n) == Less {
-                let q = divmod(&n, &g).0;
-                return (Some((g.clone(), q, "rho")), format!("shape: factor {} by rho at step {}\n", dec_of(&g), i));
+            let dt = trim(diff);
+            if !zero(&dt) {
+                prod = mod_mul(&prod, &dt, &n);
             }
-            if cmp(&g, &n) == Equal {
-                c = add(&c, &one());
-                x = two();
-                y = two();
+            acc += 1;
+            if acc >= batch || i + 1 == rho_steps {
+                let g = gcd(trim(prod.clone()), n.clone());
+                if cmp(&g, &one()) == Greater && cmp(&g, &n) == Less {
+                    let q = divmod(&n, &g).0;
+                    return (Some((g.clone(), q, "rho")), format!("shape: factor {} by rho at step {}\n", dec_of(&g), i));
+                }
+                if cmp(&g, &n) == Equal {
+                    c = add(&c, &one());
+                    x = two();
+                    y = two();
+                }
+                prod = one();
+                acc = 0;
             }
             i += 1;
         }
