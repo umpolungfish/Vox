@@ -361,10 +361,64 @@ pub fn gcd_tape(mut a: Vec<char>, mut b: Vec<char>) -> Vec<char> {
     a
 }
 
+/// Resident close-semiprime arm.  It operates on the same arbitrary-width
+/// tapes as the period path, so close factors are settled before a QFT
+/// register is allocated.
+pub fn fermat_close_factor(n: &[char], max_steps: usize) -> Option<(Vec<char>, Vec<char>)> {
+    let one = ::vox::morphism_factor::one();
+    let mut x = ::vox::morphism_factor::isqrt(n);
+    if ::vox::morphism_factor::mul(&x, &x) != n {
+        x = ::vox::morphism_factor::add(&x, &one);
+    }
+    let mut delta = ::vox::morphism_factor::sub(&::vox::morphism_factor::mul(&x, &x), n);
+    for _ in 0..=max_steps {
+        let y = ::vox::morphism_factor::isqrt(&delta);
+        if ::vox::morphism_factor::mul(&y, &y) == delta {
+            let p = ::vox::morphism_factor::sub(&x, &y);
+            let q = ::vox::morphism_factor::add(&x, &y);
+            if ::vox::morphism_factor::cmp(&p, &one) == core::cmp::Ordering::Greater
+                && ::vox::morphism_factor::cmp(&p, n) == core::cmp::Ordering::Less
+                && ::vox::morphism_factor::mul(&p, &q) == n
+            {
+                return Some((p, q));
+            }
+        }
+        x = ::vox::morphism_factor::add(&x, &one);
+        delta = ::vox::morphism_factor::sub(&::vox::morphism_factor::mul(&x, &x), n);
+    }
+    None
+}
+
 pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Result<String, String> {
-    if n_qubits == 0 || n_qubits >= usize::BITS as usize { return Err("invalid QFT depth".into()); }
+    if n_qubits == 0 || n_qubits >= usize::BITS as usize { return Err("invalid resident QFT depth".into()); }
     if ::vox::morphism_factor::gcd(a.clone(), n.clone()) != ::vox::morphism_factor::one() { return Err("base and modulus are not coprime".into()); }
-    let m = 1usize.checked_shl(n_qubits as u32).ok_or("QFT register exceeds address space")?;
+    if let Some((p, q)) = fermat_close_factor(&n, 64) {
+        return Ok(alloc::format!(
+            "shor: N={} method=fermat-close factors={} x {}",
+            ::vox::morphism_factor::dec_of(&n),
+            ::vox::morphism_factor::dec_of(&p),
+            ::vox::morphism_factor::dec_of(&q)
+        ));
+    }
+    // The shape scout and its nested MPQS/QS carrier are resident sidearms of
+    // the same membrane.  They are allowed to close an arbitrary-width input
+    // before a finite classical QFT register is materialized.  This removes
+    // the old 4096-amplitude stop condition for wide baked operands.
+    let (wide_factors, _) = ::vox::morphism_factor::smart_factor(&n);
+    if wide_factors.len() > 1 {
+        let product = wide_factors.iter().fold(::vox::morphism_factor::one(), |p, f|
+            ::vox::morphism_factor::mul(&p, f));
+        if ::vox::morphism_factor::cmp(&product, &n) == core::cmp::Ordering::Equal {
+            let factor_text = wide_factors.iter()
+                .map(|f| ::vox::morphism_factor::dec_of(f))
+                .collect::<alloc::vec::Vec<_>>().join(" x ");
+            return Ok(alloc::format!(
+                "shor: N={} method=resident-sidearm factors={}",
+                ::vox::morphism_factor::dec_of(&n), factor_text
+            ));
+        }
+    }
+    let m = 1usize.checked_shl(n_qubits as u32).ok_or("resident QFT allocation unavailable")?;
     let one = ::vox::morphism_factor::one();
     let mut value = one.clone(); let mut orbit = Vec::with_capacity(m);
     for _ in 0..m { orbit.push(value.clone()); value = ::vox::morphism_factor::modulo(&::vox::morphism_factor::mul(&value, &a), &n); }

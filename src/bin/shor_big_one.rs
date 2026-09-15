@@ -13,7 +13,7 @@ fn tape_to_usize(tape: &[char]) -> Result<usize, String> {
         if mark == vox::vox::EVALF {
             value.checked_add(1usize.checked_shl(bit as u32)?)
         } else { Some(value) }
-    }).ok_or("QFT depth exceeds resident address space".into())
+    }).ok_or("resident QFT depth cannot be represented by this host index type".into())
 }
 
 fn main() {

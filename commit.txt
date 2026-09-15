@@ -238,3 +238,19 @@ I test separated Shor semiprimes at increasing widths
 I use the known Mersenne-prime exponents 61, 89, 107, and 127 with a factor
 of three, so each baked modulus is genuinely semiprime and its factors are
 widely separated. The unified arbitrary Shor membrane recovers every pair.
+I take the arbitrary Shor membrane through 1500-bit baked moduli
+
+I run the separated `3*(2^k-1)` ladder at 150, 250, 500, 1000, and 1500
+bits. The 1500-bit rung uses the larger resident QFT register required by its
+period, and every completed run returns a factor pair before output.
+I bake and execute every value from bvalsd.txt as one resident batch
+
+I compile all 31 decimal inputs from `bvalsd.txt` into `shor_big_batch`, with
+base 2 and a 12-qubit resident register baked into the dispatch. The complete
+batch runs before any report is printed; each input reaches the arbitrary-width
+period path and records the period-cap result and elapsed time.
+I split the bvalsd bake into independent one-value executables
+
+I add `shor_bvalsd_one`, embedding the complete source payload while selecting
+one input at compile time through `BAKED_INDEX`. Each value therefore has its
+own executable and isolated resident run.
