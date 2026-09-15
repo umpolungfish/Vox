@@ -470,9 +470,7 @@ fn iroot(v: u128, k: u32) -> u128 {
 pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<Tape> {
     let n = trim(n.clone());
     let bits = n.len();
-    // Wider N wants a wider sieve window per polynomial, so fewer polynomials are
-    // set up for the same relation count; the per-polynomial root setup is real
-    // cost and this amortizes it.
+    // Wider targets amortize polynomial setup across a larger window.
     let m_half = m_half.max(match bits {
         0..=120 => 32_768,
         121..=150 => 131_072,
@@ -560,161 +558,202 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     }
     let npool = a_pool.len();
     let m = m_half as i128;
+    let span = (2 * m_half + 1) as usize;
     let mut a_of: Vec<Tape> = Vec::new();
     let mut exp_of: Vec<Vec<u32>> = Vec::new();
     let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
     let n_tape = n.clone();
+    let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
+    let thresh_slack = (2 * (flog2(base_bound as u128) + 1) + 6) as i32;
 
-    // Walk DISTINCT k-subsets of the A-pool, one per polynomial, by stepping a
-    // combination in lex order. Distinct A-sets are what keep the relations
-    // independent; reusing an A re-collects the same relations and starves the
-    // GF(2) dependency.
+    // A owns the inverses and sieve storage. Its B siblings prepare window
+    // offsets, which their candidates consume without repeating that setup.
+    // Distinct A sets come from lexicographic combinations of the prime pool.
     let mut combo: Vec<usize> = (0..k).collect();
-    let mut poly = 0usize;
-    let max_polys = 200_000usize;
-    'outer: while a_of.len() < need && poly < max_polys {
+    let mut _poly = 0usize;
+    let max_a = 100_000usize;
+    let mut a_count = 0usize;
+    'outer: while a_of.len() < need && a_count < max_a {
         let ks: Vec<usize> = combo.iter().map(|&c| a_pool[c]).collect();
         let mut a_val: u128 = 1;
         for &kk in &ks {
             a_val *= base[kk] as u128;
         }
-        poly += 1;
-        // advance to the next distinct combination for the following polynomial
+        a_count += 1;
         if !next_combination(&mut combo, npool) {
-            combo = (0..k).collect(); // exhausted the pool; wrap (rare)
+            combo = (0..k).collect();
         }
-        if ks.len() < 3 {
+        let kk = ks.len();
+        if kk < 3 {
             continue;
         }
-        // B by CRT: B == sqrt_n[k] (mod q) for each q in the A-set.
-        let mut b_val: u128 = 0;
-        for &kk in &ks {
-            let q = base[kk] as u128;
-            let mj = a_val / q; // product of the other A-primes
-            let inv = modinv((mj % q) as u64, base[kk]) as u128;
-            let rj = sqrt_n[kk] as u128 % q;
-            let term = ((rj * (mj % a_val)) % a_val) * inv % a_val;
-            b_val = (b_val + term) % a_val;
+
+        // per-A CRT terms: B_l ≡ sqrt_n mod its own prime, 0 mod the other A-primes
+        let mut bl = vec![0u128; kk];
+        for (l, &idx) in ks.iter().enumerate() {
+            let q = base[idx] as u128;
+            let mj = a_val / q;
+            let inv = modinv((mj % q) as u64, base[idx]) as u128;
+            let rj = sqrt_n[idx] as u128 % q;
+            bl[l] = ((rj * (mj % a_val)) % a_val) * inv % a_val;
         }
-        // C = (B^2 - N) / A, exact (B^2 == N mod A), on the tapes since B^2 and N
-        // exceed a machine word. B^2 < A^2 < N, so N - B^2 > 0 and C is negative.
-        let a_tape = u128_to_tape(a_val);
-        let b_tape = u128_to_tape(b_val);
-        let b2 = mul(&b_tape, &b_tape);
-        let (mag, _r) = divmod(&sub(&n_tape, &b2), &a_tape);
-        let c_mag = tape_to_u128(&mag)?;
-        let cc = -(c_mag as i128);
-        let a_i = a_val as i128;
-        let b_i = b_val as i128;
-        // log sieve over x in [-m, m], index shifted by +m. Record each prime's
-        // two hit residues (positions where it divides g) so the smoothness test
-        // resieves only the primes that land, instead of trial-dividing the whole
-        // base. o1 == -2 marks a prime always attempted (2, or a divisor of A);
-        // o1 == -1 marks one that never lands.
-        let span = (2 * m_half + 1) as usize;
-        let mut logs = vec![0i32; span];
-        let mut offs: Vec<(i32, i32)> = vec![(-1, -1); width];
-        for k in 1..width {
-            let p = base[k];
+        // per-A setup, computed ONCE: A^{-1} mod p, the expensive modular inverse.
+        // skip[j] marks a prime left out of the sieve (2, or a divisor of A),
+        // handled in the factor step instead.
+        let mut ainv = vec![0i64; width];
+        let mut skip = vec![true; width];
+        for j in 1..width {
+            let p = base[j];
             if p == 2 || a_val % p as u128 == 0 {
-                offs[k] = (-2, -2);
                 continue;
             }
-            let pi = p as i128;
-            let ainv = modinv((a_val % p as u128) as u64, p) as i128;
-            let r = sqrt_n[k] as i128;
-            let lp = flog2(p as u128) as i32;
-            let mut o = [0i32; 2];
-            for (t, &sgn) in [r, pi - r].iter().enumerate() {
-                // x ≡ (sgn - B) * A^{-1} (mod p)
-                let x0 = (((sgn - b_i) % pi + pi) % pi) * ainv % pi;
-                // first index >= -m with x ≡ x0 (mod p): shift to [0, span)
-                let start = ((x0 - (-m)) % pi + pi) % pi;
-                o[t] = start as i32;
-                let mut idx = start;
-                while idx < span as i128 {
-                    logs[idx as usize] += lp;
-                    idx += pi;
-                }
-            }
-            offs[k] = (o[0], o[1]);
+            ainv[j] = modinv((a_val % p as u128) as u64, p) as i64;
+            skip[j] = false;
         }
-        let thresh = flog2((a_val * (m as u128) * (m as u128)).max(2)) as i32
-            - (2 * (flog2(base_bound as u128) + 1) + 6) as i32;
-        for xi in 0..span {
+        let thresh =
+            flog2((a_val * (m as u128) * (m as u128)).max(2)) as i32 - thresh_slack;
+
+        // inner: each of the 2^(k-1) sign patterns is a B sibling that reuses the
+        // per-A inverse; its two roots per prime are recomputed directly from the
+        // cached inverse (one multiply each, the same cost an incremental update
+        // would be, and correct without any carry bookkeeping).
+        let nb = 1usize << (kk - 1);
+        let mut soln1 = vec![0i64; width];
+        let mut soln2 = vec![0i64; width];
+        // The enclosing A frame owns storage reused by every B sibling.
+        let mut logs = vec![0i32; span];
+        for pat in 0..nb {
             if a_of.len() >= need {
                 break 'outer;
             }
-            if logs[xi] < thresh {
-                continue;
-            }
-            let x = xi as i128 - m;
-            let g = a_i * x * x + 2 * b_i * x + cc; // = Q(x)/A
-            if g == 0 {
-                continue;
-            }
-            let mut val = if g < 0 { (-g) as u128 } else { g as u128 };
-            let mut exps = vec![0u32; width];
-            if g < 0 {
-                exps[0] = 1; // sign column
-            }
-            // g's factorization over the base: only the primes that land here (plus
-            // 2 and the A-divisors), and stop once val is fully reduced.
-            for k in 1..width {
-                if val == 1 {
-                    break;
+            _poly += 1;
+            // B = bl[0] + sum_{l>=1} (±bl[l]); pattern bit picks the sign
+            let mut b_cur = bl[0] % a_val;
+            for l in 1..kk {
+                let blm = bl[l] % a_val;
+                if (pat >> (l - 1)) & 1 == 1 {
+                    b_cur = (b_cur + a_val - blm) % a_val;
+                } else {
+                    b_cur = (b_cur + blm) % a_val;
                 }
-                let (o1, o2) = offs[k];
-                if o1 == -1 {
+            }
+            let a_i = a_val as i128;
+            // Center the representative consistently for roots and coefficients.
+            // Subtracting A translates the polynomial by one x position.
+            let b_i = if b_cur > a_val / 2 {
+                b_cur as i128 - a_i
+            } else {
+                b_cur as i128
+            };
+            for j in 1..width {
+                if skip[j] {
+                    soln1[j] = -1;
                     continue;
                 }
-                let xr = (xi as i32) % (base[k] as i32);
-                if o1 != -2 && xr != o1 && xr != o2 {
+                let p = base[j];
+                let pi = p as i64;
+                let t = sqrt_n[j] as i64;
+                let bmod = b_i.rem_euclid(pi as i128) as i64;
+                soln1[j] = (((ainv[j] * (((t - bmod) % pi) + pi)) % pi) + pi) % pi;
+                soln2[j] = (((ainv[j] * ((((pi - t) - bmod) % pi) + pi)) % pi) + pi) % pi;
+                // Store window coordinates once per sibling. Both sieving and
+                // candidate division consume these same prepared offsets.
+                soln1[j] = (soln1[j] + m as i64).rem_euclid(pi);
+                soln2[j] = (soln2[j] + m as i64).rem_euclid(pi);
+            }
+            // C = (B^2 - N)/A, exact, on the tapes (B^2 and N exceed a machine word)
+            let b_abs = b_i.unsigned_abs();
+            let b2 = mul(&u128_to_tape(b_abs), &u128_to_tape(b_abs));
+            let (mag, _r) = divmod(&sub(&n_tape, &b2), &u128_to_tape(a_val));
+            let cc = -(tape_to_u128(&mag)? as i128);
+
+            logs.fill(0);
+            for j in 1..width {
+                if soln1[j] < 0 {
                     continue;
                 }
-                let p = base[k] as u128;
-                while val % p == 0 {
-                    exps[k] += 1;
-                    val /= p;
-                }
-            }
-            if val != 1 {
-                continue; // not smooth over the base
-            }
-            // A's factorization (the chosen A-primes) joins the exponents.
-            for &k in &ks {
-                exps[k] += 1;
-            }
-            // relation value: |A x + B|, which is below N, so it is already its own
-            // residue mod N. Carry it as a tape for the reconstruction.
-            let axb = a_i * x + b_i;
-            let axb_abs = if axb < 0 { (-axb) as u128 } else { axb as u128 };
-            let axb_t = u128_to_tape(axb_abs);
-            if !seen.insert(axb_t.clone()) {
-                continue; // duplicate relation carries no new information
-            }
-            #[cfg(feature = "mpqs_debug")]
-            if a_of.is_empty() {
-                extern crate std;
-                // identity: (Ax+B)^2 == A*g + N exactly (g may be negative)
-                let lhs = mul(&axb_t, &axb_t);
-                let ag = mul(&u128_to_tape(a_val), &u128_to_tape(if g < 0 { (-g) as u128 } else { g as u128 }));
-                let rhs = if g < 0 { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
-                // reconstruct prod(base^exps) and compare to A*|g|
-                let mut recon = one();
-                for c in 0..width {
-                    for _ in 0..exps[c] {
-                        recon = mul(&recon, &u128_to_tape(base[c] as u128));
+                let pi = base[j] as i64;
+                let l = lp[j];
+                for &sol in &[soln1[j], soln2[j]] {
+                    let mut idx = sol as usize;
+                    while idx < span {
+                        logs[idx] += l;
+                        idx += pi as usize;
                     }
                 }
-                std::eprintln!(
-                    "[mpqs] identity (Ax+B)^2==A*g+N : {} ; exps==A*|g| : {}",
-                    if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" },
-                    if trim(recon) == trim(ag) { "PASS" } else { "FAIL" }
-                );
             }
-            a_of.push(axb_t);
-            exp_of.push(exps);
+            for xi in 0..span {
+                if a_of.len() >= need {
+                    break 'outer;
+                }
+                if logs[xi] < thresh {
+                    continue;
+                }
+                let x = xi as i128 - m;
+                let g = a_i * x * x + 2 * b_i * x + cc; // = Q(x)/A
+                if g == 0 {
+                    continue;
+                }
+                let mut val = if g < 0 { (-g) as u128 } else { g as u128 };
+                let mut exps = vec![0u32; width];
+                if g < 0 {
+                    exps[0] = 1;
+                }
+                let xi64 = xi as i64;
+                for j in 1..width {
+                    if val == 1 {
+                        break;
+                    }
+                    let p = base[j];
+                    let pi = p as i64;
+                    let hit = if soln1[j] < 0 {
+                        skip[j]
+                    } else {
+                        let xr = xi64 % pi;
+                        xr == soln1[j] || xr == soln2[j]
+                    };
+                    if !hit {
+                        continue;
+                    }
+                    let pu = p as u128;
+                    while val % pu == 0 {
+                        exps[j] += 1;
+                        val /= pu;
+                    }
+                }
+                if val != 1 {
+                    continue;
+                }
+                for &idx in &ks {
+                    exps[idx] += 1;
+                }
+                let axb = a_i * x + b_i;
+                let axb_abs = if axb < 0 { (-axb) as u128 } else { axb as u128 };
+                let axb_t = u128_to_tape(axb_abs);
+                if !seen.insert(axb_t.clone()) {
+                    continue;
+                }
+                #[cfg(feature = "mpqs_debug")]
+                if a_of.is_empty() {
+                    extern crate std;
+                    let lhs = mul(&axb_t, &axb_t);
+                    let ag = mul(&u128_to_tape(a_val), &u128_to_tape(if g < 0 { (-g) as u128 } else { g as u128 }));
+                    let rhs = if g < 0 { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
+                    let mut recon = one();
+                    for c in 0..width {
+                        for _ in 0..exps[c] {
+                            recon = mul(&recon, &u128_to_tape(base[c] as u128));
+                        }
+                    }
+                    std::eprintln!(
+                        "[mpqs] identity (Ax+B)^2==A*g+N : {} ; exps==A*|g| : {}",
+                        if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" },
+                        if trim(recon) == trim(ag) { "PASS" } else { "FAIL" }
+                    );
+                }
+                a_of.push(axb_t);
+                exp_of.push(exps);
+            }
         }
     }
     #[cfg(feature = "mpqs_debug")]
@@ -722,7 +761,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         extern crate std;
         std::eprintln!(
             "[mpqs] bits={} k={} s={} eff_bound={} pool={} width={} need={} relations={} polys={}",
-            bits, k, s, eff_bound, a_pool.len(), width, need, a_of.len(), poly
+            bits, k, s, eff_bound, a_pool.len(), width, need, a_of.len(), _poly
         );
     }
     #[cfg(feature = "mpqs_debug")]
@@ -823,6 +862,20 @@ mod tests {
             let g = dixon(&tape(n), 500, 8, 2_000_000).expect("no factor");
             let gv = val(&g);
             assert!(gv > 1 && gv < n && n % gv == 0, "dixon({n}) = {gv}");
+        }
+    }
+
+    #[test]
+    fn mpqs_siblings_return_exact_divisors() {
+        for decimal in ["588836796098867516121023", "3050585191915710906097942786821407"] {
+            let n = crate::morphism_factor::decimal_to_tape(decimal).unwrap();
+            let (bound, _) = sieve_params(&n);
+            let g = mpqs(&n, bound, 32_768, 32).expect("mpqs no factor");
+            let (q, r) = divmod(&n, &g);
+            assert!(zero(&r));
+            assert!(cmp(&g, &one()).is_gt());
+            assert!(cmp(&q, &one()).is_gt());
+            assert_eq!(trim(mul(&g, &q)), n);
         }
     }
 
