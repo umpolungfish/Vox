@@ -180,33 +180,78 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
     if rel < 2 || width == 0 {
         return None;
     }
-    let words = width / 64 + 1;
-    let hwords = rel / 64 + 1;
-    let mut mat: Vec<Vec<u64>> = exp_of
+    // Structured Gaussian elimination first: a relation that owns a prime no other
+    // relation carries (a column of weight one) cannot sit in any dependency, so
+    // drop it; that lowers other columns' weights and cascades. What survives keeps
+    // every dependency the full set held, over only the heavy columns (weight >= 2).
+    // This collapses the plane, width ~9000 down to a few hundred, before the dense
+    // solve, which then runs on the small residual.
+    let par: Vec<Vec<usize>> = exp_of
         .iter()
-        .map(|exps| {
+        .map(|e| (0..width).filter(|&c| e[c] & 1 == 1).collect())
+        .collect();
+    let mut alive = vec![true; rel];
+    let mut colcount = vec![0u32; width];
+    for row in &par {
+        for &c in row {
+            colcount[c] += 1;
+        }
+    }
+    loop {
+        let mut changed = false;
+        for r in 0..rel {
+            if alive[r] && par[r].iter().any(|&c| colcount[c] == 1) {
+                alive[r] = false;
+                changed = true;
+                for &c in &par[r] {
+                    colcount[c] -= 1;
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    let keep_rows: Vec<usize> = (0..rel).filter(|&r| alive[r]).collect();
+    let keep_cols: Vec<usize> = (0..width).filter(|&c| colcount[c] >= 2).collect();
+    let rrel = keep_rows.len();
+    if rrel < 2 {
+        return None;
+    }
+    // compact column index for the surviving heavy columns
+    let mut col_idx = vec![usize::MAX; width];
+    for (i, &c) in keep_cols.iter().enumerate() {
+        col_idx[c] = i;
+    }
+    let rwidth = keep_cols.len();
+    let words = rwidth / 64 + 1;
+    let hwords = rrel / 64 + 1;
+    let mut mat: Vec<Vec<u64>> = keep_rows
+        .iter()
+        .map(|&r| {
             let mut m = vec![0u64; words];
-            for (i, &e) in exps.iter().enumerate() {
-                if e & 1 == 1 {
-                    m[i / 64] |= 1u64 << (i % 64);
+            for &c in &par[r] {
+                let ci = col_idx[c];
+                if ci != usize::MAX {
+                    m[ci / 64] |= 1u64 << (ci % 64);
                 }
             }
             m
         })
         .collect();
-    let mut hist: Vec<Vec<u64>> = (0..rel)
+    let mut hist: Vec<Vec<u64>> = (0..rrel)
         .map(|i| {
             let mut h = vec![0u64; hwords];
             h[i / 64] |= 1u64 << (i % 64);
             h
         })
         .collect();
-    let mut pivot_row = vec![usize::MAX; width];
+    let mut pivot_row = vec![usize::MAX; rwidth];
     #[cfg(feature = "mpqs_debug")]
     let (mut _deps, mut _trivial) = (0usize, 0usize);
-    for r in 0..rel {
+    for r in 0..rrel {
         loop {
-            let col = (0..width).find(|&c| (mat[r][c / 64] >> (c % 64)) & 1 == 1);
+            let col = (0..rwidth).find(|&c| (mat[r][c / 64] >> (c % 64)) & 1 == 1);
             match col {
                 None => break,
                 Some(c) => {
@@ -226,7 +271,10 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
             }
         }
         if mat[r].iter().all(|&w| w == 0) {
-            let sel: Vec<usize> = (0..rel).filter(|&i| (hist[r][i / 64] >> (i % 64)) & 1 == 1).collect();
+            let sel: Vec<usize> = (0..rrel)
+                .filter(|&i| (hist[r][i / 64] >> (i % 64)) & 1 == 1)
+                .map(|i| keep_rows[i])
+                .collect();
             if sel.is_empty() {
                 continue;
             }
