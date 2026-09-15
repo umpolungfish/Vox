@@ -639,7 +639,35 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let mut _poly = 0usize;
     let max_a = 100_000usize;
     let mut a_count = 0usize;
+    // Fork the rho arm into the sieve's own loop: a batch of rho advances each A
+    // iteration, and whichever arm closes first returns. rho wins the unbalanced
+    // shape (a small factor found in few steps), the sieve wins the balanced shape;
+    // fused here, the membrane's time is the minimum of the two, by the wiring.
+    let two = tape_u64(2);
+    let (mut rx, mut ry, mut rc, mut rprod) = (two.clone(), two.clone(), one(), one());
+    let rho_close = |g: &Tape| cmp(g, &one()) == core::cmp::Ordering::Greater && cmp(g, &n) == core::cmp::Ordering::Less;
     'outer: while a_of.len() < need && a_count < max_a {
+        // rho arm: 2048 steps with a batched gcd, fused first-close with the sieve
+        for _ in 0..2048 {
+            rx = modulo(&add(&mul(&rx, &rx), &rc), &n);
+            let y1 = modulo(&add(&mul(&ry, &ry), &rc), &n);
+            ry = modulo(&add(&mul(&y1, &y1), &rc), &n);
+            let d = if cmp(&rx, &ry) != core::cmp::Ordering::Less { sub(&rx, &ry) } else { sub(&ry, &rx) };
+            let dt = trim(d);
+            if !zero(&dt) {
+                rprod = modulo(&mul(&rprod, &dt), &n);
+            }
+        }
+        let g = gcd(trim(rprod.clone()), n.clone());
+        if rho_close(&g) {
+            return Some(g);
+        }
+        if cmp(&g, &n) == core::cmp::Ordering::Equal {
+            rc = add(&rc, &one());
+            rx = two.clone();
+            ry = two.clone();
+        }
+        rprod = one();
         let ks: Vec<usize> = combo.iter().map(|&c| a_pool[c]).collect();
         let mut a_val: u128 = 1;
         for &kk in &ks {

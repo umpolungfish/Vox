@@ -1350,18 +1350,9 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         }
         b += 1;
     }
-    // Budgets scale down with width: at large width each probe step is
-    // expensive and the sieve is the better tool, so the scout should reach
-    // HARD quickly rather than burn a big rho/trial budget first.
-    // rho is a cheap probe for a small factor found in few steps; a balanced
-    // semiprime needs ~N^(1/4) steps, which the sieve closes far faster, so cap
-    // rho low and let it fail fast into the sieve. This keeps the membrane's time
-    // at the fastest arm's rather than paying a long rho the sieve would beat.
-    let (trial_bound, rho_steps): (u64, u64) = if bits <= 40 {
-        (100_000, 20_000)
-    } else {
-        (3_000, 4_000)
-    };
+    // Limit the scout to cheap shape probes. Wider inputs receive a shorter
+    // trial scan; rho belongs to the downstream sieve, not this scout.
+    let trial_bound: u64 = if bits <= 40 { 100_000 } else { 3_000 };
     // small factor by trial to a cheap bound
     let tb = tape_u64(trial_bound);
     let mut d = tape_u64(3);
@@ -1372,7 +1363,7 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         }
         d = add(&d, &two());
     }
-    log.push_str("probe: no factor <= 1e5\n");
+    log.push_str(&format!("probe: no factor <= {trial_bound}\n"));
     // short frontier first: closes at once iff the factors sit near the root, so
     // a near-root N never pays the width-heavy rho below.
     {
@@ -1381,7 +1372,10 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
             a = add(&a, &one());
         }
         let mut i = 0u64;
-        while i < 4096 {
+        // A short frontier catches only genuinely near-root factors at once; the
+        // sieve handles the rest, so keep this cheap rather than paying thousands
+        // of isqrt steps the sieve would beat.
+        while i < 64 {
             let a2 = mul(&a, &a);
             if cmp(&a2, &n) != Less {
                 let dl = sub(&a2, &n);
@@ -1397,49 +1391,11 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
             i += 1;
         }
     }
-    log.push_str("probe: not near-root within 4096 frontier steps (factors far apart)\n");
-    // short rho: reaches a factor near the square root of the smaller prime
-    {
-        let mut x = two();
-        let mut y = two();
-        let mut c = one();
-        let mut i = 0u64;
-        // Batch the gcd: accumulate the product of the differences mod n and take
-        // one gcd per batch instead of one per step. The per-step cost drops to a
-        // single mod_mul, so rho stops being the slow arm and the membrane's time
-        // never exceeds the fastest arm's.
-        let mut prod = one();
-        let mut acc = 0u64;
-        let batch = 128u64;
-        while i < rho_steps {
-            x = mod_add(&mod_mul(&x, &x, &n), &c, &n);
-            let y1 = mod_add(&mod_mul(&y, &y, &n), &c, &n);
-            y = mod_add(&mod_mul(&y1, &y1, &n), &c, &n);
-            let diff = if cmp(&x, &y) != Less { sub(&x, &y) } else { sub(&y, &x) };
-            let dt = trim(diff);
-            if !zero(&dt) {
-                prod = mod_mul(&prod, &dt, &n);
-            }
-            acc += 1;
-            if acc >= batch || i + 1 == rho_steps {
-                let g = gcd(trim(prod.clone()), n.clone());
-                if cmp(&g, &one()) == Greater && cmp(&g, &n) == Less {
-                    let q = divmod(&n, &g).0;
-                    return (Some((g.clone(), q, "rho")), format!("shape: factor {} by rho at step {}\n", dec_of(&g), i));
-                }
-                if cmp(&g, &n) == Equal {
-                    c = add(&c, &one());
-                    x = two();
-                    y = two();
-                }
-                prod = one();
-                acc = 0;
-            }
-            i += 1;
-        }
-    }
-    log.push_str("probe: rho found nothing in 2e5 steps (smaller factor is large)\n");
-    log.push_str("verdict: HARD — large factor, far from the root, not obviously smooth\n");
+    log.push_str("probe: not near-root within the short frontier (factors far apart)\n");
+    // No standalone rho here: rho is fused into the sieve (the membrane), where it
+    // races the polynomials and the first arm to close wins. The scout's job ends
+    // at the cheap, shape-certain gate; everything else goes to the membrane.
+    log.push_str("verdict: HARD — hand to the membrane (rho fused with the sieve)\n");
     (None, log)
 }
 
@@ -1561,9 +1517,16 @@ mod tests {
         // near-root balanced: the frontier probe closes it.
         let (r, _) = scout_factor(&tape_u64(1000003 * 1000033));
         assert_eq!(r.unwrap().2, "frontier");
-        // a mid factor the trial bound misses but rho reaches.
-        let (r, _) = scout_factor(&tape_u64(1000003 * 1000000007));
-        assert_eq!(r.unwrap().2, "rho");
+        // The scout hands this shape to the membrane; rho is now fused into
+        // the sieve. Verify both the handoff and the complete factorization.
+        let n = tape_u64(1000003 * 1000000007);
+        let (r, log) = scout_factor(&n);
+        assert!(r.is_none(), "{log}");
+        assert!(log.contains("HARD"), "{log}");
+        assert!(log.contains("no factor <= 3000"), "{log}");
+        let (factors, route) = smart_factor(&n);
+        assert_eq!(factors, vec![tape_u64(1000003), tape_u64(1000000007)], "{route}");
+        assert_eq!(factors.iter().fold(one(), |p, f| mul(&p, f)), n);
     }
 
     fn numeral(mut n: u64) -> String {
