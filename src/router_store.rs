@@ -116,3 +116,53 @@ pub const OP_PRESERVE: &str = "⊢⊣";
 /// (judgment, source) of a reference clause, capture that balanced clause, splice it in.
 /// EXPOSE (probe = B × exposed repr) and DISTINGUISH (probe = N × any) are the SAME word.
 pub const OP_SCAN_APPEND: &str = "≻⊞⋈⊡";
+
+
+// ---------------------------------------------------------------------------
+// TraceStore — the MEASURE machine. Serialized trace in, probe pair out.
+
+/// The measurement store: a serialized trace, scanned for the first step whose
+/// judgment is a fork (⊞) and whose flag is unrecognised (⊥).
+pub struct TraceStore {
+    pub tape: Vec<Mark>,
+    pub cursor: usize,
+    pub out: [Mark; 2],
+    pub armed: bool,
+    pub committed: bool,
+}
+
+impl TraceStore {
+    pub fn new(trace_marks: Vec<Mark>) -> TraceStore {
+        TraceStore { tape: trace_marks, cursor: 0, out: ['\u{0}', '\u{0}'], armed: false, committed: false }
+    }
+}
+
+/// Execute the MEASURE word on a trace store. Generic ops — the machine names no
+/// router clause; it hunts a *grammar* value (the fork judgment) paired with the
+/// unrecognised flag, and emits the two-mark probe.
+pub fn measure(op: &[Mark], store: &mut TraceStore) -> Option<[Mark; 2]> {
+    const J_B: Mark = '⊞';
+    const UNREC: Mark = '⊥';
+    store.cursor = 0; store.armed = false; store.committed = false; store.out = ['\u{0}', '\u{0}'];
+    let mut ip = 0usize; let mut budget = 8192usize;
+    while budget > 0 {
+        if ip >= op.len() {
+            if store.committed || store.cursor >= store.tape.len() { break; }
+            ip = 0; budget -= 1; continue;
+        }
+        match op[ip] {
+            '≻' => store.cursor += 1,
+            '⊞' => store.armed = store.cursor < store.tape.len() && store.tape[store.cursor] == J_B,
+            '⋈' => if store.armed && store.cursor + 2 < store.tape.len() && store.tape[store.cursor + 2] == UNREC {
+                store.out = [J_B, store.tape[store.cursor + 1]];
+            },
+            '⊡' => if store.out[1] != '\u{0}' { store.committed = true; },
+            _ => {}
+        }
+        ip += 1; budget -= 1;
+    }
+    if store.committed { Some(store.out) } else { None }
+}
+
+/// MEASURE — reduce a serialized trace to the two-mark probe (judgment, source).
+pub const OP_MEASURE: &str = "≻⊞⋈⊡";
