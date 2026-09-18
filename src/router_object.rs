@@ -271,6 +271,20 @@ pub fn judge_router(traces: &[Vec<TraceStep>], closures: usize, corpus: usize) -
     Belnap::B
 }
 
+
+/// v2 — the judge judged. A trajectory step is ALWAYS a legal composition: `recognised
+/// == false` means NO CLAUSE MATCHED (the router has drawn no distinction for this
+/// state), never that the word is malformed. So v2 maps every unrecognised step to N
+/// (genuine no-distinction), never F. v1's `unrecognized -> F` conflates the two.
+pub fn judge_router_v2(traces: &[Vec<TraceStep>], closures: usize, corpus: usize) -> Belnap {
+    let unmatched = traces.iter().flatten().any(|s| !s.recognised);
+    if unmatched { return Belnap::N; }
+    if closures == corpus { return Belnap::T; }
+    if closures == 0 { return Belnap::N; }
+    Belnap::B
+}
+
+
 /// A router that covers every B-path to a TERMINAL but carries NO N clause, so a prime
 /// terminates at a terminal B step and the verdict is N with no N clause present — the
 /// only way DISTINGUISH can fire.
@@ -305,7 +319,6 @@ pub fn partial_router() -> RouterObject {
 /// Rewrite op words (the transform payloads of the policy object).
 pub const RW_PRESERVE:     &str = "⊢⊙⊡⊣";
 pub const RW_EXPOSE:       &str = "⊢∈≻⊤∈≺∋∋⊙⊡⊣";
-pub const RW_DISTINGUISH:  &str = "⊢∈≻⊸⊙⊤≻⊸⊥≺⊸⊞∋⊡⊸⊙⊣";
 
 /// The rewrite policy as an IMASM object: verdict -> rewrite-op word. The DECISION is
 /// data (a clause read from this object), never a `match Belnap`.
@@ -314,7 +327,7 @@ pub fn rewrite_policy() -> RouterObject {
         RouteClause { judgment: Belnap::T, source: None, transform_word: String::from(RW_PRESERVE), next: None },
         RouteClause { judgment: Belnap::F, source: None, transform_word: String::from(RW_EXPOSE), next: None },
         RouteClause { judgment: Belnap::B, source: None, transform_word: String::from(RW_EXPOSE), next: None },
-        RouteClause { judgment: Belnap::N, source: None, transform_word: String::from(RW_DISTINGUISH), next: None },
+        RouteClause { judgment: Belnap::N, source: None, transform_word: String::from(RW_EXPOSE), next: None },
     ];
     let mut r = RouterObject { word: String::new(), transitions };
     r.canonicalize();
@@ -336,21 +349,78 @@ pub fn rewrite(router: &RouterObject, verdict: Belnap, traces: &[Vec<TraceStep>]
     if op == RW_EXPOSE {
         for t in traces {
             for s in t {
-                if s.judgment == Belnap::B {
-                    let covered = clauses.iter().any(|c| c.judgment == Belnap::B && c.source == Some(s.repr));
-                    if !covered {
-                        if let Some(rc) = reference.apply(Belnap::B, s.repr) { clauses.push(rc.clone()); }
+                if !s.recognised {
+                    let present = clauses.iter().any(|c| c.judgment == s.judgment && c.source == Some(s.repr));
+                    if !present {
+                        if let Some(rc) = reference.apply(s.judgment, s.repr) { clauses.push(rc.clone()); }
                     }
                 }
             }
-        }
-    } else if op == RW_DISTINGUISH {
-        let covered = clauses.iter().any(|c| c.judgment == Belnap::N);
-        if !covered {
-            if let Some(rc) = reference.apply(Belnap::N, ReprTag::Multiplicative) { clauses.push(rc.clone()); }
         }
     }
     let mut r = RouterObject { word: String::new(), transitions: clauses };
     r.canonicalize();
     r
+}
+
+// ---- the mark-native trajectory: the judge is judge_g, the loop state is marks ----
+
+use crate::judge_g::{judge_g, repr_value, found_factor,
+    REPR_TAG_SYM, REPR_TAG_RES};
+
+/// One transition, all marks: repr tag -> judgment mark -> next tag mark.
+#[derive(Clone)]
+pub struct GTraceStep {
+    pub tag: char,
+    pub judgment: char,
+    pub applied_word: String,
+    pub next: Option<char>,
+    pub recognised: bool,
+}
+
+fn tag_param(tag: char, n: u64) -> u64 {
+    match tag { REPR_TAG_SYM => isqrt_u64(n) + 1, REPR_TAG_RES => 1, _ => 0 }
+}
+
+/// The mark-native control law. The object is a tuple of marks; the judge is
+/// judge_g (a GValue); the transformation is the router clause. No Judg and no Repr
+/// appear in the loop's state — the clause table is the only data, and it is read,
+/// never branched on by meaning.
+pub fn run_g(router: &RouterObject, n: u64, max_steps: usize) -> (Option<(u64, u64)>, Vec<GTraceStep>) {
+    let mut tag: char = REPR_TAG_SYM;
+    let mut traj: Vec<GTraceStep> = Vec::new();
+    for _ in 0..max_steps {
+        let carrier = repr_value(tag, n, tag_param(tag, n));
+        let jmark = judge_g(&carrier).mark0().unwrap_or('\u{22A5}');
+        let clause = match (Belnap::from_glyph(jmark), ReprTag::from_glyph(tag)) {
+            (Some(j), Some(t)) => router.apply(j, t),
+            _ => None,
+        };
+        let (word, next, recognised) = match clause {
+            Some(c) => (c.transform_word.clone(), c.next.map(|t| t.glyph()), true),
+            None => (String::from("\u{2014}"), None, false),
+        };
+        traj.push(GTraceStep { tag, judgment: jmark, applied_word: word, next, recognised });
+        if jmark == J_T {
+            if let Some((p, q)) = found_factor(tag, n) {
+                if p > 1 && q > 1 && p * q == n { return (Some((p, q)), traj); }
+            }
+        }
+        // mirror MetaState::step exactly: an N judgment returns before the object
+        // update; a None next also leaves the object unchanged; otherwise advance.
+        if jmark != J_N {
+            if let Some(t) = next { tag = t; }
+        }
+    }
+    (None, traj)
+}
+
+/// v2 as a mark — the judge judged, returning one of ⊤/⊞/⊙. Verbatim the same
+/// clauses as `judge_router_v2`; only the return type changes from `Belnap` to a mark.
+pub fn judge_router_v2_mark(traces: &[Vec<TraceStep>], closures: usize, corpus: usize) -> char {
+    let unmatched = traces.iter().flatten().any(|s| !s.recognised);
+    if unmatched { return J_N; }
+    if closures == corpus { return J_T; }
+    if closures == 0 { return J_N; }
+    J_B
 }

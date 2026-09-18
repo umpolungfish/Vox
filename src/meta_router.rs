@@ -83,7 +83,7 @@ pub fn words() -> String {
 // ---- number theory for the multiplicative representation ----
 fn gcd(mut a: u64, mut b: u64) -> u64 { while b != 0 { let t = a % b; a = b; b = t; } a }
 
-fn is_prime_u64(n: u64) -> bool {
+pub fn is_prime_u64(n: u64) -> bool {
     if n < 2 { return false; }
     for p in [2u64, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37] { if n % p == 0 { return n == p; } }
     let mut d = n - 1; let mut r = 0u32;

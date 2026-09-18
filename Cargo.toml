@@ -162,3 +162,111 @@ path = "src/bin/router_self_cli.rs"
 [[bin]]
 name = "router_rr_cli"
 path = "src/bin/router_rr_cli.rs"
+
+[[bin]]
+name = "trace_measure_cli"
+path = "src/bin/trace_measure_cli.rs"
+
+[[bin]]
+name = "judge_judge_cli"
+path = "src/bin/judge_judge_cli.rs"
+
+[[bin]]
+name = "full_loop_cli"
+path = "src/bin/full_loop_cli.rs"
+
+[[bin]]
+name = "carrier_cli"
+path = "src/bin/carrier_cli.rs"
+
+[[bin]]
+name = "carrier_identity_cli"
+path = "src/bin/carrier_identity_cli.rs"
+
+[[bin]]
+name = "trace_replay_cli"
+path = "src/bin/trace_replay_cli.rs"
+
+[[bin]]
+name = "judge_g_cli"
+path = "src/bin/judge_g_cli.rs"
+
+[[bin]]
+name = "meta_router_g_cli"
+path = "src/bin/meta_router_g_cli.rs"
+
+[[bin]]
+name = "router_g_cli"
+path = "src/bin/router_g_cli.rs"
+
+[[bin]]
+name = "judge_router_g_cli"
+path = "src/bin/judge_router_g_cli.rs"
+
+[[bin]]
+name = "router_marks_cli"
+path = "src/bin/router_marks_cli.rs"
+
+[[bin]]
+name = "router_word_cli"
+path = "src/bin/router_word_cli.rs"
+
+[[bin]]
+name = "self_repair_word_cli"
+path = "src/bin/self_repair_word_cli.rs"
+
+[[bin]]
+name = "trace_word_cli"
+path = "src/bin/trace_word_cli.rs"
+
+[[bin]]
+name = "trace_reentry_cli"
+path = "src/bin/trace_reentry_cli.rs"
+
+[[bin]]
+name = "rewrite_word_cli"
+path = "src/bin/rewrite_word_cli.rs"
+
+[[bin]]
+name = "trace_algebra_cli"
+path = "src/bin/trace_algebra_cli.rs"
+
+[[bin]]
+name = "tape_delete_cli"
+path = "src/bin/tape_delete_cli.rs"
+
+[[bin]]
+name = "tape_fuse_cli"
+path = "src/bin/tape_fuse_cli.rs"
+
+[[bin]]
+name = "tape_algebra_words_cli"
+path = "src/bin/tape_algebra_words_cli.rs"
+
+[[bin]]
+name = "tape_factor_cli"
+path = "src/bin/tape_factor_cli.rs"
+
+[[bin]]
+name = "terminal_fixpoint_cli"
+path = "src/bin/terminal_fixpoint_cli.rs"
+
+[[bin]]
+name = "transform_verdict_cli"
+path = "src/bin/transform_verdict_cli.rs"
+
+[[bin]]
+name = "reduce_resident_cli"
+path = "src/bin/reduce_resident_cli.rs"
+
+[[bin]]
+name = "confluence_cli"
+path = "src/bin/confluence_cli.rs"
+
+[[bin]]
+name = "cluster_factor_cli"
+path = "src/bin/cluster_factor_cli.rs"
+
+[[bin]]
+name = "history_reduce_cli"
+path = "src/bin/history_reduce_cli.rs"
