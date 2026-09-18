@@ -12,4 +12,4 @@ shor_qft: a=2, N=15, 8 index qubits (register size 256)
   period extracted via continued fractions from a measured peak: 4  (matches true period: true)
   factors recovered via gcd: 3 * 5 = 15  (verified: true)
 
-entry(...) exited(0)   [166194 steps in the twelve]
+entry(...) exited(0)   [178598 steps in the twelve]

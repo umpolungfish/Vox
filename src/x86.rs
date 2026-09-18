@@ -303,6 +303,8 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
         0xE9 => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"jmp",vec![Op::Imm(t as i64)],false,Some(t)) }
         0xEB => { let d=c.imm(1,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"jmp",vec![Op::Imm(t as i64)],false,Some(t)) }
         0xF4 => ins!(addr,c,"hlt",vec![],false,None),
+        0xFC => ins!(addr,c,"cld",vec![],false,None),
+        0xFD => ins!(addr,c,"std",vec![],false,None),
         0xF6 => { let (rm,g)=modrm(&mut c,&rex,1,1)?; let wm=rm.is_mem();
             match g&7 { 0|1 => { let im=c.imm(1,true)?; ins!(addr,c,"test",vec![rm,Op::Imm(im)],false,None) }
                         2 => ins!(addr,c,"not",vec![rm],wm,None), 3 => ins!(addr,c,"neg",vec![rm],wm,None),

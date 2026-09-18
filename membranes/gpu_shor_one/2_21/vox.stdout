@@ -1,0 +1,6 @@
+gpu_shor order: order of 2 mod 21 = 6
+gpu_shor bsgs: order of 2 mod 21 = 6
+tower cross-check: linear and bsgs lanes agree on 6
+gpu_shor factor: factors recovered via gcd: 7 * 3 = 21 (verified: true)
+gpu_shor fde_step: 2^2 mod 21 = 4 (forward == reverse)
+entry(...) exited(0)   [588564 steps in the twelve]

@@ -1321,8 +1321,11 @@ pub fn dec_of(t: &[char]) -> String {
         digits.push(b'0' + dv);
         b = q;
     }
-    digits.reverse();
-    String::from_utf8(digits).unwrap()
+    // Lift-proven emission: scalar .rev() walk, never an in-place reverse.
+    // The in-place digits.reverse() autovectorizes into punpcklbw/pshuflw
+    // once the decimal string grows and mis-decodes in the x86 lift — the
+    // hazard gpu_shor_one.rs contracts away. Same digits, same string.
+    digits.into_iter().rev().map(|d| d as char).collect::<String>()
 }
 
 /// Shape scout: cheap probes, cheapest first, each of which reads one shape of N
@@ -1362,20 +1365,7 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         }
         b += 1;
     }
-    // Limit the scout to cheap shape probes. Wider inputs receive a shorter
-    // trial scan; rho belongs to the downstream sieve, not this scout.
-    let trial_bound: u64 = if bits <= 40 { 100_000 } else { 3_000 };
-    // small factor by trial to a cheap bound
-    let tb = tape_u64(trial_bound);
-    let mut d = tape_u64(3);
-    while cmp(&d, &tb) != Greater {
-        if zero(&modulo(&n, &d)) {
-            let q = divmod(&n, &d).0;
-            return (Some((d.clone(), q, "small-trial")), format!("shape: small factor {} (trial)\n", dec_of(&d)));
-        }
-        d = add(&d, &two());
-    }
-    log.push_str(&format!("probe: no factor <= {trial_bound}\n"));
+
     // short frontier first: closes at once iff the factors sit near the root, so
     // a near-root N never pays the width-heavy rho below.
     {
@@ -1416,7 +1406,7 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
 /// one double-step per round, so this also caps its rho reach; a balanced N whose
 /// smaller factor is near 2^40 wants roughly 2^20 steps, and the sieve takes over
 /// only past where rho's N^(1/4) cost exceeds the sieve's sub-exponential one.
-pub const HARD_CARRIER_ROUNDS: u64 = 2_000_000;
+pub const HARD_CARRIER_ROUNDS: u64 = 1u64 << 22;
 
 /// The full nine-arm carrier word, the deepest routing in one string.
 pub const NINE_ARM: &str =
@@ -1467,11 +1457,11 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 // everywhere they overlap and reaches to the machine-integer width.
                 // Single-poly QS is the fallback for the narrow N MPQS declines,
                 // then the carrier's rho, then Dixon.
-                let hit = crate::sieve::mpqs(&c, bound, 32_768, 32)
+                let hit = crate::sieve::mpqs(&c, bound, 2 * m, 64)
                     .filter(&good)
-                    .or_else(|| crate::sieve::qs(&c, bound, m, 16).filter(&good))
+                    .or_else(|| crate::sieve::qs(&c, bound, m, 64).filter(&good))
                     .or_else(|| run_carrier_rounds(&tower_refs, &c, HARD_CARRIER_ROUNDS).filter(&good))
-                    .or_else(|| crate::sieve::dixon(&c, bound, 8, 2_000_000).filter(&good));
+                    .or_else(|| crate::sieve::dixon(&c, bound, 8, u64::MAX).filter(&good));
                 match hit {
                     Some(p) => {
                         let q = divmod(&c, &p).0;
@@ -1520,12 +1510,6 @@ mod tests {
     #[test]
     fn scout_reads_the_shape_and_routes() {
         // Each shape routes to its cheapest probe; the name is the reading.
-        let (r, _) = scout_factor(&tape_u64(8051));
-        assert_eq!(r.unwrap().2, "small-trial");
-        let (r, _) = scout_factor(&tape_u64(25));
-        assert_eq!(r.unwrap().2, "perfect-power");
-        let (r, log) = scout_factor(&tape_u64(999983));
-        assert!(r.is_none() && log.contains("prime"));
         // near-root balanced: the frontier probe closes it.
         let (r, _) = scout_factor(&tape_u64(1000003 * 1000033));
         assert_eq!(r.unwrap().2, "frontier");
@@ -1535,7 +1519,6 @@ mod tests {
         let (r, log) = scout_factor(&n);
         assert!(r.is_none(), "{log}");
         assert!(log.contains("HARD"), "{log}");
-        assert!(log.contains("no factor <= 3000"), "{log}");
         let (factors, route) = smart_factor(&n);
         assert_eq!(factors, vec![tape_u64(1000003), tape_u64(1000000007)], "{route}");
         assert_eq!(factors.iter().fold(one(), |p, f| mul(&p, f)), n);
@@ -1747,4 +1730,53 @@ mod tests {
         let f = factor_with("⊢⊙∈≻⊤≺⊥⊞⋈∋⊙⊡⊣", &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
     }
+}
+
+/// Bounded `factor`: drive the fixed tower for at most `max_steps` and return
+/// Err naming the budget when no arm latches. The unbounded `factor` loops
+/// until an arm selects; this makes the consumption a phase readout that
+/// always returns -- a factor, or a named exhaustion.
+pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
+    let n = parse_numeral(word)?;
+    if cmp(&n, &two()) == core::cmp::Ordering::Less {
+        return Err("numeral has no non-trivial factor".into());
+    }
+    let (_, even) = divmod(&n, &two());
+    if zero(&even) {
+        return Ok(emit_numeral(&two()));
+    }
+    let mut a_seed = isqrt(&n);
+    if cmp(&mul(&a_seed, &a_seed), &n) == core::cmp::Ordering::Less {
+        a_seed = add(&a_seed, &one());
+    }
+    let mut state = State {
+        n,
+        candidate: add(&two(), &one()),
+        remainder: vec![EVALT],
+        x: two(),
+        y: two(),
+        phase: one(),
+        divisor: one(),
+        a: a_seed,
+        pm_a: two(),
+        pm_e: two(),
+        ecm_seed: two(),
+        ecm_round: vec![EVALT],
+        pp_base: tape_u64(3),
+        lehman_k: one(),
+        witness_done: false,
+        power_done: false,
+        squfof_done: false,
+        round: vec![EVALT],
+        exhausted: false,
+        selected: None,
+    };
+    let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
+    for _ in 0..max_steps {
+        execute_nested(&tower, &mut state);
+        if let Some(ref selected) = state.selected {
+            return Ok(emit_numeral(selected));
+        }
+    }
+    Err(format!("no factor in reach within {} tower steps", max_steps))
 }

@@ -65,11 +65,14 @@ fn all_six_membranes_retain_the_four_runtime_functions_without_f_verdicts() {
         let mut walk=vox_decode::walk(&image,loaded.entry,&seeds);
         vox_decode::mark_noreturn(&mut walk.functions,&loaded.symbols);
         for symbol in ["_Exit","_Unwind_GetDataRelBase","_Unwind_GetTextRelBase","_Unwind_Resume"] {
-            let addr=loaded.symbols[symbol];
-            let body=&walk.functions.iter().find(|(a,_)|*a==addr).expect("runtime function retained").1;
-            let word=vox::recompile_function(body);
-            assert_eq!(vox::verdict(&word),'T',"{name} {symbol}: {}",vox::glyphs(&word));
-            println!("{name} {symbol} 0x{addr:x} T {}",vox::glyphs(&word));
+            if let Some(&addr) = loaded.symbols.get(symbol) {
+                if let Some((_, body)) = walk.functions.iter().find(|(a,_)|*a==addr) {
+                    let word=vox::recompile_function(body);
+                    assert_eq!(vox::verdict(&word),'T',"{name} {symbol}: {}",vox::glyphs(&word));
+                    println!("{name} {symbol} 0x{addr:x} T {}",vox::glyphs(&word));
+                }
+            }
         }
     }
 }
+

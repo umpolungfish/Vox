@@ -1033,6 +1033,13 @@ fn main() {
             if let Ok(w) = std::env::var("VOX_WMEM") {
                 m.wmem = u64::from_str_radix(w.trim().trim_start_matches("0x"), 16).unwrap_or(0);
             }
+            if let Ok(w) = std::env::var("VOX_WMEM_RANGE") {
+                let p: Vec<&str> = w.split(',').collect();
+                if p.len() == 2 {
+                    m.wmem_lo = u64::from_str_radix(p[0].trim().trim_start_matches("0x"), 16).unwrap_or(0);
+                    m.wmem_hi = u64::from_str_radix(p[1].trim().trim_start_matches("0x"), 16).unwrap_or(0);
+                }
+            }
             if let Ok(r) = std::env::var("VOX_RANGE") {
                 let p: Vec<&str> = r.split(',').collect();
                 if p.len() == 2 {
@@ -1043,7 +1050,13 @@ fn main() {
             if sym.is_empty() {
                 let mut argv = vec![file.clone()];
                 argv.extend(argv_strs);
-                let r = m.run_process(&argv, &[], 5_000_000_000);
+                // Step budget: 5e9 default, VOX_STEPS overrides for long
+                // membrane runs (the 21-digit lift needs >5e9 at the
+                // measured 954k steps/s VM rate).
+                let steps: u64 = std::env::var("VOX_STEPS").ok()
+                    .and_then(|s| s.trim().parse().ok())
+                    .unwrap_or(5_000_000_000);
+                let r = m.run_process(&argv, &[], steps);
                 if let Err(imasm_vm::Stop::Halt(_)) = &r {
                     eprint!("regs at halt:");
                     for rn in ["rax","rbx","rcx","rdx","rsi","rdi","rbp","rsp","r12","r13","r14","r15"] {

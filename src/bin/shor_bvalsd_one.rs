@@ -23,8 +23,11 @@ fn main() {
             .nth(index).ok_or("BAKED_INDEX is outside bvalsd.txt")?;
         let n = vox::morphism_factor::decimal_to_tape(value.trim())
             .ok_or("invalid baked decimal")?;
+        let reg_bits: usize = option_env!("REGISTER_BITS")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or_else(|| (n.len() * 2).max(12));
         let report = shor_qft::run_shor_big_report(
-            vox::morphism_factor::tape_u64(2), n, 12
+            vox::morphism_factor::tape_u64(2), n, reg_bits
         )?;
         Ok(report)
     })();

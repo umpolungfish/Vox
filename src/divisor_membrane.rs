@@ -80,6 +80,7 @@ fn high_overlap(n: &[char], m: u32, ph: &[char], qh: &[char], l: u32) -> bool {
 /// Tape equality up to trim.
 fn teq(a: &[char], b: &[char]) -> bool { cmp(a, b) == core::cmp::Ordering::Equal }
 /// Low-k-bit tape equality.
+#[allow(dead_code)]
 fn low_eq(a: &[char], b: &[char], k: u32) -> bool {
     if k == 0 { return true; }
     for i in 0..k as usize {
@@ -88,6 +89,7 @@ fn low_eq(a: &[char], b: &[char], k: u32) -> bool {
     true
 }
 /// High-l-bit tape equality: top l bits of m-bit values.
+#[allow(dead_code)]
 fn high_eq(a: &[char], b: &[char], m: u32, l: u32) -> bool {
     if l == 0 { return true; }
     for i in 0..l as usize {
@@ -108,36 +110,42 @@ fn under(op: &[char], f: impl FnOnce() -> bool) -> bool {
 /// agreeing with both partial states (both lane orders). Middle searched by
 /// enumerating tape values of the unknown middle bits (bounded m<=10 here;
 /// the u64 G-mOMonadOS gate m<=30 maps to tape enumeration of the same space).
-pub fn bridge_extendable_tape(n: &[char], m: u32, pl: &[char], ql: &[char], k: u32, ph: &[char], qh: &[char], l: u32) -> bool {
+
+/// Tape -> u64 (LSB-first; EVALF=1) for the residue-in-interval bridge.
+fn tape_to_u64(t: &[char]) -> u64 {
+    let one = mark(true);
+    let mut v = 0u64;
+    for (i, &c) in t.iter().enumerate() {
+        if i < 64 && c == one { v |= 1u64 << i; }
+    }
+    v
+}
+fn div_ceil_u64(a: u64, b: u64) -> u64 { if b == 0 { u64::MAX } else { (a + b - 1) / b } }
+
+pub fn bridge_extendable_tape(n: &[char], m: u32, pl: &[char], _ql: &[char], k: u32, ph: &[char], qh: &[char], l: u32) -> bool {
     under(OP_BRIDGE, || {
         if k == 0 && l == 0 { return true; }
-        if m > 10 { return false; }
-        let lo = 1u64 << (m - 1);
-        let hi = if m >= 64 { u64::MAX } else { (1u64 << m) - 1 };
-        let mut p = lo | 1;
-        loop {
-            let pt = tape_u64(p);
-            let lok = low_eq(&pt, pl, k);
-            let hik = high_eq(&pt, ph, m, l);
-            let lok2 = low_eq(&pt, ql, k);
-            let hik2 = high_eq(&pt, qh, m, l);
-            for lane in 0..2 {
-                let (plok, phik) = if lane == 0 { (lok, hik) } else { (lok2, hik2) };
-                if !(plok && phik) { continue; }
-                let mut q = lo | 1;
-                loop {
-                    let qt = tape_u64(q);
-                    let qlok = if lane == 0 { low_eq(&qt, ql, k) } else { low_eq(&qt, pl, k) };
-                    let qhik = if lane == 0 { high_eq(&qt, qh, m, l) } else { high_eq(&qt, ph, m, l) };
-                    if qlok && qhik && teq(&mul(&pt, &qt), n) { return true; }
-                    if q == hi { break; }
-                    q += 2;
-                }
-            }
-            if p == hi { break; }
-            p += 2;
-        }
-        false
+        if m > 31 { return false; }               // u64 window; NOT the old m<=10 gate
+        let nv = tape_to_u64(n);
+        let pl_v = tape_to_u64(pl);
+        let ph_v = tape_to_u64(ph);
+        let qh_v = tape_to_u64(qh);
+        let shift = m - l;
+        // top-l interval carried by the high partials
+        let p_lo = ph_v << shift;
+        let p_hi = ((ph_v + 1) << shift) - 1;
+        let q_lo = qh_v << shift;
+        let q_hi = ((qh_v + 1) << shift) - 1;
+        // q = N/p lands in q's interval  <=>  p in [ceil(N/q_hi), floor(N/q_lo)]
+        let lo = p_lo.max(div_ceil_u64(nv, q_hi.max(1)));
+        let hi = p_hi.min(nv / q_lo.max(1));
+        if lo > hi { return false; }
+        // low congruence p = pl (mod 2^k): does the AP meet [lo, hi]?
+        if k == 0 { return true; }
+        let step = 1u64 << k;
+        let rem = pl_v % step;
+        let x0 = lo + ((rem + step - (lo % step)) % step);
+        x0 <= hi
     })
 }
 
@@ -227,7 +235,7 @@ pub fn repl_divisor_membrane(args: &[&str]) -> String {
     if args[0] != "bridge" || args.len() < 3 { return String::from("usage: divisor_membrane bridge <N> <m> | divisor_membrane operators"); }
     let n_dec: u64 = match args[1].parse() { Ok(v) => v, Err(_) => return String::from("bad N") };
     let m: u32 = match args[2].parse() { Ok(v) => v, Err(_) => return String::from("bad m") };
-    if m < 2 || m > 10 || n_dec < 3 || n_dec & 1 == 0 { return String::from("need odd N>=3, 2<=m<=10 (tape-enumeration gate)"); }
+    if m < 2 || m > 31 || n_dec < 3 || n_dec & 1 == 0 { return String::from("need odd N>=3, 2<=m<=31 (residue-in-interval bridge, no middle enumeration)"); }
     let n_word = emit_numeral(&tape_u64(n_dec));
     let trace = match coupled_trace_detail_tape(&n_word, m) { Ok(t) => t, Err(e) => return format!("tape error: {e}") };
     let mut out = format!("membrane bridge: N={n_dec} m={m} N-word={n_word} (|M|: {}->0)\n", 2 * m);
