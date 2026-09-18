@@ -32,5 +32,14 @@ pub mod complete_membrane;
 pub mod sieve;
 pub mod perfect_membrane;
 pub mod divisor_membrane;
+pub mod nested_frame;
+pub mod meta_router;
+pub mod router_object;
+pub mod router_store;
 pub mod loader;
 pub mod safetensors;
+pub mod membrane_state;
+pub mod winding_readout;
+pub mod shor_braid;
+// pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)
+// pub mod fde_shor_membrane;  // bin-only: uses std + ::vox

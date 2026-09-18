@@ -2,23 +2,163 @@
 name = "vox"
 version = "0.1.0"
 edition = "2021"
-description = "V⊙x — lift program CFGs to the twelve-glyph IMASM word and verdict their closure"
+description = "Vox — IMASM word, lifts and verdicts"
 license = "Unlicense"
+autobins = false
 
-# Standalone: no external crates. The decoder and lifter are pure Rust over
-# `alloc`, so Vox builds on its own — it does not require mOMonadOS or any other
-# repo present. Consumers that want the auditor as a library link this crate.
 [lib]
 name = "vox"
 path = "src/lib.rs"
 
-[[bin]]
-name = "vox"
-path = "src/main.rs"
-
 [features]
+default = []
+resident = []
 mpqs_debug = []
 
 [profile.release]
 opt-level = 3
 lto = true
+
+[[bin]]
+name = "vox"
+path = "src/main.rs"
+
+[[bin]]
+name = "abc_one"
+path = "src/bin/abc_one.rs"
+
+[[bin]]
+name = "baked_target"
+path = "src/bin/baked_target.rs"
+
+[[bin]]
+name = "binomial_one"
+path = "src/bin/binomial_one.rs"
+
+[[bin]]
+name = "braid_gens"
+path = "src/bin/braid_gens.rs"
+
+[[bin]]
+name = "divisor_one"
+path = "src/bin/divisor_one.rs"
+
+[[bin]]
+name = "factor_bench"
+path = "src/bin/factor_bench.rs"
+
+[[bin]]
+name = "factor_one"
+path = "src/bin/factor_one.rs"
+
+[[bin]]
+name = "factorization_31_batch"
+path = "src/bin/factorization_31_batch.rs"
+
+[[bin]]
+name = "factorization_31_one"
+path = "src/bin/factorization_31_one.rs"
+
+[[bin]]
+name = "gpu_bvalsd"
+path = "src/bin/gpu_bvalsd.rs"
+
+[[bin]]
+name = "gpu_shor_one"
+path = "src/bin/gpu_shor_one.rs"
+
+[[bin]]
+name = "landau_one"
+path = "src/bin/landau_one.rs"
+
+[[bin]]
+name = "lcm_one"
+path = "src/bin/lcm_one.rs"
+
+[[bin]]
+name = "membrane"
+path = "src/bin/membrane.rs"
+
+[[bin]]
+name = "multi_quantum_membrane"
+path = "src/bin/multi_quantum_membrane.rs"
+
+[[bin]]
+name = "orbit_uncapped"
+path = "src/bin/orbit_uncapped.rs"
+
+[[bin]]
+name = "perfect_one"
+path = "src/bin/perfect_one.rs"
+
+[[bin]]
+name = "phaseB_fac"
+path = "src/bin/phaseB_fac.rs"
+
+[[bin]]
+name = "qft_circuit"
+path = "src/bin/qft_circuit.rs"
+
+[[bin]]
+name = "reptiling_one"
+path = "src/bin/reptiling_one.rs"
+
+[[bin]]
+name = "schutte_one"
+path = "src/bin/schutte_one.rs"
+
+[[bin]]
+name = "shor_big_batch"
+path = "src/bin/shor_big_batch.rs"
+
+[[bin]]
+name = "shor_big_one"
+path = "src/bin/shor_big_one.rs"
+
+[[bin]]
+name = "shor_bvalsd_one"
+path = "src/bin/shor_bvalsd_one.rs"
+
+[[bin]]
+name = "shor_cli"
+path = "src/bin/shor_cli.rs"
+
+[[bin]]
+name = "shor_one"
+path = "src/bin/shor_one.rs"
+
+[[bin]]
+name = "tripsum_one"
+path = "src/bin/tripsum_one.rs"
+
+[[bin]]
+name = "verify_31_tower"
+path = "src/bin/verify_31_tower.rs"
+
+[[bin]]
+name = "baked_target_bounded"
+path = "src/bin/baked_target_bounded.rs"
+
+[[bin]]
+name = "semiprime_shot_cli"
+path = "src/bin/semiprime_shot_cli.rs"
+
+[[bin]]
+name = "shot_carrier"
+path = "src/bin/shot_carrier.rs"
+
+[[bin]]
+name = "nested_frame_cli"
+path = "src/bin/nested_frame_cli.rs"
+
+[[bin]]
+name = "meta_router_cli"
+path = "src/bin/meta_router_cli.rs"
+
+[[bin]]
+name = "router_self_cli"
+path = "src/bin/router_self_cli.rs"
+
+[[bin]]
+name = "router_rr_cli"
+path = "src/bin/router_rr_cli.rs"

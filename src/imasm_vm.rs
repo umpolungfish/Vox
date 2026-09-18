@@ -100,12 +100,15 @@ pub struct Machine {
     /// Optional trace: addresses to log on entry (allocator functions), and the
     /// log itself. Armed by trace_allocs(); read after a run.
     watch: BTreeMap<u64, String>,
-    pub syslog: Vec<String>,
+    pub syslog: alloc::collections::VecDeque<String>,
     /// Optional per-instruction register trace over a PC window [lo,hi).
     pub trace_lo: u64,
     pub trace_hi: u64,
     /// Optional watch: log every store that touches this address.
     pub wmem: u64,
+    pub wmem_lo: u64,
+    pub wmem_hi: u64,
+    pub df: bool,
     cur_pc: u64,
 }
 
@@ -116,7 +119,7 @@ impl Machine {
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
-            watch: BTreeMap::new(), syslog: Vec::new(), trace_lo: 0, trace_hi: 0, wmem: 0, cur_pc: 0,
+            watch: BTreeMap::new(), syslog: alloc::collections::VecDeque::new(), trace_lo: 0, trace_hi: 0, wmem: 0, wmem_lo: 0, wmem_hi: 0, df: false, cur_pc: 0,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
             m.reg.insert(r.into(), 0);
@@ -213,8 +216,10 @@ impl Machine {
     fn store(&mut self, addr: u64, val: u128, size: u8) {
         let v = val & mask(size);
         for k in 0..size as u64 { self.mem.insert(addr + k, ((v >> (8*k)) & 0xFF) as u8); }
-        if self.wmem != 0 && addr <= self.wmem && self.wmem < addr + size as u64 && self.syslog.len() < 100_000 {
-            self.syslog.push(format!("STORE [{:x}] = {:x} size {} pc {:x} step {}", addr, v, size, self.cur_pc, self.steps));
+        let hit = (self.wmem != 0 && addr <= self.wmem && self.wmem < addr + size as u64)
+            || (self.wmem_hi > self.wmem_lo && addr + size as u64 > self.wmem_lo && addr < self.wmem_hi);
+        if hit && self.syslog_room() {
+            self.syslog.push_back(format!("STORE [{:x}] = {:x} size {} pc {:x} step {} rdi={:x} rsi={:x} rdx={:x}", addr, v, size, self.cur_pc, self.steps, self.get_reg("rdi"), self.get_reg("rsi"), self.get_reg("rdx")));
         }
     }
     fn ea(&self, field: &str) -> (u64, u8) {
@@ -378,8 +383,8 @@ impl Machine {
                     let n = (((length.max(1) + page - 1) / page) * page).max(page);
                     let addr = self.mmap_next; self.mmap_next += n;
                     self.set_reg("rax", addr as u128);
-                    if !self.watch.is_empty() && self.syslog.len() < 100_000 {
-                        self.syslog.push(format!("            mmap len=0x{:x} -> 0x{:x} @step {}", length, addr, self.steps));
+                    if !self.watch.is_empty() && self.syslog_room() {
+                        self.syslog.push_back(format!("            mmap len=0x{:x} -> 0x{:x} @step {}", length, addr, self.steps));
                     }
                 }
             }
@@ -449,15 +454,33 @@ impl Machine {
             // String move/store, forward (DF=0, the memcpy_fwd/memset case). A
             // rep does the whole run here in one VM step, so a megabyte copy
             // costs one step, not a million.
+            "std" => { self.df = true; return; }
+            "cld" => { self.df = false; return; }
+            // String move/store. DF selects direction: the memcpy_fwd/memset
+            // case runs forward; musl memmove's backward-overlap path
+            // (dst above src) is std; rep movsb and must descend, so a
+            // forward-only lift walks off the block and sprays the neighbor.
+            // A rep does the whole run in one VM step. Native rep terminates
+            // with the pointers one BYTE past (DF=0) or before (DF=1) the
+            // last transfer regardless of element width, so the tails are
+            // written explicitly.
             "movs"|"rep_movs" => {
                 let w = parse_imm(&f[0][2..]) as u64;
                 let count = if op.starts_with("rep") { self.get_reg("rcx") as u64 } else { 1 };
-                let mut si = self.get_reg("rsi") as u64; let mut di = self.get_reg("rdi") as u64;
+                let si0 = self.get_reg("rsi") as u64; let di0 = self.get_reg("rdi") as u64;
+                let step = if self.df { (w as u128).wrapping_neg() as u64 } else { w };
+                let mut si = si0; let mut di = di0;
                 for _ in 0..count {
                     let v = self.load(si, w as u8); self.store(di, v, w as u8);
-                    si = si.wrapping_add(w); di = di.wrapping_add(w);
+                    si = si.wrapping_add(step); di = di.wrapping_add(step);
                 }
-                self.set_reg("rsi", si as u128); self.set_reg("rdi", di as u128);
+                if self.df {
+                    self.set_reg("rsi", si0.wrapping_sub(1) as u128);
+                    self.set_reg("rdi", di0.wrapping_sub(1) as u128);
+                } else {
+                    self.set_reg("rsi", si0.wrapping_add(count.wrapping_mul(w)) as u128);
+                    self.set_reg("rdi", di0.wrapping_add(count.wrapping_mul(w)) as u128);
+                }
                 if op.starts_with("rep") { self.set_reg("rcx", 0); }
                 return;
             }
@@ -465,9 +488,12 @@ impl Machine {
                 let w = parse_imm(&f[0][2..]) as u64;
                 let count = if op.starts_with("rep") { self.get_reg("rcx") as u64 } else { 1 };
                 let val = self.get_reg("rax") & mask(w as u8);
-                let mut di = self.get_reg("rdi") as u64;
-                for _ in 0..count { self.store(di, val, w as u8); di = di.wrapping_add(w); }
-                self.set_reg("rdi", di as u128);
+                let di0 = self.get_reg("rdi") as u64;
+                let step = if self.df { (w as u128).wrapping_neg() as u64 } else { w };
+                let mut di = di0;
+                for _ in 0..count { self.store(di, val, w as u8); di = di.wrapping_add(step); }
+                if self.df { self.set_reg("rdi", di0.wrapping_sub(1) as u128); }
+                else { self.set_reg("rdi", di0.wrapping_add(count.wrapping_mul(w)) as u128); }
                 if op.starts_with("rep") { self.set_reg("rcx", 0); }
                 return;
             }
@@ -994,6 +1020,7 @@ impl Machine {
     /// looks like: it never `ret`s to a return address, it exits.
     /// Arm the allocator trace: log the entry to each of these functions, with
     /// the argument registers, into syslog. Call before run_process.
+    fn syslog_room(&mut self) -> bool { if self.syslog.len() >= 100_000 { self.syslog.pop_front(); } true }
     pub fn trace_allocs(&mut self) {
         for name in ["malloc","free","realloc","calloc","aligned_alloc",
                      "__libc_malloc","__libc_free","__libc_realloc","__libc_calloc"] {
@@ -1013,18 +1040,21 @@ impl Machine {
             if Some(pc) == sentinel { return Ok(pc); }
             self.cur_pc = pc;
             if !self.watch.is_empty() {
-                if let Some(name) = self.watch.get(&pc) {
-                    if self.syslog.len() < 100_000 {
+                let name = self.watch.get(&pc).cloned();
+                if let Some(name) = name {
+                    if self.syslog_room() {
                         let (di, si, dx) = (self.get_reg("rdi"), self.get_reg("rsi"), self.get_reg("rdx"));
-                        self.syslog.push(format!("{:>16} rdi=0x{:x} rsi=0x{:x} rdx=0x{:x} @step {}", name, di, si, dx, self.steps));
+                        self.syslog.push_back(format!("{:>16} rdi=0x{:x} rsi=0x{:x} rdx=0x{:x} @step {}", name, di, si, dx, self.steps));
                     }
                 }
             }
-            if self.trace_hi > self.trace_lo && pc >= self.trace_lo && pc < self.trace_hi && self.syslog.len() < 100_000 {
+            if self.trace_hi > self.trace_lo && pc >= self.trace_lo && pc < self.trace_hi && self.syslog_room() {
                 let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(";")).unwrap_or_default();
-                self.syslog.push(format!("{:x}: ax={:x} bx={:x} cx={:x} dx={:x} si={:x} di={:x} bp={:x} r8={:x}  | {}",
+                self.syslog.push_back(format!("{:x}: ax={:x} bx={:x} cx={:x} dx={:x} si={:x} di={:x} bp={:x} r8={:x} r9={:x} r10={:x} r11={:x} r12={:x} r13={:x} r14={:x} r15={:x}  | {}",
                     pc, self.get_reg("rax"), self.get_reg("rbx"), self.get_reg("rcx"), self.get_reg("rdx"),
-                    self.get_reg("rsi"), self.get_reg("rdi"), self.get_reg("rbp"), self.get_reg("r8"), insn_txt));
+                    self.get_reg("rsi"), self.get_reg("rdi"), self.get_reg("rbp"), self.get_reg("r8"),
+    self.get_reg("r9"), self.get_reg("r10"), self.get_reg("r11"), self.get_reg("r12"),
+    self.get_reg("r13"), self.get_reg("r14"), self.get_reg("r15"), insn_txt));
             }
             if !self.code.contains_key(&pc) {
                 return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));

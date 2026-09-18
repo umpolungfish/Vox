@@ -1,0 +1,5 @@
+gpu_shor order: order of 3 mod 10 = 4
+gpu_shor bsgs: order of 3 mod 10 = 4
+tower cross-check: linear and bsgs lanes agree on 4
+gpu_shor fde_step: 3^2 mod 10 = 9 (forward == reverse)
+entry(...) exited(0)   [356077 steps in the twelve]

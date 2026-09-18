@@ -419,9 +419,11 @@ pub fn decode_one(b: &[u8], addr: u64) -> Option<Decoded> {
             let (_, mem) = modrm(&mut c)?;
             Some(Decoded { len: c.i, mnemonic: "mov", target: None, writes_mem: mem })
         }
-        0x9B | 0x9E | 0x9F | 0xD7 | 0xF5 | 0xF8..=0xFD => {
+        0x9B | 0x9E | 0x9F | 0xD7 | 0xF5 | 0xF8..=0xFB => {
             Some(Decoded { len: c.i, mnemonic: "lahf", target: None, writes_mem: false })
         }
+        0xFC => Some(Decoded { len: c.i, mnemonic: "cld", target: None, writes_mem: false }),
+        0xFD => Some(Decoded { len: c.i, mnemonic: "std", target: None, writes_mem: false }),
         0xCD => {
             c.skip(1)?;
             Some(Decoded { len: c.i, mnemonic: "int", target: None, writes_mem: false })

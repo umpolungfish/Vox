@@ -1,0 +1,31 @@
+[package]
+name = "vox"
+version = "0.1.0"
+edition = "2021"
+description = "Vox — IMASM word, lifts and verdicts"
+license = "Unlicense"
+
+[lib]
+name = "vox"
+path = "src/lib.rs"
+
+[features]
+default = []
+resident = []
+mpqs_debug = []
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[[bin]]
+name = "vox"
+path = "src/main.rs"
+
+[[bin]]
+name = "phase_unbraider"
+path = "src/bin/phase_unbraider.rs"
+
+[[bin]]
+name = "multi_quantum_membrane"
+path = "src/bin/multi_quantum_membrane.rs"

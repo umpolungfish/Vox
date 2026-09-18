@@ -1,0 +1,5 @@
+gpu_shor order: order of 3 mod 17 = 16
+gpu_shor bsgs: order of 3 mod 17 = 16
+tower cross-check: linear and bsgs lanes agree on 16
+gpu_shor factor: no factors this base (a^(r/2) = -1 (mod n) -- retry with another base); the order r = 16 is still exact
+gpu_shor fde_step: 3^2 mod 17 = 9 (forward == reverse)

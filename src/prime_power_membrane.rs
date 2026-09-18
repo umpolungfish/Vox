@@ -1,10 +1,14 @@
 //! Hosted kernels from G-mOMonadOS/src/erdos_walks.rs (row_gcd, lcm_to_n).
 //! A shared outer sieve prepares prime-power events; each readout is indexed.
+#[allow(dead_code)]
 pub struct PrimePowerMembrane {
+    #[allow(dead_code)]
     rows: Vec<u64>,
+    #[allow(dead_code)]
     lcms: Vec<Option<u128>>,
 }
 
+#[allow(dead_code)]
 impl PrimePowerMembrane {
     pub fn new(limit: usize) -> Result<Self, String> {
         if limit > 1_000_000 { return Err("Prime-power table limit exceeds 1000000".into()); }

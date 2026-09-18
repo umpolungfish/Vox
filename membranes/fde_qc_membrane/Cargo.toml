@@ -1,0 +1,8 @@
+[package]
+name = "fde_qc_membrane"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "fde_qc_membrane"
+path = "src/main.rs"

@@ -288,3 +288,65 @@ mod tests {
         assert_eq!(prod, 360);
     }
 }
+
+/// Per-shot statistics for the resident semiprime membrane.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ShotStats {
+    pub nodes: u64,
+    pub low_prunes: u64,
+    pub bridge_prunes: u64,
+    pub high_prunes: u64,
+    pub depth: u32,
+    pub capped: bool,
+}
+
+/// Resident semiprime membrane: one unified walk carrying four arms.
+///   LOW    low-product congruence: branch p_k, wind q_k
+///   BRIDGE product-interval test over tapes: the low-part product only grows
+///          (p,q each rise with k), so once prod > N no extension can close it
+///   HIGH   factor-width bound: p is the smaller factor, so p <= sqrt(N)
+///   FIX    once an arm isolates the pair, exact p*q == N latches it
+/// Returns the pair and the shot statistics.  Unifies `resolve_moat`
+/// (factor_operator) and the LOW/HIGH/BRIDGE/FIX vocabulary (divisor_membrane)
+/// into one resident operator.
+pub fn semiprime_shot(n0: &[char], budget: u64) -> (Option<(Tape, Tape)>, ShotStats) {
+    let n = trim(n0.to_vec());
+    let root = isqrt(&n);
+    let bits = n.len();
+    let depth_cap = (bits / 2) + 2;
+    let mut st = ShotStats::default();
+    let mut found: Option<(Tape, Tape)> = None;
+    let mut stack: Vec<(usize, Tape, Tape)> = vec![(0, vec![EVALT], vec![EVALT])];
+    while let Some((k, plo, qlo)) = stack.pop() {
+        if found.is_some() || st.capped { break; }
+        st.depth = st.depth.max(k as u32);
+        if k > depth_cap { continue; }
+        for pk in [false, true] {
+            if st.nodes >= budget { st.capped = true; break; }
+            let p = with_bit(&plo, k, pk);
+            st.nodes += 1;
+            // LOW: q's bit k is wound by the low-product congruence.
+            let prod0 = mul(&p, &qlo);
+            let nk = n.get(k).copied().unwrap_or(EVALT) == EVALF;
+            let p0k = prod0.get(k).copied().unwrap_or(EVALT) == EVALF;
+            let q = with_bit(&qlo, k, nk ^ p0k);
+            let prod = mul(&p, &q);
+            if !low_bits_match(&prod, &n, k) { st.low_prunes += 1; continue; }
+            // FIX: exact close.
+            if cmp(&prod, &n) == core::cmp::Ordering::Equal && gt_one(&p) && gt_one(&q) {
+                found = Some(if cmp(&p, &q) != core::cmp::Ordering::Greater {
+                    (p.clone(), q.clone())
+                } else {
+                    (q.clone(), p.clone())
+                });
+                break;
+            }
+            // BRIDGE: the low-part product only grows with k, so prod > N is dead.
+            if cmp(&prod, &n) == core::cmp::Ordering::Greater { st.bridge_prunes += 1; continue; }
+            // HIGH: p is the smaller factor.
+            if cmp(&p, &root) == core::cmp::Ordering::Greater { st.high_prunes += 1; continue; }
+            stack.push((k + 1, p, q));
+        }
+    }
+    (found, st)
+}
