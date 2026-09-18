@@ -270,3 +270,11 @@ path = "src/bin/cluster_factor_cli.rs"
 [[bin]]
 name = "history_reduce_cli"
 path = "src/bin/history_reduce_cli.rs"
+
+[[bin]]
+name = "frame_work_cli"
+path = "src/bin/frame_work_cli.rs"
+
+[[bin]]
+name = "tower_words_cli"
+path = "src/bin/tower_words_cli.rs"
