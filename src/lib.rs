@@ -44,6 +44,7 @@ pub mod trace_word;
 pub mod trace_algebra;
 pub mod tape_delete;
 pub mod reducer_store;
+pub mod frame_work;
 pub mod loader;
 pub mod safetensors;
 pub mod membrane_state;
