@@ -15,7 +15,7 @@ use core::cmp::Ordering;
 use crate::factor_extract::{FactorCarrier, Mark, Tape};
 use crate::morphism_factor::{add, cmp, divmod, isqrt, mul, sub, tape_u64, trim, zero};
 use crate::producer_provenance::{
-    SUPPORT_EXTENDED_FERMAT, SUPPORT_PARITY, SUPPORT_PRIMALITY,
+    SUPPORT_DEEP_ARM, SUPPORT_EXTENDED_FERMAT, SUPPORT_PARITY, SUPPORT_PRIMALITY,
     SUPPORT_PRODUCT_BOUNDARY, SUPPORT_SHORT_FRONTIER,
 };
 use crate::provenance_envelope::{restored_support, LaneSupport, RestoredSupport};
@@ -27,13 +27,20 @@ use crate::vox::{verdict, EVALF, EVALT, IMSCRIB, TANCH, VINIT};
 pub const SHORT_FRONTIER_WORD: &str = "⊢⊙∈≻⊤≺⊥⊡⊣";
 /// The continuation is a new whole imscription, not the old word plus a cursor.
 pub const EXTENDED_FERMAT_WORD: &str = "⊢⊙∈≻⊤⊞≺⊥⊡⊣";
+/// The first change of lattice: the boundary is now Lehman's multiplier k.
+pub const LEHMAN_WORD: &str = "⊢⊙∈≻⋈⊤⊥⊡⊣";
 
 const SHORT_FRONTIER_CLOSED_WORD: &str = "⊢⊙∈≻⊤≺⊥∋⊡⊣";
 const EXTENDED_FERMAT_CLOSED_WORD: &str = "⊢⊙∈≻⊤⊞≺⊥∋⊡⊣";
+const LEHMAN_CLOSED_WORD: &str = "⊢⊙∈≻⋈⊤⊥∋⊡⊣";
 const SUPPORT_BITS: usize = 6;
 const RWX_BITS: usize = 3;
 const FRONTIER_CELLS: usize = 64;
-const FERMAT_CELLS: usize = 1_000_000;
+/// The second Fermat ring ends at absolute cell 4096. The next B changes lattice.
+const FERMAT_CELLS: usize = 4096;
+/// One Lehman imscription executes one multiplier and a local 64-cell a-window.
+const LEHMAN_A_CELLS: usize = 64;
+const LEHMAN_MULTIPLIERS: usize = 64;
 const BASE_SUPPORT: LaneSupport = SUPPORT_PARITY | SUPPORT_PRIMALITY;
 
 /// Dynamic bulk/boundary coupling carried by IMSCRIB.
@@ -84,8 +91,11 @@ pub struct DialecticClosure {
     pub word: Vec<Mark>,
     pub support: LaneSupport,
     pub imscription: Imscription,
-    /// Absolute Fermat lattice cell at which the pair closed.
+    /// Cell inside the closing lattice. For Fermat this is the absolute cell;
+    /// for Lehman it is the a-offset inside `lehman_multiplier`.
     pub lattice_cell: usize,
+    /// Present only when closure occurred in the Lehman multiplier lattice.
+    pub lehman_multiplier: Option<Tape>,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -116,10 +126,13 @@ impl DialecticObject {
         }
         let short = self.word == SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>();
         let extended = self.word == EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>();
+        let lehman = self.word == LEHMAN_WORD.chars().collect::<Vec<_>>();
         let expected_support = if short {
             BASE_SUPPORT
         } else if extended {
             BASE_SUPPORT | SUPPORT_SHORT_FRONTIER
+        } else if lehman {
+            BASE_SUPPORT | SUPPORT_SHORT_FRONTIER | SUPPORT_EXTENDED_FERMAT
         } else {
             return Err(String::from("unknown dialectic imscription"));
         };
@@ -129,15 +142,27 @@ impl DialecticObject {
         if self.imscription.rwx != IM_RWX {
             return Err(String::from("dialectic imscription is not live r/w/x"));
         }
-        let origin = fermat_origin(&self.n);
-        let expected_boundary = if short {
-            origin
+
+        if short || extended {
+            let origin = fermat_origin(&self.n);
+            let expected_boundary = if short {
+                origin
+            } else {
+                add(&origin, &tape_u64(FRONTIER_CELLS as u64))
+            };
+            if cmp(&self.imscription.boundary, &expected_boundary) != Ordering::Equal {
+                return Err(String::from("dialectic imscription boundary does not match transformed Fermat space"));
+            }
         } else {
-            add(&origin, &tape_u64(FRONTIER_CELLS as u64))
-        };
-        if cmp(&self.imscription.boundary, &expected_boundary) != Ordering::Equal {
-            return Err(String::from("dialectic imscription boundary does not match transformed space"));
+            let one = tape_u64(1);
+            let max = tape_u64(LEHMAN_MULTIPLIERS as u64);
+            if cmp(&self.imscription.boundary, &one) == Ordering::Less
+                || cmp(&self.imscription.boundary, &max) == Ordering::Greater
+            {
+                return Err(String::from("dialectic Lehman boundary is outside the imscribed multiplier lattice"));
+            }
         }
+
         if !self.word.contains(&IMSCRIB) {
             return Err(String::from("dialectic imscription does not contain IMSCRIB"));
         }
@@ -223,6 +248,7 @@ impl DialecticObject {
                         self.support | SUPPORT_SHORT_FRONTIER | SUPPORT_PRODUCT_BOUNDARY,
                         Imscription::active(boundary),
                         cell,
+                        None,
                     );
                 }
                 LatticeResult::Open { boundary } => {
@@ -254,12 +280,56 @@ impl DialecticObject {
                         self.support | SUPPORT_EXTENDED_FERMAT | SUPPORT_PRODUCT_BOUNDARY,
                         Imscription::active(boundary),
                         cell,
+                        None,
                     );
                 }
                 LatticeResult::Open { .. } => {
-                    return Err(String::from(
-                        "dialectic descent reached an unimscribed deeper factor space",
-                    ));
+                    // The Fermat boundary has been completely consumed. The
+                    // transformed operator now imscribes a different lattice:
+                    // Lehman's multiplier k, beginning at k=1. The old Fermat
+                    // space survives structurally in SUPPORT_EXTENDED_FERMAT.
+                    let next = DialecticObject {
+                        n: self.n,
+                        word: LEHMAN_WORD.chars().collect(),
+                        support: self.support | SUPPORT_EXTENDED_FERMAT,
+                        imscription: Imscription::active(tape_u64(1)),
+                    };
+                    next.validate()?;
+                    return Ok(Descent::Continue(next));
+                }
+            }
+        }
+
+        if self.word == LEHMAN_WORD.chars().collect::<Vec<_>>() {
+            let k = self.imscription.boundary.clone();
+            match lehman_multiplier(&self.n, &k) {
+                LehmanResult::Closed { p, q, cell } => {
+                    return close(
+                        self.n,
+                        p,
+                        q,
+                        LEHMAN_CLOSED_WORD,
+                        self.support | SUPPORT_DEEP_ARM | SUPPORT_PRODUCT_BOUNDARY,
+                        Imscription::active(k.clone()),
+                        cell,
+                        Some(k),
+                    );
+                }
+                LehmanResult::Open => {
+                    let max = tape_u64(LEHMAN_MULTIPLIERS as u64);
+                    if cmp(&k, &max) != Ordering::Less {
+                        return Err(String::from(
+                            "dialectic descent reached an unimscribed deeper factor space",
+                        ));
+                    }
+                    let next = DialecticObject {
+                        n: self.n,
+                        word: LEHMAN_WORD.chars().collect(),
+                        support: self.support,
+                        imscription: Imscription::active(add(&k, &tape_u64(1))),
+                    };
+                    next.validate()?;
+                    return Ok(Descent::Continue(next));
                 }
             }
         }
@@ -276,6 +346,7 @@ fn close(
     support: LaneSupport,
     imscription: Imscription,
     lattice_cell: usize,
+    lehman_multiplier: Option<Tape>,
 ) -> Result<Descent, String> {
     let word: Vec<Mark> = closed_word.chars().collect();
     if verdict(&word) != 'T' {
@@ -295,6 +366,7 @@ fn close(
         support,
         imscription,
         lattice_cell,
+        lehman_multiplier,
     }))
 }
 
@@ -354,6 +426,69 @@ fn fermat_lattice_from(
     }
 
     LatticeResult::Open { boundary: a }
+}
+
+enum LehmanResult {
+    Closed { p: Tape, q: Tape, cell: usize },
+    Open,
+}
+
+/// Execute one complete Lehman-multiplier imscription. The boundary is k. The
+/// local a-lattice begins at ceil(sqrt(4*k*N)) and is consumed for 64 cells.
+/// A B writes k+1 into the next imscription; no earlier multiplier is replayed.
+fn lehman_multiplier(n: &[Mark], k: &[Mark]) -> LehmanResult {
+    let one = tape_u64(1);
+    let four_kn = mul(&tape_u64(4), &mul(k, n));
+    let mut a = isqrt(&four_kn);
+    if cmp(&mul(&a, &a), &four_kn) == Ordering::Less {
+        a = add(&a, &one);
+    }
+
+    for cell in 0..LEHMAN_A_CELLS {
+        let a2 = mul(&a, &a);
+        if cmp(&a2, &four_kn) != Ordering::Less {
+            let b2 = sub(&a2, &four_kn);
+            let b = isqrt(&b2);
+            if mul(&b, &b) == b2 {
+                let plus = add(&a, &b);
+                if let Some((p, q)) = factor_from_gcd(n, &plus) {
+                    return LehmanResult::Closed { p, q, cell };
+                }
+                if cmp(&a, &b) != Ordering::Less {
+                    let minus = sub(&a, &b);
+                    if let Some((p, q)) = factor_from_gcd(n, &minus) {
+                        return LehmanResult::Closed { p, q, cell };
+                    }
+                }
+            }
+        }
+        a = add(&a, &one);
+    }
+    LehmanResult::Open
+}
+
+fn factor_from_gcd(n: &[Mark], x: &[Mark]) -> Option<(Tape, Tape)> {
+    let one = tape_u64(1);
+    let p = gcd_tape(x, n);
+    if cmp(&p, &one) != Ordering::Greater || cmp(&p, n) != Ordering::Less {
+        return None;
+    }
+    let (q, remainder) = divmod(n, &p);
+    if !zero(&remainder) || cmp(&q, &one) != Ordering::Greater {
+        return None;
+    }
+    Some((p, q))
+}
+
+fn gcd_tape(a: &[Mark], b: &[Mark]) -> Tape {
+    let mut x = trim(a.to_vec());
+    let mut y = trim(b.to_vec());
+    while !zero(&y) {
+        let (_, r) = divmod(&x, &y);
+        x = y;
+        y = r;
+    }
+    x
 }
 
 fn push_tape(out: &mut Vec<Mark>, tape: &[Mark]) {
