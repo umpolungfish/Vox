@@ -123,7 +123,7 @@ fn lift_dialectic_history(
         }
         if object.imscription.rwx.rights != IM_RWX
             || object.imscription.rwx.read_bulk != terminal.n
-            || !object.imscription.relation_is_live_for(&object.n, &object.word)
+            || !object.imscription.relation_is_live_for(&object.n)
         {
             return Err(String::from(
                 "imscription history lost its dynamic r/w/x relation before quotient bridge",
