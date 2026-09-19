@@ -25,10 +25,10 @@ pub type Mark = char;
 /// closed (last judgment ⊤ AND every record recognised).
 #[derive(Clone, PartialEq, Debug)]
 pub struct ReplayState {
-    pub start: Mark,      // repr mark of the first record
-    pub terminal: Mark,   // repr mark of the last record
+    pub start: Mark,
+    pub terminal: Mark,
     pub closed: bool,
-    pub consistent: bool, // each record's next leads to the following record's repr (or FIX)
+    pub consistent: bool,
 }
 
 pub fn replay_state(w: &[Mark]) -> Option<ReplayState> {
@@ -47,12 +47,12 @@ pub fn replay_state(w: &[Mark]) -> Option<ReplayState> {
     Some(ReplayState { start, terminal, closed, consistent })
 }
 
-/// The factor a replay state hands for input n — the terminal representation judged.
+/// Legacy strict replay projection.  This belongs to the historical strict
+/// reducer, not to passive factor-carrier extraction.
 pub fn factor_of(rp: &ReplayState, n: u64) -> Option<(u64, u64)> {
     if rp.closed { found_factor(rp.terminal, n) } else { None }
 }
 
-/// DELETE record i — the first transform. None if i is out of range.
 pub fn delete_record(w: &[Mark], i: usize) -> Option<Vec<Mark>> {
     let mut t = decode_trace(w)?;
     if i >= t.len() { return None; }
@@ -60,7 +60,6 @@ pub fn delete_record(w: &[Mark], i: usize) -> Option<Vec<Mark>> {
     Some(encode_trace(&t))
 }
 
-/// Is the candidate an admissible compression of the original for input n?
 pub fn admissible(orig: &[Mark], cand: &[Mark], n: u64) -> bool {
     let (ro, rc) = match (replay_state(orig), replay_state(cand)) { (Some(a), Some(b)) => (a, b), _ => return false };
     if ro != rc { return false; }
@@ -68,9 +67,6 @@ pub fn admissible(orig: &[Mark], cand: &[Mark], n: u64) -> bool {
     factor_of(&ro, n) == factor_of(&rc, n)
 }
 
-/// Iterate deletion to a fixed point: no single record can be removed while preserving the
-/// replay state, the ⊤ verdict and the factor. Returns the irreducible trace and the number
-/// of successful transforms (each a shorter carrier found by replay, not by inspection).
 pub fn reduce(w: &[Mark], n: u64) -> (Vec<Mark>, usize) {
     let mut cur: Vec<Mark> = w.to_vec();
     let mut transforms = 0usize;
@@ -86,7 +82,6 @@ pub fn reduce(w: &[Mark], n: u64) -> (Vec<Mark>, usize) {
     (cur, transforms)
 }
 
-/// T(τ*) = τ* — does one more transform pass change the trace? (Fixed-point test.)
 pub fn is_fixed_point(w: &[Mark], n: u64) -> bool {
     let t = match decode_trace(w) { Some(t) => t, None => return false };
     for i in 0..t.len() {
@@ -97,12 +92,8 @@ pub fn is_fixed_point(w: &[Mark], n: u64) -> bool {
     true
 }
 
-// ---- relaxed carrier relation (≡c) for passive factor extraction ----
+// ---- canonical relaxed carrier relation (≡c): arbitrary-width tapes only ----
 
-/// The closure projection retained by ≡c.  It deliberately forgets the start
-/// representation and the intermediate next→repr chain: those are routing
-/// provenance.  It retains exactly where the successful trace closes and the
-/// fact that it closed.
 #[derive(Clone, PartialEq, Debug)]
 pub struct ClosureState {
     pub terminal: Mark,
@@ -114,61 +105,10 @@ pub fn closure_state(w: &[Mark]) -> Option<ClosureState> {
     Some(ClosureState { terminal: rp.terminal, closed: rp.closed })
 }
 
-fn ordered_witness(w: (u64, u64)) -> (u64, u64) {
-    if w.0 <= w.1 { w } else { (w.1, w.0) }
-}
-
-/// Verification only: this does not search for either factor.
-pub fn witness_valid(n: u64, witness: (u64, u64)) -> bool {
-    let (p, q) = witness;
-    p > 1 && q > 1 && p.checked_mul(q) == Some(n)
-}
-
-/// Frozen relaxed relation ≡c, but with the factor supplied by the carrier
-/// rather than recomputed from `(terminal, N)` through `found_factor`.
-///
-/// ```text
-///     judge(a) = ⊤
-///     judge(b) = ⊤
-///     closure(a) = closure(b)
-///     carried_factor(a) = carried_factor(b)
-/// ```
-///
-/// The factor witness is data of the object.  No factoring routine is called.
-pub fn relaxed_equivalent_with_witness(
-    a: &[Mark],
-    witness_a: (u64, u64),
-    b: &[Mark],
-    witness_b: (u64, u64),
-    n: u64,
-) -> bool {
-    if !witness_valid(n, witness_a) || !witness_valid(n, witness_b) { return false; }
-    if ordered_witness(witness_a) != ordered_witness(witness_b) { return false; }
-    if judge_trace(a) != M_T || judge_trace(b) != M_T { return false; }
-    match (closure_state(a), closure_state(b)) {
-        (Some(ca), Some(cb)) => ca == cb,
-        _ => false,
-    }
-}
-
-/// Candidate admissibility for a carrier whose factor witness is unchanged by
-/// the trace edit.  This is the legacy machine-word form.
-pub fn admissible_relaxed_with_witness(
-    orig: &[Mark],
-    cand: &[Mark],
-    n: u64,
-    witness: (u64, u64),
-) -> bool {
-    relaxed_equivalent_with_witness(orig, witness, cand, witness, n)
-}
-
-// ---- arbitrary-width tape witness form of the same frozen relation ----
-
-/// Verify an already-carried arbitrary-width factor witness entirely over the
-/// existing IMASM numeral tapes.  This multiplies p×q and compares the result
-/// with N; it never searches for either factor and never narrows an operand to
-/// u64/u128.
-pub fn witness_valid_tape(n: &[Mark], p: &[Mark], q: &[Mark]) -> bool {
+/// Verify an already-carried arbitrary-width factor witness entirely over IMASM
+/// numeral tapes.  This multiplies p×q and compares with N; it never searches
+/// for either factor and never narrows an operand to a machine integer.
+pub fn witness_valid(n: &[Mark], p: &[Mark], q: &[Mark]) -> bool {
     let one = tape_u64(1);
     if tape_cmp(p, &one) != Ordering::Greater || tape_cmp(q, &one) != Ordering::Greater {
         return false;
@@ -176,10 +116,7 @@ pub fn witness_valid_tape(n: &[Mark], p: &[Mark], q: &[Mark]) -> bool {
     tape_cmp(&tape_mul(p, q), n) == Ordering::Equal
 }
 
-fn same_tape_witness(
-    a: (&[Mark], &[Mark]),
-    b: (&[Mark], &[Mark]),
-) -> bool {
+fn same_witness(a: (&[Mark], &[Mark]), b: (&[Mark], &[Mark])) -> bool {
     let direct = tape_cmp(a.0, b.0) == Ordering::Equal
         && tape_cmp(a.1, b.1) == Ordering::Equal;
     let swapped = tape_cmp(a.0, b.1) == Ordering::Equal
@@ -187,21 +124,22 @@ fn same_tape_witness(
     direct || swapped
 }
 
-/// Arbitrary-width ≡c.  The numeric witness is an IMASM tape pair carried by
-/// the object.  Equality and reconstruction are evaluated on tapes only.
-pub fn relaxed_equivalent_with_tape_witness(
+/// Frozen relaxed relation ≡c for an arbitrary-width factor-bearing carrier.
+/// The factor witness is object data; equality and reconstruction are evaluated
+/// on tapes only.
+pub fn relaxed_equivalent_with_witness(
     a: &[Mark],
     witness_a: (&[Mark], &[Mark]),
     b: &[Mark],
     witness_b: (&[Mark], &[Mark]),
     n: &[Mark],
 ) -> bool {
-    if !witness_valid_tape(n, witness_a.0, witness_a.1)
-        || !witness_valid_tape(n, witness_b.0, witness_b.1)
+    if !witness_valid(n, witness_a.0, witness_a.1)
+        || !witness_valid(n, witness_b.0, witness_b.1)
     {
         return false;
     }
-    if !same_tape_witness(witness_a, witness_b) { return false; }
+    if !same_witness(witness_a, witness_b) { return false; }
     if judge_trace(a) != M_T || judge_trace(b) != M_T { return false; }
     match (closure_state(a), closure_state(b)) {
         (Some(ca), Some(cb)) => ca == cb,
@@ -209,14 +147,14 @@ pub fn relaxed_equivalent_with_tape_witness(
     }
 }
 
-/// One relaxed candidate step for an arbitrary-width factor-bearing carrier.
-/// The witness remains data while only the trace projection is edited.
-pub fn admissible_relaxed_with_tape_witness(
+/// One relaxed candidate step for a factor-bearing carrier.  The witness remains
+/// data while only the trace projection is edited.
+pub fn admissible_relaxed_with_witness(
     orig: &[Mark],
     cand: &[Mark],
     n: &[Mark],
     p: &[Mark],
     q: &[Mark],
 ) -> bool {
-    relaxed_equivalent_with_tape_witness(orig, (p, q), cand, (p, q), n)
+    relaxed_equivalent_with_witness(orig, (p, q), cand, (p, q), n)
 }
