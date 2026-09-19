@@ -2,12 +2,15 @@
 //!
 //! The privileged `rewrite()` (Rust appends a clause) is replaced by a resident tape:
 //!
+//! ```text
 //!     IStore { tape: [ROUTER marks][REF marks], cut, cursor, out, armed, committed }
 //!     execute(op_word, &mut store, probe)     // GENERIC tape ops
+//! ```
 //!
 //! `op_word` is an ordinary IMASM word over the twelve marks. Its ops are GENERIC —
 //! the machine never names a router part:
 //!
+//! ```text
 //!     ⊢ VINIT    cursor = 0
 //!     ⊣ TANCH    halt
 //!     ≻ AFWD     cursor += 1
@@ -16,6 +19,7 @@
 //!     ⋈ CLINK    if armed, capture the balanced word starting at cursor-1 into `out`
 //!     ⊡ IFIX     if `out` nonempty, splice it in at the router/ref boundary (commit)
 //!     ⊤ ⊥ ∈ ∋ ⊙  deposits / frames / copy-through (generic reading)
+//! ```
 //!
 //! The word never names a clause; it scans the reference region for the probe and
 //! appends what it finds. This machine can move bytes between two tape regions and

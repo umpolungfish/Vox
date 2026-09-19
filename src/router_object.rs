@@ -3,8 +3,10 @@
 //! The ladder Symmetric → Residue → Multiplicative → FIX is not Rust control flow:
 //! it is a list of `RouteClause`s serialized into ONE IMASM word. The control law is
 //!
+//! ```text
 //!     (object, router) -> JUDGE -> imscribe(judgment) -> apply router-word
 //!       -> new (object, router)
+//! ```
 //!
 //! and `router` can itself become `object`: after a trajectory closes, the router
 //! word is judged and rewritten, still as an IMASM word. The rewrite relation is

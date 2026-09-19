@@ -1,6 +1,8 @@
 //! trace_word.rs — the trace is only a word. A trace record is
 //!
+//! ```text
 //!     ∈ <repr> <judgment> <recognised> <next> ∈ <len8> ∋ <applied-word> ∋
+//! ```
 //!
 //! and TRACE := RECORD*. The applied word travels BY COUNT (8 marks over {⊤=1,⊥=0}),
 //! so an applied word that itself contains ∈/∋ is read unambiguously and the whole

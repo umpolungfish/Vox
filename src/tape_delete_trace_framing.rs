@@ -2,9 +2,7 @@
 //! balanced groups `∈…∋` (records), identifies a span of consecutive groups, and commits
 //! the complement with an optional REPLACEMENT spliced at the span boundary.
 //!
-//! ```text
 //!     EDIT_WORD = ∈ ∋ ⊥ ≻ ⊡
-//! ```
 //!
 //! The machine knows one syntactic fact and nothing else: ∈/∋ nest (exactly what
 //! `capture_balanced` assumes). It never names a record part — repr, judgment, recognised,

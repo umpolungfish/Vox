@@ -2,11 +2,9 @@
 //! word-level edit; replay is the verifier, judge is the verdict. No Rust predicate named
 //! "minimal/redundant/compressible" — admissibility is defined operationally:
 //!
-//! ```text
 //!     candidate is admissible  iff  replay_state(candidate) == replay_state(original)
 //!                              and  judge(candidate) == ⊤
 //!                              and  factor(candidate) == factor(original)
-//! ```
 //!
 //! Deletion is the sharp first transform: remove one record; if the candidate still
 //! closes to the SAME factor, that record was operationally redundant in the trajectory.
@@ -125,12 +123,10 @@ pub fn witness_valid(n: u64, witness: (u64, u64)) -> bool {
 /// Frozen relaxed relation ≡c, but with the factor supplied by the carrier
 /// rather than recomputed from `(terminal, N)` through `found_factor`.
 ///
-/// ```text
 ///     judge(a) = ⊤
 ///     judge(b) = ⊤
 ///     closure(a) = closure(b)
 ///     carried_factor(a) = carried_factor(b)
-/// ```
 ///
 /// The factor witness is data of the object.  No factoring routine is called.
 pub fn relaxed_equivalent_with_witness(

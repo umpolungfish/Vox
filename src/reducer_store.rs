@@ -3,12 +3,14 @@
 //! stop. That schedule is now a WORD. The machine's state (cursor, rule, replacement) lives in
 //! marks; the word walks it. replay+judge is the machine's SEMANTICS (an op), not the schedule.
 //!
+//! ```text
 //!     REDUCE_WORD = ∈ ∋ ⊤ ≻ ⊡
 //!       ∈ : build candidate = edit(tape, cursor, rules[rule], fill)   (the EDIT word, applied)
 //!       ∋ : admissible = replay + judge(candidate) under rel           (the SEMANTICS)
 //!       ⊤ : if admissible → commit tape ← candidate, restart the scan
 //!       ≻ : advance the (rule, span) cursor
 //!       ⊡ : every rule × span scanned with no accept → fixed point, halt
+//! ```
 //!
 //! The RULE SET and their ORDER are data (`Rule { groups, fill }`), not a Rust for-loop over a
 //! hardcoded "try DELETE, then FUSE, then INLINE". DELETE/CANCEL/FUSE/INLINE differ only in the
