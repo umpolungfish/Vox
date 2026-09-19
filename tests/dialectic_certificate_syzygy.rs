@@ -1,7 +1,10 @@
 use core::cmp::Ordering;
 
 use vox::dialectic_certificate::{certify_dialectic, verify_dialectic_certificate};
-use vox::dialectic_reentry::{DialecticObject, IM_RWX};
+use vox::dialectic_reentry::{
+    DialecticObject, EXTENDED_FERMAT_SPAN, IM_RWX, LEHMAN_LOCAL_SPAN,
+    SHORT_FRONTIER_SPAN,
+};
 use vox::factorization_31_membrane::UnboundedResident;
 use vox::morphism_factor::{cmp, mul, tape_u64};
 use vox::producer_provenance::{resident_route_provenance, route_provenance};
@@ -112,12 +115,19 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert!(summary.supports[2..].iter().all(|&s| s == 15)); // + extended Fermat
     assert_eq!(summary.terminal_support, 63);
     assert_eq!(certificate.terminal_rwx, IM_RWX);
+    assert_eq!(certificate.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
 
     // Every certified object is independently decodable from its marks alone.
-    for wire in &certificate.objects {
+    for (index, wire) in certificate.objects.iter().enumerate() {
         let object = DialecticObject::decode(wire).unwrap();
         assert_eq!(object.n, n);
         assert_eq!(object.imscription.rwx, IM_RWX);
+        let expected_span = match index {
+            0 => SHORT_FRONTIER_SPAN,
+            1 => EXTENDED_FERMAT_SPAN,
+            _ => LEHMAN_LOCAL_SPAN,
+        };
+        assert_eq!(object.imscription.span, tape_u64(expected_span));
     }
 
     // Forge an intermediate persisted Lehman boundary. It may still be a valid
@@ -141,8 +151,14 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     bad_terminal.terminal_support ^= 1 << 5;
     assert!(verify_dialectic_certificate(&bad_terminal).is_err());
 
+    // Forge only the terminal imscribed span. Boundary, word, r/w/x and carrier
+    // remain untouched; the proof must still reject the changed space.
+    let mut bad_span = certificate.clone();
+    bad_span.terminal_span[0] = flip(bad_span.terminal_span[0]);
+    assert!(verify_dialectic_certificate(&bad_span).is_err());
+
     println!(
-        "dialectic certificate: {} persisted whole objects replay exactly; forged boundary/order/terminal support rejected",
+        "dialectic certificate: {} persisted whole objects replay exactly; forged boundary/order/support/span rejected",
         summary.descents,
     );
 }
