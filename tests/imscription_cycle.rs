@@ -1,11 +1,13 @@
 use core::cmp::Ordering;
 
 use vox::dialectic_reentry::DialecticObject;
+use vox::factor_extract::FactorCarrier;
 use vox::imscription_cycle::{
     certify_imscription_cycle, verify_imscription_cycle,
 };
 use vox::morphism_factor::{cmp, mul, tape_u64};
 use vox::trace_algebra::witness_valid;
+use vox::trace_word::decode_trace;
 use vox::vox::{EVALF, EVALT};
 
 fn same_pair(a: &[char], b: &[char], x: &[char], y: &[char]) -> bool {
@@ -63,6 +65,39 @@ fn complete_cycle_erases_one_history_scaffold_per_imscription_descent() {
 }
 
 #[test]
+fn moving_lehman_write_relation_is_embodied_in_quotient_history() {
+    let p = tape_u64(1_000_003);
+    let q = tape_u64(10_000_019);
+    let n = mul(&p, &q);
+    let start = DialecticObject::new(n).unwrap();
+    let certificate = certify_imscription_cycle(&start).unwrap();
+    let summary = verify_imscription_cycle(&certificate).unwrap();
+    assert_eq!(summary.descents, 12);
+
+    // objects[2] and objects[3] are consecutive Lehman k=1 and k=2 restart
+    // points. Rights, read bulk, span and word are unchanged; only the write
+    // endpoint moves. The quotient-facing B records must therefore differ.
+    let k1 = DialecticObject::decode(&certificate.dialectic.objects[2]).unwrap();
+    let k2 = DialecticObject::decode(&certificate.dialectic.objects[3]).unwrap();
+    assert_eq!(k1.imscription.rwx.rights, k2.imscription.rwx.rights);
+    assert_eq!(k1.imscription.rwx.read_bulk, k2.imscription.rwx.read_bulk);
+    assert_eq!(k1.imscription.rwx.execute_span, k2.imscription.rwx.execute_span);
+    assert_eq!(k1.imscription.rwx.execute_word, k2.imscription.rwx.execute_word);
+    assert_ne!(k1.imscription.rwx.write_boundary, k2.imscription.rwx.write_boundary);
+    assert_eq!(k1.imscription.rwx.write_boundary, tape_u64(1));
+    assert_eq!(k2.imscription.rwx.write_boundary, tape_u64(2));
+
+    let lifted = FactorCarrier::decode(&certificate.lifted_carrier).unwrap();
+    let steps = decode_trace(&lifted.trace).unwrap();
+    assert_eq!(steps.len(), summary.descents + 1);
+    assert_ne!(steps[2].applied_word, steps[3].applied_word);
+
+    println!(
+        "imscription quotient relation: Lehman k=1 and k=2 keep identical rights/read/exec but distinct write-boundary scaffolds",
+    );
+}
+
+#[test]
 fn complete_cycle_rejects_forged_bridge_and_quotient_start() {
     let p = tape_u64(1_000_003);
     let q = tape_u64(10_000_019);
@@ -73,7 +108,7 @@ fn complete_cycle_rejects_forged_bridge_and_quotient_start() {
     assert_eq!(summary.descents, 12);
     assert_eq!(summary.quotient_transforms, 12);
 
-    // Change one numeral mark in the lifted carrier.  Whether or not the forged
+    // Change one numeral mark in the lifted carrier. Whether or not the forged
     // carrier remains locally parseable, it is no longer the exact certified
     // projection of the imscription chain.
     let mut bad_lift = certificate.clone();
