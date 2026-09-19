@@ -2,7 +2,9 @@
 //!
 //! The production clause type stores no enum. A clause is four marks and a word:
 //!
+//! ```text
 //!     RouteClauseG { judgment: Mark, source: Mark, transform_word: Vec<Mark>, next: Mark }
+//! ```
 //!
 //! Matching is grammatical equality — `clause.judgment == jmark && (clause.source ==
 //! smark || clause.source == ⊙)` — and ⊙ is exactly what it always was: no-distinction

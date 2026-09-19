@@ -2,7 +2,9 @@
 //! balanced groups `∈…∋` (records), identifies a span of consecutive groups, and commits
 //! the complement with an optional REPLACEMENT spliced at the span boundary.
 //!
+//! ```text
 //!     EDIT_WORD = ∈ ∋ ⊥ ≻ ⊡
+//! ```
 //!
 //! The machine knows one syntactic fact and nothing else: ∈/∋ nest (exactly what
 //! `capture_balanced` assumes). It never names a record part — repr, judgment, recognised,
@@ -31,6 +33,10 @@ pub const DELETE_WORD: &str = EDIT_WORD;
 
 pub struct TStore {
     pub tape: Vec<Mark>,
+    /// Structural view of `tape`: only outer TRACE record boundaries remain
+    /// ∈/∋. Inner length framing and applied-word glyphs are opaque bytes.
+    /// For non-trace inputs this falls back to the original tape shape.
+    pub structure: Vec<Mark>,
     pub cursor: usize,
     pub out: Vec<Mark>,
     pub depth: i32,
@@ -45,10 +51,64 @@ pub struct TStore {
     pub committed: bool,
 }
 
+/// Build the structural view of a TRACE word without materialising `GStep`s.
+///
+/// RECORD := ∈ repr judgment recognised next ∈ <len8> ∋ <applied:len> ∋
+///
+/// Only the first and last marks of each record are structural for the tape
+/// editor.  The inner ∈/∋ around the length and every ∈/∋ inside applied_word
+/// are data because applied_word is length-delimited.
+fn trace_structure(trace: &[Mark]) -> Option<Vec<Mark>> {
+    let mut structure = Vec::with_capacity(trace.len());
+    structure.resize(trace.len(), '\0');
+
+    let mut i = 0usize;
+    while i < trace.len() {
+        let start = i;
+        if *trace.get(i)? != '∈' { return None; }
+        structure[start] = '∈';
+        i += 1;
+
+        // repr, judgment, recognised, next
+        i = i.checked_add(4)?;
+        if i > trace.len() { return None; }
+
+        // inner length frame
+        if *trace.get(i)? != '∈' { return None; }
+        i += 1;
+
+        let mut payload_len = 0usize;
+        for _ in 0..8 {
+            let bit = *trace.get(i)?;
+            i += 1;
+            payload_len = (payload_len << 1) | match bit {
+                '⊤' => 1usize,
+                '⊥' => 0usize,
+                _ => return None,
+            };
+        }
+
+        if *trace.get(i)? != '∋' { return None; }
+        i += 1;
+
+        i = i.checked_add(payload_len)?;
+        if i >= trace.len() { return None; }
+
+        // outer record close
+        if trace[i] != '∋' { return None; }
+        structure[i] = '∋';
+        i += 1;
+    }
+
+    Some(structure)
+}
+
 impl TStore {
     pub fn new(trace: &[Mark], target: usize, groups: usize, replacement: Vec<Mark>) -> TStore {
+        let structure = trace_structure(trace).unwrap_or_else(|| trace.to_vec());
         TStore {
             tape: trace.to_vec(),
+            structure,
             cursor: 0,
             out: Vec::new(),
             depth: 0,
@@ -63,7 +123,9 @@ impl TStore {
             committed: false,
         }
     }
-    fn at(&self, c: Mark) -> bool { self.cursor < self.tape.len() && self.tape[self.cursor] == c }
+    fn at(&self, c: Mark) -> bool {
+        self.cursor < self.structure.len() && self.structure[self.cursor] == c
+    }
     fn cur(&self) -> Option<Mark> { self.tape.get(self.cursor).copied() }
 }
 
@@ -114,7 +176,11 @@ fn run(s: &mut TStore) {
             // ⊥ — an ordinary byte (length bits, applied-word bytes) → copy unless skipping.
             '\u{22A5}' => {
                 if let Some(c) = s.cur() {
-                    if c != '\u{2208}' && c != '\u{220B}' && !s.skipping { s.out.push(c); }
+                    // Copy every non-structural byte verbatim.  In particular,
+                    // ∈/∋ inside the length frame or applied_word are data.
+                    if !s.at('\u{2208}') && !s.at('\u{220B}') && !s.skipping {
+                        s.out.push(c);
+                    }
                 }
             }
             // ≻ — advance.
@@ -178,4 +244,47 @@ pub fn inline_word(trace: &[Mark], i: usize, k: usize) -> Option<Vec<Mark>> {
     let mut comp = t[i].clone();
     for j in i + 1..i + k { comp = fuse_records(&comp, &t[j]); }
     tape_edit(trace, i, k, encode_step(&comp))
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::router_marks::{M_B, M_T, M_FIX};
+    use crate::trace_algebra::delete_record;
+    use crate::trace_word::encode_trace;
+
+    #[test]
+    fn delete_word_treats_length_delimited_payload_brackets_as_data() {
+        // The first applied word contains an unmatched ∈.  That glyph is data,
+        // not a trace-record boundary, because applied_word is length-delimited.
+        let steps = [
+            GStep {
+                repr: '⊢',
+                judgment: M_B,
+                recognised: M_T,
+                next: '⊣',
+                applied_word: "⊢∈≻⊤⊣".chars().collect(),
+            },
+            GStep {
+                repr: '⊣',
+                judgment: M_B,
+                recognised: M_T,
+                next: '⋈',
+                applied_word: "⊢∈≻⊤∈≺∋∋⊙⊡⊣".chars().collect(),
+            },
+            GStep {
+                repr: '⋈',
+                judgment: M_T,
+                recognised: M_T,
+                next: M_FIX,
+                applied_word: "⊢⊙⊡⊣".chars().collect(),
+            },
+        ];
+        let trace = encode_trace(&steps);
+
+        for i in 0..steps.len() {
+            assert_eq!(delete_word(&trace, i), delete_record(&trace, i));
+        }
+    }
 }

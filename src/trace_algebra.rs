@@ -2,9 +2,11 @@
 //! word-level edit; replay is the verifier, judge is the verdict. No Rust predicate named
 //! "minimal/redundant/compressible" — admissibility is defined operationally:
 //!
+//! ```text
 //!     candidate is admissible  iff  replay_state(candidate) == replay_state(original)
 //!                              and  judge(candidate) == ⊤
 //!                              and  factor(candidate) == factor(original)
+//! ```
 //!
 //! Deletion is the sharp first transform: remove one record; if the candidate still
 //! closes to the SAME factor, that record was operationally redundant in the trajectory.
@@ -91,4 +93,69 @@ pub fn is_fixed_point(w: &[Mark], n: u64) -> bool {
         }
     }
     true
+}
+
+// ---- relaxed carrier relation (≡c) for passive factor extraction ----
+
+/// The closure projection retained by ≡c.  It deliberately forgets the start
+/// representation and the intermediate next→repr chain: those are routing
+/// provenance.  It retains exactly where the successful trace closes and the
+/// fact that it closed.
+#[derive(Clone, PartialEq, Debug)]
+pub struct ClosureState {
+    pub terminal: Mark,
+    pub closed: bool,
+}
+
+pub fn closure_state(w: &[Mark]) -> Option<ClosureState> {
+    let rp = replay_state(w)?;
+    Some(ClosureState { terminal: rp.terminal, closed: rp.closed })
+}
+
+fn ordered_witness(w: (u64, u64)) -> (u64, u64) {
+    if w.0 <= w.1 { w } else { (w.1, w.0) }
+}
+
+/// Verification only: this does not search for either factor.
+pub fn witness_valid(n: u64, witness: (u64, u64)) -> bool {
+    let (p, q) = witness;
+    p > 1 && q > 1 && p.checked_mul(q) == Some(n)
+}
+
+/// Frozen relaxed relation ≡c, but with the factor supplied by the carrier
+/// rather than recomputed from `(terminal, N)` through `found_factor`.
+///
+/// ```text
+///     judge(a) = ⊤
+///     judge(b) = ⊤
+///     closure(a) = closure(b)
+///     carried_factor(a) = carried_factor(b)
+/// ```
+///
+/// The factor witness is data of the object.  No factoring routine is called.
+pub fn relaxed_equivalent_with_witness(
+    a: &[Mark],
+    witness_a: (u64, u64),
+    b: &[Mark],
+    witness_b: (u64, u64),
+    n: u64,
+) -> bool {
+    if !witness_valid(n, witness_a) || !witness_valid(n, witness_b) { return false; }
+    if ordered_witness(witness_a) != ordered_witness(witness_b) { return false; }
+    if judge_trace(a) != M_T || judge_trace(b) != M_T { return false; }
+    match (closure_state(a), closure_state(b)) {
+        (Some(ca), Some(cb)) => ca == cb,
+        _ => false,
+    }
+}
+
+/// Candidate admissibility for a carrier whose factor witness is unchanged by
+/// the trace edit.  This is the form used by the extraction membrane.
+pub fn admissible_relaxed_with_witness(
+    orig: &[Mark],
+    cand: &[Mark],
+    n: u64,
+    witness: (u64, u64),
+) -> bool {
+    relaxed_equivalent_with_witness(orig, witness, cand, witness, n)
 }

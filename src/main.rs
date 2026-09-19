@@ -27,6 +27,7 @@ fn usage() {
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
+    eprintln!("  vox extract-factor <factor-carrier-word>    passive ≡c extraction from an already factor-bearing trace");
     eprintln!("  vox construct-carrier <operator-word>        decompose a word into its factoring-morphism tower");
     eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
     eprintln!("  vox factor-operator resolve|full <N>         the CL9NK moat resolver over folded tapes");
@@ -1157,6 +1158,23 @@ fn main() {
         Some("morphism-factor") => {
             if args.len() != 2 { eprintln!("vox morphism-factor <native-numeral-word>"); 1 }
             else { match ::vox::morphism_factor::factor(&args[1]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
+        Some("extract-factor") => {
+            if args.len() != 2 {
+                eprintln!("vox extract-factor <factor-carrier-word>");
+                1
+            } else {
+                let word: Vec<char> = args[1].chars().collect();
+                match ::vox::factor_extract::extract_word(&word) {
+                    Ok(readout) => {
+                        println!("{} x {}", readout.p, readout.q);
+                        println!("normal-form {}", readout.normal_form.iter().collect::<String>());
+                        println!("transforms {}", readout.transforms);
+                        0
+                    }
+                    Err(e) => { eprintln!("{}", e); 2 }
+                }
+            }
         }
         Some("verify") => {
             if args.len() != 4 { eprintln!("vox verify <p-word> <q-word> <n-word>"); 1 }

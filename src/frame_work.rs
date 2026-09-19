@@ -4,7 +4,9 @@
 //! marks and exposes ONLY balanced structure and positions — it never names an object
 //! (no "REDUCE_WORD", no "EDIT_WORD"). One structural rewrite:
 //!
+//! ```text
 //!     \u{2208} \u{220B} tau   ->   \u{2208} tau \u{220B}
+//! ```
 //!
 //! where tau is the work span following the first ADJACENT \u{2208}\u{220B} dyad, up to
 //! the enclosing TANCH \u{22A3} (kept outside the frame) or the end of the word.
