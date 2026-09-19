@@ -8,7 +8,6 @@
 //! the continuation beginning exactly at cell 64.
 
 use alloc::string::String;
-use alloc::vec;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 
