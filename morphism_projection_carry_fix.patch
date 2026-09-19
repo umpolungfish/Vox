@@ -1,0 +1,57 @@
+diff --git a/src/morphism_factor.rs b/src/morphism_factor.rs
+--- a/src/morphism_factor.rs
++++ b/src/morphism_factor.rs
+@@ -1079,6 +1079,39 @@ fn tower_work_projection(tower: &[&[char]]) -> Vec<char> {
+     out
+ }
+ 
++/// Marks which the carrier grammar permits outside a dispatch motif.  They are
++/// carried across the resident object but deliberately emit no morphism from
++/// `construct_carrier`.
++fn non_dispatch_carry(g: char) -> bool {
++    g == AREV || g == '⊞' || g == IMSCRIB
++}
++
++/// The morphism tower is a dispatch projection, not a byte-for-byte copy of
++/// the walk: standalone carry marks are intentionally absent from it.  Check
++/// that the tower work can be obtained from the preserved walk work by deleting
++/// only those legal non-dispatch carries.
++///
++/// A small DP is used rather than a greedy subsequence walk because the same
++/// glyphs (AREV/ENGAGR/IMSCRIB) may also occur *inside* a real morphism motif;
++/// at such a position the mark may either be consumed by the tower or be a
++/// standalone carry, and the later context decides which reading is valid.
++fn dispatch_projection_holds(walk_work: &[char], tower_work: &[char]) -> bool {
++    let mut reachable = vec![false; tower_work.len() + 1];
++    reachable[0] = true;
++
++    for &g in walk_work {
++        let mut next = vec![false; tower_work.len() + 1];
++        for j in 0..=tower_work.len() {
++            if !reachable[j] { continue; }
++
++            // The carrier constructor explicitly permits this mark to pass
++            // without dispatching a morphism.
++            if non_dispatch_carry(g) { next[j] = true; }
++
++            // Or this occurrence can belong to the next dispatched morphism.
++            if j < tower_work.len() && g == tower_work[j] { next[j + 1] = true; }
++        }
++        reachable = next;
++    }
++
++    reachable[tower_work.len()]
++}
++
+ pub fn audit_execution_projection(
+     object: &FactorObject<'_>,
+     tower: &[&[char]],
+@@ -1093,7 +1126,7 @@ pub fn audit_execution_projection(
+     if walk_work != type_work {
+         return Err("execution preservation failed: walk/type work projections differ".into());
+     }
+-    if walk_work != tower_work {
++    if !dispatch_projection_holds(&walk_work, &tower_work) {
+         return Err("execution preservation failed: walk work does not match typed morphism tower".into());
+     }
+     Ok(())
