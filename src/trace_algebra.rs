@@ -21,8 +21,6 @@ use crate::morphism_factor::{cmp as tape_cmp, mul as tape_mul, tape_u64};
 
 pub type Mark = char;
 
-/// The replay state of a trace word: where it starts, where it validates, and whether it
-/// closed (last judgment ⊤ AND every record recognised).
 #[derive(Clone, PartialEq, Debug)]
 pub struct ReplayState {
     pub start: Mark,
@@ -47,8 +45,8 @@ pub fn replay_state(w: &[Mark]) -> Option<ReplayState> {
     Some(ReplayState { start, terminal, closed, consistent })
 }
 
-/// Legacy strict replay projection.  This belongs to the historical strict
-/// reducer, not to passive factor-carrier extraction.
+/// Historical strict replay projection.  This belongs to the strict reducer,
+/// not to passive factor-carrier extraction.
 pub fn factor_of(rp: &ReplayState, n: u64) -> Option<(u64, u64)> {
     if rp.closed { found_factor(rp.terminal, n) } else { None }
 }
@@ -147,8 +145,6 @@ pub fn relaxed_equivalent_with_witness(
     }
 }
 
-/// One relaxed candidate step for a factor-bearing carrier.  The witness remains
-/// data while only the trace projection is edited.
 pub fn admissible_relaxed_with_witness(
     orig: &[Mark],
     cand: &[Mark],
@@ -158,3 +154,8 @@ pub fn admissible_relaxed_with_witness(
 ) -> bool {
     relaxed_equivalent_with_witness(orig, (p, q), cand, (p, q), n)
 }
+
+// Internal migration names only; there is no public machine-word relaxed API.
+pub(crate) use witness_valid as witness_valid_tape;
+pub(crate) use relaxed_equivalent_with_witness as relaxed_equivalent_with_tape_witness;
+pub(crate) use admissible_relaxed_with_witness as admissible_relaxed_with_tape_witness;
