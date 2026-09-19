@@ -62,8 +62,6 @@ fn resume_from_wire(mut wire: Vec<char>) -> Result<FactorCarrier, String> {
 
 #[test]
 fn every_persisted_depth_rejects_corrupt_siblings_and_resumes_the_intact_carrier() {
-    // ~2300-bit N.  The factors are already carried; this test exercises only
-    // persistence, validation and self-entry recovery.
     let p = mersenne_tape(1021);
     let q = mersenne_tape(1279);
     let n = mul(&p, &q);
@@ -75,7 +73,6 @@ fn every_persisted_depth_rejects_corrupt_siblings_and_resumes_the_intact_carrier
     let mut snapshots = Vec::with_capacity(records + 1);
     snapshots.push(current.encode());
 
-    // Persist each changed generation plus the terminal one-record object.
     loop {
         let (next, changed) = reenter_once(&current).unwrap();
         current = next;
@@ -86,14 +83,11 @@ fn every_persisted_depth_rejects_corrupt_siblings_and_resumes_the_intact_carrier
     assert_eq!(snapshots.len(), records + 1);
 
     for (depth, wire) in snapshots.into_iter().enumerate() {
-        // Untouched sibling must be sufficient to reconstruct and finish.
         let resumed = resume_from_wire(wire.clone()).unwrap();
         assert_eq!(resumed.trace, baseline, "depth {depth}: intact snapshot changed normal form");
         assert!(witness_valid(&resumed.n, &resumed.p, &resumed.q));
         assert_eq!(cmp(&mul(&resumed.p, &resumed.q), &n), Ordering::Equal);
 
-        // Mutation 1: flip one N numeral cell while preserving framing.  The
-        // object parses structurally but the frozen p*q=N witness must fail.
         let mut flipped = wire.clone();
         assert_eq!(flipped[0], '⊢');
         assert_eq!(flipped[1], '∈');
@@ -101,13 +95,11 @@ fn every_persisted_depth_rejects_corrupt_siblings_and_resumes_the_intact_carrier
         assert!(FactorCarrier::decode(&flipped).is_err(), "depth {depth}: flipped N bit was accepted");
         assert!(resume_from_wire(flipped).is_err(), "depth {depth}: flipped sibling resumed");
 
-        // Mutation 2: inject a structural glyph into the first numeral field.
         let mut injected = wire.clone();
         injected.insert(2, '⋈');
         assert!(FactorCarrier::decode(&injected).is_err(), "depth {depth}: structural insertion was accepted");
         assert!(resume_from_wire(injected).is_err(), "depth {depth}: injected sibling resumed");
 
-        // Mutation 3: remove the outer closing anchor.
         let mut truncated = wire;
         assert_eq!(truncated.pop(), Some('⊣'));
         assert!(FactorCarrier::decode(&truncated).is_err(), "depth {depth}: truncated frame was accepted");
@@ -220,6 +212,14 @@ fn reduce_with_restart(
     let mut generation = 0usize;
     let mut restarted = false;
 
+    if restart_after == 0 {
+        let wire = current.encode();
+        drop(current);
+        current = FactorCarrier::decode(&wire).unwrap();
+        state = seed ^ 0xa5a5_5a5a_d3c1_b2e7u64;
+        restarted = true;
+    }
+
     loop {
         let strategy = if restarted { second } else { first };
         let Some(next) = one_strategy_step(&current, strategy, &mut state) else { break };
@@ -227,12 +227,9 @@ fn reduce_with_restart(
         generation += 1;
 
         if !restarted && generation >= restart_after {
-            // Drop the in-memory representative and continue from marks only.
             let wire = current.encode();
             drop(current);
             current = FactorCarrier::decode(&wire).unwrap();
-            // Deliberately reset scheduling state: restart is allowed to change
-            // the future reduction path, but not the quotient normal form.
             state = seed ^ 0xa5a5_5a5a_d3c1_b2e7u64;
             restarted = true;
         }
@@ -264,7 +261,7 @@ fn quotient_class_scaling_collapses_all_schedules_and_restarts_to_one_hash() {
     let canonical_wire = canonical_carrier.encode();
     let canonical_hash = fnv1a_chars(&canonical_wire);
 
-    let mut generator = 0x5155_4f54_4945_4e54u64; // "QUOTIENT"
+    let mut generator = 0x5155_4f54_4945_4e54u64;
     let representatives = 128usize;
     let mut reductions = 0usize;
 
@@ -281,7 +278,6 @@ fn quotient_class_scaling_collapses_all_schedules_and_restarts_to_one_hash() {
         ];
 
         for (pattern, &(first, second)) in patterns.iter().enumerate() {
-            // Includes restart-at-zero and restart-past-end cases across the corpus.
             let restart_after = if scaffold == 0 {
                 0
             } else {
