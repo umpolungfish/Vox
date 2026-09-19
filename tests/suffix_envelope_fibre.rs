@@ -1,27 +1,29 @@
-//! Exact fibre counts for the suffix-envelope quotient and the powerset tower.
+//! Exact fibre counts for the native suffix-envelope quotient and the powerset tower.
 //!
-//! Level: EXECUTABLE (self-contained model, std only).  It becomes NATIVE when
-//! `provenance_envelope` is backed by the frame runner's restored-support ladder;
-//! that is the one seam, marked below.  Nothing else in this file touches Vox.
+//! The restored-support ladder now comes from `vox::provenance_envelope`; the local
+//! `model_envelope` remains only as an independent theorem oracle. Every enumerated
+//! deposit sequence therefore crosses the same no_std restoration seam used by the
+//! syzygy tests.
 //!
 //! Run:  cargo test --release --test suffix_envelope_fibre -- --nocapture
 //!
 //! What is asserted (all exact, no sampling):
-//!   1. Image theorem: envelopes are exactly the descending chains, (d+1)^k of them.
-//!   2. Fibre theorem: the fibre over a chain G has size 2^(sum_{i>=2} |G_i|).
-//!   3. Fixed union K, |K| = k: (2^d - 1)^k deposit sequences.
-//!   4. Suffix-mass generating polynomial (1 + sum_r 2^(r-1) y^r)^k.
-//!   5. Stirling bridge: (2^d-1)^k = sum_r N(k,r) r! S(d,r).
-//!   6. Union fibres of the tower: |fibre over K| = F(|K|) = 2,2,10,218,64594,
+//!   1. Native restored-support ladder equals the suffix-envelope oracle.
+//!   2. Image theorem: envelopes are exactly the descending chains, (d+1)^k of them.
+//!   3. Fibre theorem: the fibre over a chain G has size 2^(sum_{i>=2} |G_i|).
+//!   4. Fixed union K, |K| = k: (2^d - 1)^k deposit sequences.
+//!   5. Suffix-mass generating polynomial (1 + sum_r 2^(r-1) y^r)^k.
+//!   6. Stirling bridge: (2^d-1)^k = sum_r N(k,r) r! S(d,r).
+//!   7. Union fibres of the tower: |fibre over K| = F(|K|) = 2,2,10,218,64594,
 //!      with totals 2^(2^m); eta/mu/rho retraction facts; the FOUR collapse table.
 
 use std::collections::HashMap;
+use vox::provenance_envelope::{restored_support_ladder, suffix_fibre_size};
 
-// ---------------------------------------------------------------- the model
-
-/// Suffix envelope of a deposit sequence.  `q[i]` is the lane bitmask deposited
-/// in frame i+1 (outermost first); `g[i]` is the union of `q[i..]`.
-fn envelope(q: &[u32]) -> Vec<u32> {
+/// Independent oracle for the suffix envelope of a deposit sequence. `q[i]` is
+/// the lane bitmask deposited in frame i+1 (outermost first); `g[i]` is the union
+/// of `q[i..]`.
+fn model_envelope(q: &[u32]) -> Vec<u32> {
     let mut g = vec![0u32; q.len()];
     let mut acc = 0u32;
     for i in (0..q.len()).rev() {
@@ -31,11 +33,10 @@ fn envelope(q: &[u32]) -> Vec<u32> {
     g
 }
 
-/// SEAM.  Native runs should replace this body with the envelope read off the
-/// frame runner (pop ladder, outermost-first) for the same deposit schedule.
-/// Every assertion below is then a statement about the machine, not the model.
 fn provenance_envelope(q: &[u32]) -> Vec<u32> {
-    envelope(q)
+    let native = restored_support_ladder(q);
+    assert_eq!(native, model_envelope(q), "native restoration diverged from suffix envelope");
+    native
 }
 
 fn all_sequences(k: u32, d: usize) -> impl Iterator<Item = Vec<u32>> {
@@ -50,8 +51,6 @@ fn all_sequences(k: u32, d: usize) -> impl Iterator<Item = Vec<u32>> {
         q
     })
 }
-
-// ----------------------------------------------------------- number helpers
 
 fn binom(n: u128, r: u128) -> u128 {
     if r > n {
@@ -94,8 +93,6 @@ fn factorial(n: u128) -> u128 {
     (1..=n).product()
 }
 
-// -------------------------------------------------------------------- tests
-
 #[test]
 fn suffix_envelope_fibres_are_exact_products() {
     let cases: Vec<(u32, usize)> = (1..=6)
@@ -123,22 +120,19 @@ fn suffix_envelope_fibres_are_exact_products() {
             sequences_checked += 1;
         }
 
-        // 1. image = descending chains
         assert_eq!(fibre.len() as u128, ((d + 1) as u128).pow(k), "image size k={k} d={d}");
         for (g, &count) in &fibre {
             for i in 0..d.saturating_sub(1) {
                 assert_eq!(g[i] & g[i + 1], g[i + 1], "not descending k={k} d={d}");
             }
-            // 2. fibre = 2^(sum_{i>=2} |G_i|)   (0-indexed: g[1..])
             let exp: u32 = g[1..].iter().map(|x| x.count_ones()).sum();
             assert_eq!(count, 1u128 << exp, "fibre size over {g:?} k={k} d={d}");
+            assert_eq!(suffix_fibre_size(g), Some(count), "library fibre size over {g:?} k={k} d={d}");
         }
         assert_eq!(fibre.values().sum::<u128>(), 1u128 << (k as usize * d));
 
-        // 3. fixed union
         assert_eq!(full_union, ((1u128 << d) - 1).pow(k), "fixed-union count k={k} d={d}");
 
-        // 4. suffix-mass polynomial (1 + sum_r 2^(r-1) y^r)^k
         let mut p = vec![1u128];
         p.extend((1..=d).map(|r| 1u128 << (r - 1)));
         let mut poly = vec![1u128];
@@ -156,8 +150,7 @@ fn suffix_envelope_fibres_are_exact_products() {
         }
     }
     println!(
-        "suffix envelope: {} (k,d) cases, {} deposit sequences; image, fibre product, \
-         fixed-union and mass polynomial all exact",
+        "native suffix envelope: {} (k,d) cases, {} deposit sequences; restoration, image, fibre product, fixed-union and mass polynomial all exact",
         cases.len(),
         sequences_checked
     );
@@ -180,12 +173,12 @@ fn stirling_bridge_connects_union_fibres_to_ordered_provenance() {
     println!("stirling bridge: (2^d-1)^k = sum_r N(k,r) r! S(d,r) exact for k<=4, d<=6");
 }
 
-/// Union fibres of the tower.  A point of V_{n+1} over a universe X of m = |V_{n-1}|
+/// Union fibres of the tower. A point of V_{n+1} over a universe X of m = |V_{n-1}|
 /// atoms is a family of subsets of X, coded as a bitmask over the 2^m subsets.
 /// mu is union; eta(K) = {K}; rho = eta . mu.
 #[test]
 fn tower_union_fibres_and_frame_collapse_retraction() {
-    const F: [u64; 5] = [2, 2, 10, 218, 64_594]; // sum_r N(k,r), k = 0..4
+    const F: [u64; 5] = [2, 2, 10, 218, 64_594];
 
     for m in 0..=4u32 {
         let n_subsets = 1usize << m;
@@ -222,13 +215,11 @@ fn tower_union_fibres_and_frame_collapse_retraction() {
         assert!(fixed < n_families, "rho must not be the identity m={m}");
     }
 
-    // FOUR: bit0 = {empty}, bit1 = {{*}}  ->  N=0b00, F=0b01, T=0b10, B=0b11.
     let mu1 = |f: u64| -> usize { ((f >> 1) & 1) as usize };
     let rho1: Vec<u64> = (0..4u64).map(|f| 1u64 << mu1(f)).collect();
     assert_eq!(rho1, vec![0b01, 0b01, 0b10, 0b10], "N->F, F->F, T->T, B->T");
 
     println!(
-        "tower: mu_0, mu_1, mu_2 fibres = 2,2 | 2,2,2,10 | 2,2,10,218,64594 by |K|; \
-         totals 4, 16, 65536; rho idempotent, |Fix rho| = |V_n|; FOUR collapse N->F, B->T"
+        "tower: mu_0, mu_1, mu_2 fibres = 2,2 | 2,2,2,10 | 2,2,10,218,64594 by |K|; totals 4, 16, 65536; rho idempotent, |Fix rho| = |V_n|; FOUR collapse N->F, B->T"
     );
 }
