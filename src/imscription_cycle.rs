@@ -1,10 +1,10 @@
 //! One certified cycle from a descending imscription to the passive quotient fixed object.
 //!
-//! The dialectic certificate proves continuity of the operator-space descent.  Its
+//! The dialectic certificate proves continuity of the operator-space descent. Its
 //! exact terminal factor object is then lifted with one compact scaffold record per
-//! consumed imscription.  The passive re-entry certificate must begin at that exact
+//! consumed imscription. The passive re-entry certificate must begin at that exact
 //! lifted carrier and delete exactly those scaffold records, returning byte-for-byte
-//! to the dialectic terminal carrier.  The bridge is strict; no relaxed equivalence
+//! to the dialectic terminal carrier. The bridge is strict; no relaxed equivalence
 //! is used to join the two proof layers.
 
 use alloc::string::String;
@@ -33,7 +33,7 @@ const CHECKPOINT_QUOTIENT: Mark = '≺';
 #[derive(Clone, PartialEq, Debug)]
 pub struct ImscriptionCycleCertificate {
     pub dialectic: DialecticCertificate,
-    /// Exact factor carrier at the proof-layer bridge.  It carries one compact
+    /// Exact factor carrier at the proof-layer bridge. It carries one compact
     /// scaffold record for every consumed whole imscription, followed by the
     /// dialectic terminal trace.
     pub lifted_carrier: Vec<Mark>,
@@ -56,7 +56,7 @@ pub enum CyclePhase {
     Quotient,
 }
 
-/// One complete continuation state.  No earlier host cursor or execution state
+/// One complete continuation state. No earlier host cursor or execution state
 /// is needed after this object has been persisted.
 #[derive(Clone, PartialEq, Debug)]
 pub struct CycleCheckpoint {
@@ -79,18 +79,27 @@ fn push_mask(out: &mut Vec<Mark>, mask: u32, bits: usize) {
     }
 }
 
+fn push_tape_payload(out: &mut Vec<Mark>, tape: &[Mark]) {
+    out.push('∈');
+    out.extend_from_slice(tape);
+    out.push('∋');
+}
+
 /// Compact quotient-facing projection of one complete imscription object.
 ///
 /// The full bulk, boundary and wire image remain in `DialecticCertificate`; the
-/// factor-carrier trace only needs the distinction that this generation existed:
-/// support, live r/w/x coupling, and the IMASM word that was executed.  Keeping
-/// this payload bounded also avoids making trace payload width depend on numeral
-/// width while the exact arbitrary-width object remains certified separately.
+/// factor-carrier trace records the distinction that this generation existed:
+/// support, live r/w/x coupling, the finite imscribed span, and the IMASM word
+/// that was executed. The arbitrary-width bulk/boundary remain certified only
+/// once, in the dialectic proof object.
 fn scaffold_payload(object: &DialecticObject) -> Vec<Mark> {
-    let mut payload = Vec::with_capacity(2 + SUPPORT_BITS + RWX_BITS + object.word.len());
+    let mut payload = Vec::with_capacity(
+        4 + SUPPORT_BITS + RWX_BITS + object.imscription.span.len() + object.word.len(),
+    );
     payload.push('⊢');
     push_mask(&mut payload, object.support, SUPPORT_BITS);
     push_mask(&mut payload, object.imscription.rwx as u32, RWX_BITS);
+    push_tape_payload(&mut payload, &object.imscription.span);
     payload.extend_from_slice(&object.word);
     payload.push('⊣');
     payload
@@ -133,7 +142,7 @@ fn lift_dialectic_history(
     )
 }
 
-/// Build the complete proof object.  The dialectic side is verified before its
+/// Build the complete proof object. The dialectic side is verified before its
 /// terminal carrier is lifted into quotient-facing provenance.
 pub fn certify_imscription_cycle(
     start: &DialecticObject,
@@ -180,7 +189,10 @@ pub fn verify_imscription_cycle(
     {
         return Err(String::from("imscription cycle quotient changed the exact factor witness at the bridge"));
     }
-    let first = certificate.quotient.links.first()
+    let first = certificate
+        .quotient
+        .links
+        .first()
         .ok_or_else(|| String::from("imscription cycle quotient certificate is empty"))?;
     if first.before != lifted.trace {
         return Err(String::from("imscription cycle quotient does not start at the exact lifted carrier"));
@@ -294,7 +306,8 @@ fn push_blob(out: &mut Vec<Mark>, blob: &[Mark]) {
 
 fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>, String> {
     let len = read_len_field(word, cursor, end)?;
-    let blob_end = cursor.checked_add(len)
+    let blob_end = cursor
+        .checked_add(len)
         .ok_or_else(|| String::from("imscription-cycle blob length overflow"))?;
     if blob_end > end {
         return Err(String::from("truncated imscription-cycle blob"));
@@ -304,7 +317,7 @@ fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>,
     Ok(blob)
 }
 
-/// Serialize the complete proof circuit as one marks-only object.  The nested
+/// Serialize the complete proof circuit as one marks-only object. The nested
 /// dialectic and quotient certificates retain their own wire formats; the outer
 /// cycle only length-frames those exact objects plus the exact lifted bridge.
 pub fn encode_imscription_cycle(certificate: &ImscriptionCycleCertificate) -> Vec<Mark> {
@@ -320,7 +333,7 @@ pub fn encode_imscription_cycle(certificate: &ImscriptionCycleCertificate) -> Ve
     out
 }
 
-/// Reconstruct a complete cycle from one persisted marks-only object.  As with
+/// Reconstruct a complete cycle from one persisted marks-only object. As with
 /// the inner codecs, structural reconstruction and semantic replay are separate:
 /// callers must pass the result to `verify_imscription_cycle` to establish the
 /// operator-space descent, exact bridge, quotient, and fixed-object return.
@@ -347,10 +360,10 @@ pub fn decode_imscription_cycle(word: &[Mark]) -> Result<ImscriptionCycleCertifi
     })
 }
 
-/// Enumerate every persisted continuation state in one verified cycle.  The
-/// imscription side contributes each unresolved whole object.  The quotient side
+/// Enumerate every persisted continuation state in one verified cycle. The
+/// imscription side contributes each unresolved whole object. The quotient side
 /// contributes every `before` carrier, including the exact lifted bridge and the
-/// final fixed carrier.  For depth `d` this yields `2d + 1` checkpoints.
+/// final fixed carrier. For depth `d` this yields `2d + 1` checkpoints.
 pub fn cycle_checkpoints(
     certificate: &ImscriptionCycleCertificate,
 ) -> Result<Vec<CycleCheckpoint>, String> {
@@ -430,8 +443,8 @@ pub fn decode_cycle_checkpoint(word: &[Mark]) -> Result<CycleCheckpoint, String>
 ///
 /// An imscription checkpoint re-enters as the whole current operator-space object;
 /// only the still-live suffix is certified and later projected into the passive
-/// quotient.  A quotient checkpoint resumes directly from its factor-bearing
-/// carrier.  Both paths must converge on an exact fixed carrier.
+/// quotient. A quotient checkpoint resumes directly from its factor-bearing
+/// carrier. Both paths must converge on an exact fixed carrier.
 pub fn resume_cycle_checkpoint(
     checkpoint: &CycleCheckpoint,
 ) -> Result<CycleCheckpointSummary, String> {
