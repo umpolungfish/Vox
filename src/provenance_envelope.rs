@@ -22,11 +22,12 @@ pub struct RestoredSupport {
 }
 
 /// Resident frame-restoration machine. Frames are entered outermost-first and
-/// restored by popping the innermost frame. Every pop unions that frame's deposit
-/// into the support carried outward.
+/// restored innermost-first. Every restoration unions that frame's deposit into
+/// the support carried outward.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct FrameRestoreMachine {
-    frames: Vec<LaneSupport>,
+    deposits: Vec<LaneSupport>,
+    next: usize,
     restored: LaneSupport,
     ladder: Vec<LaneSupport>,
 }
@@ -34,7 +35,8 @@ pub struct FrameRestoreMachine {
 impl FrameRestoreMachine {
     pub fn new(deposits: &[LaneSupport]) -> Self {
         Self {
-            frames: deposits.to_vec(),
+            deposits: deposits.to_vec(),
+            next: deposits.len(),
             restored: 0,
             ladder: vec![0; deposits.len()],
         }
@@ -42,38 +44,28 @@ impl FrameRestoreMachine {
 
     /// Restore one frame. The returned pair is `(outer_index, restored_support)`.
     pub fn restore_one(&mut self) -> Option<(usize, LaneSupport)> {
-        let deposit = self.frames.pop()?;
-        self.restored |= deposit;
-        let outer_index = self.frames.len();
-        self.ladder[outer_index] = self.restored;
-        Some((outer_index, self.restored))
+        if self.next == 0 {
+            return None;
+        }
+        self.next -= 1;
+        self.restored |= self.deposits[self.next];
+        self.ladder[self.next] = self.restored;
+        Some((self.next, self.restored))
     }
 
     pub fn run(mut self) -> RestoredSupport {
         while self.restore_one().is_some() {}
         RestoredSupport {
-            deposits: self.frames_with_ladder_source(),
+            deposits: self.deposits,
             ladder: self.ladder,
         }
-    }
-
-    fn frames_with_ladder_source(&self) -> Vec<LaneSupport> {
-        // `run` has popped the resident stack. Recovering deposits from the ladder
-        // is not unique, so this helper is only called before ownership is lost by
-        // `restored_support`; that function supplies the original deposits below.
-        Vec::new()
     }
 }
 
 /// Execute the frame-restoration machine and retain both the original deposits
 /// and the restored-support ladder.
 pub fn restored_support(deposits: &[LaneSupport]) -> RestoredSupport {
-    let mut machine = FrameRestoreMachine::new(deposits);
-    while machine.restore_one().is_some() {}
-    RestoredSupport {
-        deposits: deposits.to_vec(),
-        ladder: machine.ladder,
-    }
+    FrameRestoreMachine::new(deposits).run()
 }
 
 /// The native suffix envelope: support restored at each frame boundary,
@@ -84,9 +76,7 @@ pub fn restored_support_ladder(deposits: &[LaneSupport]) -> Vec<LaneSupport> {
 
 /// Every restored-support ladder is descending under set inclusion.
 pub fn is_descending(ladder: &[LaneSupport]) -> bool {
-    ladder
-        .windows(2)
-        .all(|w| w[0] & w[1] == w[1])
+    ladder.windows(2).all(|w| w[0] & w[1] == w[1])
 }
 
 /// Exact fibre size for a valid restored-support ladder:
