@@ -40,7 +40,6 @@ const FRONTIER_CELLS: usize = 64;
 const FERMAT_CELLS: usize = 4096;
 /// One Lehman imscription executes one multiplier and a local 64-cell a-window.
 const LEHMAN_A_CELLS: usize = 64;
-const LEHMAN_MULTIPLIERS: usize = 64;
 const BASE_SUPPORT: LaneSupport = SUPPORT_PARITY | SUPPORT_PRIMALITY;
 
 /// Dynamic bulk/boundary coupling carried by IMSCRIB.
@@ -155,11 +154,8 @@ impl DialecticObject {
             }
         } else {
             let one = tape_u64(1);
-            let max = tape_u64(LEHMAN_MULTIPLIERS as u64);
-            if cmp(&self.imscription.boundary, &one) == Ordering::Less
-                || cmp(&self.imscription.boundary, &max) == Ordering::Greater
-            {
-                return Err(String::from("dialectic Lehman boundary is outside the imscribed multiplier lattice"));
+            if cmp(&self.imscription.boundary, &one) == Ordering::Less {
+                return Err(String::from("dialectic Lehman boundary must be a positive imscribed multiplier"));
             }
         }
 
@@ -316,12 +312,6 @@ impl DialecticObject {
                     );
                 }
                 LehmanResult::Open => {
-                    let max = tape_u64(LEHMAN_MULTIPLIERS as u64);
-                    if cmp(&k, &max) != Ordering::Less {
-                        return Err(String::from(
-                            "dialectic descent reached an unimscribed deeper factor space",
-                        ));
-                    }
                     let next = DialecticObject {
                         n: self.n,
                         word: LEHMAN_WORD.chars().collect(),
