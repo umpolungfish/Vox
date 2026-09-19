@@ -45,6 +45,7 @@ pub mod trace_algebra;
 pub mod factor_extract;
 pub mod reentry_certificate;
 pub mod provenance_envelope;
+pub mod producer_provenance;
 pub mod tape_delete;
 pub mod reducer_store;
 pub mod frame_work;
