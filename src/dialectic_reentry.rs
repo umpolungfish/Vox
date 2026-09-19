@@ -5,8 +5,8 @@
 //! relation between the bulk object and its boundary. A descent consumes that
 //! complete relation: the boundary reads the bulk N, executes the current IMASM
 //! word, and writes the transformed lattice boundary carried by the next object.
-//! Nothing from the consumed walk is replayed to reconstruct the next starting
-//! point.
+//! The finite lattice span is part of that relation too; it is persisted as a
+//! tape numeral rather than reconstructed from hidden host state.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -35,11 +35,13 @@ const EXTENDED_FERMAT_CLOSED_WORD: &str = "⊢⊙∈≻⊤⊞≺⊥∋⊡⊣";
 const LEHMAN_CLOSED_WORD: &str = "⊢⊙∈≻⋈⊤⊥∋⊡⊣";
 const SUPPORT_BITS: usize = 6;
 const RWX_BITS: usize = 3;
-const FRONTIER_CELLS: usize = 64;
-/// The second Fermat ring ends at absolute cell 4096. The next B changes lattice.
-const FERMAT_CELLS: usize = 4096;
-/// One Lehman imscription executes one multiplier and a local 64-cell a-window.
-const LEHMAN_A_CELLS: usize = 64;
+
+/// The word semantics define finite imscribed regions, but the region size is
+/// carried by the object itself as a tape numeral.
+pub const SHORT_FRONTIER_SPAN: u64 = 64;
+pub const EXTENDED_FERMAT_SPAN: u64 = 4096 - SHORT_FRONTIER_SPAN;
+pub const LEHMAN_LOCAL_SPAN: u64 = 64;
+
 const BASE_SUPPORT: LaneSupport = SUPPORT_PARITY | SUPPORT_PRIMALITY;
 
 /// Dynamic bulk/boundary coupling carried by IMSCRIB.
@@ -50,29 +52,43 @@ pub const IM_RWX: u8 = IM_READ | IM_WRITE | IM_EXEC;
 
 /// The live imscription relation.
 ///
-/// `boundary` is not a host cursor. It is the current IMASM numeral at the
-/// operator's boundary. `rwx` says what relation the boundary has to the bulk:
-/// read the bulk, write the transformed boundary, execute the current word.
+/// `boundary` is the current IMASM numeral at the operator's boundary. `span`
+/// is the finite lattice region that boundary currently affords. `rwx` says what
+/// relation the boundary has to the bulk: read the bulk, write the transformed
+/// boundary/space, execute the current word.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Imscription {
     pub boundary: Tape,
+    pub span: Tape,
     pub rwx: u8,
 }
 
 impl Imscription {
-    fn active(boundary: Tape) -> Self {
-        Self { boundary: trim(boundary), rwx: IM_RWX }
+    fn active(boundary: Tape, span: Tape) -> Self {
+        Self {
+            boundary: trim(boundary),
+            span: trim(span),
+            rwx: IM_RWX,
+        }
     }
 
-    pub fn can_read(&self) -> bool { self.rwx & IM_READ != 0 }
-    pub fn can_write(&self) -> bool { self.rwx & IM_WRITE != 0 }
-    pub fn can_execute(&self) -> bool { self.rwx & IM_EXEC != 0 }
+    pub fn can_read(&self) -> bool {
+        self.rwx & IM_READ != 0
+    }
+
+    pub fn can_write(&self) -> bool {
+        self.rwx & IM_WRITE != 0
+    }
+
+    pub fn can_execute(&self) -> bool {
+        self.rwx & IM_EXEC != 0
+    }
 }
 
 /// One complete, restartable operator-space object.
 ///
-/// `n` is the bulk. `imscription` is the live bulk/boundary relation. `word`
-/// is what the operator executes at that boundary. `support` is the distinction
+/// `n` is the bulk. `imscription` is the live bulk/boundary/space relation.
+/// `word` is what the operator executes there. `support` is the distinction
 /// already embodied by this transformed whole object.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct DialecticObject {
@@ -90,8 +106,9 @@ pub struct DialecticClosure {
     pub word: Vec<Mark>,
     pub support: LaneSupport,
     pub imscription: Imscription,
-    /// Cell inside the closing lattice. For Fermat this is the absolute cell;
-    /// for Lehman it is the a-offset inside `lehman_multiplier`.
+    /// Host diagnostic for the finite word-local closing cell. For Fermat this
+    /// is the absolute cell inside the two installed rings; for Lehman it is the
+    /// local a-offset. The imscribed region itself is tape-native in `span`.
     pub lattice_cell: usize,
     /// Present only when closure occurred in the Lehman multiplier lattice.
     pub lehman_multiplier: Option<Tape>,
@@ -105,7 +122,8 @@ pub enum Descent {
 
 impl DialecticObject {
     /// Initial operator-space imscription. Parity and primality are the ground
-    /// support; the boundary begins at ceil(sqrt(N)).
+    /// support; the boundary begins at ceil(sqrt(N)) and explicitly imscribes
+    /// the 64-cell short frontier.
     pub fn new(n: Tape) -> Result<Self, String> {
         let n = trim(n);
         let boundary = fermat_origin(&n);
@@ -113,7 +131,7 @@ impl DialecticObject {
             n,
             word: SHORT_FRONTIER_WORD.chars().collect(),
             support: BASE_SUPPORT,
-            imscription: Imscription::active(boundary),
+            imscription: Imscription::active(boundary, tape_u64(SHORT_FRONTIER_SPAN)),
         };
         object.validate()?;
         Ok(object)
@@ -123,9 +141,11 @@ impl DialecticObject {
         if cmp(&self.n, &tape_u64(1)) != Ordering::Greater {
             return Err(String::from("dialectic object requires N > 1"));
         }
+
         let short = self.word == SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>();
         let extended = self.word == EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>();
         let lehman = self.word == LEHMAN_WORD.chars().collect::<Vec<_>>();
+
         let expected_support = if short {
             BASE_SUPPORT
         } else if extended {
@@ -142,20 +162,35 @@ impl DialecticObject {
             return Err(String::from("dialectic imscription is not live r/w/x"));
         }
 
+        let expected_span = if short {
+            tape_u64(SHORT_FRONTIER_SPAN)
+        } else if extended {
+            tape_u64(EXTENDED_FERMAT_SPAN)
+        } else {
+            tape_u64(LEHMAN_LOCAL_SPAN)
+        };
+        if cmp(&self.imscription.span, &expected_span) != Ordering::Equal {
+            return Err(String::from("dialectic imscription span does not match the current lattice word"));
+        }
+
         if short || extended {
             let origin = fermat_origin(&self.n);
             let expected_boundary = if short {
                 origin
             } else {
-                add(&origin, &tape_u64(FRONTIER_CELLS as u64))
+                add(&origin, &tape_u64(SHORT_FRONTIER_SPAN))
             };
             if cmp(&self.imscription.boundary, &expected_boundary) != Ordering::Equal {
-                return Err(String::from("dialectic imscription boundary does not match transformed Fermat space"));
+                return Err(String::from(
+                    "dialectic imscription boundary does not match transformed Fermat space",
+                ));
             }
         } else {
             let one = tape_u64(1);
             if cmp(&self.imscription.boundary, &one) == Ordering::Less {
-                return Err(String::from("dialectic Lehman boundary must be a positive imscribed multiplier"));
+                return Err(String::from(
+                    "dialectic Lehman boundary must be a positive imscribed multiplier",
+                ));
             }
         }
 
@@ -175,20 +210,22 @@ impl DialecticObject {
 
     /// Marks-only persistence of the complete current operator-space relation:
     ///
-    /// `⊢ ⊙ ∈N∋ ∈boundary∋ ∈rwx[3]∋ ∈support[6]∋ <current IMASM word> ⊣`
+    /// `⊢ ⊙ ∈N∋ ∈boundary∋ ∈span∋ ∈rwx[3]∋ ∈support[6]∋ <word> ⊣`
     pub fn encode(&self) -> Vec<Mark> {
         let mut out = Vec::with_capacity(
             self.n.len()
                 + self.imscription.boundary.len()
+                + self.imscription.span.len()
                 + self.word.len()
                 + RWX_BITS
                 + SUPPORT_BITS
-                + 12,
+                + 14,
         );
         out.push(VINIT);
         out.push(IMSCRIB);
         push_tape(&mut out, &self.n);
         push_tape(&mut out, &self.imscription.boundary);
+        push_tape(&mut out, &self.imscription.span);
         push_mask(&mut out, self.imscription.rwx as u32, RWX_BITS);
         push_mask(&mut out, self.support, SUPPORT_BITS);
         out.extend_from_slice(&self.word);
@@ -207,6 +244,7 @@ impl DialecticObject {
         let mut i = 2usize;
         let n = read_tape(encoded, &mut i)?;
         let boundary = read_tape(encoded, &mut i)?;
+        let span = read_tape(encoded, &mut i)?;
         let rwx = read_mask(encoded, &mut i, RWX_BITS)? as u8;
         let support = read_mask(encoded, &mut i, SUPPORT_BITS)?;
         if i >= encoded.len() - 1 {
@@ -216,14 +254,19 @@ impl DialecticObject {
             n,
             word: encoded[i..encoded.len() - 1].to_vec(),
             support,
-            imscription: Imscription { boundary, rwx },
+            imscription: Imscription {
+                boundary,
+                span,
+                rwx,
+            },
         };
         object.validate()?;
         Ok(object)
     }
 
     /// Consume the whole operator-space relation and either re-imscribe the
-    /// transformed space or close it around a factor pair.
+    /// transformed space or close it around a factor pair. The executor reads
+    /// the finite cell count from the persisted `span` tape.
     pub fn descend(self) -> Result<Descent, String> {
         self.validate()?;
         if !self.imscription.can_read()
@@ -233,16 +276,23 @@ impl DialecticObject {
             return Err(String::from("dialectic imscription lost r/w/x coupling"));
         }
 
+        let cells = span_to_usize(&self.imscription.span)?;
+
         if self.word == SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>() {
-            match fermat_lattice_from(&self.n, &self.imscription.boundary, 0, FRONTIER_CELLS) {
-                LatticeResult::Closed { p, q, cell, boundary } => {
+            match fermat_lattice_from(&self.n, &self.imscription.boundary, 0, cells) {
+                LatticeResult::Closed {
+                    p,
+                    q,
+                    cell,
+                    boundary,
+                } => {
                     return close(
                         self.n,
                         p,
                         q,
                         SHORT_FRONTIER_CLOSED_WORD,
                         self.support | SUPPORT_SHORT_FRONTIER | SUPPORT_PRODUCT_BOUNDARY,
-                        Imscription::active(boundary),
+                        Imscription::active(boundary, self.imscription.span),
                         cell,
                         None,
                     );
@@ -252,7 +302,10 @@ impl DialecticObject {
                         n: self.n,
                         word: EXTENDED_FERMAT_WORD.chars().collect(),
                         support: self.support | SUPPORT_SHORT_FRONTIER,
-                        imscription: Imscription::active(boundary),
+                        imscription: Imscription::active(
+                            boundary,
+                            tape_u64(EXTENDED_FERMAT_SPAN),
+                        ),
                     };
                     next.validate()?;
                     return Ok(Descent::Continue(next));
@@ -261,34 +314,43 @@ impl DialecticObject {
         }
 
         if self.word == EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>() {
+            let base_cell = usize::try_from(SHORT_FRONTIER_SPAN)
+                .map_err(|_| String::from("short-frontier span does not fit the local executor"))?;
             match fermat_lattice_from(
                 &self.n,
                 &self.imscription.boundary,
-                FRONTIER_CELLS,
-                FERMAT_CELLS - FRONTIER_CELLS,
+                base_cell,
+                cells,
             ) {
-                LatticeResult::Closed { p, q, cell, boundary } => {
+                LatticeResult::Closed {
+                    p,
+                    q,
+                    cell,
+                    boundary,
+                } => {
                     return close(
                         self.n,
                         p,
                         q,
                         EXTENDED_FERMAT_CLOSED_WORD,
                         self.support | SUPPORT_EXTENDED_FERMAT | SUPPORT_PRODUCT_BOUNDARY,
-                        Imscription::active(boundary),
+                        Imscription::active(boundary, self.imscription.span),
                         cell,
                         None,
                     );
                 }
                 LatticeResult::Open { .. } => {
-                    // The Fermat boundary has been completely consumed. The
-                    // transformed operator now imscribes a different lattice:
-                    // Lehman's multiplier k, beginning at k=1. The old Fermat
-                    // space survives structurally in SUPPORT_EXTENDED_FERMAT.
+                    // The current Fermat space has been completely consumed.
+                    // FOUR=B changes lattice: the next boundary denotes Lehman's
+                    // multiplier k and explicitly imscribes its local a-span.
                     let next = DialecticObject {
                         n: self.n,
                         word: LEHMAN_WORD.chars().collect(),
                         support: self.support | SUPPORT_EXTENDED_FERMAT,
-                        imscription: Imscription::active(tape_u64(1)),
+                        imscription: Imscription::active(
+                            tape_u64(1),
+                            tape_u64(LEHMAN_LOCAL_SPAN),
+                        ),
                     };
                     next.validate()?;
                     return Ok(Descent::Continue(next));
@@ -298,7 +360,7 @@ impl DialecticObject {
 
         if self.word == LEHMAN_WORD.chars().collect::<Vec<_>>() {
             let k = self.imscription.boundary.clone();
-            match lehman_multiplier(&self.n, &k) {
+            match lehman_multiplier(&self.n, &k, cells) {
                 LehmanResult::Closed { p, q, cell } => {
                     return close(
                         self.n,
@@ -306,7 +368,7 @@ impl DialecticObject {
                         q,
                         LEHMAN_CLOSED_WORD,
                         self.support | SUPPORT_DEEP_ARM | SUPPORT_PRODUCT_BOUNDARY,
-                        Imscription::active(k.clone()),
+                        Imscription::active(k.clone(), self.imscription.span),
                         cell,
                         Some(k),
                     );
@@ -316,7 +378,10 @@ impl DialecticObject {
                         n: self.n,
                         word: LEHMAN_WORD.chars().collect(),
                         support: self.support,
-                        imscription: Imscription::active(add(&k, &tape_u64(1))),
+                        imscription: Imscription::active(
+                            add(&k, &tape_u64(1)),
+                            self.imscription.span,
+                        ),
                     };
                     next.validate()?;
                     return Ok(Descent::Continue(next));
@@ -424,9 +489,10 @@ enum LehmanResult {
 }
 
 /// Execute one complete Lehman-multiplier imscription. The boundary is k. The
-/// local a-lattice begins at ceil(sqrt(4*k*N)) and is consumed for 64 cells.
-/// A B writes k+1 into the next imscription; no earlier multiplier is replayed.
-fn lehman_multiplier(n: &[Mark], k: &[Mark]) -> LehmanResult {
+/// local a-lattice begins at ceil(sqrt(4*k*N)) and consumes exactly the span
+/// carried by the current imscription. A B writes k+1 into the next imscription;
+/// no earlier multiplier is replayed.
+fn lehman_multiplier(n: &[Mark], k: &[Mark], cells: usize) -> LehmanResult {
     let one = tape_u64(1);
     let four_kn = mul(&tape_u64(4), &mul(k, n));
     let mut a = isqrt(&four_kn);
@@ -434,7 +500,7 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark]) -> LehmanResult {
         a = add(&a, &one);
     }
 
-    for cell in 0..LEHMAN_A_CELLS {
+    for cell in 0..cells {
         let a2 = mul(&a, &a);
         if cmp(&a2, &four_kn) != Ordering::Less {
             let b2 = sub(&a2, &four_kn);
@@ -479,6 +545,37 @@ fn gcd_tape(a: &[Mark], b: &[Mark]) -> Tape {
         y = r;
     }
     x
+}
+
+fn span_to_usize(span: &[Mark]) -> Result<usize, String> {
+    if span.is_empty() {
+        return Err(String::from("dialectic imscription span is empty"));
+    }
+    let mut value = 0usize;
+    for (bit, &mark) in span.iter().enumerate() {
+        match mark {
+            EVALT => {}
+            EVALF => {
+                if bit >= usize::BITS as usize {
+                    return Err(String::from(
+                        "dialectic imscription span exceeds the finite local executor",
+                    ));
+                }
+                value |= 1usize
+                    .checked_shl(bit as u32)
+                    .ok_or_else(|| String::from("dialectic imscription span overflow"))?;
+            }
+            _ => {
+                return Err(String::from(
+                    "dialectic imscription span contains a non-numeral mark",
+                ));
+            }
+        }
+    }
+    if value == 0 {
+        return Err(String::from("dialectic imscription span must be positive"));
+    }
+    Ok(value)
 }
 
 fn push_tape(out: &mut Vec<Mark>, tape: &[Mark]) {
