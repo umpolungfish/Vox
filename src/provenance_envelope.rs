@@ -89,7 +89,10 @@ pub fn suffix_fibre_size(ladder: &[LaneSupport]) -> Option<u128> {
     if !is_descending(ladder) {
         return None;
     }
-    let exponent: u32 = ladder.iter().skip(1).map(|x| x.count_ones()).sum();
+    let exponent = ladder
+        .iter()
+        .skip(1)
+        .try_fold(0u32, |acc, x| acc.checked_add(x.count_ones()))?;
     1u128.checked_shl(exponent)
 }
 
