@@ -9,7 +9,7 @@ use vox::dialectic_reentry::{
     SHORT_FRONTIER_SPAN,
 };
 use vox::factorization_31_membrane::UnboundedResident;
-use vox::morphism_factor::{cmp, mul, tape_u64};
+use vox::morphism_factor::{add, cmp, mul, tape_u64};
 use vox::producer_provenance::{resident_route_provenance, route_provenance};
 use vox::reentry_certificate::{certify_reentry, verify_reentry_certificate};
 use vox::trace_algebra::witness_valid;
@@ -22,18 +22,6 @@ fn same_pair(a: &[char], b: &[char], x: &[char], y: &[char]) -> bool {
 
 fn flip(mark: char) -> char {
     if mark == EVALF { EVALT } else { EVALF }
-}
-
-fn skip_field(encoded: &[char], i: &mut usize) -> (usize, usize) {
-    assert_eq!(encoded[*i], '∈');
-    *i += 1;
-    let start = *i;
-    while encoded[*i] != '∋' {
-        *i += 1;
-    }
-    let end = *i;
-    *i += 1;
-    (start, end)
 }
 
 #[test]
@@ -117,13 +105,17 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert_eq!(summary.supports[1], 7);  // + short frontier
     assert!(summary.supports[2..].iter().all(|&s| s == 15)); // + extended Fermat
     assert_eq!(summary.terminal_support, 63);
-    assert_eq!(certificate.terminal_rwx, IM_RWX);
+    assert_eq!(certificate.terminal_rwx.rights, IM_RWX);
+    assert_eq!(certificate.terminal_rwx.read_bulk, n);
+    assert_eq!(certificate.terminal_rwx.write_boundary, certificate.terminal_boundary);
+    assert_eq!(certificate.terminal_rwx.execute_span, certificate.terminal_span);
+    assert_eq!(certificate.terminal_rwx.execute_word, certificate.terminal_word);
     assert_eq!(certificate.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(certificate.lattice_cell, tape_u64(0));
 
     // Independently descend the same whole object without the certificate builder.
-    // Runtime closure and persisted proof must carry the exact same cell tape;
-    // there is no host-integer conversion at this seam anymore.
+    // Runtime closure and persisted proof carry both the exact same cell tape and
+    // the exact same load-bearing r/w/x relation.
     let mut runtime = start.clone();
     let runtime_closure = loop {
         match runtime.descend().unwrap() {
@@ -132,13 +124,20 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
         }
     };
     assert_eq!(runtime_closure.lattice_cell, certificate.lattice_cell);
+    assert_eq!(runtime_closure.imscription.rwx, certificate.terminal_rwx);
     assert_eq!(runtime_closure.carrier.encode(), certificate.terminal_carrier);
 
-    // Every certified object is independently decodable from its marks alone.
+    // Every certified object is independently decodable from its marks alone,
+    // including all four endpoints of its current r/w/x relation.
     for (index, wire) in certificate.objects.iter().enumerate() {
         let object = DialecticObject::decode(wire).unwrap();
         assert_eq!(object.n, n);
-        assert_eq!(object.imscription.rwx, IM_RWX);
+        assert_eq!(object.imscription.rwx.rights, IM_RWX);
+        assert_eq!(object.imscription.rwx.read_bulk, object.n);
+        assert_eq!(object.imscription.rwx.write_boundary, object.imscription.boundary);
+        assert_eq!(object.imscription.rwx.execute_span, object.imscription.span);
+        assert_eq!(object.imscription.rwx.execute_word, object.word);
+        assert!(object.imscription.relation_is_live_for(&object.n, &object.word));
         let expected_span = match index {
             0 => SHORT_FRONTIER_SPAN,
             1 => EXTENDED_FERMAT_SPAN,
@@ -147,14 +146,15 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
         assert_eq!(object.imscription.span, tape_u64(expected_span));
     }
 
-    // Forge an intermediate persisted Lehman boundary. It may still be a valid
-    // local object, but it cannot be the exact image of the preceding descent.
+    // Forge one intermediate Lehman object as a *locally valid* different
+    // imscription: move k and its write leg together. Exact descent continuity,
+    // not local validation, must reject it.
     let mut bad_boundary = certificate.clone();
-    let wire = &mut bad_boundary.objects[4];
-    let mut i = 2usize;
-    let _n = skip_field(wire, &mut i);
-    let boundary = skip_field(wire, &mut i);
-    wire[boundary.0] = flip(wire[boundary.0]);
+    let mut forged_object = DialecticObject::decode(&bad_boundary.objects[4]).unwrap();
+    forged_object.imscription.boundary = add(&forged_object.imscription.boundary, &tape_u64(1));
+    forged_object.imscription.rwx.write_boundary = forged_object.imscription.boundary.clone();
+    forged_object.validate().unwrap();
+    bad_boundary.objects[4] = forged_object.encode();
     assert!(verify_dialectic_certificate(&bad_boundary).is_err());
 
     // Reorder two complete restart points: continuity must fail even though each
@@ -168,11 +168,36 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     bad_terminal.terminal_support ^= 1 << 5;
     assert!(verify_dialectic_certificate(&bad_terminal).is_err());
 
-    // Forge only the terminal imscribed span. Boundary, word, r/w/x and carrier
-    // remain untouched; the proof must still reject the changed space.
+    // Forge only the terminal imscribed span. Relation and factor pair remain
+    // untouched; the proof must reject the severed space relation.
     let mut bad_span = certificate.clone();
     bad_span.terminal_span[0] = flip(bad_span.terminal_span[0]);
     assert!(verify_dialectic_certificate(&bad_span).is_err());
+
+    // Each r/w/x leg is independently load-bearing.
+    let mut bad_rights = certificate.clone();
+    bad_rights.terminal_rwx.rights &= !vox::dialectic_reentry::IM_WRITE;
+    assert!(verify_dialectic_certificate(&bad_rights).is_err());
+
+    let mut bad_read = certificate.clone();
+    bad_read.terminal_rwx.read_bulk[0] = flip(bad_read.terminal_rwx.read_bulk[0]);
+    assert!(verify_dialectic_certificate(&bad_read).is_err());
+
+    let mut bad_write = certificate.clone();
+    bad_write.terminal_rwx.write_boundary[0] = flip(bad_write.terminal_rwx.write_boundary[0]);
+    let bad_write_wire = encode_dialectic_certificate(&bad_write);
+    let decoded_bad_write = decode_dialectic_certificate(&bad_write_wire).unwrap();
+    assert_eq!(decoded_bad_write.terminal_rwx.write_boundary, bad_write.terminal_rwx.write_boundary);
+    assert!(verify_dialectic_certificate(&decoded_bad_write).is_err());
+
+    let mut bad_execute_span = certificate.clone();
+    bad_execute_span.terminal_rwx.execute_span[0] =
+        flip(bad_execute_span.terminal_rwx.execute_span[0]);
+    assert!(verify_dialectic_certificate(&bad_execute_span).is_err());
+
+    let mut bad_execute_word = certificate.clone();
+    bad_execute_word.terminal_rwx.execute_word[0] = '⋈';
+    assert!(verify_dialectic_certificate(&bad_execute_word).is_err());
 
     // The closing cell is proof data, not host address state. A structurally
     // valid numeral wider than usize must survive codec reconstruction intact;
@@ -187,7 +212,7 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert!(verify_dialectic_certificate(&decoded_wide).is_err());
 
     println!(
-        "dialectic certificate: {} persisted whole objects replay exactly; runtime/certificate cell tape identical; forged boundary/order/support/span and host-wider lattice cell rejected semantically",
+        "dialectic certificate: {} persisted whole objects replay exactly; runtime/certificate cell+relation identical; forged continuity/support/span/rwx-legs and host-wider lattice cell rejected semantically",
         summary.descents,
     );
 }
