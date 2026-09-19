@@ -1,13 +1,14 @@
 use core::cmp::Ordering;
 
 use vox::dialectic_reentry::{
-    Descent, DialecticObject, EXTENDED_FERMAT_WORD, IM_RWX, SHORT_FRONTIER_WORD,
+    Descent, DialecticObject, EXTENDED_FERMAT_WORD, IM_RWX, LEHMAN_WORD,
+    SHORT_FRONTIER_WORD,
 };
 use vox::factor_extract::extract;
 use vox::morphism_factor::{add, cmp, mul, tape_u64};
 use vox::producer_provenance::{
-    SUPPORT_EXTENDED_FERMAT, SUPPORT_PARITY, SUPPORT_PRIMALITY,
-    SUPPORT_PRODUCT_BOUNDARY, SUPPORT_SHORT_FRONTIER,
+    route_provenance, SUPPORT_DEEP_ARM, SUPPORT_EXTENDED_FERMAT, SUPPORT_PARITY,
+    SUPPORT_PRIMALITY, SUPPORT_PRODUCT_BOUNDARY, SUPPORT_SHORT_FRONTIER,
 };
 use vox::reentry_certificate::{certify_reentry, verify_reentry_certificate};
 use vox::trace_algebra::witness_valid;
@@ -86,6 +87,7 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(verdict(&closure.word), 'T');
     assert!(closure.word.contains(&IMSCRIB));
     assert_eq!(closure.lattice_cell, 126);
+    assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.rwx, IM_RWX);
     assert!(closure.support & SUPPORT_SHORT_FRONTIER != 0);
     assert!(closure.support & SUPPORT_EXTENDED_FERMAT != 0);
@@ -127,6 +129,7 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
 
     assert_eq!(verdict(&closure.word), 'T');
     assert_eq!(closure.lattice_cell, 0);
+    assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.boundary, initial_boundary);
     assert_eq!(closure.imscription.rwx, IM_RWX);
     assert_eq!(closure.support & (SUPPORT_PARITY | SUPPORT_PRIMALITY), SUPPORT_PARITY | SUPPORT_PRIMALITY);
@@ -138,6 +141,87 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     println!(
         "dialectic descent: gap=1000 locked in first imscription at lattice cell {}",
         closure.lattice_cell,
+    );
+}
+
+#[test]
+fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
+    // This pair lies beyond the 4096-cell Fermat ring. The next whole object
+    // changes lattice and closes on Lehman multiplier k=10.
+    let p = tape_u64(1_000_003);
+    let q = tape_u64(10_000_019);
+    let n = mul(&p, &q);
+
+    let first = DialecticObject::new(n.clone()).unwrap();
+    let extended = match first.descend().unwrap() {
+        Descent::Continue(next) => next,
+        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in short frontier"),
+    };
+    assert_eq!(extended.word, EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>());
+    assert_eq!(verdict(&extended.word), 'B');
+
+    // The second Fermat ring is consumed as one complete imscription. Its B does
+    // not mean retry Fermat: the operator changes what its boundary denotes.
+    let lehman = match extended.descend().unwrap() {
+        Descent::Continue(next) => next,
+        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in Fermat ring"),
+    };
+    assert_eq!(lehman.word, LEHMAN_WORD.chars().collect::<Vec<_>>());
+    assert_eq!(verdict(&lehman.word), 'B');
+    assert_eq!(lehman.support, SUPPORT_PARITY | SUPPORT_PRIMALITY | SUPPORT_SHORT_FRONTIER | SUPPORT_EXTENDED_FERMAT);
+    assert_eq!(lehman.imscription.boundary, tape_u64(1));
+    assert_eq!(lehman.imscription.rwx, IM_RWX);
+
+    let mut current = lehman;
+    let closure = loop {
+        // Every multiplier is a complete marks-only restart point. The boundary
+        // is the multiplier itself, not a hosted loop counter outside the object.
+        let persisted = current.encode();
+        drop(current);
+        let restarted = DialecticObject::decode(&persisted).unwrap();
+        let k = restarted.imscription.boundary.clone();
+
+        match restarted.descend().unwrap() {
+            Descent::Continue(next) => {
+                assert_eq!(next.word, LEHMAN_WORD.chars().collect::<Vec<_>>());
+                assert_eq!(next.imscription.boundary, add(&k, &tape_u64(1)));
+                current = next;
+            }
+            Descent::Closed(closed) => break closed,
+        }
+    };
+
+    assert_eq!(verdict(&closure.word), 'T');
+    assert_eq!(closure.lattice_cell, 0);
+    assert_eq!(closure.lehman_multiplier.as_deref(), Some(tape_u64(10).as_slice()));
+    assert_eq!(closure.imscription.boundary, tape_u64(10));
+    assert_eq!(closure.imscription.rwx, IM_RWX);
+    assert_eq!(
+        closure.support,
+        SUPPORT_PARITY
+            | SUPPORT_PRIMALITY
+            | SUPPORT_SHORT_FRONTIER
+            | SUPPORT_EXTENDED_FERMAT
+            | SUPPORT_DEEP_ARM
+            | SUPPORT_PRODUCT_BOUNDARY,
+    );
+
+    // The new tower support lands on the same restored outer support already
+    // occupied by the existing HARD producer provenance.
+    let hard = route_provenance("HARD").unwrap();
+    assert_eq!(hard.ladder[0], closure.support);
+
+    assert!(witness_valid(&closure.carrier.n, &closure.carrier.p, &closure.carrier.q));
+    assert!(same_pair(&closure.carrier.p, &closure.carrier.q, &p, &q));
+    let readout = extract(&closure.carrier).unwrap();
+    assert_eq!(readout.transforms, 0);
+    let summary = verify_reentry_certificate(&certify_reentry(&closure.carrier).unwrap()).unwrap();
+    assert_eq!(summary.transforms, 0);
+    assert_eq!(summary.normal_form, closure.carrier.trace);
+
+    println!(
+        "dialectic tower: far-gap semiprime consumed frontier B -> Fermat B -> changed lattice -> Lehman B re-entry -> T at k=10; restored support={}",
+        closure.support,
     );
 }
 
