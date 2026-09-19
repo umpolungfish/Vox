@@ -1,6 +1,8 @@
 use core::cmp::Ordering;
 
-use vox::dialectic_reentry::DialecticObject;
+use vox::dialectic_reentry::{
+    DialecticObject, EXTENDED_FERMAT_SPAN, LEHMAN_LOCAL_SPAN, SHORT_FRONTIER_SPAN,
+};
 use vox::imscription_cycle::{
     certify_imscription_cycle, decode_imscription_cycle, encode_imscription_cycle,
     verify_imscription_cycle,
@@ -47,6 +49,7 @@ fn baked_forty_one_digit_semiprime_closes_as_a_native_tape_cycle() {
     assert!(n.len() > 64, "fixture unexpectedly narrowed below machine width");
 
     let start = DialecticObject::new(n.clone()).unwrap();
+    assert_eq!(start.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
     let certificate = certify_imscription_cycle(&start).unwrap();
     let summary = verify_imscription_cycle(&certificate).unwrap();
 
@@ -54,6 +57,7 @@ fn baked_forty_one_digit_semiprime_closes_as_a_native_tape_cycle() {
     assert_eq!(summary.terminal_support, 39);
     assert_eq!(summary.quotient_transforms, 1);
     assert_eq!(summary.quotient_generations, 2);
+    assert_eq!(certificate.dialectic.terminal_span, tape_u64(SHORT_FRONTIER_SPAN));
     assert!(witness_valid(
         &summary.fixed_carrier.n,
         &summary.fixed_carrier.p,
@@ -69,12 +73,14 @@ fn baked_forty_one_digit_semiprime_closes_as_a_native_tape_cycle() {
     let wire = encode_imscription_cycle(&certificate);
     let restored = decode_imscription_cycle(&wire).unwrap();
     let replay = verify_imscription_cycle(&restored).unwrap();
+    assert_eq!(restored.dialectic.terminal_span, tape_u64(SHORT_FRONTIER_SPAN));
     assert_eq!(replay.fixed_carrier.encode(), summary.fixed_carrier.encode());
 
     println!(
-        "imscription arbitrary width: baked N digits={} tape_marks={} descents=1 support=39 fixed=true",
+        "imscription arbitrary width: baked N digits={} tape_marks={} span={} descents=1 support=39 fixed=true",
         dec_of(&n).len(),
         n.len(),
+        SHORT_FRONTIER_SPAN,
     );
 }
 
@@ -100,6 +106,24 @@ fn arbitrary_width_bulk_changes_lattice_without_narrowing_the_boundary() {
     assert_eq!(summary.quotient_transforms, 4);
     assert_eq!(certificate.dialectic.lehman_multiplier.as_deref(), Some(tape_u64(2).as_slice()));
     assert_eq!(certificate.dialectic.lattice_cell, 0);
+    assert_eq!(certificate.dialectic.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
+
+    let spans: Vec<Vec<char>> = certificate
+        .dialectic
+        .objects
+        .iter()
+        .map(|wire| DialecticObject::decode(wire).unwrap().imscription.span)
+        .collect();
+    assert_eq!(
+        spans,
+        vec![
+            tape_u64(SHORT_FRONTIER_SPAN),
+            tape_u64(EXTENDED_FERMAT_SPAN),
+            tape_u64(LEHMAN_LOCAL_SPAN),
+            tape_u64(LEHMAN_LOCAL_SPAN),
+        ],
+    );
+
     assert!(same_pair(
         &summary.fixed_carrier.p,
         &summary.fixed_carrier.q,
@@ -110,10 +134,11 @@ fn arbitrary_width_bulk_changes_lattice_without_narrowing_the_boundary() {
     let wire = encode_imscription_cycle(&certificate);
     let restored = decode_imscription_cycle(&wire).unwrap();
     let replay = verify_imscription_cycle(&restored).unwrap();
+    assert_eq!(restored.dialectic.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(replay.fixed_carrier.encode(), summary.fixed_carrier.encode());
 
     println!(
-        "imscription arbitrary-width lattice change: p={} q={} N_digits={} descents={} k=2 support=63 fixed=true",
+        "imscription arbitrary-width lattice change: p={} q={} N_digits={} spans=64->4032->64->64 descents={} k=2 support=63 fixed=true",
         dec_of(&p),
         dec_of(&q),
         dec_of(&n).len(),
@@ -146,6 +171,7 @@ fn lehman_boundary_reimscribes_past_the_old_sixty_four_multiplier_wall() {
         certificate.dialectic.lehman_multiplier.as_deref(),
         Some(tape_u64(k).as_slice()),
     );
+    assert_eq!(certificate.dialectic.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert!(same_pair(
         &summary.fixed_carrier.p,
         &summary.fixed_carrier.q,
@@ -158,10 +184,12 @@ fn lehman_boundary_reimscribes_past_the_old_sixty_four_multiplier_wall() {
     let replay = verify_imscription_cycle(&restored).unwrap();
     assert_eq!(replay.descents, 98);
     assert_eq!(replay.quotient_transforms, 98);
+    assert_eq!(restored.dialectic.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(replay.fixed_carrier.encode(), summary.fixed_carrier.encode());
 
     println!(
-        "imscription unbounded multiplier: k=96 descents=98 quotient_transforms=98 old_k64_wall_crossed=true fixed=true marks={}",
+        "imscription unbounded multiplier: k=96 span={} descents=98 quotient_transforms=98 old_k64_wall_crossed=true fixed=true marks={}",
+        LEHMAN_LOCAL_SPAN,
         wire.len(),
     );
 }
