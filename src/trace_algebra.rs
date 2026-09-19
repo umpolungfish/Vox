@@ -12,10 +12,12 @@
 //! closes to the SAME factor, that record was operationally redundant in the trajectory.
 
 use alloc::vec::Vec;
+use core::cmp::Ordering;
 use crate::trace_word::{decode_trace, encode_trace, judge_trace};
 use crate::router_marks::{M_T, M_N};
 use crate::router_marks::M_FIX;
 use crate::judge_g::found_factor;
+use crate::morphism_factor::{cmp as tape_cmp, mul as tape_mul, tape_u64};
 
 pub type Mark = char;
 
@@ -150,7 +152,7 @@ pub fn relaxed_equivalent_with_witness(
 }
 
 /// Candidate admissibility for a carrier whose factor witness is unchanged by
-/// the trace edit.  This is the form used by the extraction membrane.
+/// the trace edit.  This is the legacy machine-word form.
 pub fn admissible_relaxed_with_witness(
     orig: &[Mark],
     cand: &[Mark],
@@ -158,4 +160,63 @@ pub fn admissible_relaxed_with_witness(
     witness: (u64, u64),
 ) -> bool {
     relaxed_equivalent_with_witness(orig, witness, cand, witness, n)
+}
+
+// ---- arbitrary-width tape witness form of the same frozen relation ----
+
+/// Verify an already-carried arbitrary-width factor witness entirely over the
+/// existing IMASM numeral tapes.  This multiplies p×q and compares the result
+/// with N; it never searches for either factor and never narrows an operand to
+/// u64/u128.
+pub fn witness_valid_tape(n: &[Mark], p: &[Mark], q: &[Mark]) -> bool {
+    let one = tape_u64(1);
+    if tape_cmp(p, &one) != Ordering::Greater || tape_cmp(q, &one) != Ordering::Greater {
+        return false;
+    }
+    tape_cmp(&tape_mul(p, q), n) == Ordering::Equal
+}
+
+fn same_tape_witness(
+    a: (&[Mark], &[Mark]),
+    b: (&[Mark], &[Mark]),
+) -> bool {
+    let direct = tape_cmp(a.0, b.0) == Ordering::Equal
+        && tape_cmp(a.1, b.1) == Ordering::Equal;
+    let swapped = tape_cmp(a.0, b.1) == Ordering::Equal
+        && tape_cmp(a.1, b.0) == Ordering::Equal;
+    direct || swapped
+}
+
+/// Arbitrary-width ≡c.  The numeric witness is an IMASM tape pair carried by
+/// the object.  Equality and reconstruction are evaluated on tapes only.
+pub fn relaxed_equivalent_with_tape_witness(
+    a: &[Mark],
+    witness_a: (&[Mark], &[Mark]),
+    b: &[Mark],
+    witness_b: (&[Mark], &[Mark]),
+    n: &[Mark],
+) -> bool {
+    if !witness_valid_tape(n, witness_a.0, witness_a.1)
+        || !witness_valid_tape(n, witness_b.0, witness_b.1)
+    {
+        return false;
+    }
+    if !same_tape_witness(witness_a, witness_b) { return false; }
+    if judge_trace(a) != M_T || judge_trace(b) != M_T { return false; }
+    match (closure_state(a), closure_state(b)) {
+        (Some(ca), Some(cb)) => ca == cb,
+        _ => false,
+    }
+}
+
+/// One relaxed candidate step for an arbitrary-width factor-bearing carrier.
+/// The witness remains data while only the trace projection is edited.
+pub fn admissible_relaxed_with_tape_witness(
+    orig: &[Mark],
+    cand: &[Mark],
+    n: &[Mark],
+    p: &[Mark],
+    q: &[Mark],
+) -> bool {
+    relaxed_equivalent_with_tape_witness(orig, (p, q), cand, (p, q), n)
 }
