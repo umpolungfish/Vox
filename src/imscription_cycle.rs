@@ -11,13 +11,15 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::dialectic_certificate::{
-    certify_dialectic, verify_dialectic_certificate, DialecticCertificate,
+    certify_dialectic, decode_dialectic_certificate, encode_dialectic_certificate,
+    verify_dialectic_certificate, DialecticCertificate,
 };
 use crate::dialectic_reentry::{DialecticObject, IM_RWX};
-use crate::factor_extract::{FactorCarrier, Mark};
+use crate::factor_extract::{FactorCarrier, Mark, Tape};
 use crate::provenance_envelope::LaneSupport;
 use crate::reentry_certificate::{
-    certify_reentry, verify_reentry_certificate, ReentryCertificate,
+    certify_reentry, decode_reentry_certificate, encode_reentry_certificate,
+    verify_reentry_certificate, ReentryCertificate,
 };
 use crate::router_marks::{GStep, M_B, M_T};
 use crate::trace_word::{decode_trace, encode_trace};
@@ -185,5 +187,136 @@ pub fn verify_imscription_cycle(
         quotient_generations: quotient.generations,
         quotient_transforms: quotient.transforms,
         fixed_carrier,
+    })
+}
+
+fn usize_to_tape(mut value: usize) -> Tape {
+    if value == 0 {
+        return vec![EVALT];
+    }
+    let mut out = Vec::new();
+    while value != 0 {
+        out.push(if value & 1 == 1 { EVALF } else { EVALT });
+        value >>= 1;
+    }
+    out
+}
+
+fn tape_to_usize(tape: &[Mark]) -> Option<usize> {
+    if tape.is_empty() {
+        return None;
+    }
+    let mut value = 0usize;
+    for (bit, &mark) in tape.iter().enumerate() {
+        match mark {
+            EVALT => {}
+            EVALF => {
+                if bit >= usize::BITS as usize {
+                    return None;
+                }
+                value |= 1usize.checked_shl(bit as u32)?;
+            }
+            _ => return None,
+        }
+    }
+    Some(value)
+}
+
+fn push_tape_field(out: &mut Vec<Mark>, tape: &[Mark]) {
+    out.push('∈');
+    out.extend_from_slice(tape);
+    out.push('∋');
+}
+
+fn read_tape_field(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Tape, String> {
+    if *cursor >= end || word.get(*cursor).copied() != Some('∈') {
+        return Err(String::from("malformed imscription-cycle length field"));
+    }
+    *cursor += 1;
+    let mut out = Vec::new();
+    while *cursor < end {
+        let mark = word[*cursor];
+        *cursor += 1;
+        if mark == '∋' {
+            if out.is_empty() {
+                return Err(String::from("empty imscription-cycle length field"));
+            }
+            return Ok(out);
+        }
+        if mark != EVALT && mark != EVALF {
+            return Err(String::from("imscription-cycle length field contains a non-numeral mark"));
+        }
+        out.push(mark);
+    }
+    Err(String::from("truncated imscription-cycle length field"))
+}
+
+fn push_len_field(out: &mut Vec<Mark>, len: usize) {
+    push_tape_field(out, &usize_to_tape(len));
+}
+
+fn read_len_field(word: &[Mark], cursor: &mut usize, end: usize) -> Result<usize, String> {
+    let tape = read_tape_field(word, cursor, end)?;
+    tape_to_usize(&tape)
+        .ok_or_else(|| String::from("imscription-cycle length field overflows host address space"))
+}
+
+fn push_blob(out: &mut Vec<Mark>, blob: &[Mark]) {
+    push_len_field(out, blob.len());
+    out.extend_from_slice(blob);
+}
+
+fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>, String> {
+    let len = read_len_field(word, cursor, end)?;
+    let blob_end = cursor.checked_add(len)
+        .ok_or_else(|| String::from("imscription-cycle blob length overflow"))?;
+    if blob_end > end {
+        return Err(String::from("truncated imscription-cycle blob"));
+    }
+    let blob = word[*cursor..blob_end].to_vec();
+    *cursor = blob_end;
+    Ok(blob)
+}
+
+/// Serialize the complete proof circuit as one marks-only object.  The nested
+/// dialectic and quotient certificates retain their own wire formats; the outer
+/// cycle only length-frames those exact objects plus the exact lifted bridge.
+pub fn encode_imscription_cycle(certificate: &ImscriptionCycleCertificate) -> Vec<Mark> {
+    let dialectic = encode_dialectic_certificate(&certificate.dialectic);
+    let quotient = encode_reentry_certificate(&certificate.quotient);
+    let mut out = Vec::new();
+    out.push('⊢');
+    out.push('⋈');
+    push_blob(&mut out, &dialectic);
+    push_blob(&mut out, &certificate.lifted_carrier);
+    push_blob(&mut out, &quotient);
+    out.push('⊣');
+    out
+}
+
+/// Reconstruct a complete cycle from one persisted marks-only object.  As with
+/// the inner codecs, structural reconstruction and semantic replay are separate:
+/// callers must pass the result to `verify_imscription_cycle` to establish the
+/// operator-space descent, exact bridge, quotient, and fixed-object return.
+pub fn decode_imscription_cycle(word: &[Mark]) -> Result<ImscriptionCycleCertificate, String> {
+    if word.len() < 3
+        || word.first().copied() != Some('⊢')
+        || word.get(1).copied() != Some('⋈')
+        || word.last().copied() != Some('⊣')
+    {
+        return Err(String::from("malformed imscription-cycle framing"));
+    }
+    let end = word.len() - 1;
+    let mut cursor = 2usize;
+    let dialectic_wire = read_blob(word, &mut cursor, end)?;
+    let lifted_carrier = read_blob(word, &mut cursor, end)?;
+    let quotient_wire = read_blob(word, &mut cursor, end)?;
+    if cursor != end {
+        return Err(String::from("trailing marks after imscription-cycle payload"));
+    }
+    Ok(ImscriptionCycleCertificate {
+        dialectic: decode_dialectic_certificate(&dialectic_wire)?,
+        lifted_carrier,
+        quotient: decode_reentry_certificate(&quotient_wire)?,
     })
 }
