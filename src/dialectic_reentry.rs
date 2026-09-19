@@ -44,6 +44,106 @@ pub const LEHMAN_LOCAL_SPAN: u64 = 64;
 
 const BASE_SUPPORT: LaneSupport = SUPPORT_PARITY | SUPPORT_PRIMALITY;
 
+/// The lattice action decoded from the current IMASM word.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum ImscriptionLattice {
+    ShortFrontier,
+    ExtendedFermat,
+    Lehman,
+}
+
+impl ImscriptionLattice {
+    fn open_word(self) -> &'static str {
+        match self {
+            Self::ShortFrontier => SHORT_FRONTIER_WORD,
+            Self::ExtendedFermat => EXTENDED_FERMAT_WORD,
+            Self::Lehman => LEHMAN_WORD,
+        }
+    }
+
+    fn closed_word(self) -> &'static str {
+        match self {
+            Self::ShortFrontier => SHORT_FRONTIER_CLOSED_WORD,
+            Self::ExtendedFermat => EXTENDED_FERMAT_CLOSED_WORD,
+            Self::Lehman => LEHMAN_CLOSED_WORD,
+        }
+    }
+
+    fn span(self) -> u64 {
+        match self {
+            Self::ShortFrontier => SHORT_FRONTIER_SPAN,
+            Self::ExtendedFermat => EXTENDED_FERMAT_SPAN,
+            Self::Lehman => LEHMAN_LOCAL_SPAN,
+        }
+    }
+
+    fn unresolved_support(self) -> LaneSupport {
+        match self {
+            Self::ShortFrontier => BASE_SUPPORT,
+            Self::ExtendedFermat => BASE_SUPPORT | SUPPORT_SHORT_FRONTIER,
+            Self::Lehman => BASE_SUPPORT | SUPPORT_SHORT_FRONTIER | SUPPORT_EXTENDED_FERMAT,
+        }
+    }
+}
+
+/// Semantic execution descriptor decoded from the marks of one IMASM word.
+///
+/// The lattice is not selected by comparing the whole word to a Rust constant.
+/// The grammar marks themselves identify the lattice, while FOUR determines
+/// whether the word is an unresolved `B` imscription or a closing `T` one.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct ImasmExecution {
+    pub lattice: ImscriptionLattice,
+    pub four: Mark,
+    pub closed: bool,
+}
+
+/// Decode the current IMASM word into the lattice action it commands.
+///
+/// Supported kernels are:
+/// `⊤≺⊥` short Fermat, `⊤⊞≺⊥` extended Fermat, and `⋈⊤⊥` Lehman.
+/// A trailing `∋` before `⊡` is the closing form. FOUR must agree with that
+/// grammar state (`B` unresolved, `T` closed), otherwise the word is rejected.
+pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
+    if word.len() < 9
+        || word.first().copied() != Some(VINIT)
+        || word.get(1).copied() != Some(IMSCRIB)
+        || word.get(2).copied() != Some('∈')
+        || word.get(3).copied() != Some('≻')
+        || word.get(word.len() - 2).copied() != Some('⊡')
+        || word.last().copied() != Some(TANCH)
+    {
+        return Err(String::from("malformed dialectic IMASM execution framing"));
+    }
+
+    let mut kernel = &word[4..word.len() - 2];
+    let closed = kernel.last().copied() == Some('∋');
+    if closed {
+        kernel = &kernel[..kernel.len() - 1];
+    }
+
+    let lattice = match kernel {
+        ['⊤', '≺', '⊥'] => ImscriptionLattice::ShortFrontier,
+        ['⊤', '⊞', '≺', '⊥'] => ImscriptionLattice::ExtendedFermat,
+        ['⋈', '⊤', '⊥'] => ImscriptionLattice::Lehman,
+        _ => return Err(String::from("unknown dialectic IMASM lattice kernel")),
+    };
+
+    let four = verdict(word);
+    let expected_four = if closed { 'T' } else { 'B' };
+    if four != expected_four {
+        return Err(String::from(
+            "dialectic IMASM grammar state does not agree with its FOUR verdict",
+        ));
+    }
+
+    Ok(ImasmExecution {
+        lattice,
+        four,
+        closed,
+    })
+}
+
 /// Capabilities of a live imscription relation. The bit-set says which actions
 /// are enabled; the endpoints below say what those actions currently relate.
 pub const IM_READ: u8 = 1 << 0;
@@ -225,62 +325,46 @@ impl DialecticObject {
             ));
         }
 
-        let word = self.word();
-        let short_word: Vec<Mark> = SHORT_FRONTIER_WORD.chars().collect();
-        let extended_word: Vec<Mark> = EXTENDED_FERMAT_WORD.chars().collect();
-        let lehman_word: Vec<Mark> = LEHMAN_WORD.chars().collect();
-        let short = word == short_word.as_slice();
-        let extended = word == extended_word.as_slice();
-        let lehman = word == lehman_word.as_slice();
+        let execution = decode_imasm_execution(self.word())?;
+        if execution.four != 'B' || execution.closed {
+            return Err(String::from("unresolved dialectic imscription is not FOUR=B"));
+        }
 
-        let expected_support = if short {
-            BASE_SUPPORT
-        } else if extended {
-            BASE_SUPPORT | SUPPORT_SHORT_FRONTIER
-        } else if lehman {
-            BASE_SUPPORT | SUPPORT_SHORT_FRONTIER | SUPPORT_EXTENDED_FERMAT
-        } else {
-            return Err(String::from("unknown dialectic imscription"));
-        };
+        let expected_support = execution.lattice.unresolved_support();
         if self.support != expected_support {
             return Err(String::from("dialectic imscription/support mismatch"));
         }
 
-        let expected_span = if short {
-            tape_u64(SHORT_FRONTIER_SPAN)
-        } else if extended {
-            tape_u64(EXTENDED_FERMAT_SPAN)
-        } else {
-            tape_u64(LEHMAN_LOCAL_SPAN)
-        };
+        let expected_span = tape_u64(execution.lattice.span());
         if cmp(self.span(), &expected_span) != Ordering::Equal {
-            return Err(String::from("dialectic imscription span does not match the current lattice word"));
-        }
-
-        if short || extended {
-            let origin = fermat_origin(&self.n);
-            let expected_boundary = if short {
-                origin
-            } else {
-                add(&origin, &tape_u64(SHORT_FRONTIER_SPAN))
-            };
-            if cmp(self.boundary(), &expected_boundary) != Ordering::Equal {
-                return Err(String::from(
-                    "dialectic imscription boundary does not match transformed Fermat space",
-                ));
-            }
-        } else if cmp(self.boundary(), &tape_u64(1)) == Ordering::Less {
             return Err(String::from(
-                "dialectic Lehman boundary must be a positive imscribed multiplier",
+                "dialectic imscription span does not match the current IMASM lattice",
             ));
         }
 
-        if !word.contains(&IMSCRIB) {
-            return Err(String::from("dialectic imscription does not contain IMSCRIB"));
+        match execution.lattice {
+            ImscriptionLattice::ShortFrontier | ImscriptionLattice::ExtendedFermat => {
+                let origin = fermat_origin(&self.n);
+                let expected_boundary = if execution.lattice == ImscriptionLattice::ShortFrontier {
+                    origin
+                } else {
+                    add(&origin, &tape_u64(SHORT_FRONTIER_SPAN))
+                };
+                if cmp(self.boundary(), &expected_boundary) != Ordering::Equal {
+                    return Err(String::from(
+                        "dialectic imscription boundary does not match the IMASM-selected Fermat space",
+                    ));
+                }
+            }
+            ImscriptionLattice::Lehman => {
+                if cmp(self.boundary(), &tape_u64(1)) == Ordering::Less {
+                    return Err(String::from(
+                        "dialectic Lehman boundary must be a positive imscribed multiplier",
+                    ));
+                }
+            }
         }
-        if verdict(word) != 'B' {
-            return Err(String::from("unresolved dialectic imscription is not FOUR=B"));
-        }
+
         Ok(())
     }
 
@@ -357,134 +441,126 @@ impl DialecticObject {
     }
 
     /// Consume the whole operator-space relation and either re-imscribe the
-    /// transformed space or close it around a factor pair. The executor consumes
-    /// the persisted span tape directly; no host-sized cell count mediates the walk.
+    /// transformed space or close it around a factor pair. The current IMASM word
+    /// is decoded into the lattice action it commands; the executor does not select
+    /// a lattice by comparing the whole word to a hosted constant.
     pub fn descend(self) -> Result<Descent, String> {
         self.validate()?;
 
-        let word = self.imscription.rwx.execute_word.clone();
+        let execution = decode_imasm_execution(self.word())?;
         let boundary = self.imscription.rwx.write_boundary.clone();
         let span = self.imscription.rwx.execute_span.clone();
-        let short_word: Vec<Mark> = SHORT_FRONTIER_WORD.chars().collect();
-        let extended_word: Vec<Mark> = EXTENDED_FERMAT_WORD.chars().collect();
-        let lehman_word: Vec<Mark> = LEHMAN_WORD.chars().collect();
 
-        if word == short_word {
-            let base_cell = tape_u64(0);
-            match fermat_lattice_from(&self.n, &boundary, &base_cell, &span) {
-                LatticeResult::Closed {
-                    p,
-                    q,
-                    cell,
-                    boundary,
-                } => {
-                    return close(
+        match execution.lattice {
+            ImscriptionLattice::ShortFrontier => {
+                let base_cell = tape_u64(0);
+                match fermat_lattice_from(&self.n, &boundary, &base_cell, &span) {
+                    LatticeResult::Closed {
+                        p,
+                        q,
+                        cell,
+                        boundary,
+                    } => close(
                         self.n,
                         p,
                         q,
-                        SHORT_FRONTIER_CLOSED_WORD,
+                        execution.lattice,
                         self.support | SUPPORT_SHORT_FRONTIER | SUPPORT_PRODUCT_BOUNDARY,
                         boundary,
                         span,
                         cell,
                         None,
-                    );
-                }
-                LatticeResult::Open { boundary } => {
-                    let next_word: Vec<Mark> = EXTENDED_FERMAT_WORD.chars().collect();
-                    let next_imscription = Imscription::active(
-                        &self.n,
-                        boundary,
-                        tape_u64(EXTENDED_FERMAT_SPAN),
-                        &next_word,
-                    );
-                    let next = DialecticObject {
-                        n: self.n,
-                        support: self.support | SUPPORT_SHORT_FRONTIER,
-                        imscription: next_imscription,
-                    };
-                    next.validate()?;
-                    return Ok(Descent::Continue(next));
+                    ),
+                    LatticeResult::Open { boundary } => {
+                        let next_lattice = ImscriptionLattice::ExtendedFermat;
+                        let next_word: Vec<Mark> = next_lattice.open_word().chars().collect();
+                        let next_imscription = Imscription::active(
+                            &self.n,
+                            boundary,
+                            tape_u64(next_lattice.span()),
+                            &next_word,
+                        );
+                        let next = DialecticObject {
+                            n: self.n,
+                            support: self.support | SUPPORT_SHORT_FRONTIER,
+                            imscription: next_imscription,
+                        };
+                        next.validate()?;
+                        Ok(Descent::Continue(next))
+                    }
                 }
             }
-        }
-
-        if word == extended_word {
-            let base_cell = tape_u64(SHORT_FRONTIER_SPAN);
-            match fermat_lattice_from(&self.n, &boundary, &base_cell, &span) {
-                LatticeResult::Closed {
-                    p,
-                    q,
-                    cell,
-                    boundary,
-                } => {
-                    return close(
+            ImscriptionLattice::ExtendedFermat => {
+                let base_cell = tape_u64(SHORT_FRONTIER_SPAN);
+                match fermat_lattice_from(&self.n, &boundary, &base_cell, &span) {
+                    LatticeResult::Closed {
+                        p,
+                        q,
+                        cell,
+                        boundary,
+                    } => close(
                         self.n,
                         p,
                         q,
-                        EXTENDED_FERMAT_CLOSED_WORD,
+                        execution.lattice,
                         self.support | SUPPORT_EXTENDED_FERMAT | SUPPORT_PRODUCT_BOUNDARY,
                         boundary,
                         span,
                         cell,
                         None,
-                    );
-                }
-                LatticeResult::Open { .. } => {
-                    let next_word: Vec<Mark> = LEHMAN_WORD.chars().collect();
-                    let next_imscription = Imscription::active(
-                        &self.n,
-                        tape_u64(1),
-                        tape_u64(LEHMAN_LOCAL_SPAN),
-                        &next_word,
-                    );
-                    let next = DialecticObject {
-                        n: self.n,
-                        support: self.support | SUPPORT_EXTENDED_FERMAT,
-                        imscription: next_imscription,
-                    };
-                    next.validate()?;
-                    return Ok(Descent::Continue(next));
+                    ),
+                    LatticeResult::Open { .. } => {
+                        let next_lattice = ImscriptionLattice::Lehman;
+                        let next_word: Vec<Mark> = next_lattice.open_word().chars().collect();
+                        let next_imscription = Imscription::active(
+                            &self.n,
+                            tape_u64(1),
+                            tape_u64(next_lattice.span()),
+                            &next_word,
+                        );
+                        let next = DialecticObject {
+                            n: self.n,
+                            support: self.support | SUPPORT_EXTENDED_FERMAT,
+                            imscription: next_imscription,
+                        };
+                        next.validate()?;
+                        Ok(Descent::Continue(next))
+                    }
                 }
             }
-        }
-
-        if word == lehman_word {
-            let k = boundary;
-            match lehman_multiplier(&self.n, &k, &span) {
-                LehmanResult::Closed { p, q, cell } => {
-                    return close(
+            ImscriptionLattice::Lehman => {
+                let k = boundary;
+                match lehman_multiplier(&self.n, &k, &span) {
+                    LehmanResult::Closed { p, q, cell } => close(
                         self.n,
                         p,
                         q,
-                        LEHMAN_CLOSED_WORD,
+                        execution.lattice,
                         self.support | SUPPORT_DEEP_ARM | SUPPORT_PRODUCT_BOUNDARY,
                         k.clone(),
                         span,
                         cell,
                         Some(k),
-                    );
-                }
-                LehmanResult::Open => {
-                    let next_word: Vec<Mark> = LEHMAN_WORD.chars().collect();
-                    let next_imscription = Imscription::active(
-                        &self.n,
-                        add(&k, &tape_u64(1)),
-                        span,
-                        &next_word,
-                    );
-                    let next = DialecticObject {
-                        n: self.n,
-                        support: self.support,
-                        imscription: next_imscription,
-                    };
-                    next.validate()?;
-                    return Ok(Descent::Continue(next));
+                    ),
+                    LehmanResult::Open => {
+                        let next_word: Vec<Mark> = execution.lattice.open_word().chars().collect();
+                        let next_imscription = Imscription::active(
+                            &self.n,
+                            add(&k, &tape_u64(1)),
+                            span,
+                            &next_word,
+                        );
+                        let next = DialecticObject {
+                            n: self.n,
+                            support: self.support,
+                            imscription: next_imscription,
+                        };
+                        next.validate()?;
+                        Ok(Descent::Continue(next))
+                    }
                 }
             }
         }
-
-        Err(String::from("unknown dialectic imscription"))
     }
 }
 
@@ -492,20 +568,25 @@ fn close(
     n: Tape,
     p: Tape,
     q: Tape,
-    closed_word: &str,
+    lattice: ImscriptionLattice,
     support: LaneSupport,
     boundary: Tape,
     span: Tape,
     lattice_cell: Tape,
     lehman_multiplier: Option<Tape>,
 ) -> Result<Descent, String> {
-    let word: Vec<Mark> = closed_word.chars().collect();
-    if verdict(&word) != 'T' {
-        return Err(String::from("closed dialectic imscription is not FOUR=T"));
+    let word: Vec<Mark> = lattice.closed_word().chars().collect();
+    let execution = decode_imasm_execution(&word)?;
+    if execution.lattice != lattice || execution.four != 'T' || !execution.closed {
+        return Err(String::from(
+            "closed dialectic IMASM word does not decode to the closing lattice",
+        ));
     }
     let imscription = Imscription::active(&n, boundary, span, &word);
     if !imscription.relation_is_live_for(&n) {
-        return Err(String::from("closed dialectic imscription lost its terminal r/w/x relation"));
+        return Err(String::from(
+            "closed dialectic imscription lost its terminal r/w/x relation",
+        ));
     }
     let trace = encode_trace(&[GStep {
         repr: '⋈',
