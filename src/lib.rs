@@ -48,6 +48,7 @@ pub mod provenance_envelope;
 pub mod producer_provenance;
 pub mod dialectic_reentry;
 pub mod dialectic_certificate;
+pub mod imscription_cycle;
 pub mod tape_delete;
 pub mod reducer_store;
 pub mod frame_work;
