@@ -14,6 +14,7 @@ use crate::factor_extract::{reenter_once, FactorCarrier, Mark, Tape};
 use crate::tape_delete::delete_word;
 use crate::trace_algebra::{admissible_relaxed_with_witness, witness_valid};
 use crate::trace_word::decode_trace;
+use crate::vox::{EVALF, EVALT};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct ReentryLink {
@@ -182,5 +183,187 @@ pub fn verify_reentry_certificate(
         generations: cert.links.len(),
         transforms,
         normal_form,
+    })
+}
+
+fn usize_to_tape(mut value: usize) -> Tape {
+    if value == 0 {
+        return vec![EVALT];
+    }
+    let mut out = Vec::new();
+    while value != 0 {
+        out.push(if value & 1 == 1 { EVALF } else { EVALT });
+        value >>= 1;
+    }
+    out
+}
+
+fn tape_to_usize(tape: &[Mark]) -> Option<usize> {
+    if tape.is_empty() {
+        return None;
+    }
+    let mut value = 0usize;
+    for (bit, &mark) in tape.iter().enumerate() {
+        match mark {
+            EVALT => {}
+            EVALF => {
+                if bit >= usize::BITS as usize {
+                    return None;
+                }
+                value |= 1usize.checked_shl(bit as u32)?;
+            }
+            _ => return None,
+        }
+    }
+    Some(value)
+}
+
+fn push_tape_field(out: &mut Vec<Mark>, tape: &[Mark]) {
+    out.push('∈');
+    out.extend_from_slice(tape);
+    out.push('∋');
+}
+
+fn read_tape_field(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Tape, String> {
+    if *cursor >= end || word.get(*cursor).copied() != Some('∈') {
+        return Err(String::from("malformed certificate tape field"));
+    }
+    *cursor += 1;
+    let mut out = Vec::new();
+    while *cursor < end {
+        let mark = word[*cursor];
+        *cursor += 1;
+        if mark == '∋' {
+            if out.is_empty() {
+                return Err(String::from("empty certificate tape field"));
+            }
+            return Ok(out);
+        }
+        if mark != EVALT && mark != EVALF {
+            return Err(String::from("certificate tape field contains a non-numeral mark"));
+        }
+        out.push(mark);
+    }
+    Err(String::from("truncated certificate tape field"))
+}
+
+fn push_len_field(out: &mut Vec<Mark>, len: usize) {
+    let tape = usize_to_tape(len);
+    push_tape_field(out, &tape);
+}
+
+fn read_len_field(word: &[Mark], cursor: &mut usize, end: usize) -> Result<usize, String> {
+    let tape = read_tape_field(word, cursor, end)?;
+    tape_to_usize(&tape).ok_or_else(|| String::from("certificate length field overflows host address space"))
+}
+
+/// Marks-only certificate serialization.
+///
+/// The three arbitrary-width numeral witnesses and every length field are
+/// self-delimiting `∈ <EVALT/EVALF tape> ∋` fields.  Each trace then follows its
+/// declared length verbatim, so structural-looking glyphs inside an applied-word
+/// payload remain data rather than framing.
+pub fn encode_reentry_certificate(cert: &ReentryCertificate) -> Vec<Mark> {
+    let mut out = Vec::new();
+    out.push('⊢');
+    push_tape_field(&mut out, &cert.n);
+    push_tape_field(&mut out, &cert.p);
+    push_tape_field(&mut out, &cert.q);
+    push_len_field(&mut out, cert.links.len());
+    for link in &cert.links {
+        push_len_field(&mut out, link.before.len());
+        out.extend_from_slice(&link.before);
+        push_len_field(&mut out, link.after.len());
+        out.extend_from_slice(&link.after);
+    }
+    out.push('⊣');
+    out
+}
+
+/// Decode the marks-only certificate envelope.  Structural decoding and proof
+/// verification are intentionally separate operations: callers can transport a
+/// certificate, reconstruct it elsewhere, then pass it to
+/// `verify_reentry_certificate` as the independent checker.
+pub fn decode_reentry_certificate(word: &[Mark]) -> Result<ReentryCertificate, String> {
+    if word.len() < 2 || word.first().copied() != Some('⊢') || word.last().copied() != Some('⊣') {
+        return Err(String::from("malformed reentry certificate framing"));
+    }
+    let end = word.len() - 1;
+    let mut cursor = 1usize;
+    let n = read_tape_field(word, &mut cursor, end)?;
+    let p = read_tape_field(word, &mut cursor, end)?;
+    let q = read_tape_field(word, &mut cursor, end)?;
+    let count = read_len_field(word, &mut cursor, end)?;
+    let mut links = Vec::with_capacity(count);
+
+    for _ in 0..count {
+        let before_len = read_len_field(word, &mut cursor, end)?;
+        let before_end = cursor.checked_add(before_len)
+            .ok_or_else(|| String::from("certificate before-trace length overflow"))?;
+        if before_end > end {
+            return Err(String::from("truncated certificate before-trace"));
+        }
+        let before = word[cursor..before_end].to_vec();
+        cursor = before_end;
+
+        let after_len = read_len_field(word, &mut cursor, end)?;
+        let after_end = cursor.checked_add(after_len)
+            .ok_or_else(|| String::from("certificate after-trace length overflow"))?;
+        if after_end > end {
+            return Err(String::from("truncated certificate after-trace"));
+        }
+        let after = word[cursor..after_end].to_vec();
+        cursor = after_end;
+        links.push(ReentryLink { before, after });
+    }
+
+    if cursor != end {
+        return Err(String::from("trailing marks after reentry certificate payload"));
+    }
+
+    Ok(ReentryCertificate { n, p, q, links })
+}
+
+fn same_unordered_witness(a: &ReentryCertificate, b: &ReentryCertificate) -> bool {
+    a.n == b.n
+        && ((a.p == b.p && a.q == b.q) || (a.p == b.q && a.q == b.p))
+}
+
+/// Splice two chain fragments at an identical represented carrier.  Fragments
+/// need not individually end at a fixed point; the composed result should be
+/// passed to `verify_reentry_certificate` to establish a complete proof.
+///
+/// Composition is intentionally stricter than ≡c: a merely equivalent join is
+/// not enough.  The prefix's final `after` trace must equal the suffix's first
+/// `before` trace byte-for-byte.  An explicit equivalence bridge, if desired,
+/// belongs in a separate proof object rather than being silently normalized.
+pub fn compose_reentry_fragments(
+    prefix: &ReentryCertificate,
+    suffix: &ReentryCertificate,
+) -> Result<ReentryCertificate, String> {
+    if !same_unordered_witness(prefix, suffix)
+        || !witness_valid(&prefix.n, &prefix.p, &prefix.q)
+        || !witness_valid(&suffix.n, &suffix.p, &suffix.q)
+    {
+        return Err(String::from("certificate fragments do not carry the same valid witness"));
+    }
+    let prefix_last = prefix.links.last()
+        .ok_or_else(|| String::from("prefix certificate fragment is empty"))?;
+    let suffix_first = suffix.links.first()
+        .ok_or_else(|| String::from("suffix certificate fragment is empty"))?;
+    if prefix_last.before == prefix_last.after {
+        return Err(String::from("cannot continue after a fixed-point self-link"));
+    }
+    if prefix_last.after != suffix_first.before {
+        return Err(String::from("certificate fragments do not meet at an identical carrier"));
+    }
+
+    let mut links = prefix.links.clone();
+    links.extend_from_slice(&suffix.links);
+    Ok(ReentryCertificate {
+        n: prefix.n.clone(),
+        p: prefix.p.clone(),
+        q: prefix.q.clone(),
+        links,
     })
 }
