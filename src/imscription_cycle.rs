@@ -27,6 +27,8 @@ use crate::vox::{EVALF, EVALT};
 
 const SUPPORT_BITS: usize = 6;
 const RWX_BITS: usize = 3;
+const CHECKPOINT_IMSCRIPTION: Mark = '≻';
+const CHECKPOINT_QUOTIENT: Mark = '≺';
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct ImscriptionCycleCertificate {
@@ -44,6 +46,30 @@ pub struct ImscriptionCycleSummary {
     pub terminal_support: LaneSupport,
     pub quotient_generations: usize,
     pub quotient_transforms: usize,
+    pub fixed_carrier: FactorCarrier,
+}
+
+/// Which side of the complete circuit a restart point inhabits.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum CyclePhase {
+    Imscription,
+    Quotient,
+}
+
+/// One complete continuation state.  No earlier host cursor or execution state
+/// is needed after this object has been persisted.
+#[derive(Clone, PartialEq, Debug)]
+pub struct CycleCheckpoint {
+    pub phase: CyclePhase,
+    /// Exact marks-only `DialecticObject` or `FactorCarrier`, selected by `phase`.
+    pub state: Vec<Mark>,
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct CycleCheckpointSummary {
+    pub phase: CyclePhase,
+    pub remaining_descents: usize,
+    pub remaining_quotient_transforms: usize,
     pub fixed_carrier: FactorCarrier,
 }
 
@@ -319,4 +345,124 @@ pub fn decode_imscription_cycle(word: &[Mark]) -> Result<ImscriptionCycleCertifi
         lifted_carrier,
         quotient: decode_reentry_certificate(&quotient_wire)?,
     })
+}
+
+/// Enumerate every persisted continuation state in one verified cycle.  The
+/// imscription side contributes each unresolved whole object.  The quotient side
+/// contributes every `before` carrier, including the exact lifted bridge and the
+/// final fixed carrier.  For depth `d` this yields `2d + 1` checkpoints.
+pub fn cycle_checkpoints(
+    certificate: &ImscriptionCycleCertificate,
+) -> Result<Vec<CycleCheckpoint>, String> {
+    let summary = verify_imscription_cycle(certificate)?;
+    let mut checkpoints = Vec::with_capacity(summary.descents * 2 + 1);
+
+    for wire in &certificate.dialectic.objects {
+        DialecticObject::decode(wire)?;
+        checkpoints.push(CycleCheckpoint {
+            phase: CyclePhase::Imscription,
+            state: wire.clone(),
+        });
+    }
+
+    for link in &certificate.quotient.links {
+        let carrier = FactorCarrier::new(
+            certificate.quotient.n.clone(),
+            certificate.quotient.p.clone(),
+            certificate.quotient.q.clone(),
+            link.before.clone(),
+        )?;
+        checkpoints.push(CycleCheckpoint {
+            phase: CyclePhase::Quotient,
+            state: carrier.encode(),
+        });
+    }
+
+    if checkpoints.len() != summary.descents * 2 + 1 {
+        return Err(String::from("imscription cycle checkpoint count does not match the closed circuit"));
+    }
+    Ok(checkpoints)
+}
+
+/// Persist one continuation state independently of the enclosing certificate.
+/// The phase mark is outside a length-framed exact state image, so structural
+/// glyphs inside the object remain payload.
+pub fn encode_cycle_checkpoint(checkpoint: &CycleCheckpoint) -> Vec<Mark> {
+    let mut out = Vec::new();
+    out.push('⊢');
+    out.push(match checkpoint.phase {
+        CyclePhase::Imscription => CHECKPOINT_IMSCRIPTION,
+        CyclePhase::Quotient => CHECKPOINT_QUOTIENT,
+    });
+    push_blob(&mut out, &checkpoint.state);
+    out.push('⊣');
+    out
+}
+
+pub fn decode_cycle_checkpoint(word: &[Mark]) -> Result<CycleCheckpoint, String> {
+    if word.len() < 3 || word.first().copied() != Some('⊢') || word.last().copied() != Some('⊣') {
+        return Err(String::from("malformed imscription-cycle checkpoint framing"));
+    }
+    let phase = match word.get(1).copied() {
+        Some(CHECKPOINT_IMSCRIPTION) => CyclePhase::Imscription,
+        Some(CHECKPOINT_QUOTIENT) => CyclePhase::Quotient,
+        _ => return Err(String::from("unknown imscription-cycle checkpoint phase")),
+    };
+    let end = word.len() - 1;
+    let mut cursor = 2usize;
+    let state = read_blob(word, &mut cursor, end)?;
+    if cursor != end {
+        return Err(String::from("trailing marks after imscription-cycle checkpoint"));
+    }
+
+    match phase {
+        CyclePhase::Imscription => {
+            DialecticObject::decode(&state)?;
+        }
+        CyclePhase::Quotient => {
+            FactorCarrier::decode(&state)?;
+        }
+    }
+    Ok(CycleCheckpoint { phase, state })
+}
+
+/// Resume computation from one checkpoint without the consumed prefix.
+///
+/// An imscription checkpoint re-enters as the whole current operator-space object;
+/// only the still-live suffix is certified and later projected into the passive
+/// quotient.  A quotient checkpoint resumes directly from its factor-bearing
+/// carrier.  Both paths must converge on an exact fixed carrier.
+pub fn resume_cycle_checkpoint(
+    checkpoint: &CycleCheckpoint,
+) -> Result<CycleCheckpointSummary, String> {
+    match checkpoint.phase {
+        CyclePhase::Imscription => {
+            let object = DialecticObject::decode(&checkpoint.state)?;
+            let certificate = certify_imscription_cycle(&object)?;
+            let summary = verify_imscription_cycle(&certificate)?;
+            Ok(CycleCheckpointSummary {
+                phase: CyclePhase::Imscription,
+                remaining_descents: summary.descents,
+                remaining_quotient_transforms: summary.quotient_transforms,
+                fixed_carrier: summary.fixed_carrier,
+            })
+        }
+        CyclePhase::Quotient => {
+            let carrier = FactorCarrier::decode(&checkpoint.state)?;
+            let certificate = certify_reentry(&carrier)?;
+            let summary = verify_reentry_certificate(&certificate)?;
+            let fixed_carrier = FactorCarrier::new(
+                certificate.n,
+                certificate.p,
+                certificate.q,
+                summary.normal_form,
+            )?;
+            Ok(CycleCheckpointSummary {
+                phase: CyclePhase::Quotient,
+                remaining_descents: 0,
+                remaining_quotient_transforms: summary.transforms,
+                fixed_carrier,
+            })
+        }
+    }
 }
