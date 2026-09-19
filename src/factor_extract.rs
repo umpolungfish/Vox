@@ -12,6 +12,8 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
+use core::fmt;
+use core::ops::Deref;
 
 use crate::morphism_factor::{cmp as tape_cmp, dec_of, trim};
 use crate::router_marks::{GStep, M_T, M_FIX};
@@ -27,6 +29,22 @@ use crate::vox::{EVALF, EVALT};
 
 pub type Mark = char;
 pub type Tape = Vec<Mark>;
+
+/// A displayable arbitrary-width numeral tape.  Formatting is decimal-only at
+/// the presentation boundary; the represented value remains a mark tape.
+#[derive(Clone, PartialEq, Debug)]
+pub struct FactorTape(pub Tape);
+
+impl Deref for FactorTape {
+    type Target = [Mark];
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+
+impl fmt::Display for FactorTape {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&dec_of(&self.0))
+    }
+}
 
 /// What one self-entry generation actually walks.
 pub const EXTRACT_WALK: &str = "∈∋⊤≻⊡";
@@ -53,8 +71,8 @@ pub struct ReentryGeneration {
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct FactorReadout {
-    pub p: Tape,
-    pub q: Tape,
+    pub p: FactorTape,
+    pub q: FactorTape,
     pub normal_form: Vec<Mark>,
     pub transforms: usize,
     pub generations: Vec<ReentryGeneration>,
@@ -334,9 +352,9 @@ pub fn extract(carrier: &FactorCarrier) -> Result<FactorReadout, String> {
     }
 
     let (p, q) = if tape_cmp(&current.p, &current.q) != Ordering::Greater {
-        (current.p.clone(), current.q.clone())
+        (FactorTape(current.p.clone()), FactorTape(current.q.clone()))
     } else {
-        (current.q.clone(), current.p.clone())
+        (FactorTape(current.q.clone()), FactorTape(current.p.clone()))
     };
     let transforms = generations.iter().filter(|g| g.changed).count();
     Ok(FactorReadout {
