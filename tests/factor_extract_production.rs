@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use vox::factor_extract::FactorCarrier;
+use vox::morphism_factor::tape_u64;
 use vox::router_marks::{run_mark, RouterG, M_B, M_FIX, M_T};
 use vox::router_object::RouterObject;
 use vox::trace_word::decode_trace;
@@ -16,20 +17,18 @@ fn ordered((a, b): (u64, u64)) -> (u64, u64) {
 ///
 ///     RouterObject::initial -> RouterG::run_mark
 ///       -> (found factor, successful GStep trajectory)
-///       -> FactorCarrier::from_run_result
+///       -> explicit conversion of producer values to IMASM numeral tapes
+///       -> FactorCarrier::from_trace
 ///       -> marks-only FactorCarrier::encode
 ///       ---------------- HARD SERIALIZED BOUNDARY ----------------
 ///       -> `vox extract-factor <carrier-word>`
-///       -> same already-carried factor, relaxed one-record normal form
+///       -> iterated self-entry under ≡c
+///       -> same already-carried factor, one-record relaxed fixed point
 ///
-/// `run_mark` is deliberately upstream of the boundary and may obtain the
-/// factor through the existing VOX route.  Below the serialized boundary the
-/// CLI enters `factor_extract::extract_word`, whose relaxed relation consumes
-/// only the carried witness plus trace closure; this test never invokes a
-/// factor/search API on the consumer side.
+/// `run_mark` is deliberately upstream and remains a machine-word producer.
+/// The extractor API itself is arbitrary-width and accepts only numeral tapes.
 #[test]
 fn production_route_to_serialized_passive_extractor() {
-    // Existing successful production route.
     let router = RouterG::from_enum(&RouterObject::initial());
     let (found, trajectory) = run_mark(&router, N, 8);
     let upstream = found.expect("production VOX route did not carry a factor");
@@ -44,12 +43,16 @@ fn production_route_to_serialized_passive_extractor() {
     assert_eq!(terminal.judgment, M_T);
     assert_eq!(terminal.next, M_FIX);
 
-    // Freeze the already-found witness together with the untouched successful trace.
-    let carrier = FactorCarrier::from_run_result(N, Some(upstream), &trajectory)
+    // Conversion happens at the producer boundary.  The factor carrier itself
+    // knows only arbitrary-width IMASM numeral tapes.
+    let n_tape = tape_u64(N);
+    let p_tape = tape_u64(upstream.0);
+    let q_tape = tape_u64(upstream.1);
+    let carrier = FactorCarrier::from_trace(&n_tape, &p_tape, &q_tape, &trajectory)
         .expect("successful production route did not form a valid factor carrier");
     let carrier_word: String = carrier.encode().into_iter().collect();
 
-    // HARD BOUNDARY: after this point the test gives the extractor only serialized data.
+    // HARD BOUNDARY: after this point the consumer receives serialized marks only.
     let output = Command::new(env!("CARGO_BIN_EXE_vox"))
         .arg("extract-factor")
         .arg(&carrier_word)
