@@ -5,7 +5,7 @@ use vox::dialectic_reentry::{
     LEHMAN_LOCAL_SPAN, LEHMAN_WORD, SHORT_FRONTIER_SPAN, SHORT_FRONTIER_WORD,
 };
 use vox::factor_extract::extract;
-use vox::morphism_factor::{add, cmp, mul, tape_u64};
+use vox::morphism_factor::{add, cmp, dec_of, mul, tape_u64};
 use vox::producer_provenance::{
     route_provenance, SUPPORT_DEEP_ARM, SUPPORT_EXTENDED_FERMAT, SUPPORT_PARITY,
     SUPPORT_PRIMALITY, SUPPORT_PRODUCT_BOUNDARY, SUPPORT_SHORT_FRONTIER,
@@ -91,7 +91,7 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
 
     assert_eq!(verdict(&closure.word), 'T');
     assert!(closure.word.contains(&IMSCRIB));
-    assert_eq!(closure.lattice_cell, 126);
+    assert_eq!(closure.lattice_cell, tape_u64(126));
     assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
     assert_eq!(closure.imscription.rwx, IM_RWX);
@@ -114,8 +114,8 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(summary.normal_form, closure.carrier.trace);
 
     println!(
-        "dialectic descent: gap=32004 consumed frontier B, wrote boundary+span into the next imscription, restarted from that exact space, closed T at cell {}",
-        closure.lattice_cell,
+        "dialectic descent: gap=32004 consumed frontier B, wrote boundary+span into the next imscription, restarted from that exact space, closed T at tape cell {}",
+        dec_of(&closure.lattice_cell),
     );
 }
 
@@ -135,7 +135,7 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     };
 
     assert_eq!(verdict(&closure.word), 'T');
-    assert_eq!(closure.lattice_cell, 0);
+    assert_eq!(closure.lattice_cell, tape_u64(0));
     assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.boundary, initial_boundary);
     assert_eq!(closure.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
@@ -147,8 +147,8 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     assert!(same_pair(&closure.carrier.p, &closure.carrier.q, &p, &q));
 
     println!(
-        "dialectic descent: gap=1000 locked in first imscription at lattice cell {}",
-        closure.lattice_cell,
+        "dialectic descent: gap=1000 locked in first imscription at tape lattice cell {}",
+        dec_of(&closure.lattice_cell),
     );
 }
 
@@ -204,7 +204,7 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     };
 
     assert_eq!(verdict(&closure.word), 'T');
-    assert_eq!(closure.lattice_cell, 0);
+    assert_eq!(closure.lattice_cell, tape_u64(0));
     assert_eq!(closure.lehman_multiplier.as_deref(), Some(tape_u64(10).as_slice()));
     assert_eq!(closure.imscription.boundary, tape_u64(10));
     assert_eq!(closure.imscription.span, tape_u64(LEHMAN_LOCAL_SPAN));
@@ -233,7 +233,8 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(summary.normal_form, closure.carrier.trace);
 
     println!(
-        "dialectic tower: far-gap semiprime consumed frontier B -> Fermat B -> changed lattice -> Lehman B re-entry -> T at k=10; restored support={}",
+        "dialectic tower: far-gap semiprime consumed frontier B -> Fermat B -> changed lattice -> Lehman B re-entry -> T at k=10, tape cell={}; restored support={}",
+        dec_of(&closure.lattice_cell),
         closure.support,
     );
 }
