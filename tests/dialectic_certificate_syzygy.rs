@@ -1,6 +1,9 @@
 use core::cmp::Ordering;
 
-use vox::dialectic_certificate::{certify_dialectic, verify_dialectic_certificate};
+use vox::dialectic_certificate::{
+    certify_dialectic, decode_dialectic_certificate, encode_dialectic_certificate,
+    verify_dialectic_certificate,
+};
 use vox::dialectic_reentry::{
     DialecticObject, EXTENDED_FERMAT_SPAN, IM_RWX, LEHMAN_LOCAL_SPAN,
     SHORT_FRONTIER_SPAN,
@@ -116,6 +119,7 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert_eq!(summary.terminal_support, 63);
     assert_eq!(certificate.terminal_rwx, IM_RWX);
     assert_eq!(certificate.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
+    assert_eq!(certificate.lattice_cell, tape_u64(0));
 
     // Every certified object is independently decodable from its marks alone.
     for (index, wire) in certificate.objects.iter().enumerate() {
@@ -157,8 +161,20 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     bad_span.terminal_span[0] = flip(bad_span.terminal_span[0]);
     assert!(verify_dialectic_certificate(&bad_span).is_err());
 
+    // The closing cell is proof data, not host address state. A structurally
+    // valid numeral wider than usize must survive codec reconstruction intact;
+    // semantic replay then rejects it because it is not the actual closing cell.
+    let mut bad_wide_cell = certificate.clone();
+    let mut wide_cell = vec![EVALT; usize::BITS as usize + 2];
+    *wide_cell.last_mut().unwrap() = EVALF;
+    bad_wide_cell.lattice_cell = wide_cell.clone();
+    let wide_wire = encode_dialectic_certificate(&bad_wide_cell);
+    let decoded_wide = decode_dialectic_certificate(&wide_wire).unwrap();
+    assert_eq!(decoded_wide.lattice_cell, wide_cell);
+    assert!(verify_dialectic_certificate(&decoded_wide).is_err());
+
     println!(
-        "dialectic certificate: {} persisted whole objects replay exactly; forged boundary/order/support/span rejected",
+        "dialectic certificate: {} persisted whole objects replay exactly; forged boundary/order/support/span and host-wider lattice cell rejected semantically",
         summary.descents,
     );
 }
