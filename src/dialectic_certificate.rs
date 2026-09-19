@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 use crate::dialectic_reentry::{Descent, DialecticObject, IM_RWX};
 use crate::factor_extract::{FactorCarrier, Mark, Tape};
 use crate::provenance_envelope::LaneSupport;
+use crate::vox::{EVALF, EVALT};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct DialecticCertificate {
@@ -155,4 +156,184 @@ pub fn verify_dialectic_certificate(
     }
 
     Err(String::from("dialectic certificate verification fell through"))
+}
+
+fn usize_to_tape(mut value: usize) -> Tape {
+    if value == 0 {
+        return vec![EVALT];
+    }
+    let mut out = Vec::new();
+    while value != 0 {
+        out.push(if value & 1 == 1 { EVALF } else { EVALT });
+        value >>= 1;
+    }
+    out
+}
+
+fn tape_to_usize(tape: &[Mark]) -> Option<usize> {
+    if tape.is_empty() {
+        return None;
+    }
+    let mut value = 0usize;
+    for (bit, &mark) in tape.iter().enumerate() {
+        match mark {
+            EVALT => {}
+            EVALF => {
+                if bit >= usize::BITS as usize {
+                    return None;
+                }
+                value |= 1usize.checked_shl(bit as u32)?;
+            }
+            _ => return None,
+        }
+    }
+    Some(value)
+}
+
+fn push_tape_field(out: &mut Vec<Mark>, tape: &[Mark]) {
+    out.push('∈');
+    out.extend_from_slice(tape);
+    out.push('∋');
+}
+
+fn read_tape_field(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Tape, String> {
+    if *cursor >= end || word.get(*cursor).copied() != Some('∈') {
+        return Err(String::from("malformed dialectic certificate tape field"));
+    }
+    *cursor += 1;
+    let mut out = Vec::new();
+    while *cursor < end {
+        let mark = word[*cursor];
+        *cursor += 1;
+        if mark == '∋' {
+            if out.is_empty() {
+                return Err(String::from("empty dialectic certificate tape field"));
+            }
+            return Ok(out);
+        }
+        if mark != EVALT && mark != EVALF {
+            return Err(String::from("dialectic certificate tape field contains a non-numeral mark"));
+        }
+        out.push(mark);
+    }
+    Err(String::from("truncated dialectic certificate tape field"))
+}
+
+fn push_len_field(out: &mut Vec<Mark>, len: usize) {
+    let tape = usize_to_tape(len);
+    push_tape_field(out, &tape);
+}
+
+fn read_len_field(word: &[Mark], cursor: &mut usize, end: usize) -> Result<usize, String> {
+    let tape = read_tape_field(word, cursor, end)?;
+    tape_to_usize(&tape)
+        .ok_or_else(|| String::from("dialectic certificate length field overflows host address space"))
+}
+
+fn push_blob(out: &mut Vec<Mark>, blob: &[Mark]) {
+    push_len_field(out, blob.len());
+    out.extend_from_slice(blob);
+}
+
+fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>, String> {
+    let len = read_len_field(word, cursor, end)?;
+    let blob_end = cursor.checked_add(len)
+        .ok_or_else(|| String::from("dialectic certificate blob length overflow"))?;
+    if blob_end > end {
+        return Err(String::from("truncated dialectic certificate blob"));
+    }
+    let blob = word[*cursor..blob_end].to_vec();
+    *cursor = blob_end;
+    Ok(blob)
+}
+
+/// Marks-only serialization of the entire dialectic proof object.
+///
+/// Every nested object and structural-looking payload is length-framed, while
+/// counts and scalar metadata are carried as native numeral tapes.  The optional
+/// Lehman multiplier uses a zero length for `None`; a present multiplier is a raw
+/// numeral tape whose positive length is written immediately before it.
+pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<Mark> {
+    let mut out = Vec::new();
+    out.push('⊢');
+    out.push('⊙');
+    push_len_field(&mut out, certificate.objects.len());
+    for object in &certificate.objects {
+        push_blob(&mut out, object);
+    }
+    push_blob(&mut out, &certificate.terminal_carrier);
+    push_blob(&mut out, &certificate.terminal_word);
+    push_tape_field(&mut out, &usize_to_tape(certificate.terminal_support as usize));
+    push_tape_field(&mut out, &certificate.terminal_boundary);
+    push_tape_field(&mut out, &usize_to_tape(certificate.terminal_rwx as usize));
+    push_tape_field(&mut out, &usize_to_tape(certificate.lattice_cell));
+    match &certificate.lehman_multiplier {
+        Some(multiplier) => {
+            push_len_field(&mut out, multiplier.len());
+            out.extend_from_slice(multiplier);
+        }
+        None => push_len_field(&mut out, 0),
+    }
+    out.push('⊣');
+    out
+}
+
+/// Decode one persisted dialectic proof object without relying on any runtime
+/// state from the original descent.  Proof replay remains a separate explicit
+/// call to `verify_dialectic_certificate`.
+pub fn decode_dialectic_certificate(word: &[Mark]) -> Result<DialecticCertificate, String> {
+    if word.len() < 3
+        || word.first().copied() != Some('⊢')
+        || word.get(1).copied() != Some('⊙')
+        || word.last().copied() != Some('⊣')
+    {
+        return Err(String::from("malformed dialectic certificate framing"));
+    }
+    let end = word.len() - 1;
+    let mut cursor = 2usize;
+    let count = read_len_field(word, &mut cursor, end)?;
+    let mut objects = Vec::with_capacity(count);
+    for _ in 0..count {
+        objects.push(read_blob(word, &mut cursor, end)?);
+    }
+    let terminal_carrier = read_blob(word, &mut cursor, end)?;
+    let terminal_word = read_blob(word, &mut cursor, end)?;
+    let terminal_support = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
+        .and_then(|v| u32::try_from(v).ok())
+        .ok_or_else(|| String::from("dialectic certificate support field overflow"))?;
+    let terminal_boundary = read_tape_field(word, &mut cursor, end)?;
+    let terminal_rwx = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
+        .and_then(|v| u8::try_from(v).ok())
+        .ok_or_else(|| String::from("dialectic certificate r/w/x field overflow"))?;
+    let lattice_cell = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
+        .ok_or_else(|| String::from("dialectic certificate lattice cell overflow"))?;
+    let multiplier_len = read_len_field(word, &mut cursor, end)?;
+    let lehman_multiplier = if multiplier_len == 0 {
+        None
+    } else {
+        let multiplier_end = cursor.checked_add(multiplier_len)
+            .ok_or_else(|| String::from("dialectic certificate multiplier length overflow"))?;
+        if multiplier_end > end {
+            return Err(String::from("truncated dialectic certificate multiplier"));
+        }
+        let multiplier = word[cursor..multiplier_end].to_vec();
+        if multiplier.iter().any(|&mark| mark != EVALT && mark != EVALF) {
+            return Err(String::from("dialectic certificate multiplier contains a non-numeral mark"));
+        }
+        cursor = multiplier_end;
+        Some(multiplier)
+    };
+    if cursor != end {
+        return Err(String::from("trailing marks after dialectic certificate payload"));
+    }
+    Ok(DialecticCertificate {
+        objects,
+        terminal_carrier,
+        terminal_word,
+        terminal_support,
+        terminal_boundary,
+        terminal_rwx,
+        lattice_cell,
+        lehman_multiplier,
+    })
 }
