@@ -15,7 +15,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::dialectic_reentry::{Descent, DialecticObject, IM_RWX};
+use crate::dialectic_reentry::{Descent, DialecticObject, ImscriptionRwx, IM_RWX};
 use crate::factor_extract::{FactorCarrier, Mark, Tape};
 use crate::provenance_envelope::LaneSupport;
 use crate::vox::{EVALF, EVALT};
@@ -34,8 +34,9 @@ pub struct DialecticCertificate {
     pub terminal_boundary: Tape,
     /// Exact finite lattice region imscribed at closure.
     pub terminal_span: Tape,
-    /// Live bulk/boundary permissions at closure.
-    pub terminal_rwx: u8,
+    /// Exact live r/w/x relation at closure, including its bulk, boundary,
+    /// span and closed-word endpoints.
+    pub terminal_rwx: ImscriptionRwx,
     /// Closing coordinate inside the current lattice, carried as a native numeral tape.
     /// The local executor may use a host loop count while walking one finite word,
     /// but the coordinate itself remains tape-native from the lattice through replay.
@@ -94,12 +95,35 @@ pub fn verify_dialectic_certificate(
     if certificate.objects.is_empty() {
         return Err(String::from("dialectic certificate has no operator-space objects"));
     }
-    if certificate.terminal_rwx != IM_RWX {
-        return Err(String::from("dialectic certificate terminal imscription is not live r/w/x"));
+    if certificate.terminal_rwx.rights != IM_RWX {
+        return Err(String::from(
+            "dialectic certificate terminal imscription does not expose live r/w/x capabilities",
+        ));
     }
 
     let first = DialecticObject::decode(&certificate.objects[0])?;
     let frozen_n = first.n.clone();
+    if certificate.terminal_rwx.read_bulk != frozen_n {
+        return Err(String::from(
+            "dialectic certificate terminal read relation does not bind the original bulk",
+        ));
+    }
+    if certificate.terminal_rwx.write_boundary != certificate.terminal_boundary {
+        return Err(String::from(
+            "dialectic certificate terminal write relation does not bind the terminal boundary",
+        ));
+    }
+    if certificate.terminal_rwx.execute_span != certificate.terminal_span {
+        return Err(String::from(
+            "dialectic certificate terminal execute relation does not bind the terminal span",
+        ));
+    }
+    if certificate.terminal_rwx.execute_word != certificate.terminal_word {
+        return Err(String::from(
+            "dialectic certificate terminal execute relation does not bind the terminal word",
+        ));
+    }
+
     let mut supports = Vec::with_capacity(certificate.objects.len());
 
     for (i, wire) in certificate.objects.iter().enumerate() {
@@ -257,9 +281,10 @@ fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>,
 ///
 /// Every nested object and structural-looking payload is length-framed, while
 /// counts and scalar metadata are carried as native numeral tapes. The terminal
-/// boundary, span and lattice coordinate are exact tape numerals. The optional
-/// Lehman multiplier uses a zero length for `None`; a present multiplier is a raw
-/// numeral tape whose positive length is written immediately before it.
+/// boundary, span, dynamic r/w/x relation and lattice coordinate are exact.
+/// The optional Lehman multiplier uses a zero length for `None`; a present
+/// multiplier is a raw numeral tape whose positive length is written immediately
+/// before it.
 pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<Mark> {
     let mut out = Vec::new();
     out.push('⊢');
@@ -273,7 +298,11 @@ pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<M
     push_tape_field(&mut out, &usize_to_tape(certificate.terminal_support as usize));
     push_tape_field(&mut out, &certificate.terminal_boundary);
     push_tape_field(&mut out, &certificate.terminal_span);
-    push_tape_field(&mut out, &usize_to_tape(certificate.terminal_rwx as usize));
+    push_tape_field(&mut out, &usize_to_tape(certificate.terminal_rwx.rights as usize));
+    push_tape_field(&mut out, &certificate.terminal_rwx.read_bulk);
+    push_tape_field(&mut out, &certificate.terminal_rwx.write_boundary);
+    push_tape_field(&mut out, &certificate.terminal_rwx.execute_span);
+    push_blob(&mut out, &certificate.terminal_rwx.execute_word);
     push_tape_field(&mut out, &certificate.lattice_cell);
     match &certificate.lehman_multiplier {
         Some(multiplier) => {
@@ -311,9 +340,20 @@ pub fn decode_dialectic_certificate(word: &[Mark]) -> Result<DialecticCertificat
         .ok_or_else(|| String::from("dialectic certificate support field overflow"))?;
     let terminal_boundary = read_tape_field(word, &mut cursor, end)?;
     let terminal_span = read_tape_field(word, &mut cursor, end)?;
-    let terminal_rwx = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
+    let rights = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
         .and_then(|v| u8::try_from(v).ok())
-        .ok_or_else(|| String::from("dialectic certificate r/w/x field overflow"))?;
+        .ok_or_else(|| String::from("dialectic certificate r/w/x rights field overflow"))?;
+    let read_bulk = read_tape_field(word, &mut cursor, end)?;
+    let write_boundary = read_tape_field(word, &mut cursor, end)?;
+    let execute_span = read_tape_field(word, &mut cursor, end)?;
+    let execute_word = read_blob(word, &mut cursor, end)?;
+    let terminal_rwx = ImscriptionRwx {
+        rights,
+        read_bulk,
+        write_boundary,
+        execute_span,
+        execute_word,
+    };
     let lattice_cell = read_tape_field(word, &mut cursor, end)?;
     let multiplier_len = read_len_field(word, &mut cursor, end)?;
     let lehman_multiplier = if multiplier_len == 0 {
