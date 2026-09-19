@@ -5,7 +5,7 @@ use vox::dialectic_reentry::{
     DialecticObject, EXTENDED_FERMAT_WORD, LEHMAN_WORD, SHORT_FRONTIER_WORD,
 };
 use vox::imscription_cycle::{certify_imscription_cycle, verify_imscription_cycle};
-use vox::morphism_factor::{cmp, miller_rabin, mul, tape_u64};
+use vox::morphism_factor::{cmp, dec_of, miller_rabin, mul, tape_u64};
 use vox::trace_algebra::witness_valid;
 
 fn next_prime(mut value: u64) -> u64 {
@@ -89,13 +89,14 @@ fn controlled_gap_family_changes_fermat_ring_without_changing_cycle_identity() {
             39 => {
                 assert_eq!(summary.descents, 1);
                 assert_eq!(extended, 0);
-                assert!(certificate.dialectic.lattice_cell < 64);
+                assert_eq!(cmp(&certificate.dialectic.lattice_cell, &tape_u64(64)), Ordering::Less);
                 assert!(certificate.dialectic.lehman_multiplier.is_none());
             }
             47 => {
                 assert_eq!(summary.descents, 2);
                 assert_eq!(extended, 1);
-                assert!((64..4096).contains(&certificate.dialectic.lattice_cell));
+                assert_ne!(cmp(&certificate.dialectic.lattice_cell, &tape_u64(64)), Ordering::Less);
+                assert_eq!(cmp(&certificate.dialectic.lattice_cell, &tape_u64(4096)), Ordering::Less);
                 assert!(certificate.dialectic.lehman_multiplier.is_none());
             }
             support => panic!("gap family closed in unexpected support {support}"),
@@ -106,7 +107,7 @@ fn controlled_gap_family_changes_fermat_ring_without_changing_cycle_identity() {
             q_value - p_value,
             summary.descents,
             summary.terminal_support,
-            certificate.dialectic.lattice_cell,
+            dec_of(&certificate.dialectic.lattice_cell),
         ));
     }
 
@@ -114,7 +115,7 @@ fn controlled_gap_family_changes_fermat_ring_without_changing_cycle_identity() {
     let transitions: Vec<_> = observed
         .windows(2)
         .filter(|w| w[0].2 != w[1].2)
-        .map(|w| (w[0], w[1]))
+        .map(|w| (w[0].clone(), w[1].clone()))
         .collect();
     assert!(!transitions.is_empty(), "gap family exposed no imscription ring transition");
 
@@ -156,7 +157,7 @@ fn multiplier_family_scales_lattice_change_to_sixty_six_exact_descents() {
             Some(tape_u64(k).as_slice()),
             "designed multiplier family did not close on its imscribed k",
         );
-        assert!(certificate.dialectic.lattice_cell < 64);
+        assert_eq!(cmp(&certificate.dialectic.lattice_cell, &tape_u64(64)), Ordering::Less);
 
         let (short, extended, lehman) = topology(&certificate);
         assert_eq!(short, 1);
@@ -181,7 +182,7 @@ fn multiplier_family_scales_lattice_change_to_sixty_six_exact_descents() {
             q_value - p_value,
             summary.descents,
             summary.quotient_transforms,
-            certificate.dialectic.lattice_cell,
+            dec_of(&certificate.dialectic.lattice_cell),
         ));
     }
 
