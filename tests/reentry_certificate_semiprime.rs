@@ -154,7 +154,7 @@ fn next_admissible(carrier: &FactorCarrier, reverse: bool) -> Option<FactorCarri
         indices.reverse();
     }
     for i in indices {
-        let candidate = delete_word(&carrier.trace, i)?;
+        let Some(candidate) = delete_word(&carrier.trace, i) else { continue };
         if admissible_relaxed_with_witness(
             &carrier.trace,
             &candidate,
