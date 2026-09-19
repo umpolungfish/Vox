@@ -36,8 +36,10 @@ pub struct DialecticCertificate {
     pub terminal_span: Tape,
     /// Live bulk/boundary permissions at closure.
     pub terminal_rwx: u8,
-    /// Cell inside the closing lattice.
-    pub lattice_cell: usize,
+    /// Closing coordinate inside the current lattice, carried as a native numeral tape.
+    /// The local executor may use a host loop index while walking one finite word,
+    /// but that host width is not part of the persisted proof state.
+    pub lattice_cell: Tape,
     /// Present when the closing lattice was Lehman's multiplier lattice.
     pub lehman_multiplier: Option<Tape>,
 }
@@ -72,7 +74,7 @@ pub fn certify_dialectic(start: &DialecticObject) -> Result<DialecticCertificate
                     terminal_boundary: closed.imscription.boundary,
                     terminal_span: closed.imscription.span,
                     terminal_rwx: closed.imscription.rwx,
-                    lattice_cell: closed.lattice_cell,
+                    lattice_cell: usize_to_tape(closed.lattice_cell),
                     lehman_multiplier: closed.lehman_multiplier,
                 });
             }
@@ -144,7 +146,7 @@ pub fn verify_dialectic_certificate(
             || closed.imscription.boundary != certificate.terminal_boundary
             || closed.imscription.span != certificate.terminal_span
             || closed.imscription.rwx != certificate.terminal_rwx
-            || closed.lattice_cell != certificate.lattice_cell
+            || usize_to_tape(closed.lattice_cell) != certificate.lattice_cell
             || closed.lehman_multiplier != certificate.lehman_multiplier
         {
             return Err(String::from("dialectic certificate terminal imscription mismatch"));
@@ -255,9 +257,9 @@ fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>,
 ///
 /// Every nested object and structural-looking payload is length-framed, while
 /// counts and scalar metadata are carried as native numeral tapes. The terminal
-/// boundary and span are exact tape numerals. The optional Lehman multiplier uses
-/// a zero length for `None`; a present multiplier is a raw numeral tape whose
-/// positive length is written immediately before it.
+/// boundary, span and lattice coordinate are exact tape numerals. The optional
+/// Lehman multiplier uses a zero length for `None`; a present multiplier is a raw
+/// numeral tape whose positive length is written immediately before it.
 pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<Mark> {
     let mut out = Vec::new();
     out.push('⊢');
@@ -272,7 +274,7 @@ pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<M
     push_tape_field(&mut out, &certificate.terminal_boundary);
     push_tape_field(&mut out, &certificate.terminal_span);
     push_tape_field(&mut out, &usize_to_tape(certificate.terminal_rwx as usize));
-    push_tape_field(&mut out, &usize_to_tape(certificate.lattice_cell));
+    push_tape_field(&mut out, &certificate.lattice_cell);
     match &certificate.lehman_multiplier {
         Some(multiplier) => {
             push_len_field(&mut out, multiplier.len());
@@ -312,8 +314,7 @@ pub fn decode_dialectic_certificate(word: &[Mark]) -> Result<DialecticCertificat
     let terminal_rwx = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
         .and_then(|v| u8::try_from(v).ok())
         .ok_or_else(|| String::from("dialectic certificate r/w/x field overflow"))?;
-    let lattice_cell = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
-        .ok_or_else(|| String::from("dialectic certificate lattice cell overflow"))?;
+    let lattice_cell = read_tape_field(word, &mut cursor, end)?;
     let multiplier_len = read_len_field(word, &mut cursor, end)?;
     let lehman_multiplier = if multiplier_len == 0 {
         None
