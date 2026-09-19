@@ -37,8 +37,8 @@ pub struct DialecticCertificate {
     /// Live bulk/boundary permissions at closure.
     pub terminal_rwx: u8,
     /// Closing coordinate inside the current lattice, carried as a native numeral tape.
-    /// The local executor may use a host loop index while walking one finite word,
-    /// but that host width is not part of the persisted proof state.
+    /// The local executor may use a host loop count while walking one finite word,
+    /// but the coordinate itself remains tape-native from the lattice through replay.
     pub lattice_cell: Tape,
     /// Present when the closing lattice was Lehman's multiplier lattice.
     pub lehman_multiplier: Option<Tape>,
@@ -74,7 +74,7 @@ pub fn certify_dialectic(start: &DialecticObject) -> Result<DialecticCertificate
                     terminal_boundary: closed.imscription.boundary,
                     terminal_span: closed.imscription.span,
                     terminal_rwx: closed.imscription.rwx,
-                    lattice_cell: usize_to_tape(closed.lattice_cell),
+                    lattice_cell: closed.lattice_cell,
                     lehman_multiplier: closed.lehman_multiplier,
                 });
             }
@@ -146,7 +146,7 @@ pub fn verify_dialectic_certificate(
             || closed.imscription.boundary != certificate.terminal_boundary
             || closed.imscription.span != certificate.terminal_span
             || closed.imscription.rwx != certificate.terminal_rwx
-            || usize_to_tape(closed.lattice_cell) != certificate.lattice_cell
+            || closed.lattice_cell != certificate.lattice_cell
             || closed.lehman_multiplier != certificate.lehman_multiplier
         {
             return Err(String::from("dialectic certificate terminal imscription mismatch"));
