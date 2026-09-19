@@ -106,10 +106,10 @@ pub struct DialecticClosure {
     pub word: Vec<Mark>,
     pub support: LaneSupport,
     pub imscription: Imscription,
-    /// Host diagnostic for the finite word-local closing cell. For Fermat this
-    /// is the absolute cell inside the two installed rings; for Lehman it is the
-    /// local a-offset. The imscribed region itself is tape-native in `span`.
-    pub lattice_cell: usize,
+    /// Closing coordinate inside the current lattice, carried as the same native
+    /// numeral tape that will be bound by the dialectic certificate. For Fermat
+    /// this is absolute across the two installed rings; for Lehman it is local.
+    pub lattice_cell: Tape,
     /// Present only when closure occurred in the Lehman multiplier lattice.
     pub lehman_multiplier: Option<Tape>,
 }
@@ -279,7 +279,8 @@ impl DialecticObject {
         let cells = span_to_usize(&self.imscription.span)?;
 
         if self.word == SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>() {
-            match fermat_lattice_from(&self.n, &self.imscription.boundary, 0, cells) {
+            let base_cell = tape_u64(0);
+            match fermat_lattice_from(&self.n, &self.imscription.boundary, &base_cell, cells) {
                 LatticeResult::Closed {
                     p,
                     q,
@@ -314,12 +315,11 @@ impl DialecticObject {
         }
 
         if self.word == EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>() {
-            let base_cell = usize::try_from(SHORT_FRONTIER_SPAN)
-                .map_err(|_| String::from("short-frontier span does not fit the local executor"))?;
+            let base_cell = tape_u64(SHORT_FRONTIER_SPAN);
             match fermat_lattice_from(
                 &self.n,
                 &self.imscription.boundary,
-                base_cell,
+                &base_cell,
                 cells,
             ) {
                 LatticeResult::Closed {
@@ -400,7 +400,7 @@ fn close(
     closed_word: &str,
     support: LaneSupport,
     imscription: Imscription,
-    lattice_cell: usize,
+    lattice_cell: Tape,
     lehman_multiplier: Option<Tape>,
 ) -> Result<Descent, String> {
     let word: Vec<Mark> = closed_word.chars().collect();
@@ -437,7 +437,7 @@ enum LatticeResult {
     Closed {
         p: Tape,
         q: Tape,
-        cell: usize,
+        cell: Tape,
         boundary: Tape,
     },
     Open {
@@ -451,13 +451,14 @@ enum LatticeResult {
 fn fermat_lattice_from(
     n: &[Mark],
     start_boundary: &[Mark],
-    base_cell: usize,
+    base_cell: &[Mark],
     cells: usize,
 ) -> LatticeResult {
     let one = tape_u64(1);
     let mut a = trim(start_boundary.to_vec());
+    let mut cell = trim(base_cell.to_vec());
 
-    for offset in 0..cells {
+    for _ in 0..cells {
         let a2 = mul(&a, &a);
         if cmp(&a2, n) != Ordering::Less {
             let b2 = sub(&a2, n);
@@ -470,7 +471,7 @@ fn fermat_lattice_from(
                         return LatticeResult::Closed {
                             p,
                             q,
-                            cell: base_cell + offset,
+                            cell,
                             boundary: a,
                         };
                     }
@@ -478,13 +479,14 @@ fn fermat_lattice_from(
             }
         }
         a = add(&a, &one);
+        cell = add(&cell, &one);
     }
 
     LatticeResult::Open { boundary: a }
 }
 
 enum LehmanResult {
-    Closed { p: Tape, q: Tape, cell: usize },
+    Closed { p: Tape, q: Tape, cell: Tape },
     Open,
 }
 
@@ -496,11 +498,12 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], cells: usize) -> LehmanResult {
     let one = tape_u64(1);
     let four_kn = mul(&tape_u64(4), &mul(k, n));
     let mut a = isqrt(&four_kn);
+    let mut cell = tape_u64(0);
     if cmp(&mul(&a, &a), &four_kn) == Ordering::Less {
         a = add(&a, &one);
     }
 
-    for cell in 0..cells {
+    for _ in 0..cells {
         let a2 = mul(&a, &a);
         if cmp(&a2, &four_kn) != Ordering::Less {
             let b2 = sub(&a2, &four_kn);
@@ -519,6 +522,7 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], cells: usize) -> LehmanResult {
             }
         }
         a = add(&a, &one);
+        cell = add(&cell, &one);
     }
     LehmanResult::Open
 }
