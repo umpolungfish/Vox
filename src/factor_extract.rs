@@ -1,77 +1,91 @@
 //! factor_extract.rs — passive factor extraction from a factor-bearing VOX trace.
 //!
-//! This module DOES NOT factor N.  It accepts an object that already carries a
-//! verified factor witness together with the successful trace that produced it.
-//! The resident membrane walks REDUCE_WORD under the frozen relaxed relation ≡c,
-//! removes routing scaffold when closure+factor are preserved, and emits the
-//! carried witness from the terminal carrier.
+//! The carrier is arbitrary-width and marks-native: N, p and q are IMASM numeral
+//! tapes, never machine integers.  Extraction is iterated self-entry.  One resident
+//! EXTRACT_WALK generation may remove one relaxed-equivalent routing record; the
+//! resulting factor-bearing carrier then re-enters as the next object.  Re-entry
+//! stops only when another generation draws no admissible distinction.
 //!
-//! Stage-24/25 split is explicit:
-//!     WALK = ∈∋⊤≻⊡       (resident store execution)
-//!     TYPE = ∈⊤≻⊡∋       (structurally closing form)
-//!
-//! No call in this module reaches `found_factor`, `morphism_factor`, rho,
-//! Fermat, a sieve, primality search, order finding, or candidate enumeration.
+//! This module DOES NOT factor N.  It verifies the already-carried witness by
+//! tape multiplication, preserves it under ≡c, and reduces only the trace projection.
 
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::cmp::Ordering;
 
-use crate::router_marks::{GStep, M_T, M_F, M_FIX};
+use crate::morphism_factor::{cmp as tape_cmp, dec_of, trim};
+use crate::router_marks::{GStep, M_T, M_FIX};
 use crate::tape_delete::delete_word;
 use crate::trace_algebra::{
-    admissible_relaxed_with_witness,
+    admissible_relaxed_with_tape_witness,
     closure_state,
-    relaxed_equivalent_with_witness,
-    witness_valid,
+    relaxed_equivalent_with_tape_witness,
+    witness_valid_tape,
 };
 use crate::trace_word::{decode_trace, encode_trace, is_terminal, judge_trace};
+use crate::vox::{EVALF, EVALT};
 
 pub type Mark = char;
+pub type Tape = Vec<Mark>;
 
-/// What the resident reducer actually walks.
+/// What one self-entry generation actually walks.
 pub const EXTRACT_WALK: &str = "∈∋⊤≻⊡";
-/// What the same operation verifies structurally after FRAME_WORK reconciliation.
+/// Structural type after FRAME_WORK reconciliation.
 pub const EXTRACT_TYPE: &str = "∈⊤≻⊡∋";
 
-/// A successful factorization result made into data.  The trace is untouched;
-/// the factor witness is a separate projection, so trace semantics stay frozen.
+/// Arbitrary-width factor-bearing object.  The numeral tapes are LSB-first in
+/// the same representation used by `morphism_factor` and `perfect_membrane`.
 #[derive(Clone, PartialEq, Debug)]
 pub struct FactorCarrier {
-    pub n: u64,
-    pub p: u64,
-    pub q: u64,
+    pub n: Tape,
+    pub p: Tape,
+    pub q: Tape,
     pub trace: Vec<Mark>,
 }
 
 #[derive(Clone, PartialEq, Debug)]
+pub struct ReentryGeneration {
+    pub generation: usize,
+    pub records_before: usize,
+    pub records_after: usize,
+    pub changed: bool,
+}
+
+#[derive(Clone, PartialEq, Debug)]
 pub struct FactorReadout {
-    pub p: u64,
-    pub q: u64,
+    pub p: Tape,
+    pub q: Tape,
     pub normal_form: Vec<Mark>,
     pub transforms: usize,
+    pub generations: Vec<ReentryGeneration>,
 }
 
 impl FactorCarrier {
-    /// Freeze an already-successful route result into the factor-bearing object.
-    /// `found` is consumed as data; this function performs no search.
-    pub fn from_run_result(
-        n: u64,
-        found: Option<(u64, u64)>,
+    /// Freeze already-carried arbitrary-width witness tapes beside a successful
+    /// production trajectory.  No factor is searched for here.
+    pub fn from_trace(
+        n: &[Mark],
+        p: &[Mark],
+        q: &[Mark],
         trajectory: &[GStep],
     ) -> Result<Self, String> {
-        let (p, q) = found.ok_or_else(|| String::from("route result carries no factor witness"))?;
-        FactorCarrier::new(n, p, q, encode_trace(trajectory))
+        Self::new(n.to_vec(), p.to_vec(), q.to_vec(), encode_trace(trajectory))
     }
 
-    pub fn new(n: u64, p: u64, q: u64, trace: Vec<Mark>) -> Result<Self, String> {
-        let carrier = FactorCarrier { n, p, q, trace };
+    pub fn new(n: Tape, p: Tape, q: Tape, trace: Vec<Mark>) -> Result<Self, String> {
+        let carrier = FactorCarrier {
+            n: trim(n),
+            p: trim(p),
+            q: trim(q),
+            trace,
+        };
         carrier.validate()?;
         Ok(carrier)
     }
 
-    /// Validate the object without searching for a factor.
+    /// Validate entirely on tapes: p*q == N, then trace T/FIX closure.
     pub fn validate(&self) -> Result<(), String> {
-        if !witness_valid(self.n, (self.p, self.q)) {
+        if !witness_valid_tape(&self.n, &self.p, &self.q) {
             return Err(String::from("factor carrier witness does not reconstruct N"));
         }
         if judge_trace(&self.trace) != M_T {
@@ -91,93 +105,96 @@ impl FactorCarrier {
         Ok(())
     }
 
-    /// Marks-only serialization.  Four length-independent u64 fields are fixed
-    /// 64-bit ⊤/⊥ words (MSB first), followed by the trace by explicit count:
+    /// Marks-only serialization with no numeric width field:
     ///
-    ///   ⊢ ∈N64∋ ∈p64∋ ∈q64∋ ∈len64∋ <trace:len> ⊣
+    /// ```text
+    ///   ⊢ ∈ <N tape> ∋ ∈ <p tape> ∋ ∈ <q tape> ∋ <trace> ⊣
+    /// ```
+    ///
+    /// Numeral fields contain only EVALT/EVALF, so ∈/∋ self-delimit them.  The
+    /// remainder before the final anchor is the trace, whose own applied payloads
+    /// are already length-delimited by `trace_word`.
     pub fn encode(&self) -> Vec<Mark> {
-        let mut out = Vec::with_capacity(self.trace.len() + 270);
+        let mut out = Vec::with_capacity(
+            self.n.len() + self.p.len() + self.q.len() + self.trace.len() + 8,
+        );
         out.push('⊢');
-        push_field(&mut out, self.n);
-        push_field(&mut out, self.p);
-        push_field(&mut out, self.q);
-        push_field(&mut out, self.trace.len() as u64);
+        push_tape_field(&mut out, &self.n);
+        push_tape_field(&mut out, &self.p);
+        push_tape_field(&mut out, &self.q);
         out.extend_from_slice(&self.trace);
         out.push('⊣');
         out
     }
 
     pub fn decode(word: &[Mark]) -> Result<Self, String> {
-        let mut i = 0usize;
-        expect(word, &mut i, '⊢')?;
-        let n = read_field(word, &mut i)?;
-        let p = read_field(word, &mut i)?;
-        let q = read_field(word, &mut i)?;
-        let len = read_field(word, &mut i)? as usize;
-        let end = i.checked_add(len).ok_or_else(|| String::from("factor carrier trace length overflow"))?;
-        if end > word.len() { return Err(String::from("factor carrier trace is truncated")); }
-        let trace = word[i..end].to_vec();
-        i = end;
-        expect(word, &mut i, '⊣')?;
-        if i != word.len() { return Err(String::from("trailing marks after factor carrier")); }
-        FactorCarrier::new(n, p, q, trace)
+        if word.len() < 2 || word[0] != '⊢' || *word.last().unwrap() != '⊣' {
+            return Err(String::from("malformed factor carrier framing"));
+        }
+        let mut i = 1usize;
+        let n = read_tape_field(word, &mut i)?;
+        let p = read_tape_field(word, &mut i)?;
+        let q = read_tape_field(word, &mut i)?;
+        if i >= word.len() - 1 {
+            return Err(String::from("factor carrier trace is empty"));
+        }
+        let trace = word[i..word.len() - 1].to_vec();
+        Self::new(n, p, q, trace)
     }
+
+    pub fn n_decimal(&self) -> String { dec_of(&self.n) }
+    pub fn p_decimal(&self) -> String { dec_of(&self.p) }
+    pub fn q_decimal(&self) -> String { dec_of(&self.q) }
 }
 
-fn push_field(out: &mut Vec<Mark>, value: u64) {
+fn push_tape_field(out: &mut Vec<Mark>, tape: &[Mark]) {
     out.push('∈');
-    for bit in (0..64).rev() {
-        out.push(if (value >> bit) & 1 == 1 { M_T } else { M_F });
-    }
+    out.extend_from_slice(tape);
     out.push('∋');
 }
 
-fn read_field(word: &[Mark], i: &mut usize) -> Result<u64, String> {
-    expect(word, i, '∈')?;
-    let mut value = 0u64;
-    for _ in 0..64 {
-        let mark = *word.get(*i).ok_or_else(|| String::from("truncated factor carrier field"))?;
-        *i += 1;
-        value = value.checked_mul(2).ok_or_else(|| String::from("factor carrier field overflow"))?;
-        match mark {
-            M_T => value = value.checked_add(1).ok_or_else(|| String::from("factor carrier field overflow"))?,
-            M_F => {}
-            _ => return Err(String::from("factor carrier numeric field is not ⊤/⊥")),
-        }
-    }
-    expect(word, i, '∋')?;
-    Ok(value)
-}
-
-fn expect(word: &[Mark], i: &mut usize, mark: Mark) -> Result<(), String> {
-    if word.get(*i).copied() != Some(mark) {
-        return Err(String::from("malformed factor carrier framing"));
+fn read_tape_field(word: &[Mark], i: &mut usize) -> Result<Tape, String> {
+    if word.get(*i).copied() != Some('∈') {
+        return Err(String::from("malformed factor carrier tape field"));
     }
     *i += 1;
-    Ok(())
+    let mut tape = Vec::new();
+    loop {
+        let mark = *word.get(*i).ok_or_else(|| String::from("truncated factor carrier tape field"))?;
+        *i += 1;
+        if mark == '∋' { break; }
+        if mark != EVALT && mark != EVALF {
+            return Err(String::from("factor carrier numeral tape contains a non-numeral mark"));
+        }
+        tape.push(mark);
+    }
+    if tape.is_empty() {
+        return Err(String::from("factor carrier numeral tape is empty"));
+    }
+    Ok(trim(tape))
 }
 
-/// Resident store for EXTRACT_WALK.  The factor witness never changes; edits
-/// affect only the trace projection.
-struct ExtractStore {
+/// Resident state for exactly one self-entry generation.  It scans deletion
+/// candidates in EXTRACT_WALK order and halts immediately after the first
+/// admissible commit.  If the whole trace is scanned with no commit, this object
+/// is the relaxed fixed point and re-entry halts unchanged.
+struct ReentryStore {
     carrier: FactorCarrier,
     cursor: usize,
     candidate: Option<Vec<Mark>>,
     admissible: bool,
-    committed: bool,
-    transforms: usize,
+    changed: bool,
     halted: bool,
 }
 
-impl ExtractStore {
+impl ReentryStore {
     fn new(carrier: FactorCarrier) -> Self {
-        ExtractStore {
+        Self {
             carrier,
             cursor: 0,
             candidate: None,
             admissible: false,
-            committed: false,
-            transforms: 0,
+            changed: false,
             halted: false,
         }
     }
@@ -188,7 +205,7 @@ impl ExtractStore {
 
     fn dispatch(&mut self, mark: Mark) {
         match mark {
-            // ∈ — build the next candidate using the resident DELETE word.
+            // ∈ — expose one possible routing distinction.
             '∈' => {
                 self.candidate = if self.cursor < self.record_count() {
                     delete_word(&self.carrier.trace, self.cursor)
@@ -196,42 +213,40 @@ impl ExtractStore {
                     None
                 };
                 self.admissible = false;
-                self.committed = false;
             }
-            // ∋ — replay/judge under ≡c; the factor is the carried witness.
+            // ∋ — close the candidate under the arbitrary-width frozen ≡c relation.
             '∋' => {
                 self.admissible = self.candidate.as_ref().map(|cand| {
-                    admissible_relaxed_with_witness(
+                    admissible_relaxed_with_tape_witness(
                         &self.carrier.trace,
                         cand,
-                        self.carrier.n,
-                        (self.carrier.p, self.carrier.q),
+                        &self.carrier.n,
+                        &self.carrier.p,
+                        &self.carrier.q,
                     )
                 }).unwrap_or(false);
             }
-            // ⊤ — accept: commit the shorter trace and restart the scan.
+            // ⊤ — commit one distinction.  The resulting carrier is the NEXT object.
             '⊤' => {
                 if self.admissible {
                     if let Some(cand) = self.candidate.take() {
                         self.carrier.trace = cand;
-                        self.transforms += 1;
-                        self.cursor = 0;
-                        self.committed = true;
+                        self.changed = true;
+                        self.halted = true;
                     }
                 }
             }
-            // ≻ — advance only when this pass did not just commit.
+            // ≻ — move to the next possible distinction only if no commit occurred.
             '≻' => {
-                if !self.committed { self.cursor = self.cursor.saturating_add(1); }
+                if !self.halted { self.cursor = self.cursor.saturating_add(1); }
             }
-            // ⊡ — no remaining candidate means the relaxed normal form is fixed.
+            // ⊡ — no remaining distinction means this carrier is its own next object.
             '⊡' => {
-                if !self.committed && self.cursor >= self.record_count() {
+                if self.cursor >= self.record_count() {
                     self.halted = true;
                 }
                 self.candidate = None;
                 self.admissible = false;
-                self.committed = false;
             }
             _ => {}
         }
@@ -247,37 +262,90 @@ impl ExtractStore {
     }
 }
 
-/// Extract the already-carried factor.  The only arithmetic performed is the
-/// product verification in `FactorCarrier::validate`.
+/// One explicit self-entry: C_k -> C_{k+1}.  A changed generation strictly
+/// shortens the trace while keeping the arbitrary-width factor witness fixed.
+pub fn reenter_once(carrier: &FactorCarrier) -> Result<(FactorCarrier, bool), String> {
+    carrier.validate()?;
+    let mut store = ReentryStore::new(carrier.clone());
+    store.run();
+    if store.changed {
+        if !relaxed_equivalent_with_tape_witness(
+            &carrier.trace,
+            (&carrier.p, &carrier.q),
+            &store.carrier.trace,
+            (&store.carrier.p, &store.carrier.q),
+            &carrier.n,
+        ) {
+            return Err(String::from("self-entry changed closure or carried factor witness"));
+        }
+    }
+    Ok((store.carrier, store.changed))
+}
+
+/// Iterate self-entry until the carrier re-enters as itself.  Termination does
+/// not rely on a numeric generation cap: every changed generation removes one
+/// record, so the trace length is a strict descent measure.
 pub fn extract(carrier: &FactorCarrier) -> Result<FactorReadout, String> {
     carrier.validate()?;
     let original = carrier.clone();
-    let mut store = ExtractStore::new(carrier.clone());
-    store.run();
+    let mut current = carrier.clone();
+    let mut generations = Vec::new();
+    let mut generation = 0usize;
 
-    if !relaxed_equivalent_with_witness(
+    loop {
+        let before = decode_trace(&current.trace)
+            .ok_or_else(|| String::from("self-entry carrier trace became malformed"))?
+            .len();
+        let (next, changed) = reenter_once(&current)?;
+        let after = decode_trace(&next.trace)
+            .ok_or_else(|| String::from("self-entry produced malformed trace"))?
+            .len();
+
+        if changed && after >= before {
+            return Err(String::from("self-entry did not strictly reduce the trace"));
+        }
+
+        generations.push(ReentryGeneration {
+            generation,
+            records_before: before,
+            records_after: after,
+            changed,
+        });
+        generation = generation.saturating_add(1);
+        current = next;
+        if !changed { break; }
+    }
+
+    if !relaxed_equivalent_with_tape_witness(
         &original.trace,
-        (original.p, original.q),
-        &store.carrier.trace,
-        (store.carrier.p, store.carrier.q),
-        original.n,
+        (&original.p, &original.q),
+        &current.trace,
+        (&current.p, &current.q),
+        &original.n,
     ) {
         return Err(String::from("extraction membrane changed closure or factor witness"));
     }
 
-    let steps = decode_trace(&store.carrier.trace)
+    let steps = decode_trace(&current.trace)
         .ok_or_else(|| String::from("extraction membrane produced malformed normal form"))?;
     let last = steps.last().ok_or_else(|| String::from("extraction membrane produced empty normal form"))?;
-    if judge_trace(&store.carrier.trace) != M_T || !is_terminal(last) {
+    if judge_trace(&current.trace) != M_T || !is_terminal(last) {
         return Err(String::from("extraction membrane did not finish on a terminal T carrier"));
     }
 
-    let (p, q) = if store.carrier.p <= store.carrier.q {
-        (store.carrier.p, store.carrier.q)
+    let (p, q) = if tape_cmp(&current.p, &current.q) != Ordering::Greater {
+        (current.p.clone(), current.q.clone())
     } else {
-        (store.carrier.q, store.carrier.p)
+        (current.q.clone(), current.p.clone())
     };
-    Ok(FactorReadout { p, q, normal_form: store.carrier.trace, transforms: store.transforms })
+    let transforms = generations.iter().filter(|g| g.changed).count();
+    Ok(FactorReadout {
+        p,
+        q,
+        normal_form: current.trace,
+        transforms,
+        generations,
+    })
 }
 
 pub fn extract_word(word: &[Mark]) -> Result<FactorReadout, String> {
@@ -288,11 +356,10 @@ pub fn extract_word(word: &[Mark]) -> Result<FactorReadout, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::morphism_factor::{dec_of, mul, tape_u64};
     use crate::router_marks::M_B;
 
     fn big_trace() -> Vec<Mark> {
-        // Shape from the measured 3-record successful trajectory:
-        // B@Symmetric -> B@Residue -> T@Multiplicative/FIX.
         let steps = [
             GStep { repr: '⊢', judgment: M_B, recognised: M_T, next: '⊣', applied_word: "⊢∈≻⊤⊣".chars().collect() },
             GStep { repr: '⊣', judgment: M_B, recognised: M_T, next: '⋈', applied_word: "⊢∈≻⊤∈≺∋∋⊙⊡⊣".chars().collect() },
@@ -303,21 +370,57 @@ mod tests {
 
     #[test]
     fn carrier_round_trips_as_marks() {
-        let c = FactorCarrier::new(106_545_994_355_809, 11_524_607, 9_245_087, big_trace()).unwrap();
+        let p = tape_u64(11_524_607);
+        let q = tape_u64(9_245_087);
+        let n = mul(&p, &q);
+        let c = FactorCarrier::new(n, p, q, big_trace()).unwrap();
         assert_eq!(FactorCarrier::decode(&c.encode()).unwrap(), c);
     }
 
     #[test]
-    fn extractor_collapses_scaffold_without_factoring() {
-        let c = FactorCarrier::new(106_545_994_355_809, 11_524_607, 9_245_087, big_trace()).unwrap();
+    fn extractor_self_enters_until_scaffold_is_gone() {
+        let p = tape_u64(11_524_607);
+        let q = tape_u64(9_245_087);
+        let n = mul(&p, &q);
+        let c = FactorCarrier::new(n, p, q, big_trace()).unwrap();
         let r = extract(&c).unwrap();
-        assert_eq!((r.p, r.q), (9_245_087, 11_524_607));
+        assert_eq!(dec_of(&r.p), "9245087");
+        assert_eq!(dec_of(&r.q), "11524607");
         assert_eq!(decode_trace(&r.normal_form).unwrap().len(), 1);
         assert_eq!(r.transforms, 2);
+        assert_eq!(
+            r.generations.iter().map(|g| (g.records_before, g.records_after, g.changed)).collect::<Vec<_>>(),
+            vec![(3, 2, true), (2, 1, true), (1, 1, false)],
+        );
     }
 
     #[test]
     fn extractor_rejects_a_witness_that_does_not_reconstruct_n() {
-        assert!(FactorCarrier::new(8051, 83, 96, big_trace()).is_err());
+        assert!(FactorCarrier::new(
+            tape_u64(8051), tape_u64(83), tape_u64(96), big_trace()
+        ).is_err());
+    }
+
+    #[test]
+    fn self_entry_carries_a_factor_object_beyond_the_perfect_membrane_sample_scale() {
+        // Two arbitrary-width Mersenne-form carried factors.  Their product is
+        // 1128 bits (~340 decimal digits), comfortably beyond the 211-digit
+        // perfect-membrane demonstration value, without decoding any operand to
+        // a machine integer.  This is an extraction test, not a factoring test.
+        let p = vec![EVALF; 521]; // 2^521 - 1 in the LSB-first tape representation
+        let q = vec![EVALF; 607]; // 2^607 - 1
+        let n = crate::morphism_factor::mul(&p, &q);
+        assert!(dec_of(&n).len() > 211);
+
+        let c = FactorCarrier::new(n.clone(), p.clone(), q.clone(), big_trace()).unwrap();
+        let encoded = c.encode();
+        let decoded = FactorCarrier::decode(&encoded).unwrap();
+        assert_eq!(decoded, c);
+
+        let r = extract(&decoded).unwrap();
+        assert_eq!(crate::morphism_factor::cmp(&crate::morphism_factor::mul(&r.p, &r.q), &n), Ordering::Equal);
+        assert_eq!(r.transforms, 2);
+        assert_eq!(r.generations.len(), 3);
+        assert_eq!(decode_trace(&r.normal_form).unwrap().len(), 1);
     }
 }
