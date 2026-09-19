@@ -32,13 +32,16 @@ fn topology(certificate: &vox::imscription_cycle::ImscriptionCycleCertificate) -
     let mut short = 0usize;
     let mut extended = 0usize;
     let mut lehman = 0usize;
+    let short_word = SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>();
+    let extended_word = EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>();
+    let lehman_word = LEHMAN_WORD.chars().collect::<Vec<_>>();
     for wire in &certificate.dialectic.objects {
         let object = DialecticObject::decode(wire).unwrap();
-        if object.word == SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>() {
+        if object.word() == short_word.as_slice() {
             short += 1;
-        } else if object.word == EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>() {
+        } else if object.word() == extended_word.as_slice() {
             extended += 1;
-        } else if object.word == LEHMAN_WORD.chars().collect::<Vec<_>>() {
+        } else if object.word() == lehman_word.as_slice() {
             lehman += 1;
         } else {
             panic!("scale certificate contained an unknown imscription word");
