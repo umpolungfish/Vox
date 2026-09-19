@@ -105,7 +105,7 @@ fn arbitrary_width_bulk_changes_lattice_without_narrowing_the_boundary() {
     assert_eq!(summary.descents, 4, "wide q≈2p fixture should consume short + extended + k1 + k2");
     assert_eq!(summary.quotient_transforms, 4);
     assert_eq!(certificate.dialectic.lehman_multiplier.as_deref(), Some(tape_u64(2).as_slice()));
-    assert_eq!(certificate.dialectic.lattice_cell, 0);
+    assert_eq!(certificate.dialectic.lattice_cell, tape_u64(0));
     assert_eq!(certificate.dialectic.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
 
     let spans: Vec<Vec<char>> = certificate
