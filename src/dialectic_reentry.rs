@@ -5,8 +5,8 @@
 //! relation between the bulk object and its boundary. A descent consumes that
 //! complete relation: the boundary reads the bulk N, executes the current IMASM
 //! word, and writes the transformed lattice boundary carried by the next object.
-//! The finite lattice span is part of that relation too; it is persisted as a
-//! tape numeral rather than reconstructed from hidden host state.
+//! The finite lattice span is part of that relation too; it is persisted and
+//! consumed as a tape numeral rather than reconstructed or narrowed into host state.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -354,19 +354,22 @@ impl DialecticObject {
     }
 
     /// Consume the whole operator-space relation and either re-imscribe the
-    /// transformed space or close it around a factor pair. The executor reads
-    /// the finite cell count from the persisted `span` tape.
+    /// transformed space or close it around a factor pair. The executor consumes
+    /// the persisted `span` tape directly; no host-sized cell count mediates the walk.
     pub fn descend(self) -> Result<Descent, String> {
         self.validate()?;
         if !self.imscription.relation_is_live_for(&self.n, &self.word) {
             return Err(String::from("dialectic imscription lost its live r/w/x relation"));
         }
 
-        let cells = span_to_usize(&self.imscription.span)?;
-
         if self.word == SHORT_FRONTIER_WORD.chars().collect::<Vec<_>>() {
             let base_cell = tape_u64(0);
-            match fermat_lattice_from(&self.n, &self.imscription.boundary, &base_cell, cells) {
+            match fermat_lattice_from(
+                &self.n,
+                &self.imscription.boundary,
+                &base_cell,
+                &self.imscription.span,
+            ) {
                 LatticeResult::Closed {
                     p,
                     q,
@@ -408,7 +411,7 @@ impl DialecticObject {
                 &self.n,
                 &self.imscription.boundary,
                 &base_cell,
-                cells,
+                &self.imscription.span,
             ) {
                 LatticeResult::Closed {
                     p,
@@ -455,7 +458,7 @@ impl DialecticObject {
 
         if self.word == LEHMAN_WORD.chars().collect::<Vec<_>>() {
             let k = self.imscription.boundary.clone();
-            match lehman_multiplier(&self.n, &k, cells) {
+            match lehman_multiplier(&self.n, &k, &self.imscription.span) {
                 LehmanResult::Closed { p, q, cell } => {
                     return close(
                         self.n,
@@ -552,20 +555,22 @@ enum LatticeResult {
     },
 }
 
-/// Walk directly from the boundary imscribed by the current object. On an open
-/// result, the returned boundary is the first unwalked lattice point and is
-/// written into the next imscription. No earlier cell is reconstructed or replayed.
+/// Walk directly from the boundary imscribed by the current object. The span
+/// itself is the countdown tape: each visited cell consumes one mark-number step.
+/// On an open result, the returned boundary is the first unwalked lattice point
+/// and is written into the next imscription. No earlier cell is reconstructed or replayed.
 fn fermat_lattice_from(
     n: &[Mark],
     start_boundary: &[Mark],
     base_cell: &[Mark],
-    cells: usize,
+    span: &[Mark],
 ) -> LatticeResult {
     let one = tape_u64(1);
     let mut a = trim(start_boundary.to_vec());
     let mut cell = trim(base_cell.to_vec());
+    let mut remaining = trim(span.to_vec());
 
-    for _ in 0..cells {
+    while !zero(&remaining) {
         let a2 = mul(&a, &a);
         if cmp(&a2, n) != Ordering::Less {
             let b2 = sub(&a2, n);
@@ -587,6 +592,7 @@ fn fermat_lattice_from(
         }
         a = add(&a, &one);
         cell = add(&cell, &one);
+        remaining = sub(&remaining, &one);
     }
 
     LatticeResult::Open { boundary: a }
@@ -598,19 +604,20 @@ enum LehmanResult {
 }
 
 /// Execute one complete Lehman-multiplier imscription. The boundary is k. The
-/// local a-lattice begins at ceil(sqrt(4*k*N)) and consumes exactly the span
+/// local a-lattice begins at ceil(sqrt(4*k*N)) and consumes the exact span tape
 /// carried by the current imscription. A B writes k+1 into the next imscription;
-/// no earlier multiplier is replayed.
-fn lehman_multiplier(n: &[Mark], k: &[Mark], cells: usize) -> LehmanResult {
+/// no earlier multiplier is replayed and no host-sized loop count is reconstructed.
+fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> LehmanResult {
     let one = tape_u64(1);
     let four_kn = mul(&tape_u64(4), &mul(k, n));
     let mut a = isqrt(&four_kn);
     let mut cell = tape_u64(0);
+    let mut remaining = trim(span.to_vec());
     if cmp(&mul(&a, &a), &four_kn) == Ordering::Less {
         a = add(&a, &one);
     }
 
-    for _ in 0..cells {
+    while !zero(&remaining) {
         let a2 = mul(&a, &a);
         if cmp(&a2, &four_kn) != Ordering::Less {
             let b2 = sub(&a2, &four_kn);
@@ -630,6 +637,7 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], cells: usize) -> LehmanResult {
         }
         a = add(&a, &one);
         cell = add(&cell, &one);
+        remaining = sub(&remaining, &one);
     }
     LehmanResult::Open
 }
@@ -658,37 +666,8 @@ fn gcd_tape(a: &[Mark], b: &[Mark]) -> Tape {
     x
 }
 
-fn span_to_usize(span: &[Mark]) -> Result<usize, String> {
-    if span.is_empty() {
-        return Err(String::from("dialectic imscription span is empty"));
-    }
-    let mut value = 0usize;
-    for (bit, &mark) in span.iter().enumerate() {
-        match mark {
-            EVALT => {}
-            EVALF => {
-                if bit >= usize::BITS as usize {
-                    return Err(String::from(
-                        "dialectic imscription span exceeds the finite local executor",
-                    ));
-                }
-                value |= 1usize
-                    .checked_shl(bit as u32)
-                    .ok_or_else(|| String::from("dialectic imscription span overflow"))?;
-            }
-            _ => {
-                return Err(String::from(
-                    "dialectic imscription span contains a non-numeral mark",
-                ));
-            }
-        }
-    }
-    if value == 0 {
-        return Err(String::from("dialectic imscription span must be positive"));
-    }
-    Ok(value)
-}
-
+// Host-sized conversions below are confined to in-memory blob framing. They do
+// not mediate N, boundary, span, lattice-cell, multiplier, or r/w/x semantics.
 fn usize_to_tape(mut value: usize) -> Tape {
     if value == 0 {
         return vec![EVALT];
