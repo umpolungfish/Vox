@@ -1,0 +1,302 @@
+--- /mnt/data/morphism_factor.rs	2026-09-19 05:04:08.024797225 +0000
++++ /mnt/data/morphism_factor_vox_semantics.rs	2026-09-19 05:04:50.640999162 +0000
+@@ -924,29 +924,190 @@
+     Ok(tower)
+ }
+ 
+-/// Factor N using a carrier constructed from an arbitrary operator ob3ect word,
+-/// rather than the fixed tower in `factor`. The operator word is decomposed by
+-/// `construct_carrier`; the tower must be factoring-complete (able to advance a
+-/// candidate, decide, continue, and fix) or the missing morphisms are named.
+-pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> {
+-    let tower = construct_carrier(operator_word)?;
++/// Frozen VOX semantics: an executable resident object has two projections.
++/// `walk` is the word the resident machine executes; `type_word` is the word
++/// whose structure is audited.  They are related by one defect-class
++/// reconciliation morphism, never silently identified.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Reconciliation {
++    /// WORK-ENCLOSING: the walk already is its closing structural type.
++    Identity,
++    /// ADJACENT-DYAD: `∈∋τ` is reconciled to `∈τ∋`.
++    FrameWork,
++    /// UNCLOSED: one dangling `∈` is closed before the outer `⊣` boundary.
++    CloseFrame,
++}
++
++#[derive(Clone, Copy, Debug)]
++pub struct FactorObject<'a> {
++    pub walk: &'a str,
++    pub type_word: &'a str,
++    pub reconciliation: Reconciliation,
++}
++
++impl<'a> FactorObject<'a> {
++    pub const fn new(walk: &'a str, type_word: &'a str, reconciliation: Reconciliation) -> Self {
++        Self { walk, type_word, reconciliation }
++    }
++
++    /// Legacy/single-word factoring is the diagonal `(walk,type) = (w,w)`.
++    pub const fn identity(word: &'a str) -> Self {
++        Self::new(word, word, Reconciliation::Identity)
++    }
++}
++
++/// Relational check for the frozen FRAME_WORK defect class.
++/// Exactly one adjacent `∈∋` in the walk must become `∈ ... ∋` in the type,
++/// with every other mark byte-for-byte unchanged.  We verify the relation
++/// rather than guessing how long `τ` is; this is the Stage-24 rule that each
++/// application is checked, not generalised by fiat.
++fn frame_work_holds(walk: &str, type_word: &str) -> bool {
++    let w: Vec<char> = walk.chars().collect();
++    let t: Vec<char> = type_word.chars().collect();
++    if w.len() != t.len() { return false; }
++
++    for i in 0..w.len().saturating_sub(1) {
++        if w[i] != FSPLIT || w[i + 1] != FFUSE { continue; }
++        let mut wr = w.clone();
++        wr.remove(i + 1);
++        // The fuse must move strictly to the right, leaving work inside.
++        for j in (i + 2)..t.len() {
++            if t[j] != FFUSE { continue; }
++            let mut tr = t.clone();
++            tr.remove(j);
++            if wr == tr { return true; }
++        }
++    }
++    false
++}
++
++fn fork_balance(word: &[char]) -> Option<i32> {
++    let mut depth = 0i32;
++    for &g in word {
++        if g == FSPLIT { depth += 1; }
++        else if g == FFUSE {
++            depth -= 1;
++            if depth < 0 { return None; }
++        }
++    }
++    Some(depth)
++}
++
++/// Relational check for CLOSE_FRAME.  The walk has exactly one net dangling
++/// split; the type is the same word with exactly one `∋` inserted at some later
++/// structural boundary, yielding zero surplus.  Its exact insertion point is
++/// part of the supplied type and is therefore audited, not guessed.
++fn close_frame_holds(walk: &str, type_word: &str) -> bool {
++    let w: Vec<char> = walk.chars().collect();
++    let t: Vec<char> = type_word.chars().collect();
++    if t.len() != w.len() + 1 || fork_balance(&w) != Some(1) || fork_balance(&t) != Some(0) {
++        return false;
++    }
++    for j in 0..t.len() {
++        if t[j] != FFUSE { continue; }
++        let mut tr = t.clone();
++        tr.remove(j);
++        if tr == w { return true; }
++    }
++    false
++}
++
++/// Check only the walk/type relation.  This does not claim factoring
++/// completeness; that is a separate type-side audit below.
++pub fn audit_reconciliation(object: &FactorObject<'_>) -> Result<(), String> {
++    let holds = match object.reconciliation {
++        Reconciliation::Identity => object.walk == object.type_word,
++        Reconciliation::FrameWork => frame_work_holds(object.walk, object.type_word),
++        Reconciliation::CloseFrame => close_frame_holds(object.walk, object.type_word),
++    };
++
++    if !holds {
++        return Err(format!(
++            "walk/type reconciliation mismatch: {:?} does not relate walk {} to type {}",
++            object.reconciliation, object.walk, object.type_word
++        ));
++    }
++    Ok(())
++}
++
++/// The type face must not merely close structurally: it must decompose into a
++/// factoring-complete resident carrier.  This is the VOX_SEMANTICS distinction
++/// between a genuine PHASE carrier and a carrier that can actually factor.
++fn require_factoring_complete(tower: &[&[char]]) -> Result<(), String> {
+     let has = |op: &[char]| tower.iter().any(|t| *t == op);
+     let mut missing = Vec::new();
+-    // EXTRACT and ECM each fold advance, decide and continue into one boundary
+-    // (EXTRACT over trial/frontier/rho, ECM over curves), so a tower carrying
+-    // either needs only a FIX to be complete.
++    // EXTRACT and ECM each fold advance, decide and continue into one boundary.
+     if !has(EXTRACT) && !has(ECM) {
+         if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
+         if !has(SELECT) { missing.push("SELECT (decide)"); }
+         if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
+     }
+     if !has(FIX) { missing.push("FIX (latch)"); }
+-    if !missing.is_empty() {
+-        return Err(format!(
+-            "operator word does not carry factoring; missing: {}",
++    if missing.is_empty() {
++        Ok(())
++    } else {
++        Err(format!(
++            "operator type does not carry factoring; missing: {}",
+             missing.join(", ")
+-        ));
++        ))
+     }
++}
++
++/// Audit the structural/type face and return its resident factoring tower.
++pub fn audit_factor_object(object: &FactorObject<'_>) -> Result<Vec<&'static [char]>, String> {
++    audit_reconciliation(object)?;
++    let tower = construct_carrier(object.type_word)?;
++    require_factoring_complete(&tower)?;
++    audit_execution_projection(object, &tower)?;
++    Ok(tower)
++}
++
++/// The morphism executor acts on the work carried by a boundary; VINIT/TANCH
++/// are interfaces and FSPLIT/FFUSE are the structural frame.  Stage-25's
++/// EXECUTION PRESERVATION obligation therefore becomes a byte-level equality
++/// between the walk's non-frame work and the work carried by the typed tower.
++fn work_projection(word: &[char]) -> Vec<char> {
++    word.iter().copied().filter(|g|
++        *g != VINIT && *g != TANCH && *g != FSPLIT && *g != FFUSE
++    ).collect()
++}
++
++fn tower_work_projection(tower: &[&[char]]) -> Vec<char> {
++    let mut out = Vec::new();
++    for op in tower {
++        out.extend(work_projection(op));
++    }
++    out
++}
++
++pub fn audit_execution_projection(
++    object: &FactorObject<'_>,
++    tower: &[&[char]],
++) -> Result<(), String> {
++    let walk: Vec<char> = object.walk.chars().collect();
++    let type_word: Vec<char> = object.type_word.chars().collect();
++    let walk_work = work_projection(&walk);
++    let type_work = work_projection(&type_word);
++    let tower_work = tower_work_projection(tower);
++
++    if walk_work != type_work {
++        return Err("execution preservation failed: walk/type work projections differ".into());
++    }
++    if walk_work != tower_work {
++        return Err("execution preservation failed: walk work does not match typed morphism tower".into());
++    }
++    Ok(())
++}
++
++/// Factor using a frozen `(walk,type)` VOX object.
++///
++/// `type_word` supplies the structural decomposition into resident morphisms;
++/// `walk` supplies the executable work projection.  `audit_factor_object`
++/// proves reconciliation, factoring completeness, and byte-equality of the
++/// executable work before the morphism-level executor is allowed to run.
++pub fn factor_object(object: &FactorObject<'_>, n_word: &str) -> Result<String, String> {
++    let tower = audit_factor_object(object)?;
++
+     let n = parse_numeral(n_word)?;
+     if cmp(&n, &two()) == core::cmp::Ordering::Less {
+         return Err("numeral has no non-trivial factor".into());
+@@ -962,6 +1123,13 @@
+     }
+ }
+ 
++/// Backward-compatible single-word surface.  Under Stage-25 semantics this is
++/// exactly the diagonal object `(walk,type) = (word,word)` with IDENTITY
++/// reconciliation.
++pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> {
++    factor_object(&FactorObject::identity(operator_word), n_word)
++}
++
+ /// Run a carrier tower on a tape for at most `max_rounds` rounds, returning the
+ /// factor as soon as an arm latches, or None when the budget is spent. The
+ /// bounded form is what lets the HARD branch nest the whole nine-arm carrier
+@@ -1569,6 +1737,81 @@
+     }
+ 
+     #[test]
++    fn factor_object_identity_is_the_legacy_diagonal() {
++        let object = FactorObject::identity(FULL);
++        assert!(audit_reconciliation(&object).is_ok());
++        let tower = audit_factor_object(&object).unwrap();
++        assert_eq!(
++            tower.iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
++            ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]
++        );
++        assert_eq!(
++            factor_object(&object, &numeral(8051)).unwrap(),
++            factor_with(FULL, &numeral(8051)).unwrap()
++        );
++    }
++
++    #[test]
++    fn frozen_walk_type_reconciliation_is_first_class() {
++        let frame = FactorObject::new(
++            "∈∋⊤≻⊡",
++            "∈⊤≻⊡∋",
++            Reconciliation::FrameWork,
++        );
++        assert!(audit_reconciliation(&frame).is_ok());
++
++        let close = FactorObject::new(
++            "⊢∈≻⊤⊣",
++            "⊢∈≻⊤∋⊣",
++            Reconciliation::CloseFrame,
++        );
++        assert!(audit_reconciliation(&close).is_ok());
++    }
++
++    #[test]
++    fn reconciliation_mismatch_is_not_silently_normalized() {
++        let wrong = FactorObject::new(
++            "∈∋⊤≻⊡",
++            "∈∋⊤≻⊡",
++            Reconciliation::FrameWork,
++        );
++        let err = audit_reconciliation(&wrong).unwrap_err();
++        assert!(err.contains("reconciliation mismatch"));
++    }
++
++    #[test]
++    fn frame_work_object_executes_walk_projection_and_types_with_full_carrier() {
++        // Same factoring work as FULL, but its first PHASE frame is shipped as
++        // an adjacent walk dyad. FRAME_WORK changes frame placement only.
++        let walk = "⊢∈∋≻⊤⊥∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
++        let object = FactorObject::new(walk, FULL, Reconciliation::FrameWork);
++        let tower = audit_factor_object(&object).unwrap();
++        assert!(audit_execution_projection(&object, &tower).is_ok());
++        let f = factor_object(&object, &numeral(8051)).unwrap();
++        assert!(f == numeral(83) || f == numeral(97));
++    }
++
++    #[test]
++    fn close_frame_object_executes_same_work_after_structural_repair() {
++        // Remove the first PHASE fuse from FULL: the walk is B/unclosed by one
++        // frame, while the supplied type restores exactly that fuse.
++        let walk = "⊢∈≻⊤⊥∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
++        let object = FactorObject::new(walk, FULL, Reconciliation::CloseFrame);
++        let tower = audit_factor_object(&object).unwrap();
++        assert!(audit_execution_projection(&object, &tower).is_ok());
++        let f = factor_object(&object, &numeral(8051)).unwrap();
++        assert!(f == numeral(83) || f == numeral(97));
++    }
++
++    #[test]
++    fn changed_work_is_rejected_even_when_a_type_is_factoring_complete() {
++        let walk = "⊢∈∋≺⊤⊥∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
++        let object = FactorObject::new(walk, FULL, Reconciliation::FrameWork);
++        let err = audit_factor_object(&object).unwrap_err();
++        assert!(err.contains("reconciliation mismatch") || err.contains("execution preservation"));
++    }
++
++    #[test]
+     fn constructed_carrier_factors_like_the_fixed_tower() {
+         let f = factor_with(FULL, &numeral(8051)).unwrap();
+         assert!(f == numeral(83) || f == numeral(97));
