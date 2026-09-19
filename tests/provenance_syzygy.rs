@@ -50,11 +50,7 @@ fn trace_for_deposits(q: &[u32], lane_bits: u32) -> Vec<char> {
         }
         payload.extend(['∋', '⊙', if i % 2 == 0 { '≻' } else { '≺' }, '⊣']);
         steps.push(GStep {
-            repr: match i % 3 {
-                0 => '⊢',
-                1 => '⊣',
-                _ => '⋈',
-            },
+            repr: '⋈',
             judgment: if mask == 0 { M_N } else { M_B },
             recognised: M_T,
             next: '⋈',
