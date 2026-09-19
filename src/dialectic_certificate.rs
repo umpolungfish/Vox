@@ -32,6 +32,8 @@ pub struct DialecticCertificate {
     pub terminal_support: LaneSupport,
     /// Boundary at which the closing lattice locked.
     pub terminal_boundary: Tape,
+    /// Exact finite lattice region imscribed at closure.
+    pub terminal_span: Tape,
     /// Live bulk/boundary permissions at closure.
     pub terminal_rwx: u8,
     /// Cell inside the closing lattice.
@@ -68,6 +70,7 @@ pub fn certify_dialectic(start: &DialecticObject) -> Result<DialecticCertificate
                     terminal_word: closed.word,
                     terminal_support: closed.support,
                     terminal_boundary: closed.imscription.boundary,
+                    terminal_span: closed.imscription.span,
                     terminal_rwx: closed.imscription.rwx,
                     lattice_cell: closed.lattice_cell,
                     lehman_multiplier: closed.lehman_multiplier,
@@ -139,6 +142,7 @@ pub fn verify_dialectic_certificate(
         if closed.word != certificate.terminal_word
             || closed.support != certificate.terminal_support
             || closed.imscription.boundary != certificate.terminal_boundary
+            || closed.imscription.span != certificate.terminal_span
             || closed.imscription.rwx != certificate.terminal_rwx
             || closed.lattice_cell != certificate.lattice_cell
             || closed.lehman_multiplier != certificate.lehman_multiplier
@@ -250,9 +254,10 @@ fn read_blob(word: &[Mark], cursor: &mut usize, end: usize) -> Result<Vec<Mark>,
 /// Marks-only serialization of the entire dialectic proof object.
 ///
 /// Every nested object and structural-looking payload is length-framed, while
-/// counts and scalar metadata are carried as native numeral tapes.  The optional
-/// Lehman multiplier uses a zero length for `None`; a present multiplier is a raw
-/// numeral tape whose positive length is written immediately before it.
+/// counts and scalar metadata are carried as native numeral tapes. The terminal
+/// boundary and span are exact tape numerals. The optional Lehman multiplier uses
+/// a zero length for `None`; a present multiplier is a raw numeral tape whose
+/// positive length is written immediately before it.
 pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<Mark> {
     let mut out = Vec::new();
     out.push('⊢');
@@ -265,6 +270,7 @@ pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<M
     push_blob(&mut out, &certificate.terminal_word);
     push_tape_field(&mut out, &usize_to_tape(certificate.terminal_support as usize));
     push_tape_field(&mut out, &certificate.terminal_boundary);
+    push_tape_field(&mut out, &certificate.terminal_span);
     push_tape_field(&mut out, &usize_to_tape(certificate.terminal_rwx as usize));
     push_tape_field(&mut out, &usize_to_tape(certificate.lattice_cell));
     match &certificate.lehman_multiplier {
@@ -279,7 +285,7 @@ pub fn encode_dialectic_certificate(certificate: &DialecticCertificate) -> Vec<M
 }
 
 /// Decode one persisted dialectic proof object without relying on any runtime
-/// state from the original descent.  Proof replay remains a separate explicit
+/// state from the original descent. Proof replay remains a separate explicit
 /// call to `verify_dialectic_certificate`.
 pub fn decode_dialectic_certificate(word: &[Mark]) -> Result<DialecticCertificate, String> {
     if word.len() < 3
@@ -302,6 +308,7 @@ pub fn decode_dialectic_certificate(word: &[Mark]) -> Result<DialecticCertificat
         .and_then(|v| u32::try_from(v).ok())
         .ok_or_else(|| String::from("dialectic certificate support field overflow"))?;
     let terminal_boundary = read_tape_field(word, &mut cursor, end)?;
+    let terminal_span = read_tape_field(word, &mut cursor, end)?;
     let terminal_rwx = tape_to_usize(&read_tape_field(word, &mut cursor, end)?)
         .and_then(|v| u8::try_from(v).ok())
         .ok_or_else(|| String::from("dialectic certificate r/w/x field overflow"))?;
@@ -332,6 +339,7 @@ pub fn decode_dialectic_certificate(word: &[Mark]) -> Result<DialecticCertificat
         terminal_word,
         terminal_support,
         terminal_boundary,
+        terminal_span,
         terminal_rwx,
         lattice_cell,
         lehman_multiplier,
