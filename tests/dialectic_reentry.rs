@@ -19,16 +19,17 @@ fn same_pair(a: &[char], b: &[char], x: &[char], y: &[char]) -> bool {
         || (cmp(a, y) == Ordering::Equal && cmp(b, x) == Ordering::Equal)
 }
 
-fn skip_field(encoded: &[char], i: &mut usize) -> (usize, usize) {
-    assert_eq!(encoded[*i], '∈');
-    *i += 1;
-    let start = *i;
-    while encoded[*i] != '∋' {
-        *i += 1;
-    }
-    let end = *i;
-    *i += 1;
-    (start, end)
+fn flip(mark: char) -> char {
+    if mark == EVALF { EVALT } else { EVALF }
+}
+
+fn assert_live_relation(object: &DialecticObject) {
+    assert_eq!(object.imscription.rwx.rights, IM_RWX);
+    assert_eq!(object.imscription.rwx.read_bulk, object.n);
+    assert_eq!(object.imscription.rwx.write_boundary, object.imscription.boundary);
+    assert_eq!(object.imscription.rwx.execute_span, object.imscription.span);
+    assert_eq!(object.imscription.rwx.execute_word, object.word);
+    assert!(object.imscription.relation_is_live_for(&object.n, &object.word));
 }
 
 #[test]
@@ -43,14 +44,12 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert!(first.word.contains(&IMSCRIB));
     assert_eq!(first.support, SUPPORT_PARITY | SUPPORT_PRIMALITY);
     assert_eq!(first.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
-    assert_eq!(first.imscription.rwx, IM_RWX);
-    assert!(first.imscription.can_read());
-    assert!(first.imscription.can_write());
-    assert!(first.imscription.can_execute());
+    assert_live_relation(&first);
     assert_eq!(DialecticObject::decode(&first.encode()).unwrap(), first);
 
     let first_support = first.support;
     let first_boundary = first.imscription.boundary.clone();
+    let first_relation = first.imscription.rwx.clone();
     let second = match first.descend().unwrap() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("32,004-gap pair closed inside the 64-cell frontier"),
@@ -65,7 +64,16 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(second.support & first_support, first_support);
     assert_eq!(second.envelope().ladder, vec![second.support]);
     assert_eq!(second.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
-    assert_eq!(second.imscription.rwx, IM_RWX);
+    assert_live_relation(&second);
+
+    // All capabilities remain live, but the relation has transformed: the same
+    // bulk is now coupled to a different written boundary, span and IMASM word.
+    assert_eq!(second.imscription.rwx.rights, first_relation.rights);
+    assert_eq!(second.imscription.rwx.read_bulk, first_relation.read_bulk);
+    assert_ne!(second.imscription.rwx.write_boundary, first_relation.write_boundary);
+    assert_ne!(second.imscription.rwx.execute_span, first_relation.execute_span);
+    assert_ne!(second.imscription.rwx.execute_word, first_relation.execute_word);
+    assert_ne!(second.imscription.rwx, first_relation);
 
     // The consumed frontier is material in the next object: its boundary is the
     // first unwalked lattice point, exactly 64 cells beyond the old boundary.
@@ -73,16 +81,17 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(second.imscription.boundary, expected_second_boundary);
 
     // Simulated process death: only the marks survive between levels, including
-    // the dynamic bulk/boundary r/w/x relation, transformed boundary, and the
-    // exact finite space the next word has imscribed.
+    // every endpoint of the dynamic bulk/boundary r/w/x relation.
     let persisted_boundary = second.imscription.boundary.clone();
     let persisted_span = second.imscription.span.clone();
+    let persisted_relation = second.imscription.rwx.clone();
     let persisted = second.encode();
     drop(second);
     let restarted = DialecticObject::decode(&persisted).unwrap();
     assert_eq!(restarted.imscription.boundary, persisted_boundary);
     assert_eq!(restarted.imscription.span, persisted_span);
-    assert_eq!(restarted.imscription.rwx, IM_RWX);
+    assert_eq!(restarted.imscription.rwx, persisted_relation);
+    assert_live_relation(&restarted);
 
     let closure = match restarted.descend().unwrap() {
         Descent::Closed(closed) => closed,
@@ -94,7 +103,12 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(closure.lattice_cell, tape_u64(126));
     assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
-    assert_eq!(closure.imscription.rwx, IM_RWX);
+    assert_eq!(closure.imscription.rwx.rights, IM_RWX);
+    assert_eq!(closure.imscription.rwx.read_bulk, closure.carrier.n);
+    assert_eq!(closure.imscription.rwx.write_boundary, closure.imscription.boundary);
+    assert_eq!(closure.imscription.rwx.execute_span, closure.imscription.span);
+    assert_eq!(closure.imscription.rwx.execute_word, closure.word);
+    assert!(closure.imscription.relation_is_live_for(&closure.carrier.n, &closure.word));
     assert!(closure.support & SUPPORT_SHORT_FRONTIER != 0);
     assert!(closure.support & SUPPORT_EXTENDED_FERMAT != 0);
     assert!(closure.support & SUPPORT_PRODUCT_BOUNDARY != 0);
@@ -114,7 +128,7 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(summary.normal_form, closure.carrier.trace);
 
     println!(
-        "dialectic descent: gap=32004 consumed frontier B, wrote boundary+span into the next imscription, restarted from that exact space, closed T at tape cell {}",
+        "dialectic descent: gap=32004 transformed the full r/w/x relation, restarted from it, and closed T at tape cell {}",
         dec_of(&closure.lattice_cell),
     );
 }
@@ -128,7 +142,7 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     let object = DialecticObject::new(n).unwrap();
     let initial_boundary = object.imscription.boundary.clone();
     assert_eq!(object.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
-    assert_eq!(object.imscription.rwx, IM_RWX);
+    assert_live_relation(&object);
     let closure = match object.descend().unwrap() {
         Descent::Closed(closed) => closed,
         Descent::Continue(_) => panic!("1,000-gap pair should close in the short-frontier imscription"),
@@ -139,7 +153,12 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.boundary, initial_boundary);
     assert_eq!(closure.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
-    assert_eq!(closure.imscription.rwx, IM_RWX);
+    assert_eq!(closure.imscription.rwx.rights, IM_RWX);
+    assert_eq!(closure.imscription.rwx.read_bulk, closure.carrier.n);
+    assert_eq!(closure.imscription.rwx.write_boundary, closure.imscription.boundary);
+    assert_eq!(closure.imscription.rwx.execute_span, closure.imscription.span);
+    assert_eq!(closure.imscription.rwx.execute_word, closure.word);
+    assert!(closure.imscription.relation_is_live_for(&closure.carrier.n, &closure.word));
     assert_eq!(closure.support & (SUPPORT_PARITY | SUPPORT_PRIMALITY), SUPPORT_PARITY | SUPPORT_PRIMALITY);
     assert!(closure.support & SUPPORT_SHORT_FRONTIER != 0);
     assert!(closure.support & SUPPORT_PRODUCT_BOUNDARY != 0);
@@ -168,9 +187,10 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(extended.word, EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>());
     assert_eq!(extended.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
     assert_eq!(verdict(&extended.word), 'B');
+    assert_live_relation(&extended);
 
     // The second Fermat region is consumed as one complete imscription. Its B
-    // changes what the boundary denotes and writes the new local span too.
+    // changes what the boundary denotes and rewrites the relation around k=1.
     let lehman = match extended.descend().unwrap() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in Fermat ring"),
@@ -180,23 +200,31 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(lehman.support, SUPPORT_PARITY | SUPPORT_PRIMALITY | SUPPORT_SHORT_FRONTIER | SUPPORT_EXTENDED_FERMAT);
     assert_eq!(lehman.imscription.boundary, tape_u64(1));
     assert_eq!(lehman.imscription.span, tape_u64(LEHMAN_LOCAL_SPAN));
-    assert_eq!(lehman.imscription.rwx, IM_RWX);
+    assert_live_relation(&lehman);
 
     let mut current = lehman;
     let closure = loop {
-        // Every multiplier is a complete marks-only restart point. Boundary and
-        // span both belong to the object; neither is a hosted loop parameter.
+        // Every multiplier is a complete marks-only restart point. The write leg
+        // itself moves with k even though rights, span and word remain unchanged.
         let persisted = current.encode();
         drop(current);
         let restarted = DialecticObject::decode(&persisted).unwrap();
+        assert_live_relation(&restarted);
         let k = restarted.imscription.boundary.clone();
-        let span = restarted.imscription.span.clone();
+        let relation = restarted.imscription.rwx.clone();
 
         match restarted.descend().unwrap() {
             Descent::Continue(next) => {
                 assert_eq!(next.word, LEHMAN_WORD.chars().collect::<Vec<_>>());
                 assert_eq!(next.imscription.boundary, add(&k, &tape_u64(1)));
-                assert_eq!(next.imscription.span, span);
+                assert_eq!(next.imscription.span, relation.execute_span);
+                assert_eq!(next.imscription.rwx.rights, relation.rights);
+                assert_eq!(next.imscription.rwx.read_bulk, relation.read_bulk);
+                assert_eq!(next.imscription.rwx.execute_span, relation.execute_span);
+                assert_eq!(next.imscription.rwx.execute_word, relation.execute_word);
+                assert_ne!(next.imscription.rwx.write_boundary, relation.write_boundary);
+                assert_eq!(next.imscription.rwx.write_boundary, next.imscription.boundary);
+                assert_ne!(next.imscription.rwx, relation);
                 current = next;
             }
             Descent::Closed(closed) => break closed,
@@ -208,7 +236,12 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(closure.lehman_multiplier.as_deref(), Some(tape_u64(10).as_slice()));
     assert_eq!(closure.imscription.boundary, tape_u64(10));
     assert_eq!(closure.imscription.span, tape_u64(LEHMAN_LOCAL_SPAN));
-    assert_eq!(closure.imscription.rwx, IM_RWX);
+    assert_eq!(closure.imscription.rwx.rights, IM_RWX);
+    assert_eq!(closure.imscription.rwx.read_bulk, closure.carrier.n);
+    assert_eq!(closure.imscription.rwx.write_boundary, closure.imscription.boundary);
+    assert_eq!(closure.imscription.rwx.execute_span, closure.imscription.span);
+    assert_eq!(closure.imscription.rwx.execute_word, closure.word);
+    assert!(closure.imscription.relation_is_live_for(&closure.carrier.n, &closure.word));
     assert_eq!(
         closure.support,
         SUPPORT_PARITY
@@ -233,14 +266,14 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(summary.normal_form, closure.carrier.trace);
 
     println!(
-        "dialectic tower: far-gap semiprime consumed frontier B -> Fermat B -> changed lattice -> Lehman B re-entry -> T at k=10, tape cell={}; restored support={}",
+        "dialectic tower: far-gap semiprime rewrote the r/w/x relation on every re-imscription -> T at k=10, tape cell={}; restored support={}",
         dec_of(&closure.lattice_cell),
         closure.support,
     );
 }
 
 #[test]
-fn persisted_operator_space_rejects_boundary_span_rwx_or_support_mismatch() {
+fn persisted_operator_space_rejects_boundary_span_rwx_relation_or_support_mismatch() {
     let p = tape_u64(1_000_003);
     let q = tape_u64(1_032_007);
     let n = mul(&p, &q);
@@ -249,31 +282,42 @@ fn persisted_operator_space_rejects_boundary_span_rwx_or_support_mismatch() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("fixture unexpectedly closed in frontier"),
     };
+    assert_live_relation(&second);
 
-    let encoded = second.encode();
-    // Framing: ⊢ ⊙ ∈N∋ ∈boundary∋ ∈span∋ ∈rwx[3]∋ ∈support[6]∋ word ⊣.
-    let mut i = 2usize;
-    let _n = skip_field(&encoded, &mut i);
-    let boundary = skip_field(&encoded, &mut i);
-    let span = skip_field(&encoded, &mut i);
-    let rwx = skip_field(&encoded, &mut i);
-    let support = skip_field(&encoded, &mut i);
+    let mut bad_boundary = second.clone();
+    bad_boundary.imscription.boundary[0] = flip(bad_boundary.imscription.boundary[0]);
+    assert!(DialecticObject::decode(&bad_boundary.encode()).is_err());
 
-    let mut bad_boundary = encoded.clone();
-    bad_boundary[boundary.0] = if bad_boundary[boundary.0] == EVALF { EVALT } else { EVALF };
-    assert!(DialecticObject::decode(&bad_boundary).is_err());
+    let mut bad_span = second.clone();
+    bad_span.imscription.span[0] = flip(bad_span.imscription.span[0]);
+    assert!(DialecticObject::decode(&bad_span.encode()).is_err());
 
-    let mut bad_span = encoded.clone();
-    bad_span[span.0] = if bad_span[span.0] == EVALF { EVALT } else { EVALF };
-    assert!(DialecticObject::decode(&bad_span).is_err());
+    let mut bad_rights = second.clone();
+    bad_rights.imscription.rwx.rights &= !vox::dialectic_reentry::IM_WRITE;
+    assert!(DialecticObject::decode(&bad_rights.encode()).is_err());
 
-    let mut bad_rwx = encoded.clone();
-    let write_bit = 1usize;
-    bad_rwx[rwx.0 + write_bit] = EVALT;
-    assert!(DialecticObject::decode(&bad_rwx).is_err());
+    let mut bad_read = second.clone();
+    bad_read.imscription.rwx.read_bulk[0] = flip(bad_read.imscription.rwx.read_bulk[0]);
+    assert!(DialecticObject::decode(&bad_read.encode()).is_err());
 
-    let mut bad_support = encoded;
-    let short_bit = 2usize;
-    bad_support[support.0 + short_bit] = EVALT;
-    assert!(DialecticObject::decode(&bad_support).is_err());
+    let mut bad_write = second.clone();
+    bad_write.imscription.rwx.write_boundary[0] = flip(bad_write.imscription.rwx.write_boundary[0]);
+    assert!(DialecticObject::decode(&bad_write.encode()).is_err());
+
+    let mut bad_execute_span = second.clone();
+    bad_execute_span.imscription.rwx.execute_span[0] =
+        flip(bad_execute_span.imscription.rwx.execute_span[0]);
+    assert!(DialecticObject::decode(&bad_execute_span.encode()).is_err());
+
+    let mut bad_execute_word = second.clone();
+    bad_execute_word.imscription.rwx.execute_word = SHORT_FRONTIER_WORD.chars().collect();
+    assert!(DialecticObject::decode(&bad_execute_word.encode()).is_err());
+
+    let mut bad_support = second;
+    bad_support.support ^= SUPPORT_SHORT_FRONTIER;
+    assert!(DialecticObject::decode(&bad_support.encode()).is_err());
+
+    println!(
+        "dialectic r/w/x relation: boundary/span/rights/read/write/execute/support forgeries all rejected",
+    );
 }
