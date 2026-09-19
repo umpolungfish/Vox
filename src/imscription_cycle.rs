@@ -87,20 +87,26 @@ fn push_tape_payload(out: &mut Vec<Mark>, tape: &[Mark]) {
 
 /// Compact quotient-facing projection of one complete imscription object.
 ///
-/// The full bulk, boundary and wire image remain in `DialecticCertificate`; the
-/// factor-carrier trace records the distinction that this generation existed:
-/// support, live r/w/x coupling, the finite imscribed span, and the IMASM word
-/// that was executed. The arbitrary-width bulk/boundary remain certified only
-/// once, in the dialectic proof object.
+/// The full bulk and exact relation remain in `DialecticCertificate`. The
+/// factor-carrier scaffold records the distinction that this generation existed:
+/// support, live capabilities, the exact boundary written by the relation, the
+/// exact span executed, and the exact IMASM word executed there. The read leg is
+/// the carrier's own N and is checked before this projection is built.
 fn scaffold_payload(object: &DialecticObject) -> Vec<Mark> {
+    let relation = &object.imscription.rwx;
     let mut payload = Vec::with_capacity(
-        4 + SUPPORT_BITS + RWX_BITS + object.imscription.span.len() + object.word.len(),
+        8 + SUPPORT_BITS
+            + RWX_BITS
+            + relation.write_boundary.len()
+            + relation.execute_span.len()
+            + relation.execute_word.len(),
     );
     payload.push('⊢');
     push_mask(&mut payload, object.support, SUPPORT_BITS);
-    push_mask(&mut payload, object.imscription.rwx as u32, RWX_BITS);
-    push_tape_payload(&mut payload, &object.imscription.span);
-    payload.extend_from_slice(&object.word);
+    push_mask(&mut payload, relation.rights as u32, RWX_BITS);
+    push_tape_payload(&mut payload, &relation.write_boundary);
+    push_tape_payload(&mut payload, &relation.execute_span);
+    payload.extend_from_slice(&relation.execute_word);
     payload.push('⊣');
     payload
 }
@@ -115,8 +121,13 @@ fn lift_dialectic_history(
         if object.n != terminal.n {
             return Err(String::from("imscription history changed bulk N before quotient bridge"));
         }
-        if object.imscription.rwx != IM_RWX {
-            return Err(String::from("imscription history lost live r/w/x before quotient bridge"));
+        if object.imscription.rwx.rights != IM_RWX
+            || object.imscription.rwx.read_bulk != terminal.n
+            || !object.imscription.relation_is_live_for(&object.n, &object.word)
+        {
+            return Err(String::from(
+                "imscription history lost its dynamic r/w/x relation before quotient bridge",
+            ));
         }
         steps.push(GStep {
             repr: '⋈',
