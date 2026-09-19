@@ -5,7 +5,7 @@ use vox::dialectic_certificate::{
     verify_dialectic_certificate,
 };
 use vox::dialectic_reentry::{
-    DialecticObject, EXTENDED_FERMAT_SPAN, IM_RWX, LEHMAN_LOCAL_SPAN,
+    Descent, DialecticObject, EXTENDED_FERMAT_SPAN, IM_RWX, LEHMAN_LOCAL_SPAN,
     SHORT_FRONTIER_SPAN,
 };
 use vox::factorization_31_membrane::UnboundedResident;
@@ -121,6 +121,19 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert_eq!(certificate.terminal_span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(certificate.lattice_cell, tape_u64(0));
 
+    // Independently descend the same whole object without the certificate builder.
+    // Runtime closure and persisted proof must carry the exact same cell tape;
+    // there is no host-integer conversion at this seam anymore.
+    let mut runtime = start.clone();
+    let runtime_closure = loop {
+        match runtime.descend().unwrap() {
+            Descent::Continue(next) => runtime = next,
+            Descent::Closed(closed) => break closed,
+        }
+    };
+    assert_eq!(runtime_closure.lattice_cell, certificate.lattice_cell);
+    assert_eq!(runtime_closure.carrier.encode(), certificate.terminal_carrier);
+
     // Every certified object is independently decodable from its marks alone.
     for (index, wire) in certificate.objects.iter().enumerate() {
         let object = DialecticObject::decode(wire).unwrap();
@@ -174,7 +187,7 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert!(verify_dialectic_certificate(&decoded_wide).is_err());
 
     println!(
-        "dialectic certificate: {} persisted whole objects replay exactly; forged boundary/order/support/span and host-wider lattice cell rejected semantically",
+        "dialectic certificate: {} persisted whole objects replay exactly; runtime/certificate cell tape identical; forged boundary/order/support/span and host-wider lattice cell rejected semantically",
         summary.descents,
     );
 }
