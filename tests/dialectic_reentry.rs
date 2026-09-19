@@ -1,8 +1,8 @@
 use core::cmp::Ordering;
 
 use vox::dialectic_reentry::{
-    Descent, DialecticObject, EXTENDED_FERMAT_WORD, IM_RWX, LEHMAN_WORD,
-    SHORT_FRONTIER_WORD,
+    Descent, DialecticObject, EXTENDED_FERMAT_SPAN, EXTENDED_FERMAT_WORD, IM_RWX,
+    LEHMAN_LOCAL_SPAN, LEHMAN_WORD, SHORT_FRONTIER_SPAN, SHORT_FRONTIER_WORD,
 };
 use vox::factor_extract::extract;
 use vox::morphism_factor::{add, cmp, mul, tape_u64};
@@ -42,6 +42,7 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(verdict(&first.word), 'B');
     assert!(first.word.contains(&IMSCRIB));
     assert_eq!(first.support, SUPPORT_PARITY | SUPPORT_PRIMALITY);
+    assert_eq!(first.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
     assert_eq!(first.imscription.rwx, IM_RWX);
     assert!(first.imscription.can_read());
     assert!(first.imscription.can_write());
@@ -63,20 +64,24 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_ne!(second.support, first_support);
     assert_eq!(second.support & first_support, first_support);
     assert_eq!(second.envelope().ladder, vec![second.support]);
+    assert_eq!(second.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
     assert_eq!(second.imscription.rwx, IM_RWX);
 
     // The consumed frontier is material in the next object: its boundary is the
     // first unwalked lattice point, exactly 64 cells beyond the old boundary.
-    let expected_second_boundary = add(&first_boundary, &tape_u64(64));
+    let expected_second_boundary = add(&first_boundary, &tape_u64(SHORT_FRONTIER_SPAN));
     assert_eq!(second.imscription.boundary, expected_second_boundary);
 
     // Simulated process death: only the marks survive between levels, including
-    // the dynamic bulk/boundary r/w/x relation and the transformed boundary.
+    // the dynamic bulk/boundary r/w/x relation, transformed boundary, and the
+    // exact finite space the next word has imscribed.
     let persisted_boundary = second.imscription.boundary.clone();
+    let persisted_span = second.imscription.span.clone();
     let persisted = second.encode();
     drop(second);
     let restarted = DialecticObject::decode(&persisted).unwrap();
     assert_eq!(restarted.imscription.boundary, persisted_boundary);
+    assert_eq!(restarted.imscription.span, persisted_span);
     assert_eq!(restarted.imscription.rwx, IM_RWX);
 
     let closure = match restarted.descend().unwrap() {
@@ -88,6 +93,7 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert!(closure.word.contains(&IMSCRIB));
     assert_eq!(closure.lattice_cell, 126);
     assert!(closure.lehman_multiplier.is_none());
+    assert_eq!(closure.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
     assert_eq!(closure.imscription.rwx, IM_RWX);
     assert!(closure.support & SUPPORT_SHORT_FRONTIER != 0);
     assert!(closure.support & SUPPORT_EXTENDED_FERMAT != 0);
@@ -108,7 +114,7 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_eq!(summary.normal_form, closure.carrier.trace);
 
     println!(
-        "dialectic descent: gap=32004 consumed frontier B, wrote boundary cell 64 into the next imscription, restarted from that boundary, closed T at cell {}",
+        "dialectic descent: gap=32004 consumed frontier B, wrote boundary+span into the next imscription, restarted from that exact space, closed T at cell {}",
         closure.lattice_cell,
     );
 }
@@ -121,6 +127,7 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
 
     let object = DialecticObject::new(n).unwrap();
     let initial_boundary = object.imscription.boundary.clone();
+    assert_eq!(object.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
     assert_eq!(object.imscription.rwx, IM_RWX);
     let closure = match object.descend().unwrap() {
         Descent::Closed(closed) => closed,
@@ -131,6 +138,7 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     assert_eq!(closure.lattice_cell, 0);
     assert!(closure.lehman_multiplier.is_none());
     assert_eq!(closure.imscription.boundary, initial_boundary);
+    assert_eq!(closure.imscription.span, tape_u64(SHORT_FRONTIER_SPAN));
     assert_eq!(closure.imscription.rwx, IM_RWX);
     assert_eq!(closure.support & (SUPPORT_PARITY | SUPPORT_PRIMALITY), SUPPORT_PARITY | SUPPORT_PRIMALITY);
     assert!(closure.support & SUPPORT_SHORT_FRONTIER != 0);
@@ -146,7 +154,7 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
 
 #[test]
 fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
-    // This pair lies beyond the 4096-cell Fermat ring. The next whole object
+    // This pair lies beyond the 4096-cell Fermat region. The next whole object
     // changes lattice and closes on Lehman multiplier k=10.
     let p = tape_u64(1_000_003);
     let q = tape_u64(10_000_019);
@@ -158,10 +166,11 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
         Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in short frontier"),
     };
     assert_eq!(extended.word, EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>());
+    assert_eq!(extended.imscription.span, tape_u64(EXTENDED_FERMAT_SPAN));
     assert_eq!(verdict(&extended.word), 'B');
 
-    // The second Fermat ring is consumed as one complete imscription. Its B does
-    // not mean retry Fermat: the operator changes what its boundary denotes.
+    // The second Fermat region is consumed as one complete imscription. Its B
+    // changes what the boundary denotes and writes the new local span too.
     let lehman = match extended.descend().unwrap() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in Fermat ring"),
@@ -170,21 +179,24 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(verdict(&lehman.word), 'B');
     assert_eq!(lehman.support, SUPPORT_PARITY | SUPPORT_PRIMALITY | SUPPORT_SHORT_FRONTIER | SUPPORT_EXTENDED_FERMAT);
     assert_eq!(lehman.imscription.boundary, tape_u64(1));
+    assert_eq!(lehman.imscription.span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(lehman.imscription.rwx, IM_RWX);
 
     let mut current = lehman;
     let closure = loop {
-        // Every multiplier is a complete marks-only restart point. The boundary
-        // is the multiplier itself, not a hosted loop counter outside the object.
+        // Every multiplier is a complete marks-only restart point. Boundary and
+        // span both belong to the object; neither is a hosted loop parameter.
         let persisted = current.encode();
         drop(current);
         let restarted = DialecticObject::decode(&persisted).unwrap();
         let k = restarted.imscription.boundary.clone();
+        let span = restarted.imscription.span.clone();
 
         match restarted.descend().unwrap() {
             Descent::Continue(next) => {
                 assert_eq!(next.word, LEHMAN_WORD.chars().collect::<Vec<_>>());
                 assert_eq!(next.imscription.boundary, add(&k, &tape_u64(1)));
+                assert_eq!(next.imscription.span, span);
                 current = next;
             }
             Descent::Closed(closed) => break closed,
@@ -195,6 +207,7 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     assert_eq!(closure.lattice_cell, 0);
     assert_eq!(closure.lehman_multiplier.as_deref(), Some(tape_u64(10).as_slice()));
     assert_eq!(closure.imscription.boundary, tape_u64(10));
+    assert_eq!(closure.imscription.span, tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(closure.imscription.rwx, IM_RWX);
     assert_eq!(
         closure.support,
@@ -226,7 +239,7 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
 }
 
 #[test]
-fn persisted_operator_space_rejects_boundary_rwx_or_support_mismatch() {
+fn persisted_operator_space_rejects_boundary_span_rwx_or_support_mismatch() {
     let p = tape_u64(1_000_003);
     let q = tape_u64(1_032_007);
     let n = mul(&p, &q);
@@ -237,16 +250,21 @@ fn persisted_operator_space_rejects_boundary_rwx_or_support_mismatch() {
     };
 
     let encoded = second.encode();
-    // Framing: ⊢ ⊙ ∈N∋ ∈boundary∋ ∈rwx[3]∋ ∈support[6]∋ word ⊣.
+    // Framing: ⊢ ⊙ ∈N∋ ∈boundary∋ ∈span∋ ∈rwx[3]∋ ∈support[6]∋ word ⊣.
     let mut i = 2usize;
     let _n = skip_field(&encoded, &mut i);
     let boundary = skip_field(&encoded, &mut i);
+    let span = skip_field(&encoded, &mut i);
     let rwx = skip_field(&encoded, &mut i);
     let support = skip_field(&encoded, &mut i);
 
     let mut bad_boundary = encoded.clone();
     bad_boundary[boundary.0] = if bad_boundary[boundary.0] == EVALF { EVALT } else { EVALF };
     assert!(DialecticObject::decode(&bad_boundary).is_err());
+
+    let mut bad_span = encoded.clone();
+    bad_span[span.0] = if bad_span[span.0] == EVALF { EVALT } else { EVALF };
+    assert!(DialecticObject::decode(&bad_span).is_err());
 
     let mut bad_rwx = encoded.clone();
     let write_bit = 1usize;
