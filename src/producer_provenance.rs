@@ -45,13 +45,13 @@ fn support_for_route(route: &str) -> Option<LaneSupport> {
     }
 }
 
-/// Build the native two-level provenance envelope for a named producer route.
-///
-/// The inner product-boundary deposit is identical for every route.  Route
-/// distinctions therefore survive only in the outer restored support, exactly
-/// where the producer differs before handing the frozen factor object downstream.
-pub fn route_provenance(route: &str) -> Option<ProducerRouteProvenance> {
-    let route_support = support_for_route(route)?;
+fn provenance_for_route_support(route_support: LaneSupport) -> Option<ProducerRouteProvenance> {
+    let route = match route_support {
+        support if support == support_for_route("frontier")? => "frontier",
+        support if support == support_for_route("near-root")? => "near-root",
+        support if support == support_for_route("HARD")? => "HARD",
+        _ => return None,
+    };
     let deposits = vec![route_support, SUPPORT_PRODUCT_BOUNDARY];
     let ladder = restored_support_ladder(&deposits);
     Some(ProducerRouteProvenance {
@@ -59,6 +59,28 @@ pub fn route_provenance(route: &str) -> Option<ProducerRouteProvenance> {
         deposits,
         ladder,
     })
+}
+
+/// Build the native two-level provenance envelope for a named producer route.
+///
+/// The inner product-boundary deposit is identical for every route.  Route
+/// distinctions therefore survive only in the outer restored support, exactly
+/// where the producer differs before handing the frozen factor object downstream.
+pub fn route_provenance(route: &str) -> Option<ProducerRouteProvenance> {
+    provenance_for_route_support(support_for_route(route)?)
+}
+
+/// Reconstruct the complete two-deposit producer envelope carried by a closed
+/// dialectic support.  The route is derived from the support itself: the outer
+/// deposit is the terminal support with the common product-boundary bit removed.
+/// Thus this is a structural projection, not a second route-label lookup.
+pub fn closed_support_provenance(terminal_support: LaneSupport) -> Option<ProducerRouteProvenance> {
+    if terminal_support & SUPPORT_PRODUCT_BOUNDARY == 0 {
+        return None;
+    }
+    let route_support = terminal_support & !SUPPORT_PRODUCT_BOUNDARY;
+    let provenance = provenance_for_route_support(route_support)?;
+    (provenance.ladder.first().copied() == Some(terminal_support)).then_some(provenance)
 }
 
 /// Exact Fermat cell for the first carried factor pair, measured from
