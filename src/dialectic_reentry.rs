@@ -134,68 +134,6 @@ pub struct DialecticWitness {
     pub lattice_cell: Tape,
 }
 
-/// FOUR's judgment of one executed imscription.
-///
-/// `write_boundary` is the boundary written into the resulting whole object:
-/// for `B` it is the next re-imscribed boundary, and for `T` it is the boundary
-/// on which the factor relation closed. A `T` judgment carries a witness; a `B`
-/// judgment does not. `N` and `F` remain distinct FOUR states and are handled
-/// explicitly by `descend`, even though the current factoring kernels do not
-/// produce them from a validated live imscription.
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct DialecticJudgment {
-    pub lattice: ImscriptionLattice,
-    pub four: Mark,
-    pub write_boundary: Tape,
-    pub witness: Option<DialecticWitness>,
-}
-
-/// Decode the current IMASM word into the lattice action it commands.
-///
-/// Supported kernels are:
-/// `⊤≺⊥` short Fermat, `⊤⊞≺⊥` extended Fermat, and `⋈⊤⊥` Lehman.
-/// A trailing `∋` before `⊡` is the closing form. FOUR must agree with that
-/// grammar state (`B` unresolved, `T` closed), otherwise the word is rejected.
-pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
-    if word.len() < 9
-        || word.first().copied() != Some(VINIT)
-        || word.get(1).copied() != Some(IMSCRIB)
-        || word.get(2).copied() != Some('∈')
-        || word.get(3).copied() != Some('≻')
-        || word.get(word.len() - 2).copied() != Some('⊡')
-        || word.last().copied() != Some(TANCH)
-    {
-        return Err(String::from("malformed dialectic IMASM execution framing"));
-    }
-
-    let mut kernel = &word[4..word.len() - 2];
-    let closed = kernel.last().copied() == Some('∋');
-    if closed {
-        kernel = &kernel[..kernel.len() - 1];
-    }
-
-    let lattice = match kernel {
-        ['⊤', '≺', '⊥'] => ImscriptionLattice::ShortFrontier,
-        ['⊤', '⊞', '≺', '⊥'] => ImscriptionLattice::ExtendedFermat,
-        ['⋈', '⊤', '⊥'] => ImscriptionLattice::Lehman,
-        _ => return Err(String::from("unknown dialectic IMASM lattice kernel")),
-    };
-
-    let four = verdict(word);
-    let expected_four = if closed { 'T' } else { 'B' };
-    if four != expected_four {
-        return Err(String::from(
-            "dialectic IMASM grammar state does not agree with its FOUR verdict",
-        ));
-    }
-
-    Ok(ImasmExecution {
-        lattice,
-        four,
-        closed,
-    })
-}
-
 /// Capabilities of a live imscription relation. The bit-set says which actions
 /// are enabled; the endpoints below say what those actions currently relate.
 pub const IM_READ: u8 = 1 << 0;
@@ -288,6 +226,75 @@ impl Imscription {
                 .all(|&mark| mark == EVALT || mark == EVALF)
             && !self.rwx.execute_word.is_empty()
     }
+}
+
+/// FOUR's judgment of one executed imscription.
+///
+/// A productive judgment owns the complete relation that results from the walk:
+/// `B` carries the succeeding open imscription and `T` carries the terminal closed
+/// imscription. `resulting_support` belongs to that same resulting whole object.
+/// `N` carries the unchanged relation/support, while `F` carries no valid result.
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct DialecticJudgment {
+    pub four: Mark,
+    pub resulting_imscription: Option<Imscription>,
+    pub resulting_support: Option<LaneSupport>,
+    pub witness: Option<DialecticWitness>,
+}
+
+/// The raw relation exposed by one lattice walk before FOUR materializes the
+/// succeeding or terminal IMSCRIB relation.
+#[derive(Clone, PartialEq, Eq, Debug)]
+struct LatticeExposure {
+    four: Mark,
+    write_boundary: Tape,
+    witness: Option<DialecticWitness>,
+}
+
+/// Decode the current IMASM word into the lattice action it commands.
+///
+/// Supported kernels are:
+/// `⊤≺⊥` short Fermat, `⊤⊞≺⊥` extended Fermat, and `⋈⊤⊥` Lehman.
+/// A trailing `∋` before `⊡` is the closing form. FOUR must agree with that
+/// grammar state (`B` unresolved, `T` closed), otherwise the word is rejected.
+pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
+    if word.len() < 9
+        || word.first().copied() != Some(VINIT)
+        || word.get(1).copied() != Some(IMSCRIB)
+        || word.get(2).copied() != Some('∈')
+        || word.get(3).copied() != Some('≻')
+        || word.get(word.len() - 2).copied() != Some('⊡')
+        || word.last().copied() != Some(TANCH)
+    {
+        return Err(String::from("malformed dialectic IMASM execution framing"));
+    }
+
+    let mut kernel = &word[4..word.len() - 2];
+    let closed = kernel.last().copied() == Some('∋');
+    if closed {
+        kernel = &kernel[..kernel.len() - 1];
+    }
+
+    let lattice = match kernel {
+        ['⊤', '≺', '⊥'] => ImscriptionLattice::ShortFrontier,
+        ['⊤', '⊞', '≺', '⊥'] => ImscriptionLattice::ExtendedFermat,
+        ['⋈', '⊤', '⊥'] => ImscriptionLattice::Lehman,
+        _ => return Err(String::from("unknown dialectic IMASM lattice kernel")),
+    };
+
+    let four = verdict(word);
+    let expected_four = if closed { 'T' } else { 'B' };
+    if four != expected_four {
+        return Err(String::from(
+            "dialectic IMASM grammar state does not agree with its FOUR verdict",
+        ));
+    }
+
+    Ok(ImasmExecution {
+        lattice,
+        four,
+        closed,
+    })
 }
 
 /// One complete, restartable operator-space object.
@@ -421,40 +428,100 @@ impl DialecticObject {
     }
 
     /// Ask FOUR to judge the relation exposed by executing this current
-    /// imscription. The returned boundary is the boundary that the judgment
-    /// writes into the resulting whole object.
+    /// imscription. FOUR materializes the complete resulting IMSCRIB relation:
+    /// `B` owns the next open relation and `T` owns the terminal closed relation.
     pub fn judge_current_imscription(&self) -> Result<DialecticJudgment, String> {
         self.validate()?;
         let execution = decode_imasm_execution(self.word())?;
-        let mut judgment = match execution.lattice {
+        let exposure = match execution.lattice {
             ImscriptionLattice::ShortFrontier => fermat_lattice_from(
                 &self.n,
                 self.boundary(),
                 &tape_u64(0),
                 self.span(),
-                execution.lattice,
             ),
             ImscriptionLattice::ExtendedFermat => fermat_lattice_from(
                 &self.n,
                 self.boundary(),
                 &tape_u64(SHORT_FRONTIER_SPAN),
                 self.span(),
-                execution.lattice,
             ),
-            ImscriptionLattice::Lehman => lehman_multiplier(
-                &self.n,
-                self.boundary(),
-                self.span(),
-            ),
+            ImscriptionLattice::Lehman => {
+                lehman_multiplier(&self.n, self.boundary(), self.span())
+            }
         };
 
-        // Exhausting the extended Fermat region changes lattice. The productive
-        // B therefore writes the first Lehman multiplier boundary, not the old
-        // Fermat end coordinate, into the succeeding whole object.
-        if execution.lattice == ImscriptionLattice::ExtendedFermat && judgment.four == 'B' {
-            judgment.write_boundary = tape_u64(1);
+        match exposure.four {
+            'T' => {
+                let witness = exposure.witness.ok_or_else(|| {
+                    String::from("FOUR=T lattice exposure did not carry a factor witness")
+                })?;
+                let word: Vec<Mark> = execution.lattice.closed_word().chars().collect();
+                let imscription = Imscription::active(
+                    &self.n,
+                    exposure.write_boundary,
+                    self.span().clone(),
+                    &word,
+                );
+                let terminal = decode_imasm_execution(imscription.word())?;
+                if terminal.lattice != execution.lattice || terminal.four != 'T' || !terminal.closed {
+                    return Err(String::from(
+                        "FOUR=T judgment did not materialize the closing IMASM relation",
+                    ));
+                }
+                Ok(DialecticJudgment {
+                    four: 'T',
+                    resulting_imscription: Some(imscription),
+                    resulting_support: Some(execution.lattice.support_after_t(self.support)),
+                    witness: Some(witness),
+                })
+            }
+            'B' => {
+                if exposure.witness.is_some() {
+                    return Err(String::from(
+                        "FOUR=B lattice exposure unexpectedly carried a closing witness",
+                    ));
+                }
+                let next_lattice = execution.lattice.next_after_b();
+                let next_boundary = if execution.lattice == ImscriptionLattice::ExtendedFermat {
+                    tape_u64(1)
+                } else {
+                    exposure.write_boundary
+                };
+                let next_word: Vec<Mark> = next_lattice.open_word().chars().collect();
+                let imscription = Imscription::active(
+                    &self.n,
+                    next_boundary,
+                    tape_u64(next_lattice.span()),
+                    &next_word,
+                );
+                let next = DialecticObject {
+                    n: self.n.clone(),
+                    support: execution.lattice.support_after_b(self.support),
+                    imscription: imscription.clone(),
+                };
+                next.validate()?;
+                Ok(DialecticJudgment {
+                    four: 'B',
+                    resulting_imscription: Some(imscription),
+                    resulting_support: Some(next.support),
+                    witness: None,
+                })
+            }
+            'N' => Ok(DialecticJudgment {
+                four: 'N',
+                resulting_imscription: Some(self.imscription.clone()),
+                resulting_support: Some(self.support),
+                witness: None,
+            }),
+            'F' => Ok(DialecticJudgment {
+                four: 'F',
+                resulting_imscription: None,
+                resulting_support: None,
+                witness: None,
+            }),
+            _ => Err(String::from("dialectic lattice returned a non-FOUR exposure")),
         }
-        Ok(judgment)
     }
 
     /// Native support currently restored by this whole imscription.
@@ -531,19 +598,29 @@ impl DialecticObject {
 
     /// Consume the whole operator-space relation. The IMASM grammar chooses the
     /// lattice; the lattice exposes a relation; FOUR judges that relation; and
-    /// this method consumes the FOUR judgment to close or re-imscribe.
+    /// this method installs the complete relation carried by that judgment.
     pub fn descend(self) -> Result<Descent, String> {
         let judgment = self.judge_current_imscription()?;
-        let span = self.imscription.rwx.execute_span.clone();
-        let current_boundary = self.imscription.rwx.write_boundary.clone();
 
         match judgment.four {
             'T' => {
                 let witness = judgment.witness.ok_or_else(|| {
                     String::from("FOUR=T dialectic judgment did not carry a factor witness")
                 })?;
-                let lehman_multiplier = if judgment.lattice == ImscriptionLattice::Lehman {
-                    Some(current_boundary)
+                let imscription = judgment.resulting_imscription.ok_or_else(|| {
+                    String::from("FOUR=T dialectic judgment did not carry a terminal imscription")
+                })?;
+                let support = judgment.resulting_support.ok_or_else(|| {
+                    String::from("FOUR=T dialectic judgment did not carry terminal support")
+                })?;
+                let execution = decode_imasm_execution(imscription.word())?;
+                if execution.four != 'T' || !execution.closed {
+                    return Err(String::from(
+                        "FOUR=T dialectic judgment carried a non-terminal imscription",
+                    ));
+                }
+                let lehman_multiplier = if execution.lattice == ImscriptionLattice::Lehman {
+                    Some(imscription.boundary().clone())
                 } else {
                     None
                 };
@@ -551,10 +628,8 @@ impl DialecticObject {
                     self.n,
                     witness.p,
                     witness.q,
-                    judgment.lattice,
-                    judgment.lattice.support_after_t(self.support),
-                    judgment.write_boundary,
-                    span,
+                    support,
+                    imscription,
                     witness.lattice_cell,
                     lehman_multiplier,
                 )
@@ -565,18 +640,16 @@ impl DialecticObject {
                         "FOUR=B dialectic judgment unexpectedly carried a closing witness",
                     ));
                 }
-                let next_lattice = judgment.lattice.next_after_b();
-                let next_word: Vec<Mark> = next_lattice.open_word().chars().collect();
-                let next_imscription = Imscription::active(
-                    &self.n,
-                    judgment.write_boundary,
-                    tape_u64(next_lattice.span()),
-                    &next_word,
-                );
+                let imscription = judgment.resulting_imscription.ok_or_else(|| {
+                    String::from("FOUR=B dialectic judgment did not carry a succeeding imscription")
+                })?;
+                let support = judgment.resulting_support.ok_or_else(|| {
+                    String::from("FOUR=B dialectic judgment did not carry succeeding support")
+                })?;
                 let next = DialecticObject {
                     n: self.n,
-                    support: judgment.lattice.support_after_b(self.support),
-                    imscription: next_imscription,
+                    support,
+                    imscription,
                 };
                 next.validate()?;
                 Ok(Descent::Continue(next))
@@ -596,26 +669,23 @@ fn close(
     n: Tape,
     p: Tape,
     q: Tape,
-    lattice: ImscriptionLattice,
     support: LaneSupport,
-    boundary: Tape,
-    span: Tape,
+    imscription: Imscription,
     lattice_cell: Tape,
     lehman_multiplier: Option<Tape>,
 ) -> Result<Descent, String> {
-    let word: Vec<Mark> = lattice.closed_word().chars().collect();
-    let execution = decode_imasm_execution(&word)?;
-    if execution.lattice != lattice || execution.four != 'T' || !execution.closed {
+    let execution = decode_imasm_execution(imscription.word())?;
+    if execution.four != 'T' || !execution.closed {
         return Err(String::from(
-            "closed dialectic IMASM word does not decode to the closing lattice",
+            "terminal dialectic judgment did not carry a closing IMASM relation",
         ));
     }
-    let imscription = Imscription::active(&n, boundary, span, &word);
     if !imscription.relation_is_live_for(&n) {
         return Err(String::from(
             "closed dialectic imscription lost its terminal r/w/x relation",
         ));
     }
+    let word = imscription.word().to_vec();
     let trace = encode_trace(&[GStep {
         repr: '⋈',
         judgment: M_T,
@@ -650,8 +720,7 @@ fn fermat_lattice_from(
     start_boundary: &[Mark],
     base_cell: &[Mark],
     span: &[Mark],
-    lattice: ImscriptionLattice,
-) -> DialecticJudgment {
+) -> LatticeExposure {
     let one = tape_u64(1);
     let mut a = trim(start_boundary.to_vec());
     let mut cell = trim(base_cell.to_vec());
@@ -667,8 +736,7 @@ fn fermat_lattice_from(
                 if cmp(&p, &one) == Ordering::Greater && cmp(&p, n) == Ordering::Less {
                     let (q, remainder) = divmod(n, &p);
                     if zero(&remainder) && cmp(&q, &one) == Ordering::Greater {
-                        return DialecticJudgment {
-                            lattice,
+                        return LatticeExposure {
                             four: 'T',
                             write_boundary: a,
                             witness: Some(DialecticWitness {
@@ -686,8 +754,7 @@ fn fermat_lattice_from(
         remaining = sub(&remaining, &one);
     }
 
-    DialecticJudgment {
-        lattice,
+    LatticeExposure {
         four: 'B',
         write_boundary: a,
         witness: None,
@@ -696,8 +763,8 @@ fn fermat_lattice_from(
 
 /// Execute one complete Lehman-multiplier imscription. The boundary is k. The
 /// local a-lattice consumes the exact span tape carried by the relation. FOUR=T
-/// closes on a factor witness; FOUR=B writes k+1 into the succeeding imscription.
-fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> DialecticJudgment {
+/// closes on a factor witness; FOUR=B exposes k+1 for the succeeding imscription.
+fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> LatticeExposure {
     let one = tape_u64(1);
     let four_kn = mul(&tape_u64(4), &mul(k, n));
     let mut a = isqrt(&four_kn);
@@ -715,8 +782,7 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> DialecticJudgment
             if mul(&b, &b) == b2 {
                 let plus = add(&a, &b);
                 if let Some((p, q)) = factor_from_gcd(n, &plus) {
-                    return DialecticJudgment {
-                        lattice: ImscriptionLattice::Lehman,
+                    return LatticeExposure {
                         four: 'T',
                         write_boundary: trim(k.to_vec()),
                         witness: Some(DialecticWitness {
@@ -729,8 +795,7 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> DialecticJudgment
                 if cmp(&a, &b) != Ordering::Less {
                     let minus = sub(&a, &b);
                     if let Some((p, q)) = factor_from_gcd(n, &minus) {
-                        return DialecticJudgment {
-                            lattice: ImscriptionLattice::Lehman,
+                        return LatticeExposure {
                             four: 'T',
                             write_boundary: trim(k.to_vec()),
                             witness: Some(DialecticWitness {
@@ -747,8 +812,7 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> DialecticJudgment
         cell = add(&cell, &one);
         remaining = sub(&remaining, &one);
     }
-    DialecticJudgment {
-        lattice: ImscriptionLattice::Lehman,
+    LatticeExposure {
         four: 'B',
         write_boundary: add(k, &one),
         witness: None,
