@@ -567,27 +567,27 @@ impl DialecticObject {
         Ok(self)
     }
 
-    /// Execute the current relation through FOUR. This method is total over the
-    /// four semantic states: T and B come from a valid lattice exposure, N is
-    /// the valid route-around grammar and returns the identical relation, and
-    /// malformed/incomplete grammar or broken r/w/x binding yields F.
-    pub fn judge_current_imscription(&self) -> Result<DialecticJudgment, String> {
+    /// Judge the current relation through FOUR. This boundary is semantically
+    /// total: every complete in-memory relation yields exactly T, B, N, or F.
+    /// Rust errors remain confined to persistence/codec and execution APIs, not
+    /// to FOUR judgment itself.
+    pub fn judge_current_imscription(&self) -> DialecticJudgment {
         if self.validate_relation_shape().is_err() {
-            return Ok(DialecticJudgment::F);
+            return DialecticJudgment::F;
         }
         let execution = match decode_imasm_execution(self.word()) {
             Ok(execution) => execution,
-            Err(_) => return Ok(DialecticJudgment::F),
+            Err(_) => return DialecticJudgment::F,
         };
         if self.validate_execution_binding(execution).is_err() {
-            return Ok(DialecticJudgment::F);
+            return DialecticJudgment::F;
         }
 
         if execution.is_neutral() {
-            return Ok(DialecticJudgment::N {
+            return DialecticJudgment::N {
                 imscription: self.imscription.clone(),
                 support: self.support,
-            });
+            };
         }
 
         let lattice = execution.lattice();
@@ -624,17 +624,18 @@ impl DialecticObject {
                     self.span().clone(),
                     &word,
                 );
-                let terminal = decode_imasm_execution(imscription.word())?;
+                let terminal = match decode_imasm_execution(imscription.word()) {
+                    Ok(terminal) => terminal,
+                    Err(_) => return DialecticJudgment::F,
+                };
                 if terminal != (ImasmExecution::T { lattice }) {
-                    return Err(String::from(
-                        "FOUR=T judgment did not materialize the closing IMASM relation",
-                    ));
+                    return DialecticJudgment::F;
                 }
-                Ok(DialecticJudgment::T {
+                DialecticJudgment::T {
                     imscription,
                     support: lattice.support_after_t(self.support),
                     witness,
-                })
+                }
             }
             (ImasmExecution::B { lattice }, LatticeExposure::B { write_boundary }) => {
                 let next_lattice = lattice.next_after_b();
@@ -655,11 +656,13 @@ impl DialecticObject {
                     support: lattice.support_after_b(self.support),
                     imscription: imscription.clone(),
                 };
-                next.validate()?;
-                Ok(DialecticJudgment::B {
+                if next.validate().is_err() {
+                    return DialecticJudgment::F;
+                }
+                DialecticJudgment::B {
                     imscription,
                     support: next.support,
-                })
+                }
             }
             (
                 ImasmExecution::T { .. },
@@ -667,16 +670,16 @@ impl DialecticObject {
                     witness,
                     ..
                 },
-            ) => Ok(DialecticJudgment::T {
+            ) => DialecticJudgment::T {
                 imscription: self.imscription.clone(),
                 support: self.support,
                 witness,
-            }),
-            (ImasmExecution::T { .. }, LatticeExposure::B { .. }) => Ok(DialecticJudgment::F),
-            (ImasmExecution::N { .. }, _) => Ok(DialecticJudgment::N {
+            },
+            (ImasmExecution::T { .. }, LatticeExposure::B { .. }) => DialecticJudgment::F,
+            (ImasmExecution::N { .. }, _) => DialecticJudgment::N {
                 imscription: self.imscription.clone(),
                 support: self.support,
-            }),
+            },
         }
     }
 
@@ -750,7 +753,7 @@ impl DialecticObject {
 
     /// Consume the whole object by pattern-matching the actual FOUR state.
     pub fn descend(self) -> Result<Descent, String> {
-        match self.judge_current_imscription()? {
+        match self.judge_current_imscription() {
             DialecticJudgment::T {
                 imscription,
                 support,
