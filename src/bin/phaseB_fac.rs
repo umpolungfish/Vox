@@ -1,6 +1,15 @@
 extern crate alloc;
+
+// Item position: the generated file declares `const` items, which parse only at
+// module scope, not inside a function body.
+include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
+
 fn main() {
-    let raw = option_env!("MEMBRANE_WORDS").expect("build with MEMBRANE_WORDS=\"<a> <N>\"");
+    let _ = BAKED_WIDTH_WORD;  // phaseB takes no width; keep the baked const live
+    let raw = match (BAKED_BASE_WORD, BAKED_MODULUS_WORD) {
+        (Some(a), Some(n)) => [a, n].join(" "),
+        _ => option_env!("MEMBRANE_WORDS").expect("bake two IMASM words or build with MEMBRANE_WORDS=\"<a> <N>\"").to_string(),
+    };
     let mut ws: Vec<Vec<char>> = Vec::new();
     for w in raw.split_whitespace() {
         ws.push(::vox::morphism_factor::parse_numeral(w).expect("numeral parse"));
