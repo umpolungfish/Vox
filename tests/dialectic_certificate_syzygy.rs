@@ -190,8 +190,23 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert_eq!(decoded_wide.lattice_cell, wide_cell);
     assert!(verify_dialectic_certificate(&decoded_wide).is_err());
 
+    // The terminal Lehman multiplier is a distinct structural coordinate. A
+    // valid carrier and terminal r/w/x relation cannot be relabelled as a
+    // closure on another multiplier lattice.
+    assert_eq!(certificate.lehman_multiplier.as_deref(), Some(tape_u64(10).as_slice()));
+    let mut bad_multiplier = certificate.clone();
+    bad_multiplier.lehman_multiplier = Some(tape_u64(9));
+    let bad_multiplier_wire = encode_dialectic_certificate(&bad_multiplier);
+    let decoded_bad_multiplier = decode_dialectic_certificate(&bad_multiplier_wire).unwrap();
+    assert_eq!(decoded_bad_multiplier.lehman_multiplier, bad_multiplier.lehman_multiplier);
+    assert!(verify_dialectic_certificate(&decoded_bad_multiplier).is_err());
+
+    let mut missing_multiplier = certificate.clone();
+    missing_multiplier.lehman_multiplier = None;
+    assert!(verify_dialectic_certificate(&missing_multiplier).is_err());
+
     println!(
-        "dialectic certificate: {} persisted whole objects replay exact FOUR-preserving descents; runtime/certificate imscription identical; forged continuity/support/rwx-legs and host-wider lattice cell rejected semantically",
+        "dialectic certificate: {} persisted whole objects replay exact FOUR-preserving descents; runtime/certificate imscription identical; forged continuity/support/rwx-legs, lattice cell, and Lehman multiplier rejected semantically",
         summary.descents,
     );
 }
