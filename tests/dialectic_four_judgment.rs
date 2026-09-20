@@ -9,7 +9,7 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     // Near-root: short B owns the complete succeeding extended-Fermat relation.
     let near_n = mul(&tape_u64(1_000_003), &tape_u64(1_032_007));
     let short = DialecticObject::new(near_n).unwrap();
-    let short_judgment = short.judge_current_imscription().unwrap();
+    let short_judgment = short.judge_current_imscription();
     assert_eq!(short_judgment.four(), 'B');
     assert!(short_judgment.witness().is_none());
     let (short_result, short_support) = match &short_judgment {
@@ -37,7 +37,7 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
 
     // Extended T cannot exist without all three terminal payloads because they
     // are fields of the T variant itself.
-    let extended_judgment = extended.judge_current_imscription().unwrap();
+    let extended_judgment = extended.judge_current_imscription();
     assert_eq!(extended_judgment.four(), 'T');
     let (extended_terminal, extended_support, extended_witness) = match &extended_judgment {
         DialecticJudgment::T {
@@ -72,7 +72,7 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in short frontier"),
     };
-    let change = extended.judge_current_imscription().unwrap();
+    let change = extended.judge_current_imscription();
     let lehman1_relation = match &change {
         DialecticJudgment::B { imscription, .. } => imscription.clone(),
         other => panic!("lattice change exposed unexpected FOUR={}", other.four()),
@@ -93,7 +93,7 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert_eq!(lehman1.imscription, lehman1_relation);
 
     // Lehman B structurally cannot carry a witness; it owns only relation+support.
-    let k1 = lehman1.judge_current_imscription().unwrap();
+    let k1 = lehman1.judge_current_imscription();
     let k2_relation = match &k1 {
         DialecticJudgment::B { imscription, .. } => imscription.clone(),
         other => panic!("Lehman k=1 exposed unexpected FOUR={}", other.four()),
@@ -108,7 +108,7 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert_eq!(current.imscription, k2_relation);
 
     let far_closed = loop {
-        let judgment = current.judge_current_imscription().unwrap();
+        let judgment = current.judge_current_imscription();
         match &judgment {
             DialecticJudgment::B {
                 imscription,
@@ -183,6 +183,20 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert!(!execution_decl.contains("closed: bool"));
     assert!(!execution_decl.contains("four: Mark"));
 
+    let judge = source
+        .split("pub fn judge_current_imscription")
+        .nth(1)
+        .expect("FOUR-total judgment boundary not found")
+        .split("pub fn envelope")
+        .next()
+        .unwrap();
+    assert!(source.contains(
+        "pub fn judge_current_imscription(&self) -> DialecticJudgment"
+    ));
+    assert!(!judge.contains("Result<DialecticJudgment"));
+    assert!(!judge.contains("return Err("));
+    assert!(!judge.contains("Ok(DialecticJudgment"));
+
     let descend = source
         .split("pub fn descend(self)")
         .nth(1)
@@ -199,6 +213,6 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert!(!descend.contains("judgment.resulting_support"));
 
     println!(
-        "dialectic FOUR sums: judgment and IMASM execution states are structurally distinct; no mark+boolean or nullable-payload encoding remains"
+        "dialectic FOUR sums: judgment and IMASM execution states are structurally distinct, and judgment itself is total rather than Result-wrapped"
     );
 }
