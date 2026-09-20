@@ -225,13 +225,24 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert!(descend.contains("DialecticJudgment::B"));
     assert!(descend.contains("DialecticJudgment::N"));
     assert!(descend.contains("DialecticJudgment::F"));
-    assert!(descend.contains("Descent::T"));
+    assert!(descend.contains("close("));
     assert!(descend.contains("Descent::B"));
     assert!(descend.contains("Descent::N"));
     assert!(descend.contains("Descent::F"));
     assert!(!descend.contains("judgment.witness"));
     assert!(!descend.contains("judgment.resulting_imscription"));
     assert!(!descend.contains("judgment.resulting_support"));
+
+    let close = source
+        .split("fn close(")
+        .nth(1)
+        .expect("terminal descent constructor not found")
+        .split("fn fermat_origin")
+        .next()
+        .unwrap();
+    assert!(close.contains("Descent::T(DialecticClosure"));
+    assert!(close.contains("return Descent::F"));
+    assert!(!close.contains("Result<Descent"));
 
     println!(
         "dialectic FOUR sums: judgment, IMASM execution and whole-object descent are structurally typed; T/B/N/F are not re-encoded as generic continuation or Rust errors"
