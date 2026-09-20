@@ -1,3 +1,4 @@
+use vox::dialectic_certificate::certify_dialectic;
 use vox::dialectic_reentry::{
     decode_imasm_execution, Descent, DialecticJudgment, DialecticObject,
 };
@@ -61,6 +62,11 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     };
     assert_eq!(unchanged, neutral);
 
+    // A factor-closing certificate has no terminal carrier for an N fixed point.
+    // It must return explicitly instead of looping on the unchanged continuation.
+    let neutral_certificate_error = certify_dialectic(&neutral).unwrap_err();
+    assert!(neutral_certificate_error.contains("FOUR=N unchanged imscription"));
+
     // F is likewise reached through the same judgment machinery. The relation
     // remains a complete r/w/x object, but its executable grammar has a fuse
     // with no split. SIXTEEN_3 therefore judges F before any lattice is walked.
@@ -96,6 +102,6 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     assert!(source.contains("return Ok(DialecticJudgment::F)"));
 
     println!(
-        "dialectic FOUR total: real semiprime B/T, persisted identity N, and malformed-grammar F all pass through one judgment path"
+        "dialectic FOUR total: real semiprime B/T, persisted identity N, malformed-grammar F, and non-spinning N certificate boundary all pass through one judgment path"
     );
 }
