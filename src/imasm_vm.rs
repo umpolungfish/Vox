@@ -65,6 +65,7 @@ pub trait Host {
     fn read(&mut self, fd: i32, buf: &mut [u8]) -> i64;
     fn write(&mut self, fd: i32, buf: &[u8]) -> i64;
     fn close(&mut self, fd: i32) -> i32;
+    fn clock_gettime(&mut self, _clock: i32) -> Result<(i64,i64),i32> { Err(-38) }
 }
 
 pub struct Machine {
@@ -337,6 +338,19 @@ impl Machine {
         let a0 = self.get_reg("rdi"); let a1 = self.get_reg("rsi"); let a2 = self.get_reg("rdx");
         let a3 = self.get_reg("r10"); let a4 = self.get_reg("r8");
         match num {
+            228 => {
+                let result = if a1 == 0 { Err(-14) }
+                    else { self.host.as_mut().map(|h| h.clock_gettime(a0 as i32)).unwrap_or(Err(-38)) };
+                match result {
+                    Ok((seconds,nanos)) if (0..1_000_000_000).contains(&nanos) => {
+                        self.store(a1 as u64,seconds as u64 as u128,8);
+                        self.store(a1 as u64+8,nanos as u64 as u128,8);
+                        self.set_reg("rax",0);
+                    }
+                    Ok(_) => self.set_reg("rax",(-22i64) as u64 as u128),
+                    Err(errno) => self.set_reg("rax",errno as i64 as u64 as u128),
+                }
+            }
             60 | 231 => return Err(Stop::SysExit((sign(a0,8) & 0xFF) as i32)),
             0 => { // read(fd, buf, count)
                 let fd = sign(a0,8) as i32; let buf = a1 as u64; let count = (a2 as usize).min(1<<20);
@@ -408,7 +422,7 @@ impl Machine {
             // glibc's static init issues a run of housekeeping calls whose only
             // requirement is that they succeed: set_tid_address, set_robust_list,
             // rseq, sigaltstack, rt_sigaction/procmask, mprotect, munmap,
-            // prlimit64, sched_getaffinity, uname, poll, clock_gettime and the
+            // prlimit64, sched_getaffinity, uname, poll and the
             // like. Their out-parameters read back zero from the sparse map,
             // which each of these tolerates. Reporting success lets init reach
             // main; a real semantics for any one of them is a later rung.
@@ -1181,6 +1195,39 @@ fn is_simd(op: &str) -> bool {
 
 #[cfg(test)]
 mod membrane_simd_tests {
+    #[test]
+    fn clock_gettime_writes_the_entire_result_and_reports_errors() {
+        use super::{Machine,Host};
+        struct Clock;
+        impl Host for Clock {
+            fn open(&mut self,_: &str,_: i32,_: i32)->i32 { -38 }
+            fn read(&mut self,_: i32,_: &mut [u8])->i64 { -38 }
+            fn write(&mut self,_: i32,_: &[u8])->i64 { -38 }
+            fn close(&mut self,_: i32)->i32 { -38 }
+            fn clock_gettime(&mut self,id: i32)->Result<(i64,i64),i32> {
+                if id==1 { Ok((123,456)) } else { Err(-22) }
+            }
+        }
+        let mut machine = Machine::new("");
+        machine.set_reg("rax",228); machine.set_reg("rdi",1); machine.set_reg("rsi",0x1000);
+        machine.store(0x1000,u128::MAX,16);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.get_reg("rax"),(-38i64) as u64 as u128);
+        assert_eq!(machine.load(0x1000,16),u128::MAX);
+        machine.set_host(alloc::boxed::Box::new(Clock));
+        machine.set_reg("rax",228);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.get_reg("rax"),0);
+        assert_eq!(machine.load(0x1000,8),123);
+        assert_eq!(machine.load(0x1008,8),456);
+        machine.set_reg("rax",228); machine.set_reg("rdi",-1i64 as u64 as u128);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.get_reg("rax"),(-22i64) as u64 as u128);
+        assert_eq!(machine.load(0x1008,8),456);
+        machine.set_reg("rax",228); machine.set_reg("rsi",0);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.get_reg("rax"),(-14i64) as u64 as u128);
+    }
     #[test]
     #[cfg(target_arch = "x86_64")]
     fn square_root_matches_hardware_rounding() {
