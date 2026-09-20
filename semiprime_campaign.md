@@ -89,3 +89,26 @@ the executed probe returned branch_population=1 and unresolved phase register.
 Full spectra on small controls agree with the independent direct Fourier
 implementation. A singleton branch is tested to yield a flat spectrum and
 no extracted order. The wide-entry regression requires observed-phase output.
+
+## Sparse phase scaling measurement
+
+`SparsePhaseBranch` retains only observed branch positions and evaluates a
+requested Fourier probability directly from their phase sum. It accepts no
+known order. Every frequency agrees with the dense QFT on the tested controls.
+It is a probability-query implementation, not an independent peak locator.
+The production order extractor still uses the dense implementation.
+
+`python3 phase_scaling_check.py` records the fixed 175-bit balanced input at
+16, 18, and 20 register bits. The recorded construction times are approximately
+0.37, 1.50, and 6.03 seconds. Each run retains one position with a vector
+capacity of 32 bytes (not total process memory). Construction executes exactly
+65536, 262144, and 1048576 modular steps. The branch is a singleton and its
+Fourier probabilities are uniform, so these observations expose no period.
+
+The sparse representation removes the dense amplitude allocation for phase
+queries. Construction still scales with register length, which doubles with
+each added register bit. Completing scalable extraction requires a further
+algorithm that obtains informative observations and locates their peaks without
+enumerating that domain or supplying the order in advance. This campaign has
+not established such an algorithm; no general 175-bit factoring result follows
+from the sparse-memory measurement.

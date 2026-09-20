@@ -18,6 +18,15 @@ fn main() {
         println!("order {}", dec_of(&r));
         let (p,q) = vox::shor_braid::factor_close_public(&vox::morphism_factor::tape_u64(2), &n, &r).unwrap();
         println!("factor {}\nfactor {}", dec_of(&p), dec_of(&q));
+    } else if args[1] == "sparse" {
+        let qubits: usize = args.get(3).expect("sparse requires register qubits").parse().unwrap();
+        let branch = shor_qft::SparsePhaseBranch::from_modulus(&vox::morphism_factor::tape_u64(2), &n, qubits).unwrap();
+        println!("positions {} register_size {} modular_steps {} stored_position_bytes {}",
+            branch.positions.len(), branch.register_size, branch.modular_steps,
+            branch.positions.capacity()*std::mem::size_of::<usize>());
+        for k in [0,1,branch.register_size/2,branch.register_size-1] {
+            println!("probability {k} {}",branch.probability(k).unwrap());
+        }
     } else if args[1] == "observed" {
         let qubits: usize = args.get(3).expect("observed requires register qubits").parse().unwrap();
         let reg = shor_qft::ObservedPhaseRegister::from_modulus(vox::morphism_factor::tape_u64(2), n.clone(), qubits).unwrap();
