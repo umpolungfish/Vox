@@ -393,10 +393,48 @@ pub fn fermat_close_factor(n: &[char], max_steps: usize) -> Option<(Vec<char>, V
 }
 
 
-/// Symbolic filtration register: the true post-measurement state in closed form,
-/// no 2^qubits amplitudes materialized. Support = {x : a^x mod N = observed},
-/// of size r = ord_N(a). The QFT peak is one evaluation of the ladder spectrum
-/// (k*/M ~= j/r), and continued fractions recover r from (k*, M) on tapes.
+/// Sparse branch support produced by modular evolution. Memory depends on
+/// observed branch occupancy; construction still executes every position.
+pub struct SparsePhaseBranch {
+    pub positions: Vec<usize>,
+    pub register_size: usize,
+    pub modular_steps: usize,
+}
+
+impl SparsePhaseBranch {
+    pub fn from_modulus(a: &[char], n: &[char], qubits: usize) -> Result<Self, String> {
+        use ::vox::morphism_factor::{cmp, gcd, one};
+        if cmp(n, &one()) != core::cmp::Ordering::Greater || gcd(a.to_vec(), n.to_vec()) != one() {
+            return Err("phase observation requires N > 1 and a coprime base".into());
+        }
+        let shift = u32::try_from(qubits).map_err(|_| "register address width overflow")?;
+        let m = 1usize.checked_shl(shift).ok_or("register address width overflow")?;
+        let mut carrier = crate::fde_shor_membrane::OrderCarrier::new(one());
+        let mut positions = Vec::new();
+        for x in 0..m {
+            if carrier.forward == one() { positions.push(x); }
+            carrier.modular_step(a, n)?;
+        }
+        if !carrier.boundary_identity() { return Err("phase evolution boundary failed".into()); }
+        Ok(Self { positions, register_size: m, modular_steps: m })
+    }
+
+    /// Evaluate one Fourier probability directly from observed positions.
+    /// No known order or period is used. This query is not a peak locator.
+    pub fn probability(&self, k: usize) -> Result<f64, String> {
+        if k >= self.register_size || self.positions.is_empty() {
+            return Err("invalid phase query".into());
+        }
+        let mut sum = Complex::zero();
+        for &x in &self.positions {
+            let residue = ((k as u128 * x as u128) % self.register_size as u128) as f64;
+            let angle = 2.0 * core::f64::consts::PI * residue / self.register_size as f64;
+            sum = sum + Complex::new(angle.cos(), angle.sin());
+        }
+        Ok(sum.norm_sq() / (self.register_size as f64 * self.positions.len() as f64))
+    }
+}
+
 /// Phase observations obtained from modular evolution, without a supplied order.
 pub struct ObservedPhaseRegister {
     pub a: Vec<char>,
@@ -825,6 +863,24 @@ mod membrane_tests {
         assert_eq!(reg.branch_population,1);
         assert!(reg.extract_order().is_none());
         assert!(reg.probabilities.iter().all(|p| (p-1.0/256.0).abs()<1e-12));
+    }
+
+    #[test]
+    fn sparse_phase_queries_match_every_dense_frequency() {
+        for (a,n) in [(7,15), (2,21), (2,35)] {
+            for qubits in [4,8,10] {
+                let a = ::vox::morphism_factor::tape_u64(a);
+                let n = ::vox::morphism_factor::tape_u64(n);
+                let sparse = SparsePhaseBranch::from_modulus(&a,&n,qubits).unwrap();
+                let dense = ObservedPhaseRegister::from_modulus(a,n,qubits).unwrap();
+                assert_eq!(sparse.positions.len(),dense.branch_population);
+                assert_eq!(sparse.modular_steps,1usize<<qubits);
+                for (k,p) in dense.probabilities.iter().enumerate() {
+                    assert!((sparse.probability(k).unwrap()-p).abs()<1e-10);
+                }
+                assert!(sparse.probability(sparse.register_size).is_err());
+            }
+        }
     }
     fn check_spectrum(state: &[Complex]) {
         let reference = qft_forward_reference(state);
