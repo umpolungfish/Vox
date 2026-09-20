@@ -1,17 +1,7 @@
-Measure the check-versus-run cost separation for proof-of-execution
+I remove arbitrary braid orbit budgets and probe extraction paths
 
-Add a resident measurement for the proof-of-execution application. The run path
-is extract, which drives the passive reduction schedule from the carrier to the
-normal form. The check path is verify_reentry_certificate, which validates every
-link and calls the reduction primitive reenter_once nowhere.
-
-Two numbers on the production witness. Structural: the run path invokes
-reenter_once once per generation, the check path zero times, a strict separation
-independent of witness size. Wall time over a batch: the check path is faster.
-The test asserts both, so cheaper to check than to run is a measured inequality.
-
-The wall-time margin is small at this witness size because the reduction is cheap
-here; it widens as the witness grows and the reduction dominates. Measuring that
-curve across a semiprime family is the next number.
-
-Whole-tree snapshot.
+I run phase, braid, and symbolic extraction directly on the 175-bit controls
+and retain their stage diagnostics. I remove the fixed braid orbit cutoff,
+replace bounded base scanning with tape residue traversal, and make external
+campaign timeouts opt-in. I test closure beyond the former cutoff, winding
+readout, factor reconstruction, and invalid-input rejection.

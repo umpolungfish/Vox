@@ -43,10 +43,8 @@ fn pow_tape(base: &[char], e_in: &[char], n: &[char]) -> Vec<char> {
     r
 }
 
-/// Tower order lane with a per-call step cap. Walks the orbit until either
-/// the state returns to 1 (closure) or the step counter exceeds `cap`. The
-/// cap is a tape-encoded integer so the bound scales with the modulus.
-fn order_lane_capped(a: &[char], n: &[char], cap: &[char]) -> Result<Vec<char>, String> {
+/// Walk until the modular orbit closes. Invalid inputs fail explicitly.
+fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
     if zero(n) { return Err("modulus is zero".into()); }
     if eq(n, &one()) { return Err("modulus is one".into()); }
     if !eq(&gcd(a.to_vec(), n.to_vec()), &one()) {
@@ -58,10 +56,6 @@ fn order_lane_capped(a: &[char], n: &[char], cap: &[char]) -> Result<Vec<char>, 
     let mut i = one();
     loop {
         if eq(&state, &one()) { break; }
-        // Cap check: bail if i > cap.
-        if cmp(&i, cap) == core::cmp::Ordering::Greater {
-            return Err("order lane: orbit did not close within cap".into());
-        }
         state = modulo(&mul(&state, &ared), n);
         i = crate::morphism_factor::add(&i, &one());
     }
@@ -70,16 +64,6 @@ fn order_lane_capped(a: &[char], n: &[char], cap: &[char]) -> Result<Vec<char>, 
         return Err("order lane verification failed (a^r != 1)".into());
     }
     Ok(r)
-}
-
-/// Tower order lane. Default cap: 2^18 ≈ 250k steps. This bounds the orbit
-/// walk so a base with a huge ord doesn't stall the caller. On semiprime
-/// N where ord divides lambda(N)/gcd for at least one small base, the
-/// braid closes fast. On N where every base has ord ≫ cap, the braid
-/// bails out cleanly and the caller falls through to a classical path.
-fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
-    let cap = tape_u64(1u64 << 18);
-    order_lane_capped(a, n, &cap)
 }
 
 /// The Shor closing step on tapes: order r -> factors via gcd(a^(r/2) -/+ 1, n).
@@ -158,45 +142,39 @@ pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> 
     Ok((w, levels))
 }
 
-/// Composition: emit braid, read winding, close factors. Uses the default
-/// `order_lane` cap (2^18) so the call returns Err rather than hangs on
-/// huge-ord N; the caller can fall through to a classical path.
+/// Composition: walk to closure, emit braid, read winding, close factors.
 pub fn shor_factor_via_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, Vec<char>), String> {
     let (word, _levels) = shor_braid(a, n)?;
     let r_tape = crate::winding_readout::winding_number_tape(&word)?;
     factor_close_public(a, n, &r_tape)
 }
 
-/// Base-scanned composition: try coprime bases 2, 3, 5, 7, ... up to
-/// `max_base`, using a per-base step cap `orbit_cap`. Returns the first
-/// successful closure. The cap bounds the orbit walk so a base with a
-/// huge ord doesn't stall the scan — on semiprime N, the first base
-/// whose ord divides lambda(N)/gcd tends to close fast.
+/// Scan the finite residue domain on tapes; each orbit runs to closure.
 pub fn shor_factor_via_braid_scanned(
     n: &[char],
-    max_base: u64,
-    orbit_cap: &[char],
-) -> Result<(Vec<char>, Vec<char>, u64), String> {
+) -> Result<(Vec<char>, Vec<char>, Vec<char>), String> {
     use crate::morphism_factor::tape_u64;
     let mut last_err = String::from("no base tried");
-    for k in 2u64..=max_base {
-        let base = tape_u64(k);
-        // skip if gcd(base, n) > 1
+    let mut base = tape_u64(2);
+    while cmp(&base, n) == core::cmp::Ordering::Less {
         let g = crate::morphism_factor::gcd(base.clone(), n.to_vec());
         if cmp(&g, &one()) != core::cmp::Ordering::Equal {
-            continue;
+            let (q, rem) = divmod(n, &g);
+            if zero(&rem) { return Ok((g, q, base)); }
+            return Err("base gcd failed product boundary".into());
         }
-        match order_lane_capped(&base, n, orbit_cap) {
+        match order_lane(&base, n) {
             Ok(r) => {
                 if let Ok((p, q)) = factor_close_public(&base, n, &r) {
-                    return Ok((p, q, k));
+                    return Ok((p, q, base));
                 }
-                last_err = format!("base {k}: factor close trivial");
+                last_err = String::from("factor close trivial");
             }
-            Err(e) => { last_err = format!("base {k}: {e}"); continue; }
+            Err(e) => { last_err = e; }
         }
+        base = crate::morphism_factor::add(&base, &one());
     }
-    Err(format!("scanned 2..={max_base}, last: {last_err}"))
+    Err(format!("residue bases exhausted, last: {last_err}"))
 }
 
 #[cfg(test)]

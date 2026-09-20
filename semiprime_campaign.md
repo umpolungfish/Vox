@@ -4,7 +4,8 @@ Run `cargo build --release --bin semiprime_probe`, then
 `python3 semiprime_campaign.py --output results.jsonl`.
 The Python harness requires SymPy. Output files are created exclusively and
 each completed case is flushed immediately. The default minimum width is 175
-bits, with five samples per family and a sixty-second subprocess budget.
+bits, with five samples per family. There is no default execution timeout.
+`--seconds` explicitly opts into an external measurement timeout.
 
 Each producer receives only decimal N. Expected factors remain in the parent
 process. Success requires both expected factors in the producer readout.
@@ -48,3 +49,21 @@ Next batteries cover exact Fermat interval boundaries, checkpoint splicing
 between valid certificates, and an independent resident/dialectic provenance
 comparison. The existing support projection comparison alone does not establish
 independent producer agreement.
+
+Direct producer options now include `phase`, `braid`, and `symbolic`.
+The braid probe acquires the order, transports it in a braid, reads winding,
+and closes factors. The symbolic probe invokes register construction directly,
+then peak extraction and factor closure. Its current constructor computes the
+order using a baby-step/giant-step table before forming a peak; removing the
+braid cutoff does not change that algorithm. The phase probe invokes the nested
+factor tower. These are local CPU execution paths.
+
+The three additional 175-bit logs preserve the earlier sixty-second experiment.
+Both braid inputs exhausted the former internal orbit cap. Phase and symbolic
+inputs timed out. These logs precede removal of the braid cap.
+
+The braid orbit now terminates on modular closure or invalid input. The scanned
+API takes only N and returns the selected base as a tape; its former max-base
+and orbit-cap arguments have been removed. No repository callers used that API.
+The residue domain determines scan exhaustion. Regression coverage explicitly
+crosses the former cutoff and checks factor reconstruction.
