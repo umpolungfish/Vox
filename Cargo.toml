@@ -290,3 +290,7 @@ path = "src/bin/frame_work_cli.rs"
 [[bin]]
 name = "tower_words_cli"
 path = "src/bin/tower_words_cli.rs"
+
+[[bin]]
+name = "rho_probe"
+path = "src/bin/rho_probe.rs"
