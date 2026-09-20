@@ -18,13 +18,13 @@ fn imscribed_span_is_consumed_as_tape_without_host_cell_count() {
     // the imscribed span tapes and closes at the same absolute tape cell 126.
     let near_n = mul(&tape_u64(1_000_003), &tape_u64(1_032_007));
     let near = DialecticObject::new(near_n).unwrap();
-    let near = match near.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("near-root fixture unexpectedly closed in short frontier"),
+    let near = match near.descend() {
+        Descent::B(next) => next,
+        other => panic!("near-root short frontier descended as FOUR={}", other.four()),
     };
-    let near_closed = match near.descend().unwrap() {
-        Descent::Closed(closed) => closed,
-        Descent::Continue(_) => panic!("near-root fixture failed to close in extended Fermat span"),
+    let near_closed = match near.descend() {
+        Descent::T(closed) => closed,
+        other => panic!("near-root extended Fermat descended as FOUR={}", other.four()),
     };
     assert_eq!(near_closed.lattice_cell, tape_u64(126));
 
@@ -33,15 +33,17 @@ fn imscribed_span_is_consumed_as_tape_without_host_cell_count() {
     let far_n = mul(&tape_u64(1_000_003), &tape_u64(10_000_019));
     let mut far = DialecticObject::new(far_n).unwrap();
     let far_closed = loop {
-        match far.descend().unwrap() {
-            Descent::Continue(next) => far = next,
-            Descent::Closed(closed) => break closed,
+        match far.descend() {
+            Descent::B(next) => far = next,
+            Descent::T(closed) => break closed,
+            Descent::N(_) => panic!("factoring tape-span execution unexpectedly exposed N"),
+            Descent::F => panic!("validated tape-span execution unexpectedly exposed F"),
         }
     };
     assert_eq!(far_closed.lehman_multiplier.as_deref(), Some(tape_u64(10).as_slice()));
     assert_eq!(far_closed.lattice_cell, tape_u64(0));
 
     println!(
-        "dialectic tape-span executor: no semantic span->usize conversion; near-root cell=126; far-gap k=10 cell=0"
+        "dialectic tape-span executor: no semantic span->usize conversion; near-root cell=126; far-gap k=10 cell=0; descent preserves FOUR"
     );
 }

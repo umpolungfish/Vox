@@ -45,27 +45,24 @@ pub struct DialecticCertificateSummary {
 }
 
 /// Build a certificate by repeatedly consuming complete operator-space objects.
-/// A genuine FOUR=N continuation is an exact whole-object fixed point. This
-/// factor-closing certificate has no terminal carrier for that neutral point, so
-/// it returns explicitly rather than replaying the same restart object forever.
+/// FOUR remains explicit in the descent result. This factor-closing certificate
+/// accepts productive B until T; N has no terminal carrier and F has no valid
+/// continuation, so both terminate certificate production explicitly.
 pub fn certify_dialectic(start: &DialecticObject) -> Result<DialecticCertificate, String> {
     let mut current = start.clone();
     let mut objects = Vec::new();
 
     loop {
         current.validate()?;
-        let current_wire = current.encode();
-        objects.push(current_wire.clone());
-        match current.descend()? {
-            Descent::Continue(next) => {
-                if next.encode() == current_wire {
-                    return Err(String::from(
-                        "dialectic certificate reached FOUR=N unchanged imscription before factor closure",
-                    ));
-                }
-                current = next;
+        objects.push(current.encode());
+        match current.descend() {
+            Descent::B(next) => current = next,
+            Descent::N(_) => {
+                return Err(String::from(
+                    "dialectic certificate reached FOUR=N unchanged imscription before factor closure",
+                ));
             }
-            Descent::Closed(closed) => {
+            Descent::T(closed) => {
                 return Ok(DialecticCertificate {
                     objects,
                     terminal_carrier: closed.carrier.encode(),
@@ -74,6 +71,11 @@ pub fn certify_dialectic(start: &DialecticObject) -> Result<DialecticCertificate
                     lattice_cell: closed.lattice_cell,
                     lehman_multiplier: closed.lehman_multiplier,
                 });
+            }
+            Descent::F => {
+                return Err(String::from(
+                    "dialectic certificate reached FOUR=F malformed imscription before factor closure",
+                ));
             }
         }
     }
@@ -109,20 +111,30 @@ pub fn verify_dialectic_certificate(
         }
         supports.push(object.support);
 
-        let replay = object.descend()?;
+        let replay = object.descend();
         let last = i + 1 == certificate.objects.len();
         if !last {
             match replay {
-                Descent::Continue(next) => {
+                Descent::B(next) => {
                     if next.encode() != certificate.objects[i + 1] {
                         return Err(String::from(
                             "dialectic certificate continuation does not equal the next persisted whole object",
                         ));
                     }
                 }
-                Descent::Closed(_) => {
+                Descent::N(_) => {
+                    return Err(String::from(
+                        "dialectic certificate continues after FOUR=N reached an unchanged imscription",
+                    ));
+                }
+                Descent::T(_) => {
                     return Err(String::from(
                         "dialectic certificate continues after the imscription already closed",
+                    ));
+                }
+                Descent::F => {
+                    return Err(String::from(
+                        "dialectic certificate replay reached FOUR=F before terminal closure",
                     ));
                 }
             }
@@ -130,10 +142,20 @@ pub fn verify_dialectic_certificate(
         }
 
         let closed = match replay {
-            Descent::Closed(closed) => closed,
-            Descent::Continue(_) => {
+            Descent::T(closed) => closed,
+            Descent::B(_) => {
                 return Err(String::from(
                     "dialectic certificate ends before the operator-space imscription closes",
+                ));
+            }
+            Descent::N(_) => {
+                return Err(String::from(
+                    "dialectic certificate ends at FOUR=N without a terminal factor carrier",
+                ));
+            }
+            Descent::F => {
+                return Err(String::from(
+                    "dialectic certificate terminal replay reached FOUR=F",
                 ));
             }
         };

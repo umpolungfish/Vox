@@ -51,9 +51,9 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     let first_support = first.support;
     let first_boundary = first.boundary().clone();
     let first_relation = first.imscription.rwx.clone();
-    let second = match first.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("32,004-gap pair closed inside the 64-cell frontier"),
+    let second = match first.descend() {
+        Descent::B(next) => next,
+        other => panic!("32,004-gap pair short frontier descended as FOUR={}", other.four()),
     };
 
     assert_eq!(second.word(), EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>().as_slice());
@@ -85,9 +85,9 @@ fn operator_consumes_frontier_then_reimscribes_from_persisted_boundary() {
     assert_live_relation(&restarted);
 
     let persisted_boundary = restarted.boundary().clone();
-    let closure = match restarted.descend().unwrap() {
-        Descent::Closed(closed) => closed,
-        Descent::Continue(_) => panic!("extended Fermat imscription failed to close measured near-root pair"),
+    let closure = match restarted.descend() {
+        Descent::T(closed) => closed,
+        other => panic!("extended Fermat imscription descended as FOUR={}", other.four()),
     };
 
     assert_eq!(verdict(closure.word()), 'T');
@@ -133,9 +133,9 @@ fn operator_closes_without_descent_when_first_imscribed_space_affords_the_pair()
     let initial_boundary = object.boundary().clone();
     assert_eq!(object.span(), &tape_u64(SHORT_FRONTIER_SPAN));
     assert_live_relation(&object);
-    let closure = match object.descend().unwrap() {
-        Descent::Closed(closed) => closed,
-        Descent::Continue(_) => panic!("1,000-gap pair should close in the short-frontier imscription"),
+    let closure = match object.descend() {
+        Descent::T(closed) => closed,
+        other => panic!("1,000-gap pair descended as FOUR={} instead of T", other.four()),
     };
 
     assert_eq!(verdict(closure.word()), 'T');
@@ -165,18 +165,18 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
     let n = mul(&p, &q);
 
     let first = DialecticObject::new(n.clone()).unwrap();
-    let extended = match first.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in short frontier"),
+    let extended = match first.descend() {
+        Descent::B(next) => next,
+        other => panic!("far-gap short frontier descended as FOUR={}", other.four()),
     };
     assert_eq!(extended.word(), EXTENDED_FERMAT_WORD.chars().collect::<Vec<_>>().as_slice());
     assert_eq!(extended.span(), &tape_u64(EXTENDED_FERMAT_SPAN));
     assert_eq!(verdict(extended.word()), 'B');
     assert_live_relation(&extended);
 
-    let lehman = match extended.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in Fermat ring"),
+    let lehman = match extended.descend() {
+        Descent::B(next) => next,
+        other => panic!("far-gap Fermat ring descended as FOUR={}", other.four()),
     };
     assert_eq!(lehman.word(), LEHMAN_WORD.chars().collect::<Vec<_>>().as_slice());
     assert_eq!(verdict(lehman.word()), 'B');
@@ -194,8 +194,8 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
         let k = restarted.boundary().clone();
         let relation = restarted.imscription.rwx.clone();
 
-        match restarted.descend().unwrap() {
-            Descent::Continue(next) => {
+        match restarted.descend() {
+            Descent::B(next) => {
                 assert_eq!(next.word(), LEHMAN_WORD.chars().collect::<Vec<_>>().as_slice());
                 assert_eq!(next.boundary(), &add(&k, &tape_u64(1)));
                 assert_eq!(next.span(), &relation.execute_span);
@@ -208,7 +208,9 @@ fn operator_changes_lattice_and_reenters_until_lehman_locks_the_pair() {
                 assert_ne!(next.imscription.rwx, relation);
                 current = next;
             }
-            Descent::Closed(closed) => break closed,
+            Descent::T(closed) => break closed,
+            Descent::N(_) => panic!("factoring Lehman descent unexpectedly routed around as N"),
+            Descent::F => panic!("validated Lehman descent unexpectedly exposed F"),
         }
     };
 
@@ -253,43 +255,51 @@ fn persisted_operator_space_rejects_rwx_relation_or_support_mismatch() {
     let q = tape_u64(1_032_007);
     let n = mul(&p, &q);
     let first = DialecticObject::new(n).unwrap();
-    let second = match first.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("fixture unexpectedly closed in frontier"),
+    let second = match first.descend() {
+        Descent::B(next) => next,
+        other => panic!("fixture short frontier descended as FOUR={}", other.four()),
     };
     assert_live_relation(&second);
 
     let mut bad_rights = second.clone();
     bad_rights.imscription.rwx.rights &= !vox::dialectic_reentry::IM_WRITE;
     assert!(DialecticObject::decode(&bad_rights.encode()).is_err());
+    assert!(matches!(bad_rights.descend(), Descent::F));
 
     let mut bad_read = second.clone();
     bad_read.imscription.rwx.read_bulk[0] = flip(bad_read.imscription.rwx.read_bulk[0]);
     assert!(DialecticObject::decode(&bad_read.encode()).is_err());
+    assert!(matches!(bad_read.descend(), Descent::F));
 
     let mut bad_write = second.clone();
     bad_write.imscription.rwx.write_boundary[0] = flip(bad_write.imscription.rwx.write_boundary[0]);
     assert!(DialecticObject::decode(&bad_write.encode()).is_err());
+    assert!(matches!(bad_write.descend(), Descent::F));
 
     let mut bad_execute_span = second.clone();
     bad_execute_span.imscription.rwx.execute_span[0] =
         flip(bad_execute_span.imscription.rwx.execute_span[0]);
     assert!(DialecticObject::decode(&bad_execute_span.encode()).is_err());
+    assert!(matches!(bad_execute_span.descend(), Descent::F));
 
     let mut bad_execute_word = second.clone();
     bad_execute_word.imscription.rwx.execute_word = SHORT_FRONTIER_WORD.chars().collect();
     assert!(DialecticObject::decode(&bad_execute_word.encode()).is_err());
+    assert!(matches!(bad_execute_word.descend(), Descent::F));
 
     let mut bad_support = second;
     bad_support.support ^= SUPPORT_SHORT_FRONTIER;
     assert!(DialecticObject::decode(&bad_support.encode()).is_err());
+    assert!(matches!(bad_support.descend(), Descent::F));
 
     let source = include_str!("../src/dialectic_reentry.rs");
     assert!(!source.contains("pub boundary: Tape"));
     assert!(!source.contains("pub span: Tape"));
     assert!(!source.contains("pub word: Vec<Mark>"));
+    assert!(!source.contains("Descent::Continue"));
+    assert!(!source.contains("Descent::Closed"));
 
     println!(
-        "dialectic r/w/x ownership: rights/read/write/execute/support forgeries rejected; no mirrored boundary/span/word fields remain",
+        "dialectic r/w/x ownership: rights/read/write/execute/support forgeries are F at execution and rejected by persistence; no mirrored boundary/span/word fields remain",
     );
 }

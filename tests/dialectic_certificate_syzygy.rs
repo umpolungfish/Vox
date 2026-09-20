@@ -107,9 +107,11 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
 
     let mut runtime = start.clone();
     let runtime_closure = loop {
-        match runtime.descend().unwrap() {
-            Descent::Continue(next) => runtime = next,
-            Descent::Closed(closed) => break closed,
+        match runtime.descend() {
+            Descent::B(next) => runtime = next,
+            Descent::T(closed) => break closed,
+            Descent::N(_) => panic!("factoring certificate runtime unexpectedly exposed N"),
+            Descent::F => panic!("validated certificate runtime unexpectedly exposed F"),
         }
     };
     assert_eq!(runtime_closure.lattice_cell, certificate.lattice_cell);
@@ -190,7 +192,7 @@ fn whole_object_certificate_replays_every_restart_and_rejects_forged_links() {
     assert!(verify_dialectic_certificate(&decoded_wide).is_err());
 
     println!(
-        "dialectic certificate: {} persisted whole objects replay exactly; runtime/certificate imscription identical; forged continuity/support/rwx-legs and host-wider lattice cell rejected semantically",
+        "dialectic certificate: {} persisted whole objects replay exact FOUR-preserving descents; runtime/certificate imscription identical; forged continuity/support/rwx-legs and host-wider lattice cell rejected semantically",
         summary.descents,
     );
 }

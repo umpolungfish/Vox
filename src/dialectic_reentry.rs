@@ -452,10 +452,26 @@ impl DialecticClosure {
     }
 }
 
+/// Whole-object execution result. FOUR remains structurally visible after the
+/// judgment is consumed: T owns a closure, B owns the succeeding whole object,
+/// N owns the exact unchanged whole object, and F owns no invalid payload.
 #[derive(Clone, PartialEq, Debug)]
 pub enum Descent {
-    Continue(DialecticObject),
-    Closed(DialecticClosure),
+    T(DialecticClosure),
+    B(DialecticObject),
+    N(DialecticObject),
+    F,
+}
+
+impl Descent {
+    pub fn four(&self) -> Mark {
+        match self {
+            Self::T(_) => 'T',
+            Self::B(_) => 'B',
+            Self::N(_) => 'N',
+            Self::F => 'F',
+        }
+    }
 }
 
 impl DialecticObject {
@@ -569,8 +585,7 @@ impl DialecticObject {
 
     /// Judge the current relation through FOUR. This boundary is semantically
     /// total: every complete in-memory relation yields exactly T, B, N, or F.
-    /// Rust errors remain confined to persistence/codec and execution APIs, not
-    /// to FOUR judgment itself.
+    /// Rust errors remain confined to persistence/codec APIs, not FOUR judgment.
     pub fn judge_current_imscription(&self) -> DialecticJudgment {
         if self.validate_relation_shape().is_err() {
             return DialecticJudgment::F;
@@ -751,21 +766,19 @@ impl DialecticObject {
         Ok(object)
     }
 
-    /// Consume the whole object by pattern-matching the actual FOUR state.
-    pub fn descend(self) -> Result<Descent, String> {
+    /// Consume the whole object without erasing FOUR into control-flow or errors.
+    /// The execution result itself is T/B/N/F; persistence and codecs are the
+    /// only layers that use Rust `Result` for malformed serialized input.
+    pub fn descend(self) -> Descent {
         match self.judge_current_imscription() {
             DialecticJudgment::T {
                 imscription,
                 support,
                 witness,
             } => {
-                let lattice = match decode_imasm_execution(imscription.word())? {
-                    ImasmExecution::T { lattice } => lattice,
-                    _ => {
-                        return Err(String::from(
-                            "FOUR=T dialectic judgment carried a non-terminal imscription",
-                        ))
-                    }
+                let lattice = match decode_imasm_execution(imscription.word()) {
+                    Ok(ImasmExecution::T { lattice }) => lattice,
+                    _ => return Descent::F,
                 };
                 let lehman_multiplier = if lattice == ImscriptionLattice::Lehman {
                     Some(imscription.boundary().clone())
@@ -791,8 +804,11 @@ impl DialecticObject {
                     support,
                     imscription,
                 };
-                next.validate()?;
-                Ok(Descent::Continue(next))
+                if next.validate().is_err() {
+                    Descent::F
+                } else {
+                    Descent::B(next)
+                }
             }
             DialecticJudgment::N {
                 imscription,
@@ -803,12 +819,13 @@ impl DialecticObject {
                     support,
                     imscription,
                 };
-                unchanged.validate()?;
-                Ok(Descent::Continue(unchanged))
+                if unchanged.validate().is_err() {
+                    Descent::F
+                } else {
+                    Descent::N(unchanged)
+                }
             }
-            DialecticJudgment::F => Err(String::from(
-                "FOUR=F dialectic judgment exposed malformed or structurally incomplete imscription grammar",
-            )),
+            DialecticJudgment::F => Descent::F,
         }
     }
 }
@@ -821,19 +838,15 @@ fn close(
     imscription: Imscription,
     lattice_cell: Tape,
     lehman_multiplier: Option<Tape>,
-) -> Result<Descent, String> {
+) -> Descent {
     if !matches!(
-        decode_imasm_execution(imscription.word())?,
-        ImasmExecution::T { .. }
+        decode_imasm_execution(imscription.word()),
+        Ok(ImasmExecution::T { .. })
     ) {
-        return Err(String::from(
-            "terminal dialectic judgment did not carry a closing IMASM relation",
-        ));
+        return Descent::F;
     }
     if !imscription.relation_is_live_for(&n) {
-        return Err(String::from(
-            "closed dialectic imscription lost its terminal r/w/x relation",
-        ));
+        return Descent::F;
     }
     let word = imscription.word().to_vec();
     let trace = encode_trace(&[GStep {
@@ -843,14 +856,17 @@ fn close(
         next: M_FIX,
         applied_word: word,
     }]);
-    let carrier = FactorCarrier::new(n, p, q, trace)?;
-    Ok(Descent::Closed(DialecticClosure {
+    let carrier = match FactorCarrier::new(n, p, q, trace) {
+        Ok(carrier) => carrier,
+        Err(_) => return Descent::F,
+    };
+    Descent::T(DialecticClosure {
         carrier,
         support,
         imscription,
         lattice_cell,
         lehman_multiplier,
-    }))
+    })
 }
 
 fn fermat_origin(n: &[Mark]) -> Tape {
