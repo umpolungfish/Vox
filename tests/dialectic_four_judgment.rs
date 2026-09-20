@@ -28,9 +28,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     );
     assert_eq!(short_result.span(), &tape_u64(EXTENDED_FERMAT_SPAN));
 
-    let extended = match short.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("near-root fixture unexpectedly closed in short frontier"),
+    let extended = match short.descend() {
+        Descent::B(next) => next,
+        other => panic!("short-frontier judgment descended as FOUR={} instead of B", other.four()),
     };
     assert_eq!(extended.imscription, short_result);
     assert_eq!(extended.support, short_support);
@@ -56,9 +56,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
         }
     );
 
-    let extended_closed = match extended.descend().unwrap() {
-        Descent::Closed(closed) => closed,
-        Descent::Continue(_) => panic!("near-root fixture failed to close after FOUR=T"),
+    let extended_closed = match extended.descend() {
+        Descent::T(closed) => closed,
+        other => panic!("extended Fermat descended as FOUR={} instead of T", other.four()),
     };
     assert_eq!(extended_closed.imscription, extended_terminal);
     assert_eq!(extended_closed.support, extended_support);
@@ -68,9 +68,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     // span=64 and the Lehman word are all already in the B variant.
     let far_n = mul(&tape_u64(1_000_003), &tape_u64(10_000_019));
     let short = DialecticObject::new(far_n).unwrap();
-    let extended = match short.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed in short frontier"),
+    let extended = match short.descend() {
+        Descent::B(next) => next,
+        other => panic!("far-gap short frontier descended as FOUR={}", other.four()),
     };
     let change = extended.judge_current_imscription();
     let lehman1_relation = match &change {
@@ -86,9 +86,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
         }
     );
 
-    let lehman1 = match extended.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed before Lehman"),
+    let lehman1 = match extended.descend() {
+        Descent::B(next) => next,
+        other => panic!("far-gap Fermat ring descended as FOUR={}", other.four()),
     };
     assert_eq!(lehman1.imscription, lehman1_relation);
 
@@ -101,9 +101,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert_eq!(k2_relation.boundary(), &tape_u64(2));
     assert_eq!(k2_relation.span(), &tape_u64(LEHMAN_LOCAL_SPAN));
 
-    let mut current = match lehman1.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("far-gap fixture unexpectedly closed at k=1"),
+    let mut current = match lehman1.descend() {
+        Descent::B(next) => next,
+        other => panic!("Lehman k=1 descended as FOUR={}", other.four()),
     };
     assert_eq!(current.imscription, k2_relation);
 
@@ -116,9 +116,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
             } => {
                 let expected_relation = imscription.clone();
                 let expected_support = *support;
-                current = match current.descend().unwrap() {
-                    Descent::Continue(next) => next,
-                    Descent::Closed(_) => panic!("FOUR=B unexpectedly closed the far-gap object"),
+                current = match current.descend() {
+                    Descent::B(next) => next,
+                    other => panic!("FOUR=B descended as FOUR={}", other.four()),
                 };
                 assert_eq!(current.imscription, expected_relation);
                 assert_eq!(current.support, expected_support);
@@ -134,9 +134,9 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
                 assert_eq!(current.boundary(), &tape_u64(10));
                 assert_eq!(terminal_relation.boundary(), &tape_u64(10));
                 assert_eq!(witness.lattice_cell, tape_u64(0));
-                let closed = match current.descend().unwrap() {
-                    Descent::Closed(closed) => closed,
-                    Descent::Continue(_) => panic!("FOUR=T failed to close the far-gap object"),
+                let closed = match current.descend() {
+                    Descent::T(closed) => closed,
+                    other => panic!("FOUR=T descended as FOUR={}", other.four()),
                 };
                 assert_eq!(closed.imscription, terminal_relation);
                 assert_eq!(closed.support, terminal_support);
@@ -152,7 +152,8 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     );
     assert_eq!(far_closed.lattice_cell, tape_u64(0));
 
-    // Architectural guard: FOUR is a sum type, not a mark plus nullable payloads.
+    // Architectural guards: judgment, executable grammar, and descent are all
+    // structural sums rather than marks/booleans/errors that can disagree.
     let source = include_str!("../src/dialectic_reentry.rs");
     let judgment_decl = source
         .split("pub enum DialecticJudgment")
@@ -197,6 +198,20 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert!(!judge.contains("return Err("));
     assert!(!judge.contains("Ok(DialecticJudgment"));
 
+    let descent_decl = source
+        .split("pub enum Descent")
+        .nth(1)
+        .expect("FOUR-preserving descent enum not found")
+        .split("impl Descent")
+        .next()
+        .unwrap();
+    assert!(descent_decl.contains("T(DialecticClosure)"));
+    assert!(descent_decl.contains("B(DialecticObject)"));
+    assert!(descent_decl.contains("N(DialecticObject)"));
+    assert!(descent_decl.contains("F,"));
+    assert!(!descent_decl.contains("Continue"));
+    assert!(!descent_decl.contains("Closed"));
+
     let descend = source
         .split("pub fn descend(self)")
         .nth(1)
@@ -204,15 +219,21 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
         .split("fn close(")
         .next()
         .unwrap();
+    assert!(source.contains("pub fn descend(self) -> Descent"));
+    assert!(!descend.contains("Result<Descent"));
     assert!(descend.contains("DialecticJudgment::T"));
     assert!(descend.contains("DialecticJudgment::B"));
     assert!(descend.contains("DialecticJudgment::N"));
     assert!(descend.contains("DialecticJudgment::F"));
+    assert!(descend.contains("Descent::T"));
+    assert!(descend.contains("Descent::B"));
+    assert!(descend.contains("Descent::N"));
+    assert!(descend.contains("Descent::F"));
     assert!(!descend.contains("judgment.witness"));
     assert!(!descend.contains("judgment.resulting_imscription"));
     assert!(!descend.contains("judgment.resulting_support"));
 
     println!(
-        "dialectic FOUR sums: judgment and IMASM execution states are structurally distinct, and judgment itself is total rather than Result-wrapped"
+        "dialectic FOUR sums: judgment, IMASM execution and whole-object descent are structurally typed; T/B/N/F are not re-encoded as generic continuation or Rust errors"
     );
 }

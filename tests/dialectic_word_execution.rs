@@ -47,9 +47,9 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
             lattice: ImscriptionLattice::ShortFrontier,
         },
     );
-    let extended = match near.descend().unwrap() {
-        Descent::Continue(next) => next,
-        Descent::Closed(_) => panic!("near-root fixture unexpectedly closed in short frontier"),
+    let extended = match near.descend() {
+        Descent::B(next) => next,
+        other => panic!("near-root short frontier descended as FOUR={}", other.four()),
     };
     let extended_execution = decode_imasm_execution(extended.word()).unwrap();
     assert_eq!(
@@ -58,9 +58,9 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
             lattice: ImscriptionLattice::ExtendedFermat,
         }
     );
-    let extended_closed = match extended.descend().unwrap() {
-        Descent::Closed(closed) => closed,
-        Descent::Continue(_) => panic!("near-root fixture failed to close in extended Fermat"),
+    let extended_closed = match extended.descend() {
+        Descent::T(closed) => closed,
+        other => panic!("near-root extended Fermat descended as FOUR={}", other.four()),
     };
     let closed_execution = decode_imasm_execution(extended_closed.word()).unwrap();
     assert_eq!(
@@ -77,8 +77,8 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
     let mut current = DialecticObject::new(far_n).unwrap();
     let far_closed = loop {
         let execution = decode_imasm_execution(current.word()).unwrap();
-        match current.descend().unwrap() {
-            Descent::Continue(next) => {
+        match current.descend() {
+            Descent::B(next) => {
                 if execution.lattice() == ImscriptionLattice::ExtendedFermat {
                     assert_eq!(
                         decode_imasm_execution(next.word()).unwrap(),
@@ -89,7 +89,9 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
                 }
                 current = next;
             }
-            Descent::Closed(closed) => break closed,
+            Descent::T(closed) => break closed,
+            Descent::N(_) => panic!("factoring execution unexpectedly routed around as FOUR=N"),
+            Descent::F => panic!("validated factoring execution unexpectedly exposed FOUR=F"),
         }
     };
     let far_execution = decode_imasm_execution(far_closed.word()).unwrap();
@@ -119,8 +121,11 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
     assert!(!execution_decl.contains("pub four:"));
     assert!(!execution_decl.contains("pub closed:"));
     assert!(source.contains("decode_imasm_execution(self.word())"));
+    assert!(source.contains("pub fn descend(self) -> Descent"));
+    assert!(!source.contains("Descent::Continue"));
+    assert!(!source.contains("Descent::Closed"));
 
     println!(
-        "dialectic IMASM execution sum: B/T/N grammar states are structurally typed; short -> extended -> Lehman remains grammar-selected"
+        "dialectic IMASM execution sum: B/T/N grammar states are structurally typed; whole-object execution preserves FOUR while short -> extended -> Lehman remains grammar-selected"
     );
 }
