@@ -18,14 +18,23 @@ fn main() {
         println!("order {}", dec_of(&r));
         let (p,q) = vox::shor_braid::factor_close_public(&vox::morphism_factor::tape_u64(2), &n, &r).unwrap();
         println!("factor {}\nfactor {}", dec_of(&p), dec_of(&q));
-    } else if args[1] == "symbolic" {
-        eprintln!("stage symbolic register preparation, base=2");
-        let reg = shor_qft::SymbolicRegister::from_modulus(vox::morphism_factor::tape_u64(2), n.clone(), 2*n.len()).unwrap();
-        eprintln!("stage QFT peak and order extraction");
-        let peak = reg.qft_peak().unwrap();
-        let order = reg.extract_order(&peak).unwrap();
+    } else if args[1] == "observed" {
+        let qubits: usize = args.get(3).expect("observed requires register qubits").parse().unwrap();
+        let reg = shor_qft::ObservedPhaseRegister::from_modulus(vox::morphism_factor::tape_u64(2), n.clone(), qubits).unwrap();
+        println!("branch_population {}", reg.branch_population);
+        let Some(order) = reg.extract_order() else {
+            println!("unresolved phase register");
+            return;
+        };
         println!("order {}", dec_of(&order));
-        let (p,q) = reg.factor_close(&order).0.expect("nontrivial factor close");
+        let (p,q) = shor_qft::factor_close_public(&reg.a, &n, &order).unwrap();
+        println!("factor {}\nfactor {}", dec_of(&p), dec_of(&q));
+    } else if args[1] == "symbolic" {
+        eprintln!("stage modular evolution and observed QFT, base=2");
+        let a = vox::morphism_factor::tape_u64(2);
+        let order = shor_qft::observe_order(a.clone(), n.clone()).unwrap();
+        println!("order {}", dec_of(&order));
+        let (p,q) = shor_qft::factor_close_public(&a, &n, &order).unwrap();
         println!("factor {}\nfactor {}", dec_of(&p), dec_of(&q));
     } else if args[1] == "phase" {
         eprintln!("stage nested phase factor execution");

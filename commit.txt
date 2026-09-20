@@ -1,7 +1,8 @@
-I remove arbitrary braid orbit budgets and probe extraction paths
+I derive phase observations from modular evolution before extracting orders
 
-I run phase, braid, and symbolic extraction directly on the 175-bit controls
-and retain their stage diagnostics. I remove the fixed braid orbit cutoff,
-replace bounded base scanning with tape residue traversal, and make external
-campaign timeouts opt-in. I test closure beyond the former cutoff, winding
-readout, factor reconstruction, and invalid-input rejection.
+I add an FDE modular-evolution register with QFT frequencies and checked
+continued-fraction extraction. I route wide Shor execution through growing
+observation registers and retain the order-first implementation as a legacy
+reference. I verify full spectra against the direct transform and probe the
+175-bit balanced control at 65536 positions, recording its unresolved result.
+I document the dense representation and its physical resource requirements.
