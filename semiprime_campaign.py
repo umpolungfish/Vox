@@ -7,6 +7,7 @@ import time
 import hashlib
 from pathlib import Path
 from sympy import nextprime, isprime
+from baked_case import build_case
 
 ROOT = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser()
@@ -22,7 +23,6 @@ if args.seconds is not None and args.seconds <= 0:
     parser.error('--seconds must be positive when supplied')
 assert min(args.bits) >= 175
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
-binary_hash = hashlib.sha256((ROOT/'target/release/semiprime_probe').read_bytes()).hexdigest()
 with open(args.output, 'x') as output:
     for bits in args.bits:
         for family in args.families:
@@ -45,13 +45,16 @@ with open(args.output, 'x') as output:
                         break
                 assert isprime(p) and isprime(q)
                 for producer in args.producers:
+                    binary, words = build_case(n, producer)
+                    binary_hash = hashlib.sha256(binary.read_bytes()).hexdigest()
                     row = dict(bits=bits, family=family, sample=sample, seed=seed,
                                n=str(n), p=str(p), q=str(q), producer=producer,
                                revision=revision, binary_sha256=binary_hash,
+                               binary=str(binary), imasm_inputs=words,
                                primality='sympy probable-prime checks', budget=args.seconds)
                     started = time.monotonic()
                     try:
-                        result = subprocess.run([str(ROOT/'target/release/semiprime_probe'), producer, str(n)],
+                        result = subprocess.run([str(binary)], env={}, input='',
                                                 capture_output=True, text=True, timeout=args.seconds)
                         row.update(stdout=result.stdout, stderr=result.stderr, returncode=result.returncode)
                         factors = [int(line.split()[1]) for line in result.stdout.splitlines() if line.startswith('factor ')]

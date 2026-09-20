@@ -7,6 +7,14 @@ license = "Unlicense"
 autobins = false
 
 [[bin]]
+name = "phase_case_encode"
+path = "src/bin/phase_case_encode.rs"
+
+[[bin]]
+name = "phase_baked"
+path = "src/bin/phase_baked.rs"
+
+[[bin]]
 name = "semiprime_probe"
 path = "src/bin/semiprime_probe.rs"
 

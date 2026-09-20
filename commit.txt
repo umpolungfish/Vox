@@ -1,7 +1,7 @@
-I measure sparse phase observations and expose their remaining construction cost
+I bake my phase and semiprime inputs into per-case IMASM binaries
 
-I retain observed branch positions and evaluate individual Fourier
-probabilities without allocating a dense spectrum. I compare every frequency
-against the dense controls and measure the 175-bit balanced input through
-1048576 positions. I record constant sparse occupancy and linear construction
-work, and document that scalable order extraction remains unresolved.
+I compile each campaign case with canonical IMASM numerals and retain its
+executable and hash. I remove runtime numeric inputs from the probe and test
+that runtime overrides leave the baked phase observations unchanged.
+I implement observation banking across descent and fusion, test exact payload
+preservation, and document the remaining blueprint execution and acquisition work.
