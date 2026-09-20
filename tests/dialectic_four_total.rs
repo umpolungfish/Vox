@@ -10,7 +10,7 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     // B is the real productive short-frontier exposure of the near-root fixture.
     let n = mul(&tape_u64(1_000_003), &tape_u64(1_032_007));
     let short = DialecticObject::new(n.clone()).unwrap();
-    let b = short.judge_current_imscription().unwrap();
+    let b = short.judge_current_imscription();
     assert!(matches!(b, DialecticJudgment::B { .. }));
     assert_eq!(b.four(), 'B');
 
@@ -19,7 +19,7 @@ fn all_four_states_are_operational_through_one_judgment_path() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("near-root fixture unexpectedly closed in short frontier"),
     };
-    let t = extended.judge_current_imscription().unwrap();
+    let t = extended.judge_current_imscription();
     let terminal = match &t {
         DialecticJudgment::T {
             imscription,
@@ -46,7 +46,7 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     assert!(matches!(neutral_exec, ImasmExecution::N { .. }));
     assert_eq!(neutral_exec.four(), 'N');
     assert!(neutral_exec.is_neutral());
-    let n_judgment = neutral.judge_current_imscription().unwrap();
+    let n_judgment = neutral.judge_current_imscription();
     match &n_judgment {
         DialecticJudgment::N {
             imscription,
@@ -73,24 +73,50 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     let neutral_certificate_error = certify_dialectic(&neutral).unwrap_err();
     assert!(neutral_certificate_error.contains("FOUR=N unchanged imscription"));
 
-    // F is likewise reached through the same judgment machinery. The relation
-    // remains a complete r/w/x object, but its executable grammar has a fuse
-    // with no split. SIXTEEN_3 therefore judges F before any lattice is walked.
-    let mut malformed = DialecticObject::new(n).unwrap();
-    malformed.imscription.rwx.execute_word =
+    // F is reached through the same total judgment machinery. A complete r/w/x
+    // object whose executable grammar has a fuse with no split is structurally
+    // malformed, so judgment returns F before any lattice is walked.
+    let mut malformed_grammar = DialecticObject::new(n.clone()).unwrap();
+    malformed_grammar.imscription.rwx.execute_word =
         vec![VINIT, IMSCRIB, '∋', '≻', '⊤', '≺', '⊥', '⊡', TANCH];
-    assert_eq!(verdict(malformed.word()), 'F');
-    assert!(decode_imasm_execution(malformed.word()).is_err());
+    assert_eq!(verdict(malformed_grammar.word()), 'F');
+    assert!(decode_imasm_execution(malformed_grammar.word()).is_err());
     assert!(matches!(
-        malformed.judge_current_imscription().unwrap(),
+        malformed_grammar.judge_current_imscription(),
         DialecticJudgment::F
     ));
-    assert!(malformed.validate().is_err());
-    assert!(DialecticObject::decode(&malformed.encode()).is_err());
-    assert!(malformed.descend().is_err());
+    assert!(malformed_grammar.validate().is_err());
+    assert!(DialecticObject::decode(&malformed_grammar.encode()).is_err());
+    assert!(malformed_grammar.descend().is_err());
+
+    // Broken relation shape is also semantic F at this boundary rather than a
+    // Rust error. The read endpoint no longer names this whole object's bulk.
+    let mut severed_read = DialecticObject::new(n.clone()).unwrap();
+    severed_read.imscription.rwx.read_bulk = tape_u64(3);
+    assert!(matches!(
+        severed_read.judge_current_imscription(),
+        DialecticJudgment::F
+    ));
+
+    // A well-framed executable word bound to the wrong span/support is likewise
+    // F: grammar decoded, but the live imscription relation is inconsistent.
+    let mut bad_span = DialecticObject::new(n.clone()).unwrap();
+    bad_span.imscription.rwx.execute_span = tape_u64(63);
+    assert!(matches!(
+        bad_span.judge_current_imscription(),
+        DialecticJudgment::F
+    ));
+
+    let mut bad_support = DialecticObject::new(n).unwrap();
+    bad_support.support ^= 1 << 5;
+    assert!(matches!(
+        bad_support.judge_current_imscription(),
+        DialecticJudgment::F
+    ));
 
     // Architectural guard: arithmetic walkers expose only T/B, valid executable
-    // grammar is structurally B/T/N, and F stays a judgment of malformed grammar.
+    // grammar is structurally B/T/N, and F stays a total judgment of malformed
+    // or inconsistent imscription state.
     let source = include_str!("../src/dialectic_reentry.rs");
     let exposure = source
         .split("enum LatticeExposure")
@@ -121,9 +147,23 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     assert!(!source.contains("pub closed: bool"));
     assert!(source.contains("pub fn route_around"));
     assert!(source.contains("execution.is_neutral()"));
-    assert!(source.contains("return Ok(DialecticJudgment::F)"));
+
+    let judge = source
+        .split("pub fn judge_current_imscription")
+        .nth(1)
+        .expect("FOUR-total judgment boundary not found")
+        .split("pub fn envelope")
+        .next()
+        .unwrap();
+    assert!(source.contains(
+        "pub fn judge_current_imscription(&self) -> DialecticJudgment"
+    ));
+    assert!(!judge.contains("Result<DialecticJudgment"));
+    assert!(!judge.contains("return Err("));
+    assert!(!judge.contains("Ok(DialecticJudgment"));
+    assert!(judge.contains("return DialecticJudgment::F"));
 
     println!(
-        "dialectic FOUR total: B/T/N executable grammar is structurally typed; malformed grammar reaches F only through the judgment path"
+        "dialectic FOUR total: B/T/N executable grammar is structurally typed; malformed grammar, severed r/w/x and bad binding all become F at a non-Result judgment boundary"
     );
 }
