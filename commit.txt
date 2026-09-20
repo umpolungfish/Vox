@@ -1,5 +1,5 @@
-I test the supplied TV modulus corpus with baked dialectic inputs.
+I remove the artificial factor-route ceilings and add the general TV producer.
 
-I add the modulus-only TV battery and retain the first 895-bit timeout and
-complete Vox audit. The battery stops before claiming factors when a case does
-not produce them.
+I route modulus-only TV cases through the unbounded tape factor path and remove
+the resident Fermat cell cutoff and hard-carrier round ceiling. The first TV
+computation remains active for direct measurement.
