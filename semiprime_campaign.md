@@ -1,16 +1,43 @@
 # Semiprime execution campaign
 
-Run `cargo build --release --bin semiprime_probe`, then
-`python3 semiprime_campaign.py --output results.jsonl`.
+Run `python3 semiprime_campaign.py --output results.jsonl`.
 The Python harness requires SymPy. Output files are created exclusively and
 each completed case is flushed immediately. The default minimum width is 175
 bits, with five samples per family. There is no default execution timeout.
 `--seconds` explicitly opts into an external measurement timeout.
 
-Each producer receives only decimal N. Expected factors remain in the parent
-process. Success requires both expected factors in the producer readout.
+Each case builds and retains a separate executable. The canonical Rust
+`emit_numeral` produces the embedded IMASM modulus and base words at build time.
+Register widths, where used, are also embedded IMASM numerals. Execution has
+no numeric arguments, stdin input, or environment input. Expected factors remain
+in the parent process. Success requires both expected factors in the producer readout.
+The build/copy pair is locked so concurrent builders cannot exchange case binaries.
+The recorded execution time excludes compilation. Binaries remain under
+`target/baked-semiprime/`; the log records their paths, hashes, and input words.
 SymPy primality checks above 64 bits are probable-prime checks, not attached
 primality certificates. Seeds and exact inputs are retained for reproduction.
+
+## Baked phase observation controls
+
+`python3 baked_phase_check.py` builds separate observation binaries for an
+arithmetic control and the balanced 175-bit input at two register widths.
+The external harness checks Fourier queries against independent modular powers,
+and confirms that conflicting runtime arguments, stdin, and environment cannot
+change a baked case. All three cases pass. Reports and binaries are retained
+under `target/baked-phase/`.
+
+`PhaseObservationFrame` implements payload banking, live-register clearing, and
+fusion restoration. Its regression checks exact payload and spectrum preservation
+and rejects a changed live payload at fusion. The phase binary's nine unit tests
+pass. This is the transport segment of the supplied phase-observation blueprint.
+The complete twelve-mark execution and non-enumerating observation acquisition
+remain unimplemented. The frame currently transports the existing sparse modular
+walk's observations; it does not extract an order.
+
+`semiprime-baked-input-control.jsonl` records the 175-bit close-pair factoring
+control with embedded modulus and base. `phase-sparse-scaling-baked.jsonl`
+records the initial baked-modulus/width scaling run, before the base was also
+moved into an embedded numeral. Its binary hashes identify that earlier build.
 
 Families currently implemented are close pairs, q near 2p, independently
 sampled balanced pairs, and unbalanced pairs with p near one third of the

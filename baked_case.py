@@ -1,0 +1,39 @@
+"""Build-only inputs, canonical IMASM encoding, retained per-case executable."""
+import os
+import fcntl
+from pathlib import Path
+import shutil
+import subprocess
+import time
+
+ROOT = Path(__file__).resolve().parent
+
+
+def build_case(n, mode, width=None):
+    # Hold the lock through the copy: another case must not replace Cargo's
+    # output between compilation and retention of this executable.
+    (ROOT / 'target').mkdir(exist_ok=True)
+    with (ROOT / 'target/baked-case.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return _build_case(n, mode, width)
+
+
+def _build_case(n, mode, width):
+    subprocess.run(['cargo', 'build', '--release', '--bin', 'phase_case_encode'],
+                   cwd=ROOT, check=True, capture_output=True)
+    values = [str(n), '2'] + ([str(width)] if width is not None else [])
+    words = subprocess.check_output([str(ROOT / 'target/release/phase_case_encode'), *values], text=True).splitlines()
+    env = os.environ.copy()
+    env['VOX_PHASE_MODULUS_WORD'] = words[0]
+    env['VOX_PHASE_BASE_WORD'] = words[1]
+    env['VOX_PROBE_MODE'] = mode
+    env.pop('VOX_PHASE_WIDTH_WORD', None)
+    if width is not None:
+        env['VOX_PHASE_WIDTH_WORD'] = words[2]
+    subprocess.run(['cargo', 'build', '--release', '--bin', 'semiprime_probe'],
+                   cwd=ROOT, env=env, check=True, capture_output=True)
+    destination = ROOT / 'target/baked-semiprime' / str(time.time_ns())
+    destination.mkdir(parents=True)
+    binary = destination / mode
+    shutil.copy2(ROOT / 'target/release/semiprime_probe', binary)
+    return binary, words

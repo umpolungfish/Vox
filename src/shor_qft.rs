@@ -395,10 +395,38 @@ pub fn fermat_close_factor(n: &[char], max_steps: usize) -> Option<(Vec<char>, V
 
 /// Sparse branch support produced by modular evolution. Memory depends on
 /// observed branch occupancy; construction still executes every position.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SparsePhaseBranch {
     pub positions: Vec<usize>,
     pub register_size: usize,
     pub modular_steps: usize,
+}
+
+/// Observation-bearing frame for the blueprint's split/descent/fuse segment.
+/// The payload consists of measured modular branch positions and their domain.
+/// This transport does not manufacture a period or replace branch acquisition.
+pub struct PhaseObservationFrame {
+    live: Option<SparsePhaseBranch>,
+    banked: SparsePhaseBranch,
+}
+
+impl PhaseObservationFrame {
+    pub fn open(observation: SparsePhaseBranch) -> Self {
+        Self { live: Some(observation.clone()), banked: observation }
+    }
+
+    pub fn live(&self) -> Option<&SparsePhaseBranch> { self.live.as_ref() }
+
+    pub fn descend(&mut self) { self.live = None; }
+
+    pub fn fuse(self) -> Result<SparsePhaseBranch, String> {
+        if let Some(live) = self.live {
+            if live != self.banked {
+                return Err("phase observation changed before fusion".into());
+            }
+        }
+        Ok(self.banked)
+    }
 }
 
 impl SparsePhaseBranch {
@@ -836,6 +864,25 @@ mod big_factor_tests {
 
 #[cfg(test)]
 mod membrane_tests {
+    #[test]
+    fn observed_payload_survives_descent_and_fusion() {
+        use super::{PhaseObservationFrame, SparsePhaseBranch};
+        use vox::morphism_factor::tape_u64;
+        let original = SparsePhaseBranch::from_modulus(&tape_u64(2), &tape_u64(15), 8).unwrap();
+        let mut frame = PhaseObservationFrame::open(original.clone());
+        assert_eq!(frame.live(), Some(&original));
+        frame.descend();
+        frame.descend();
+        assert!(frame.live().is_none());
+        let fused = frame.fuse().unwrap();
+        assert_eq!(fused, original);
+        for k in 0..original.register_size {
+            assert_eq!(fused.probability(k), original.probability(k));
+        }
+        let mut corrupted = PhaseObservationFrame::open(original);
+        corrupted.live.as_mut().unwrap().positions.push(1);
+        assert!(corrupted.fuse().is_err());
+    }
     use super::*;
     #[test]
     fn observed_phase_matches_dense_control_without_order_input() {
