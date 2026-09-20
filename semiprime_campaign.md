@@ -67,3 +67,25 @@ API takes only N and returns the selected base as a tape; its former max-base
 and orbit-cap arguments have been removed. No repository callers used that API.
 The residue domain determines scan exhaustion. Regression coverage explicitly
 crosses the former cutoff and checks factor reconstruction.
+
+## Independent phase observations
+
+The wide Shor entry and the campaign's `symbolic` producer now use
+`observe_order`: modular evolution through the FDE carrier builds the branch
+state, a QFT produces frequencies, and continued fractions propose orders
+checked by modular exponentiation. Register width grows after unresolved
+observations, without an execution budget. The old `SymbolicRegister` remains
+as an explicitly labelled legacy reference; production no longer calls it.
+
+The new implementation materializes a register of 2^qubits complex amplitudes.
+This repairs the order-first dependency but does not provide a compact quantum
+state implementation. Physical address and allocation failures remain errors.
+This is a CPU simulation conditioned on the output branch f(x)=1, not sampling
+a physical quantum device. No large-input speedup has been established.
+
+`semiprime_probe observed N qubits` probes an explicitly selected register.
+For N=34708385599522211756186926321308977827402135941491069 and qubits=16,
+the executed probe returned branch_population=1 and unresolved phase register.
+Full spectra on small controls agree with the independent direct Fourier
+implementation. A singleton branch is tested to yield a flat spectrum and
+no extracted order. The wide-entry regression requires observed-phase output.

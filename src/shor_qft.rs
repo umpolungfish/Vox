@@ -397,6 +397,72 @@ pub fn fermat_close_factor(n: &[char], max_steps: usize) -> Option<(Vec<char>, V
 /// no 2^qubits amplitudes materialized. Support = {x : a^x mod N = observed},
 /// of size r = ord_N(a). The QFT peak is one evaluation of the ladder spectrum
 /// (k*/M ~= j/r), and continued fractions recover r from (k*, M) on tapes.
+/// Phase observations obtained from modular evolution, without a supplied order.
+pub struct ObservedPhaseRegister {
+    pub a: Vec<char>,
+    pub n: Vec<char>,
+    pub modulus: Vec<char>,
+    pub probabilities: Vec<f64>,
+    pub branch_population: usize,
+}
+
+impl ObservedPhaseRegister {
+    pub fn from_modulus(a: Vec<char>, n: Vec<char>, qubits: usize) -> Result<Self, String> {
+        use ::vox::morphism_factor::{cmp, gcd, one, tape_u64};
+        if cmp(&n, &one()) != core::cmp::Ordering::Greater || gcd(a.clone(), n.clone()) != one() {
+            return Err("phase observation requires N > 1 and a coprime base".into());
+        }
+        let shift = u32::try_from(qubits).map_err(|_| "register address width overflow")?;
+        let m = 1usize.checked_shl(shift).ok_or("register address width overflow")?;
+        let mut state = Vec::new();
+        state.try_reserve_exact(m).map_err(|_| "phase register allocation failed")?;
+        let mut carrier = crate::fde_shor_membrane::OrderCarrier::new(one());
+        let mut population = 0usize;
+        for _ in 0..m {
+            let matching = carrier.forward == one();
+            population += usize::from(matching);
+            state.push(if matching { Complex::one() } else { Complex::zero() });
+            carrier.modular_step(&a, &n)?;
+        }
+        if !carrier.boundary_identity() { return Err("phase evolution boundary failed".into()); }
+        let scale = (population as f64).sqrt();
+        for value in &mut state { *value = Complex::new(value.re / scale, value.im / scale); }
+        let probabilities = qft_forward(&state).iter().map(Complex::norm_sq).collect();
+        Ok(Self { a, n, modulus: tape_u64(m as u64), probabilities, branch_population: population })
+    }
+
+    /// Return only orders supported by nonzero measured frequencies and checked
+    /// against modular evolution. A singleton branch has no period information.
+    pub fn extract_order(&self) -> Option<Vec<char>> {
+        if self.branch_population < 2 { return None; }
+        let mut peaks: Vec<_> = self.probabilities.iter().copied().enumerate().collect();
+        peaks.sort_by(|a,b| b.1.total_cmp(&a.1));
+        for (k, weight) in peaks {
+            if k == 0 || weight <= 0.0 { continue; }
+            for (_, q) in convergents_tape(&::vox::morphism_factor::tape_u64(k as u64), &self.modulus) {
+                if !::vox::morphism_factor::zero(&q)
+                    && ::vox::morphism_factor::cmp(&q, &self.n) == core::cmp::Ordering::Less
+                    && pow_tape_exp(&self.a, &q, &self.n) == ::vox::morphism_factor::one() {
+                    return Some(q);
+                }
+            }
+        }
+        None
+    }
+}
+
+/// Grow the observation register until its frequencies expose a verified order.
+/// Register allocation failures remain explicit physical execution failures.
+pub fn observe_order(a: Vec<char>, n: Vec<char>) -> Result<Vec<char>, String> {
+    let mut qubits = 1usize;
+    loop {
+        let register = ObservedPhaseRegister::from_modulus(a.clone(), n.clone(), qubits)?;
+        if let Some(order) = register.extract_order() { return Ok(order); }
+        qubits = qubits.checked_add(1).ok_or("register width overflow")?;
+    }
+}
+
+/// Legacy order-first reference. Production phase observation uses observe_order.
 pub struct SymbolicRegister {
     pub modulus: Vec<char>,      // M = 2^qubits as a tape
     pub a: Vec<char>,
@@ -620,6 +686,13 @@ pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Resul
     };
 
     if effective_qubits == 0 { return Err("invalid resident QFT depth".into()); }
+    if effective_qubits > 14 {
+        let order = observe_order(a.clone(), n.clone())?;
+        let (p,q) = factor_close_public(&a, &n, &order)?;
+        return Ok(format!("shor: N={} method=observed-phase order={} factors={} x {}",
+            ::vox::morphism_factor::dec_of(&n), ::vox::morphism_factor::dec_of(&order),
+            ::vox::morphism_factor::dec_of(&p), ::vox::morphism_factor::dec_of(&q)));
+    }
     // NOTE: no usize::BITS cap here: the symbolic filtration path (>14 qubits)
     // works on tapes only and never materializes 2^qubits amplitudes. The dense
     // statevector branch below keeps its own representability guard.
@@ -648,73 +721,6 @@ pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Resul
         }
     }
 
-    if effective_qubits > 14 {
-        // Braid path (spec): emit W_Shor(a,N), winding readout gives r,
-        // factor_close gives the factors. No BSGS, no dense statevector.
-        match ::vox::shor_braid::shor_factor_via_braid(&a, &n) {
-            Ok((p, q)) => return Ok(alloc::format!(
-                "shor: N={} method=braid-filtration factors={} x {}",
-                ::vox::morphism_factor::dec_of(&n),
-                ::vox::morphism_factor::dec_of(&p),
-                ::vox::morphism_factor::dec_of(&q))),
-            Err(_braid_err) => {}
-        }
-        // Symbolic filtration path: no 2^qubits allocation. Order on tapes,
-        // QFT peak as one divmod, continued fractions on tapes, then the
-        // Shor close (factor_close). Falls back to the sidearm report only
-        // when the order lane returns no close (unreachable: it walks to closure).
-        match SymbolicRegister::from_modulus(a.clone(), n.clone(), effective_qubits) {
-            Ok(reg) => {
-                let r_ord = reg.support_size.clone();
-                match reg.qft_peak() {
-                    Ok(k_star) => {
-                        match reg.extract_order(&k_star) {
-                            Some(r) => {
-                                let (factors, reason) = reg.factor_close(&r);
-                                match factors {
-                                    Some((p, q)) => return Ok(alloc::format!(
-                                        "shor: N={} method=symbolic-filtration order={} factors={} x {} peak_k={} M=2^{}",
-                                        ::vox::morphism_factor::dec_of(&n),
-                                        ::vox::morphism_factor::dec_of(&r),
-                                        ::vox::morphism_factor::dec_of(&p),
-                                        ::vox::morphism_factor::dec_of(&q),
-                                        ::vox::morphism_factor::dec_of(&k_star),
-                                        effective_qubits)),
-                                    None => return Ok(alloc::format!(
-                                        "shor: N={} method=symbolic-filtration order={} factors=none ({}) peak_k={} M=2^{}",
-                                        ::vox::morphism_factor::dec_of(&n),
-                                        ::vox::morphism_factor::dec_of(&r), reason,
-                                        ::vox::morphism_factor::dec_of(&k_star),
-                                        effective_qubits)),
-                                }
-                            }
-                            None => return Ok(alloc::format!(
-                                "shor: N={} method=symbolic-filtration order={} factors=none (peak extraction found no closing convergent) M=2^{}",
-                                ::vox::morphism_factor::dec_of(&n),
-                                ::vox::morphism_factor::dec_of(&r_ord),
-                                effective_qubits)),
-                        }
-                    }
-                    Err(e) => return Ok(alloc::format!(
-                        "shor: N={} method=symbolic-filtration order={} factors=none (peak error: {}) M=2^{}",
-                        ::vox::morphism_factor::dec_of(&n),
-                        ::vox::morphism_factor::dec_of(&r_ord), e, effective_qubits)),
-                }
-            }
-            Err(e) => {
-                let (sidearm_factors, _) = ::vox::morphism_factor::smart_factor(&n);
-                let factor_text = if sidearm_factors.len() > 1 {
-                    sidearm_factors.iter().map(|f| ::vox::morphism_factor::dec_of(f)).collect::<alloc::vec::Vec<_>>().join(" x ")
-                } else {
-                    "none".into()
-                };
-                return Ok(alloc::format!(
-                    "shor: N={} method=symbolic-filtration-incomplete reason={} sidearm_factors={}",
-                    ::vox::morphism_factor::dec_of(&n), e, factor_text
-                ));
-            }
-        }
-    }
 
     if effective_qubits >= usize::BITS as usize { return Err("dense statevector register not representable on this host; use the symbolic path".into()); }
     let m = 1usize.checked_shl(effective_qubits as u32).ok_or("resident QFT allocation unavailable")?;
@@ -793,6 +799,33 @@ mod big_factor_tests {
 #[cfg(test)]
 mod membrane_tests {
     use super::*;
+    #[test]
+    fn observed_phase_matches_dense_control_without_order_input() {
+        for (a, n) in [(7,15), (2,21), (2,35), (8,21)] {
+            let observed = ObservedPhaseRegister::from_modulus(
+                ::vox::morphism_factor::tape_u64(a), ::vox::morphism_factor::tape_u64(n), 8).unwrap();
+            let orbit = modular_orbit(a,n,256);
+            let population = orbit.iter().filter(|&&v| v == 1).count();
+            let state: Vec<_> = orbit.iter().map(|&v| Complex::new(if v == 1 { 1.0/(population as f64).sqrt() } else { 0.0 },0.0)).collect();
+            let reference = qft_forward_reference(&state);
+            for (actual, expected) in observed.probabilities.iter().zip(reference) {
+                assert!((actual-expected.norm_sq()).abs() < 1e-9);
+            }
+            assert_eq!(observed.extract_order(), Some(::vox::morphism_factor::tape_u64(true_period(a,n))));
+        }
+        let report = run_shor_big_report(::vox::morphism_factor::tape_u64(2), ::vox::morphism_factor::tape_u64(15), 16).unwrap();
+        assert!(report.contains("method=observed-phase"));
+        assert!(report.contains("order=4"));
+    }
+
+    #[test]
+    fn wide_singleton_observation_does_not_invent_a_period() {
+        let n = ::vox::morphism_factor::decimal_to_tape("34708385599522211756186926321308977827402135941491069").unwrap();
+        let reg = ObservedPhaseRegister::from_modulus(::vox::morphism_factor::tape_u64(2),n,8).unwrap();
+        assert_eq!(reg.branch_population,1);
+        assert!(reg.extract_order().is_none());
+        assert!(reg.probabilities.iter().all(|p| (p-1.0/256.0).abs()<1e-12));
+    }
     fn check_spectrum(state: &[Complex]) {
         let reference = qft_forward_reference(state);
         let actual = qft_forward(state);
