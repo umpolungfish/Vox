@@ -135,12 +135,39 @@ impl ImscriptionLattice {
     }
 }
 
-/// Semantic execution descriptor decoded from the marks of one IMASM word.
+/// Semantic execution decoded from one valid dialectic IMASM word. The grammar
+/// state is structural: there is no independent FOUR mark or closed boolean that
+/// can disagree with the executable form. Malformed/incomplete grammar is FOUR=F
+/// at the judgment layer and therefore is not an `ImasmExecution` value.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct ImasmExecution {
-    pub lattice: ImscriptionLattice,
-    pub four: Mark,
-    pub closed: bool,
+pub enum ImasmExecution {
+    B { lattice: ImscriptionLattice },
+    T { lattice: ImscriptionLattice },
+    N { lattice: ImscriptionLattice },
+}
+
+impl ImasmExecution {
+    pub fn lattice(self) -> ImscriptionLattice {
+        match self {
+            Self::B { lattice } | Self::T { lattice } | Self::N { lattice } => lattice,
+        }
+    }
+
+    pub fn four(self) -> Mark {
+        match self {
+            Self::B { .. } => 'B',
+            Self::T { .. } => 'T',
+            Self::N { .. } => 'N',
+        }
+    }
+
+    pub fn is_terminal(self) -> bool {
+        matches!(self, Self::T { .. })
+    }
+
+    pub fn is_neutral(self) -> bool {
+        matches!(self, Self::N { .. })
+    }
 }
 
 /// A factor relation exposed by a lattice walk that FOUR judges `T`.
@@ -331,12 +358,12 @@ pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
 
     let four = verdict(word);
     let body = &word[2..word.len() - 2];
-    let (kernel, closed) = match four {
+    let kernel = match four {
         'B' => {
             if body.get(0).copied() != Some('∈') || body.get(1).copied() != Some('≻') {
                 return Err(String::from("malformed FOUR=B dialectic IMASM grammar"));
             }
-            (&body[2..], false)
+            &body[2..]
         }
         'T' => {
             if body.get(0).copied() != Some('∈')
@@ -345,7 +372,7 @@ pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
             {
                 return Err(String::from("malformed FOUR=T dialectic IMASM grammar"));
             }
-            (&body[2..body.len() - 1], true)
+            &body[2..body.len() - 1]
         }
         'N' => {
             if body.get(0).copied() != Some('∈')
@@ -354,7 +381,7 @@ pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
             {
                 return Err(String::from("unknown FOUR=N dialectic route-around grammar"));
             }
-            (&body[3..], false)
+            &body[3..]
         }
         'F' => {
             return Err(String::from(
@@ -371,10 +398,11 @@ pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
         _ => return Err(String::from("unknown dialectic IMASM lattice kernel")),
     };
 
-    Ok(ImasmExecution {
-        lattice,
-        four,
-        closed,
+    Ok(match four {
+        'B' => ImasmExecution::B { lattice },
+        'T' => ImasmExecution::T { lattice },
+        'N' => ImasmExecution::N { lattice },
+        _ => unreachable!("FOUR=F and unknown verdicts returned above"),
     })
 }
 
@@ -459,31 +487,31 @@ impl DialecticObject {
     }
 
     fn validate_execution_binding(&self, execution: ImasmExecution) -> Result<(), String> {
-        let expected_support = match execution.four {
-            'B' | 'N' => execution.lattice.unresolved_support(),
-            'T' => execution.lattice.terminal_support(),
-            _ => return Err(String::from("unknown dialectic FOUR support state")),
+        let lattice = execution.lattice();
+        let expected_support = match execution {
+            ImasmExecution::B { .. } | ImasmExecution::N { .. } => lattice.unresolved_support(),
+            ImasmExecution::T { .. } => lattice.terminal_support(),
         };
         if self.support != expected_support {
             return Err(String::from("dialectic imscription/support mismatch"));
         }
 
-        let expected_span = tape_u64(execution.lattice.span());
+        let expected_span = tape_u64(lattice.span());
         if cmp(self.span(), &expected_span) != Ordering::Equal {
             return Err(String::from(
                 "dialectic imscription span does not match the current IMASM lattice",
             ));
         }
 
-        match execution.lattice {
+        match lattice {
             ImscriptionLattice::ShortFrontier | ImscriptionLattice::ExtendedFermat => {
                 let origin = fermat_origin(&self.n);
-                let start = if execution.lattice == ImscriptionLattice::ShortFrontier {
+                let start = if lattice == ImscriptionLattice::ShortFrontier {
                     origin
                 } else {
                     add(&origin, &tape_u64(SHORT_FRONTIER_SPAN))
                 };
-                if execution.four == 'T' {
+                if matches!(execution, ImasmExecution::T { .. }) {
                     let end = add(&start, &expected_span);
                     if cmp(self.boundary(), &start) == Ordering::Less
                         || cmp(self.boundary(), &end) != Ordering::Less
@@ -516,7 +544,7 @@ impl DialecticObject {
     pub fn validate(&self) -> Result<(), String> {
         self.validate_relation_shape()?;
         let execution = decode_imasm_execution(self.word())?;
-        if execution.four == 'T' || execution.closed {
+        if execution.is_terminal() {
             return Err(String::from(
                 "terminal dialectic imscription is a closure, not a current restart object",
             ));
@@ -533,7 +561,7 @@ impl DialecticObject {
         let execution = decode_imasm_execution(self.word())?;
         let boundary = self.boundary().clone();
         let span = self.span().clone();
-        let word: Vec<Mark> = execution.lattice.neutral_word().chars().collect();
+        let word: Vec<Mark> = execution.lattice().neutral_word().chars().collect();
         self.imscription = Imscription::active(&self.n, boundary, span, &word);
         self.validate()?;
         Ok(self)
@@ -555,14 +583,15 @@ impl DialecticObject {
             return Ok(DialecticJudgment::F);
         }
 
-        if execution.four == 'N' {
+        if execution.is_neutral() {
             return Ok(DialecticJudgment::N {
                 imscription: self.imscription.clone(),
                 support: self.support,
             });
         }
 
-        let exposure = match execution.lattice {
+        let lattice = execution.lattice();
+        let exposure = match lattice {
             ImscriptionLattice::ShortFrontier => fermat_lattice_from(
                 &self.n,
                 self.boundary(),
@@ -580,15 +609,15 @@ impl DialecticObject {
             }
         };
 
-        match (execution.four, exposure) {
+        match (execution, exposure) {
             (
-                'B',
+                ImasmExecution::B { lattice },
                 LatticeExposure::T {
                     write_boundary,
                     witness,
                 },
             ) => {
-                let word: Vec<Mark> = execution.lattice.closed_word().chars().collect();
+                let word: Vec<Mark> = lattice.closed_word().chars().collect();
                 let imscription = Imscription::active(
                     &self.n,
                     write_boundary,
@@ -596,23 +625,20 @@ impl DialecticObject {
                     &word,
                 );
                 let terminal = decode_imasm_execution(imscription.word())?;
-                if terminal.lattice != execution.lattice
-                    || terminal.four != 'T'
-                    || !terminal.closed
-                {
+                if terminal != (ImasmExecution::T { lattice }) {
                     return Err(String::from(
                         "FOUR=T judgment did not materialize the closing IMASM relation",
                     ));
                 }
                 Ok(DialecticJudgment::T {
                     imscription,
-                    support: execution.lattice.support_after_t(self.support),
+                    support: lattice.support_after_t(self.support),
                     witness,
                 })
             }
-            ('B', LatticeExposure::B { write_boundary }) => {
-                let next_lattice = execution.lattice.next_after_b();
-                let next_boundary = if execution.lattice == ImscriptionLattice::ExtendedFermat {
+            (ImasmExecution::B { lattice }, LatticeExposure::B { write_boundary }) => {
+                let next_lattice = lattice.next_after_b();
+                let next_boundary = if lattice == ImscriptionLattice::ExtendedFermat {
                     tape_u64(1)
                 } else {
                     write_boundary
@@ -626,7 +652,7 @@ impl DialecticObject {
                 );
                 let next = DialecticObject {
                     n: self.n.clone(),
-                    support: execution.lattice.support_after_b(self.support),
+                    support: lattice.support_after_b(self.support),
                     imscription: imscription.clone(),
                 };
                 next.validate()?;
@@ -636,7 +662,7 @@ impl DialecticObject {
                 })
             }
             (
-                'T',
+                ImasmExecution::T { .. },
                 LatticeExposure::T {
                     witness,
                     ..
@@ -646,8 +672,11 @@ impl DialecticObject {
                 support: self.support,
                 witness,
             }),
-            ('T', LatticeExposure::B { .. }) => Ok(DialecticJudgment::F),
-            _ => Ok(DialecticJudgment::F),
+            (ImasmExecution::T { .. }, LatticeExposure::B { .. }) => Ok(DialecticJudgment::F),
+            (ImasmExecution::N { .. }, _) => Ok(DialecticJudgment::N {
+                imscription: self.imscription.clone(),
+                support: self.support,
+            }),
         }
     }
 
@@ -727,13 +756,15 @@ impl DialecticObject {
                 support,
                 witness,
             } => {
-                let execution = decode_imasm_execution(imscription.word())?;
-                if execution.four != 'T' || !execution.closed {
-                    return Err(String::from(
-                        "FOUR=T dialectic judgment carried a non-terminal imscription",
-                    ));
-                }
-                let lehman_multiplier = if execution.lattice == ImscriptionLattice::Lehman {
+                let lattice = match decode_imasm_execution(imscription.word())? {
+                    ImasmExecution::T { lattice } => lattice,
+                    _ => {
+                        return Err(String::from(
+                            "FOUR=T dialectic judgment carried a non-terminal imscription",
+                        ))
+                    }
+                };
+                let lehman_multiplier = if lattice == ImscriptionLattice::Lehman {
                     Some(imscription.boundary().clone())
                 } else {
                     None
@@ -788,8 +819,10 @@ fn close(
     lattice_cell: Tape,
     lehman_multiplier: Option<Tape>,
 ) -> Result<Descent, String> {
-    let execution = decode_imasm_execution(imscription.word())?;
-    if execution.four != 'T' || !execution.closed {
+    if !matches!(
+        decode_imasm_execution(imscription.word())?,
+        ImasmExecution::T { .. }
+    ) {
         return Err(String::from(
             "terminal dialectic judgment did not carry a closing IMASM relation",
         ));
