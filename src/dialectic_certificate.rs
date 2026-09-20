@@ -45,15 +45,26 @@ pub struct DialecticCertificateSummary {
 }
 
 /// Build a certificate by repeatedly consuming complete operator-space objects.
+/// A genuine FOUR=N continuation is an exact whole-object fixed point. This
+/// factor-closing certificate has no terminal carrier for that neutral point, so
+/// it returns explicitly rather than replaying the same restart object forever.
 pub fn certify_dialectic(start: &DialecticObject) -> Result<DialecticCertificate, String> {
     let mut current = start.clone();
     let mut objects = Vec::new();
 
     loop {
         current.validate()?;
-        objects.push(current.encode());
+        let current_wire = current.encode();
+        objects.push(current_wire.clone());
         match current.descend()? {
-            Descent::Continue(next) => current = next,
+            Descent::Continue(next) => {
+                if next.encode() == current_wire {
+                    return Err(String::from(
+                        "dialectic certificate reached FOUR=N unchanged imscription before factor closure",
+                    ));
+                }
+                current = next;
+            }
             Descent::Closed(closed) => {
                 return Ok(DialecticCertificate {
                     objects,
