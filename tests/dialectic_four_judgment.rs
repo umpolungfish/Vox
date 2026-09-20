@@ -1,6 +1,6 @@
 use vox::dialectic_reentry::{
-    decode_imasm_execution, Descent, DialecticJudgment, DialecticObject, ImscriptionLattice,
-    EXTENDED_FERMAT_SPAN, LEHMAN_LOCAL_SPAN,
+    decode_imasm_execution, Descent, DialecticJudgment, DialecticObject, ImasmExecution,
+    ImscriptionLattice, EXTENDED_FERMAT_SPAN, LEHMAN_LOCAL_SPAN,
 };
 use vox::morphism_factor::{mul, tape_u64};
 
@@ -20,8 +20,12 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
         other => panic!("short frontier exposed unexpected FOUR={}", other.four()),
     };
     let short_execution = decode_imasm_execution(short_result.word()).unwrap();
-    assert_eq!(short_execution.lattice, ImscriptionLattice::ExtendedFermat);
-    assert_eq!(short_execution.four, 'B');
+    assert_eq!(
+        short_execution,
+        ImasmExecution::B {
+            lattice: ImscriptionLattice::ExtendedFermat,
+        }
+    );
     assert_eq!(short_result.span(), &tape_u64(EXTENDED_FERMAT_SPAN));
 
     let extended = match short.descend().unwrap() {
@@ -46,11 +50,11 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert_eq!(extended_witness.lattice_cell, tape_u64(126));
     let extended_terminal_execution = decode_imasm_execution(extended_terminal.word()).unwrap();
     assert_eq!(
-        extended_terminal_execution.lattice,
-        ImscriptionLattice::ExtendedFermat
+        extended_terminal_execution,
+        ImasmExecution::T {
+            lattice: ImscriptionLattice::ExtendedFermat,
+        }
     );
-    assert_eq!(extended_terminal_execution.four, 'T');
-    assert!(extended_terminal_execution.closed);
 
     let extended_closed = match extended.descend().unwrap() {
         Descent::Closed(closed) => closed,
@@ -76,10 +80,10 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert_eq!(lehman1_relation.boundary(), &tape_u64(1));
     assert_eq!(lehman1_relation.span(), &tape_u64(LEHMAN_LOCAL_SPAN));
     assert_eq!(
-        decode_imasm_execution(lehman1_relation.word())
-            .unwrap()
-            .lattice,
-        ImscriptionLattice::Lehman
+        decode_imasm_execution(lehman1_relation.word()).unwrap(),
+        ImasmExecution::B {
+            lattice: ImscriptionLattice::Lehman,
+        }
     );
 
     let lehman1 = match extended.descend().unwrap() {
@@ -154,7 +158,7 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
         .split("pub enum DialecticJudgment")
         .nth(1)
         .expect("FOUR judgment enum not found")
-        .split("/// The raw relation exposed")
+        .split("/// The arithmetic lattice itself")
         .next()
         .unwrap();
     assert!(!source.contains("pub struct DialecticJudgment"));
@@ -164,6 +168,20 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert!(judgment_decl.contains("F,"));
     assert!(!judgment_decl.contains("Option<Imscription>"));
     assert!(!judgment_decl.contains("Option<DialecticWitness>"));
+
+    let execution_decl = source
+        .split("pub enum ImasmExecution")
+        .nth(1)
+        .expect("IMASM execution sum not found")
+        .split("/// A factor relation exposed")
+        .next()
+        .unwrap();
+    assert!(execution_decl.contains("B { lattice:"));
+    assert!(execution_decl.contains("T { lattice:"));
+    assert!(execution_decl.contains("N { lattice:"));
+    assert!(!source.contains("pub struct ImasmExecution"));
+    assert!(!execution_decl.contains("closed: bool"));
+    assert!(!execution_decl.contains("four: Mark"));
 
     let descend = source
         .split("pub fn descend(self)")
@@ -181,6 +199,6 @@ fn four_judgment_variants_drive_reimscription_and_closure() {
     assert!(!descend.contains("judgment.resulting_support"));
 
     println!(
-        "dialectic FOUR sum: T/B/N/F are structurally distinct; B cannot carry a witness, T cannot omit one, and descend pattern-matches the judgment directly"
+        "dialectic FOUR sums: judgment and IMASM execution states are structurally distinct; no mark+boolean or nullable-payload encoding remains"
     );
 }
