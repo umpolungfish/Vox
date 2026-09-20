@@ -1,6 +1,6 @@
 use vox::dialectic_certificate::certify_dialectic;
 use vox::dialectic_reentry::{
-    decode_imasm_execution, Descent, DialecticJudgment, DialecticObject,
+    decode_imasm_execution, Descent, DialecticJudgment, DialecticObject, ImasmExecution,
 };
 use vox::morphism_factor::{mul, tape_u64};
 use vox::vox::{verdict, IMSCRIB, TANCH, VINIT};
@@ -33,13 +33,19 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     };
     assert_eq!(t.four(), 'T');
     assert_eq!(verdict(terminal.word()), 'T');
+    assert!(matches!(
+        decode_imasm_execution(terminal.word()).unwrap(),
+        ImasmExecution::T { .. }
+    ));
 
     // N is not a fabricated enum constructor. route_around() installs an actual
     // IMASM grammar whose empty ∈∋ region makes FOUR=N on the same lattice.
     let neutral = short.route_around().unwrap();
     assert_eq!(verdict(neutral.word()), 'N');
     let neutral_exec = decode_imasm_execution(neutral.word()).unwrap();
-    assert_eq!(neutral_exec.four, 'N');
+    assert!(matches!(neutral_exec, ImasmExecution::N { .. }));
+    assert_eq!(neutral_exec.four(), 'N');
+    assert!(neutral_exec.is_neutral());
     let n_judgment = neutral.judge_current_imscription().unwrap();
     match &n_judgment {
         DialecticJudgment::N {
@@ -74,6 +80,7 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     malformed.imscription.rwx.execute_word =
         vec![VINIT, IMSCRIB, '∋', '≻', '⊤', '≺', '⊥', '⊡', TANCH];
     assert_eq!(verdict(malformed.word()), 'F');
+    assert!(decode_imasm_execution(malformed.word()).is_err());
     assert!(matches!(
         malformed.judge_current_imscription().unwrap(),
         DialecticJudgment::F
@@ -82,8 +89,8 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     assert!(DialecticObject::decode(&malformed.encode()).is_err());
     assert!(malformed.descend().is_err());
 
-    // Architectural guard: the arithmetic walkers expose only what they really
-    // produce; N/F must be handled by the imscription grammar judgment itself.
+    // Architectural guard: arithmetic walkers expose only T/B, valid executable
+    // grammar is structurally B/T/N, and F stays a judgment of malformed grammar.
     let source = include_str!("../src/dialectic_reentry.rs");
     let exposure = source
         .split("enum LatticeExposure")
@@ -97,11 +104,26 @@ fn all_four_states_are_operational_through_one_judgment_path() {
     assert!(!exposure.contains("N,"));
     assert!(!exposure.contains("F,"));
     assert!(!source.contains("#[allow(dead_code)]\nenum LatticeExposure"));
+
+    let execution_decl = source
+        .split("pub enum ImasmExecution")
+        .nth(1)
+        .expect("ImasmExecution sum not found")
+        .split("/// A factor relation exposed")
+        .next()
+        .unwrap();
+    assert!(execution_decl.contains("B { lattice:"));
+    assert!(execution_decl.contains("T { lattice:"));
+    assert!(execution_decl.contains("N { lattice:"));
+    assert!(!execution_decl.contains("F"));
+    assert!(!source.contains("pub struct ImasmExecution"));
+    assert!(!source.contains("pub four: Mark"));
+    assert!(!source.contains("pub closed: bool"));
     assert!(source.contains("pub fn route_around"));
-    assert!(source.contains("execution.four == 'N'"));
+    assert!(source.contains("execution.is_neutral()"));
     assert!(source.contains("return Ok(DialecticJudgment::F)"));
 
     println!(
-        "dialectic FOUR total: real semiprime B/T, persisted identity N, malformed-grammar F, and non-spinning N certificate boundary all pass through one judgment path"
+        "dialectic FOUR total: B/T/N executable grammar is structurally typed; malformed grammar reaches F only through the judgment path"
     );
 }
