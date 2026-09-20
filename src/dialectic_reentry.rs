@@ -115,10 +115,6 @@ impl ImscriptionLattice {
 }
 
 /// Semantic execution descriptor decoded from the marks of one IMASM word.
-///
-/// The lattice is not selected by comparing the whole word to a Rust constant.
-/// The grammar marks themselves identify the lattice, while FOUR determines
-/// whether the word is an unresolved `B` imscription or a closing `T` one.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ImasmExecution {
     pub lattice: ImscriptionLattice,
@@ -142,10 +138,6 @@ pub const IM_EXEC: u8 = 1 << 2;
 pub const IM_RWX: u8 = IM_READ | IM_WRITE | IM_EXEC;
 
 /// The load-bearing r/w/x relation of IMSCRIB.
-///
-/// `rights` is only the capability set. The relation itself is the four exact
-/// endpoints: which bulk is read, which boundary is written, which finite span
-/// is executed, and which current IMASM word performs that execution.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ImscriptionRwx {
     pub rights: u8,
@@ -228,35 +220,83 @@ impl Imscription {
     }
 }
 
-/// FOUR's judgment of one executed imscription.
-///
-/// A productive judgment owns the complete relation that results from the walk:
-/// `B` carries the succeeding open imscription and `T` carries the terminal closed
-/// imscription. `resulting_support` belongs to that same resulting whole object.
-/// `N` carries the unchanged relation/support, while `F` carries no valid result.
+/// FOUR itself is the judgment type. Each state owns exactly the payload that
+/// state permits; impossible cross-state payload combinations are unrepresentable.
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct DialecticJudgment {
-    pub four: Mark,
-    pub resulting_imscription: Option<Imscription>,
-    pub resulting_support: Option<LaneSupport>,
-    pub witness: Option<DialecticWitness>,
+pub enum DialecticJudgment {
+    /// Closing relation: terminal imscription + terminal support + factor witness.
+    T {
+        imscription: Imscription,
+        support: LaneSupport,
+        witness: DialecticWitness,
+    },
+    /// Productive contradiction: complete succeeding imscription + succeeding support.
+    B {
+        imscription: Imscription,
+        support: LaneSupport,
+    },
+    /// No new distinction: the relation and support remain unchanged.
+    N {
+        imscription: Imscription,
+        support: LaneSupport,
+    },
+    /// Malformed relation: there is no valid resulting imscription.
+    F,
+}
+
+impl DialecticJudgment {
+    pub fn four(&self) -> Mark {
+        match self {
+            Self::T { .. } => 'T',
+            Self::B { .. } => 'B',
+            Self::N { .. } => 'N',
+            Self::F => 'F',
+        }
+    }
+
+    pub fn resulting_imscription(&self) -> Option<&Imscription> {
+        match self {
+            Self::T { imscription, .. }
+            | Self::B { imscription, .. }
+            | Self::N { imscription, .. } => Some(imscription),
+            Self::F => None,
+        }
+    }
+
+    pub fn resulting_support(&self) -> Option<LaneSupport> {
+        match self {
+            Self::T { support, .. }
+            | Self::B { support, .. }
+            | Self::N { support, .. } => Some(*support),
+            Self::F => None,
+        }
+    }
+
+    pub fn witness(&self) -> Option<&DialecticWitness> {
+        match self {
+            Self::T { witness, .. } => Some(witness),
+            Self::B { .. } | Self::N { .. } | Self::F => None,
+        }
+    }
 }
 
 /// The raw relation exposed by one lattice walk before FOUR materializes the
-/// succeeding or terminal IMSCRIB relation.
+/// succeeding or terminal IMSCRIB relation. It is four-shaped too: a closing
+/// exposure cannot exist without its witness, and a productive B cannot carry one.
 #[derive(Clone, PartialEq, Eq, Debug)]
-struct LatticeExposure {
-    four: Mark,
-    write_boundary: Tape,
-    witness: Option<DialecticWitness>,
+enum LatticeExposure {
+    T {
+        write_boundary: Tape,
+        witness: DialecticWitness,
+    },
+    B {
+        write_boundary: Tape,
+    },
+    N,
+    F,
 }
 
 /// Decode the current IMASM word into the lattice action it commands.
-///
-/// Supported kernels are:
-/// `⊤≺⊥` short Fermat, `⊤⊞≺⊥` extended Fermat, and `⋈⊤⊥` Lehman.
-/// A trailing `∋` before `⊡` is the closing form. FOUR must agree with that
-/// grammar state (`B` unresolved, `T` closed), otherwise the word is rejected.
 pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
     if word.len() < 9
         || word.first().copied() != Some(VINIT)
@@ -298,9 +338,6 @@ pub fn decode_imasm_execution(word: &[Mark]) -> Result<ImasmExecution, String> {
 }
 
 /// One complete, restartable operator-space object.
-///
-/// `n` is the bulk. `imscription` owns the live boundary and executable space.
-/// `support` is the distinction already embodied by this transformed whole object.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct DialecticObject {
     pub n: Tape,
@@ -322,16 +359,13 @@ impl DialecticObject {
     }
 }
 
-/// A terminal contraction: the imscription has closed around one factor pair
-/// and is handed to the passive factor-carrier layer.
+/// A terminal contraction handed to the passive factor-carrier layer.
 #[derive(Clone, PartialEq, Debug)]
 pub struct DialecticClosure {
     pub carrier: FactorCarrier,
     pub support: LaneSupport,
     pub imscription: Imscription,
-    /// Closing coordinate inside the current lattice, carried as a native numeral tape.
     pub lattice_cell: Tape,
-    /// Present only when closure occurred in the Lehman multiplier lattice.
     pub lehman_multiplier: Option<Tape>,
 }
 
@@ -356,9 +390,6 @@ pub enum Descent {
 }
 
 impl DialecticObject {
-    /// Initial operator-space imscription. Parity and primality are the ground
-    /// support; the boundary begins at ceil(sqrt(N)) and explicitly imscribes
-    /// the 64-cell short frontier.
     pub fn new(n: Tape) -> Result<Self, String> {
         let n = trim(n);
         let boundary = fermat_origin(&n);
@@ -427,9 +458,8 @@ impl DialecticObject {
         Ok(())
     }
 
-    /// Ask FOUR to judge the relation exposed by executing this current
-    /// imscription. FOUR materializes the complete resulting IMSCRIB relation:
-    /// `B` owns the next open relation and `T` owns the terminal closed relation.
+    /// Execute the current relation and let FOUR materialize the entire resulting
+    /// relation. Each FOUR variant has a structurally valid payload by construction.
     pub fn judge_current_imscription(&self) -> Result<DialecticJudgment, String> {
         self.validate()?;
         let execution = decode_imasm_execution(self.word())?;
@@ -451,15 +481,15 @@ impl DialecticObject {
             }
         };
 
-        match exposure.four {
-            'T' => {
-                let witness = exposure.witness.ok_or_else(|| {
-                    String::from("FOUR=T lattice exposure did not carry a factor witness")
-                })?;
+        match exposure {
+            LatticeExposure::T {
+                write_boundary,
+                witness,
+            } => {
                 let word: Vec<Mark> = execution.lattice.closed_word().chars().collect();
                 let imscription = Imscription::active(
                     &self.n,
-                    exposure.write_boundary,
+                    write_boundary,
                     self.span().clone(),
                     &word,
                 );
@@ -469,24 +499,18 @@ impl DialecticObject {
                         "FOUR=T judgment did not materialize the closing IMASM relation",
                     ));
                 }
-                Ok(DialecticJudgment {
-                    four: 'T',
-                    resulting_imscription: Some(imscription),
-                    resulting_support: Some(execution.lattice.support_after_t(self.support)),
-                    witness: Some(witness),
+                Ok(DialecticJudgment::T {
+                    imscription,
+                    support: execution.lattice.support_after_t(self.support),
+                    witness,
                 })
             }
-            'B' => {
-                if exposure.witness.is_some() {
-                    return Err(String::from(
-                        "FOUR=B lattice exposure unexpectedly carried a closing witness",
-                    ));
-                }
+            LatticeExposure::B { write_boundary } => {
                 let next_lattice = execution.lattice.next_after_b();
                 let next_boundary = if execution.lattice == ImscriptionLattice::ExtendedFermat {
                     tape_u64(1)
                 } else {
-                    exposure.write_boundary
+                    write_boundary
                 };
                 let next_word: Vec<Mark> = next_lattice.open_word().chars().collect();
                 let imscription = Imscription::active(
@@ -501,40 +525,26 @@ impl DialecticObject {
                     imscription: imscription.clone(),
                 };
                 next.validate()?;
-                Ok(DialecticJudgment {
-                    four: 'B',
-                    resulting_imscription: Some(imscription),
-                    resulting_support: Some(next.support),
-                    witness: None,
+                Ok(DialecticJudgment::B {
+                    imscription,
+                    support: next.support,
                 })
             }
-            'N' => Ok(DialecticJudgment {
-                four: 'N',
-                resulting_imscription: Some(self.imscription.clone()),
-                resulting_support: Some(self.support),
-                witness: None,
+            LatticeExposure::N => Ok(DialecticJudgment::N {
+                imscription: self.imscription.clone(),
+                support: self.support,
             }),
-            'F' => Ok(DialecticJudgment {
-                four: 'F',
-                resulting_imscription: None,
-                resulting_support: None,
-                witness: None,
-            }),
-            _ => Err(String::from("dialectic lattice returned a non-FOUR exposure")),
+            LatticeExposure::F => Ok(DialecticJudgment::F),
         }
     }
 
-    /// Native support currently restored by this whole imscription.
     pub fn envelope(&self) -> RestoredSupport {
         restored_support(&[self.support])
     }
 
     /// Marks-only persistence of the complete current operator-space relation:
-    ///
     /// `⊢ ⊙ ∈N∋ ∈rights[3]∋ ∈read-N∋ ∈write-boundary∋
     ///    ∈exec-span∋ ∈len(exec-word)∋ exec-word ∈support[6]∋ ⊣`
-    ///
-    /// Boundary, span and word occur exactly once: as endpoints of IMSCRIB.
     pub fn encode(&self) -> Vec<Mark> {
         let mut out = Vec::with_capacity(
             self.n.len()
@@ -596,23 +606,14 @@ impl DialecticObject {
         Ok(object)
     }
 
-    /// Consume the whole operator-space relation. The IMASM grammar chooses the
-    /// lattice; the lattice exposes a relation; FOUR judges that relation; and
-    /// this method installs the complete relation carried by that judgment.
+    /// Consume the whole object by pattern-matching the actual FOUR state.
     pub fn descend(self) -> Result<Descent, String> {
-        let judgment = self.judge_current_imscription()?;
-
-        match judgment.four {
-            'T' => {
-                let witness = judgment.witness.ok_or_else(|| {
-                    String::from("FOUR=T dialectic judgment did not carry a factor witness")
-                })?;
-                let imscription = judgment.resulting_imscription.ok_or_else(|| {
-                    String::from("FOUR=T dialectic judgment did not carry a terminal imscription")
-                })?;
-                let support = judgment.resulting_support.ok_or_else(|| {
-                    String::from("FOUR=T dialectic judgment did not carry terminal support")
-                })?;
+        match self.judge_current_imscription()? {
+            DialecticJudgment::T {
+                imscription,
+                support,
+                witness,
+            } => {
                 let execution = decode_imasm_execution(imscription.word())?;
                 if execution.four != 'T' || !execution.closed {
                     return Err(String::from(
@@ -634,18 +635,10 @@ impl DialecticObject {
                     lehman_multiplier,
                 )
             }
-            'B' => {
-                if judgment.witness.is_some() {
-                    return Err(String::from(
-                        "FOUR=B dialectic judgment unexpectedly carried a closing witness",
-                    ));
-                }
-                let imscription = judgment.resulting_imscription.ok_or_else(|| {
-                    String::from("FOUR=B dialectic judgment did not carry a succeeding imscription")
-                })?;
-                let support = judgment.resulting_support.ok_or_else(|| {
-                    String::from("FOUR=B dialectic judgment did not carry succeeding support")
-                })?;
+            DialecticJudgment::B {
+                imscription,
+                support,
+            } => {
                 let next = DialecticObject {
                     n: self.n,
                     support,
@@ -654,13 +647,12 @@ impl DialecticObject {
                 next.validate()?;
                 Ok(Descent::Continue(next))
             }
-            'N' => Err(String::from(
+            DialecticJudgment::N { .. } => Err(String::from(
                 "FOUR=N dialectic judgment produced no new distinction for re-imscription",
             )),
-            'F' => Err(String::from(
+            DialecticJudgment::F => Err(String::from(
                 "FOUR=F dialectic judgment exposed a malformed lattice relation",
             )),
-            _ => Err(String::from("dialectic lattice returned a non-FOUR judgment")),
         }
     }
 }
@@ -711,10 +703,6 @@ fn fermat_origin(n: &[Mark]) -> Tape {
     a
 }
 
-/// Walk directly from the boundary imscribed by the current object. The span
-/// itself is the countdown tape: each visited cell consumes one numeral step.
-/// The exposed relation is judged directly in FOUR: `T` carries the closing
-/// witness, while exhausting the current region after moving its boundary is `B`.
 fn fermat_lattice_from(
     n: &[Mark],
     start_boundary: &[Mark],
@@ -736,14 +724,13 @@ fn fermat_lattice_from(
                 if cmp(&p, &one) == Ordering::Greater && cmp(&p, n) == Ordering::Less {
                     let (q, remainder) = divmod(n, &p);
                     if zero(&remainder) && cmp(&q, &one) == Ordering::Greater {
-                        return LatticeExposure {
-                            four: 'T',
+                        return LatticeExposure::T {
                             write_boundary: a,
-                            witness: Some(DialecticWitness {
+                            witness: DialecticWitness {
                                 p,
                                 q,
                                 lattice_cell: cell,
-                            }),
+                            },
                         };
                     }
                 }
@@ -754,16 +741,9 @@ fn fermat_lattice_from(
         remaining = sub(&remaining, &one);
     }
 
-    LatticeExposure {
-        four: 'B',
-        write_boundary: a,
-        witness: None,
-    }
+    LatticeExposure::B { write_boundary: a }
 }
 
-/// Execute one complete Lehman-multiplier imscription. The boundary is k. The
-/// local a-lattice consumes the exact span tape carried by the relation. FOUR=T
-/// closes on a factor witness; FOUR=B exposes k+1 for the succeeding imscription.
 fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> LatticeExposure {
     let one = tape_u64(1);
     let four_kn = mul(&tape_u64(4), &mul(k, n));
@@ -782,27 +762,25 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> LatticeExposure {
             if mul(&b, &b) == b2 {
                 let plus = add(&a, &b);
                 if let Some((p, q)) = factor_from_gcd(n, &plus) {
-                    return LatticeExposure {
-                        four: 'T',
+                    return LatticeExposure::T {
                         write_boundary: trim(k.to_vec()),
-                        witness: Some(DialecticWitness {
+                        witness: DialecticWitness {
                             p,
                             q,
                             lattice_cell: cell,
-                        }),
+                        },
                     };
                 }
                 if cmp(&a, &b) != Ordering::Less {
                     let minus = sub(&a, &b);
                     if let Some((p, q)) = factor_from_gcd(n, &minus) {
-                        return LatticeExposure {
-                            four: 'T',
+                        return LatticeExposure::T {
                             write_boundary: trim(k.to_vec()),
-                            witness: Some(DialecticWitness {
+                            witness: DialecticWitness {
                                 p,
                                 q,
                                 lattice_cell: cell,
-                            }),
+                            },
                         };
                     }
                 }
@@ -812,10 +790,9 @@ fn lehman_multiplier(n: &[Mark], k: &[Mark], span: &[Mark]) -> LatticeExposure {
         cell = add(&cell, &one);
         remaining = sub(&remaining, &one);
     }
-    LatticeExposure {
-        four: 'B',
+
+    LatticeExposure::B {
         write_boundary: add(k, &one),
-        witness: None,
     }
 }
 
