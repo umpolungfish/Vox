@@ -1,5 +1,14 @@
-I remove the artificial factor-route ceilings and add the general TV producer.
+Get phaseB_fac building and fix the TV battery's factor parse
 
-I route modulus-only TV cases through the unbounded tape factor path and remove
-the resident Fermat cell cutoff and hard-carrier round ceiling. The first TV
-computation remains active for direct measurement.
+phaseB_fac did not compile: the include! that pulls the build-time baked_inputs.rs
+sat inside fn main as a statement, but that file declares const items, which parse
+only at module scope. Moved the include! to item position. Release builds clean;
+build_case('phaseB') bakes the two IMASM words in and the binary factors 15 = 3 x 5
+through the braid. The generated BAKED_WIDTH_WORD is marked live so there is no
+dead-code warning; phaseB takes no width.
+
+tv_battery.py still parsed the old semiprime_probe output, which printed `factor p`
+on two lines. phaseB_fac prints `factors p x q` on one, so every case parsed to no
+factors and would fail. Parse the single line into the two prime factors.
+
+Whole-tree snapshot.

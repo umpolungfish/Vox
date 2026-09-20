@@ -19,14 +19,21 @@ def main():
     revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     with Path(args.output).open('x') as report:
         for index,n in enumerate(values):
-            binary,words = build_case(n,'dialectic')
+            # TV values use the arbitrary-width braid phase readout. The
+            # dialectic producer is reserved for its lattice-family controls.
+            binary,words = build_case(n,'phaseB')
             started=time.monotonic()
             result=subprocess.run([str(binary)],cwd=ROOT,env={},input='',capture_output=True,text=True)
             elapsed=time.monotonic()-started
-            factors=[int(line.split()[1]) for line in result.stdout.splitlines() if line.startswith('factor ')]
+            factors=[]
+            for line in result.stdout.splitlines():
+                if line.startswith('factors '):
+                    parts=line.split()  # ['factors', p, 'x', q, '[time]']
+                    factors=[int(parts[1]),int(parts[3])]
+                    break
             valid=(result.returncode==0 and len(factors)==2 and all(x>1 for x in factors)
                    and factors[0]*factors[1]==n and all(isprime(x) for x in factors))
-            row=dict(index=index,bits=n.bit_length(),n=str(n),producer='dialectic',
+            row=dict(index=index,bits=n.bit_length(),n=str(n),producer='phaseB_fac',
                      words=words,binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                      revision=revision,elapsed=elapsed,returncode=result.returncode,
                      factors=[str(x) for x in factors],status='success' if valid else 'failure',

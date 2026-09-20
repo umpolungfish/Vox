@@ -33,8 +33,9 @@ def _build_case(n, mode, width):
     env.pop('VOX_PHASE_BASE_WORD', None)
     env['VOX_PROBE_MODE'] = mode
     env.pop('VOX_PHASE_WIDTH_WORD', None)
-    subprocess.run(['cargo', 'build', '--release', '--bin', 'semiprime_probe'],
+    target_bin = 'phaseB_fac' if mode == 'phaseB' else 'semiprime_probe'
+    subprocess.run(['cargo', 'build', '--release', '--bin', target_bin],
                    cwd=ROOT, env=env, check=True, capture_output=True)
     binary = destination / mode
-    shutil.copy2(ROOT / 'target/release/semiprime_probe', binary)
+    shutil.copy2(ROOT / 'target/release' / target_bin, binary)
     return binary, words
