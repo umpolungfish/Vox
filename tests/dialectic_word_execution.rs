@@ -1,5 +1,5 @@
 use vox::dialectic_reentry::{
-    decode_imasm_execution, Descent, DialecticObject, ImscriptionLattice,
+    decode_imasm_execution, Descent, DialecticObject, ImasmExecution, ImscriptionLattice,
     EXTENDED_FERMAT_WORD, LEHMAN_WORD, SHORT_FRONTIER_WORD,
 };
 use vox::morphism_factor::{mul, tape_u64};
@@ -18,9 +18,10 @@ fn imasm_marks_decode_to_the_lattice_action_the_operator_executes() {
 
     for (word, lattice) in open_cases {
         let execution = decode_imasm_execution(&marks(word)).unwrap();
-        assert_eq!(execution.lattice, lattice);
-        assert_eq!(execution.four, 'B');
-        assert!(!execution.closed);
+        assert_eq!(execution, ImasmExecution::B { lattice });
+        assert_eq!(execution.four(), 'B');
+        assert!(!execution.is_terminal());
+        assert!(!execution.is_neutral());
     }
 
     // A structural mutation is not another route name: it is no longer a word
@@ -41,24 +42,34 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
     let near_n = mul(&tape_u64(1_000_003), &tape_u64(1_032_007));
     let near = DialecticObject::new(near_n).unwrap();
     assert_eq!(
-        decode_imasm_execution(near.word()).unwrap().lattice,
-        ImscriptionLattice::ShortFrontier,
+        decode_imasm_execution(near.word()).unwrap(),
+        ImasmExecution::B {
+            lattice: ImscriptionLattice::ShortFrontier,
+        },
     );
     let extended = match near.descend().unwrap() {
         Descent::Continue(next) => next,
         Descent::Closed(_) => panic!("near-root fixture unexpectedly closed in short frontier"),
     };
     let extended_execution = decode_imasm_execution(extended.word()).unwrap();
-    assert_eq!(extended_execution.lattice, ImscriptionLattice::ExtendedFermat);
-    assert_eq!(extended_execution.four, 'B');
+    assert_eq!(
+        extended_execution,
+        ImasmExecution::B {
+            lattice: ImscriptionLattice::ExtendedFermat,
+        }
+    );
     let extended_closed = match extended.descend().unwrap() {
         Descent::Closed(closed) => closed,
         Descent::Continue(_) => panic!("near-root fixture failed to close in extended Fermat"),
     };
     let closed_execution = decode_imasm_execution(extended_closed.word()).unwrap();
-    assert_eq!(closed_execution.lattice, ImscriptionLattice::ExtendedFermat);
-    assert_eq!(closed_execution.four, 'T');
-    assert!(closed_execution.closed);
+    assert_eq!(
+        closed_execution,
+        ImasmExecution::T {
+            lattice: ImscriptionLattice::ExtendedFermat,
+        }
+    );
+    assert!(closed_execution.is_terminal());
 
     // Far-gap: after both Fermat words the grammar selects Lehman, and the
     // terminal word still decodes as that same lattice with FOUR=T.
@@ -68,10 +79,12 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
         let execution = decode_imasm_execution(current.word()).unwrap();
         match current.descend().unwrap() {
             Descent::Continue(next) => {
-                if execution.lattice == ImscriptionLattice::ExtendedFermat {
+                if execution.lattice() == ImscriptionLattice::ExtendedFermat {
                     assert_eq!(
-                        decode_imasm_execution(next.word()).unwrap().lattice,
-                        ImscriptionLattice::Lehman,
+                        decode_imasm_execution(next.word()).unwrap(),
+                        ImasmExecution::B {
+                            lattice: ImscriptionLattice::Lehman,
+                        },
                     );
                 }
                 current = next;
@@ -80,18 +93,34 @@ fn real_descents_and_closures_are_dispatched_by_decoded_imasm_grammar() {
         }
     };
     let far_execution = decode_imasm_execution(far_closed.word()).unwrap();
-    assert_eq!(far_execution.lattice, ImscriptionLattice::Lehman);
-    assert_eq!(far_execution.four, 'T');
-    assert!(far_execution.closed);
+    assert_eq!(
+        far_execution,
+        ImasmExecution::T {
+            lattice: ImscriptionLattice::Lehman,
+        }
+    );
+    assert!(far_execution.is_terminal());
 
     let source = include_str!("../src/dialectic_reentry.rs");
     assert!(!source.contains("word == short_word"));
     assert!(!source.contains("word == extended_word"));
     assert!(!source.contains("word == lehman_word"));
-    assert!(source.contains("match execution.lattice"));
+    assert!(!source.contains("pub struct ImasmExecution"));
+    let execution_decl = source
+        .split("pub enum ImasmExecution")
+        .nth(1)
+        .expect("structural IMASM execution enum not found")
+        .split("/// A factor relation exposed")
+        .next()
+        .unwrap();
+    assert!(execution_decl.contains("B { lattice:"));
+    assert!(execution_decl.contains("T { lattice:"));
+    assert!(execution_decl.contains("N { lattice:"));
+    assert!(!execution_decl.contains("pub four:"));
+    assert!(!execution_decl.contains("pub closed:"));
     assert!(source.contains("decode_imasm_execution(self.word())"));
 
     println!(
-        "dialectic IMASM execution: grammar selects short -> extended -> Lehman; open words are FOUR=B and closing words decode as FOUR=T"
+        "dialectic IMASM execution sum: B/T/N grammar states are structurally typed; short -> extended -> Lehman remains grammar-selected"
     );
 }
