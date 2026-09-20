@@ -715,13 +715,29 @@ impl Machine {
                 if dst.starts_with("r:xmm") { self.write(&dst, v & mask(w)); }
                 else { self.write(&dst, if src_is_x { v & mask(w) } else { v }); }
             }
-            "psrldq" => { let a = self.read(&dst,16).0; let n = parse_imm(&f[1][2..]) as u32; self.write(&dst, (a >> (n*8)) & mask(16)); }
-            "psrlq"|"psllq" => {
+            "psrldq"|"pslldq" => {
                 let a = self.read(&dst,16).0;
-                let n = if f[1].as_bytes()[0]==b'i' { parse_imm(&f[1][2..]) as u32 } else { self.read(&f[1],8).0 as u32 };
-                let lanes = [ (a & mask(8)), (a >> 64) & mask(8) ];
-                let r: [u128;2] = if op=="psrlq" { [lanes[0]>>n, lanes[1]>>n] } else { [(lanes[0]<<n)&mask(8), (lanes[1]<<n)&mask(8)] };
-                self.write(&dst, r[0] | (r[1] << 64));
+                let n = parse_imm(&f[1][2..]) as u128;
+                let value = if n >= 16 {0} else if op == "psrldq" {a >> (n*8)} else {a << (n*8)};
+                self.write(&dst,value);
+            }
+            "psrlq"|"psllq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw" => {
+                let a = self.read(&dst,16).0;
+                let n = if f[1].as_bytes()[0]==b'i' { parse_imm(&f[1][2..]) as u128 } else { self.read(&f[1],16).0 & mask(8) };
+                let width = if op.ends_with('q') {64} else if op.ends_with('d') {32} else {16};
+                let lane_mask = (1u128 << width)-1;
+                let mut result=0;
+                for i in 0..128/width {
+                    let lane=(a>>(i*width))&lane_mask;
+                    let shifted=if op.starts_with("psra") {
+                        let signed=((lane<<(128-width)) as i128)>>(128-width);
+                        (signed >> n.min(width-1)) as u128 & lane_mask
+                    } else if n>=width {0}
+                    else if op.starts_with("psrl") {lane>>n}
+                    else {(lane<<n)&lane_mask};
+                    result |= shifted<<(i*width);
+                }
+                self.write(&dst,result);
             }
             "unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps" => {
                 let a = self.read(&dst,16).0; let b = self.read(&f[1],16).0;
@@ -1158,7 +1174,7 @@ impl Machine {
 fn is_simd(op: &str) -> bool {
     matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
-        |"psrlq"|"psllq"|"psrldq"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
+        |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
         |"xorps"|"andps"|"orps"|"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
 }
@@ -1166,6 +1182,49 @@ fn is_simd(op: &str) -> bool {
 #[cfg(test)]
 mod membrane_simd_tests {
     use super::*;
+
+    #[test]
+    fn packed_shift_decode_lengths_and_saturation() {
+        for (opcode, group, name) in [(0x71,2,"psrlw"),(0x71,4,"psraw"),
+            (0x71,6,"psllw"),(0x72,2,"psrld"),(0x72,4,"psrad"),(0x72,6,"pslld")] {
+            let bytes=[0x66,0x0f,opcode,0xc0|(group<<3),8,0xc3];
+            let ins=crate::x86::decode(&bytes,0x1000).unwrap();
+            assert_eq!(ins.len,5);
+            assert_eq!(ins.mnemonic,name);
+            assert_eq!(crate::x86::decode(&bytes[5..],0x1005).unwrap().mnemonic,"ret");
+        }
+        for (width, suffix) in [(16,"w"),(32,"d"),(64,"q")] {
+            for prefix in ["psrl","psll","psra"] {
+                if width==64 && prefix=="psra" { continue; }
+                let op=format!("{prefix}{suffix}");
+                for count in [0u64,1,8,15,16,31,32,63,64,127,128,255,u64::MAX] {
+                    let mut m=Machine::new("");
+                    let input=0x8001ffff1234567887654321fedcba98u128;
+                    m.set_reg("xmm0",input); m.set_reg("xmm1",count as u128);
+                    m.simd(&op,&vec!["r:xmm0".into(),"r:xmm1".into()]);
+                    let mask=(1u128<<width)-1;
+                    let mut expected=0;
+                    for lane in 0..128/width {
+                        let mut value=(input>>(lane*width))&mask;
+                        for _ in 0..count.min(width as u64+1) {
+                            value=match prefix {
+                                "psrl"=>value>>1,
+                                "psll"=>(value<<1)&mask,
+                                _=>(value>>1)|(value&(1<<(width-1))),
+                            };
+                        }
+                        expected|=value<<(lane*width);
+                    }
+                    assert_eq!(m.read("r:xmm0",16).0,expected,"{op} {count}");
+                }
+            }
+        }
+        for op in ["psrldq","pslldq"] {
+            let mut m=Machine::new(""); m.set_reg("xmm0",u128::MAX);
+            m.simd(op,&vec!["r:xmm0".into(),"i:0x10".into()]);
+            assert_eq!(m.read("r:xmm0",16).0,0);
+        }
+    }
 
     #[test]
     fn double_shifts_decode_and_execute() {

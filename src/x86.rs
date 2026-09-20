@@ -443,6 +443,8 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpgtd",vec![rop(r,16,rex.p),rm],false,None) }
         0x73 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
                   ins!(addr,c,match g&7 {2=>"psrlq",3=>"psrldq",6=>"psllq",7=>"pslldq",_=>"psrlq"},vec![rm,Op::Imm(im)],false,None) }
+        0x71 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
+                  ins!(addr,c,match g&7 {2=>"psrlw",6=>"psllw",4=>"psraw",_=>return None},vec![rm,Op::Imm(im)],false,None) }
         0x72 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
                   ins!(addr,c,match g&7 {2=>"psrld",6=>"pslld",4=>"psrad",_=>"psrld"},vec![rm,Op::Imm(im)],false,None) }
         0xD3 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psrlq",vec![rop(r,16,rex.p),rm],false,None) }

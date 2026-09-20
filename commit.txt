@@ -1,7 +1,7 @@
-I connect my HSOA readout to baked executable membrane checks
+I repair packed shifts and verify my complete HSOA membranes
 
-I compare whole spectra and recovered windings against the existing HSOA
-reference, close factors from the recovered winding, and preserve the wide
-singleton negative control. I lift each baked binary through the existing
-complete IMASM membrane pipeline and retain native/VM comparison records.
-I also retain the experimental dyadic partner witness path and its replay tests.
+I decode packed word shifts without losing instruction boundaries and execute
+word, dword, qword, and byte shifts with saturated counts and signed lanes.
+I test boundary and oversized counts and rerun the complete glyph membranes.
+All four native/VM comparisons and all 82 library tests pass. I retain the
+175-bit unresolved control and the prior failing records.

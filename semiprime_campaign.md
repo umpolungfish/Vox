@@ -21,14 +21,21 @@ checked before `vox run`; native stdout/stderr and VM exit must all agree.
 Failures are retained and make the battery exit nonzero. Logs and executable
 modules live under `membranes/hsoa/` in unique run directories.
 
-Current integration status: native checks and exact serialized-module recovery
-pass; complete VM execution fails. The latest run is
-`membranes/hsoa/1789930211024109590/results.jsonl`. The first control halts at
-an address with no decoded instruction, `0x19543`, after 1,355,452 VM steps.
-Explicit token-match validation gets past the earlier word-validation failure;
-the remaining loader/decoder/execution discrepancy is unresolved. The battery
-must remain red until the full execution agrees. Earlier failed static-glibc
-and dynamically linked builds are retained in their original run directories.
+Current integration status: all four native checks, exact serialized-module
+recoveries, and complete glyph-module executions pass. Native and VM stdout and
+stderr agree exactly, and every VM process exits zero. The successful run is
+`membranes/hsoa/1789930626756584634/results.jsonl`, with a tracked summary in
+`hsoa-membrane-verified.jsonl`. The wide case remains unresolved spectrally in
+both executions; this agreement does not assert a factorization.
+
+The previous failure at `0x19543` was caused by missing packed-word shift
+decoding: bytes inside `psrlw` were misread as a conditional branch. Packed
+word/dword shift execution was also absent. The decoder and VM now preserve
+instruction boundaries, shift each lane independently, saturate oversized
+logical shifts to zero, and sign-fill arithmetic right shifts. Regression tests
+cover boundary counts, huge register counts, and full-width byte shifts.
+All 82 library tests pass. Earlier failure records remain in
+`hsoa-membrane-results.jsonl` and their original local run directories.
 
 The experimental `phase_partners.rs` resident observes modular powers at dyadic
 exponents. Equal residues produce a return-exponent witness, replayed against
