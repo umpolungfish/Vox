@@ -31,13 +31,14 @@ fn four_judgment_drives_reimscription_and_closure() {
         .witness
         .clone()
         .expect("FOUR=T did not carry the near-root factor witness");
+    let extended_write = extended_judgment.write_boundary.clone();
     assert_eq!(extended_witness.lattice_cell, tape_u64(126));
-    assert_eq!(extended_judgment.write_boundary, *extended.boundary());
 
     let extended_closed = match extended.descend().unwrap() {
         Descent::Closed(closed) => closed,
         Descent::Continue(_) => panic!("near-root fixture failed to close after FOUR=T"),
     };
+    assert_eq!(extended_closed.boundary(), &extended_write);
     assert_eq!(extended_closed.lattice_cell, extended_witness.lattice_cell);
     assert_eq!(
         decode_imasm_execution(extended_closed.word()).unwrap().four,
