@@ -1,7 +1,4 @@
-I repair packed shifts and verify my complete HSOA membranes
+I record the compiled-only escalation boundary and the focused Vox audit path.
 
-I decode packed word shifts without losing instruction boundaries and execute
-word, dword, qword, and byte shifts with saturated counts and signed lanes.
-I test boundary and oversized counts and rerun the complete glyph membranes.
-All four native/VM comparisons and all 82 library tests pass. I retain the
-175-bit unresolved control and the prior failing records.
+I document that wide scaling audits and lifts binaries without rerunning the
+slower serialized execution path. I retain the focused VM failure evidence.
