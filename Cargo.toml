@@ -6,6 +6,10 @@ description = "Vox — IMASM word, lifts and verdicts"
 license = "Unlicense"
 autobins = false
 
+[[bin]]
+name = "semiprime_probe"
+path = "src/bin/semiprime_probe.rs"
+
 [lib]
 name = "vox"
 path = "src/lib.rs"
