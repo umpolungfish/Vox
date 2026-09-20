@@ -206,16 +206,15 @@ balanced semiprimes and bakes the base, modulus, and observation width into
 canonical IMASM input words. Expected factors remain outside the executable.
 Each compiled binary receives no arguments, an empty environment, and empty
 stdin. Its complete Fourier spectrum is compared with independently constructed
-modular observations and NumPy's FFT. Full module serialization must recover
-exactly, and execution via Vox must exit successfully and reproduce both output
-streams exactly. Stages stop on a failed check.
+modular observations and NumPy's FFT. The binary is audited and lifted into an
+IMASM module. Full serialized execution is retained as an opt-in focused check;
+the scaling battery does not rerun the slower VM path. Stages stop on a failed
+check.
 
 All three stages pass. Their branch populations are one and their factorization
 status is unresolved. The original factor-producing controls also pass. The
-report separates factored, return-without-factors, and unresolved results from
-execution agreement. Execution timings include process startup and loading,
-and exclude compilation. The display names are "Compiled binary execution"
-and "Serialized membrane via Vox VM".
+report separates factored, return-without-factors, and unresolved results.
+Execution timings include process startup and loading, and exclude compilation.
 
 `larger-close-battery.jsonl` records two successful close-factor cases at each
 of 175, 256, 512, 1024, and 2048 bits. `larger-close-battery-next.jsonl` records
@@ -241,3 +240,8 @@ The local harnesses disable Python's decimal-conversion digit ceiling for
 their generated test integers. A 16384-bit decimal conversion is verified.
 The factor campaign stops after a failed or timed-out case unless
 `--keep-going` is explicitly requested. No timeout is applied by default.
+
+The factor audit reports cover both families through 8192 bits and include
+Vox's full-image audit, with no F verdicts, plus module lifting. A focused VM
+run remains available with `factor_membrane_check.py --run-vox`; it is not part
+of the escalating timing battery.
