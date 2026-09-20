@@ -12,10 +12,14 @@ ROOT = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser()
 parser.add_argument('--bits', nargs='+', type=int, default=[175, 192, 224, 256, 320, 384, 512])
 parser.add_argument('--samples', type=int, default=5)
-parser.add_argument('--seconds', type=float, default=60)
+parser.add_argument('--seconds', type=float, default=None,
+                    help='optional external timeout; omitted means run to completion')
 parser.add_argument('--families', nargs='+', choices=['close', 'multiplier', 'balanced', 'unbalanced'], default=['close', 'multiplier', 'balanced', 'unbalanced'])
 parser.add_argument('--output', required=True)
+parser.add_argument('--producers', nargs='+', choices=['dialectic', 'resident', 'phase', 'braid', 'symbolic'], default=['dialectic', 'resident'])
 args = parser.parse_args()
+if args.seconds is not None and args.seconds <= 0:
+    parser.error('--seconds must be positive when supplied')
 assert min(args.bits) >= 175
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
 binary_hash = hashlib.sha256((ROOT/'target/release/semiprime_probe').read_bytes()).hexdigest()
@@ -40,7 +44,7 @@ with open(args.output, 'x') as output:
                     if n.bit_length() == bits and p != q:
                         break
                 assert isprime(p) and isprime(q)
-                for producer in ['dialectic', 'resident']:
+                for producer in args.producers:
                     row = dict(bits=bits, family=family, sample=sample, seed=seed,
                                n=str(n), p=str(p), q=str(q), producer=producer,
                                revision=revision, binary_sha256=binary_hash,
@@ -52,8 +56,16 @@ with open(args.output, 'x') as output:
                         row.update(stdout=result.stdout, stderr=result.stderr, returncode=result.returncode)
                         factors = [int(line.split()[1]) for line in result.stdout.splitlines() if line.startswith('factor ')]
                         row['status'] = 'success' if result.returncode == 0 and p in factors and q in factors else 'failure'
-                    except subprocess.TimeoutExpired:
+                    except subprocess.TimeoutExpired as exc:
+                        row['stdout'] = (exc.stdout or b'').decode(errors='replace')
+                        row['stderr'] = (exc.stderr or b'').decode(errors='replace')
                         row['status'] = 'timeout'
+                    except KeyboardInterrupt:
+                        row['status'] = 'interrupted'
+                        row['elapsed'] = time.monotonic()-started
+                        output.write(json.dumps(row)+'\n')
+                        output.flush()
+                        raise SystemExit(130)
                     row['elapsed'] = time.monotonic()-started
                     output.write(json.dumps(row)+'\n')
                     output.flush()
