@@ -1181,6 +1181,32 @@ fn is_simd(op: &str) -> bool {
 
 #[cfg(test)]
 mod membrane_simd_tests {
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn square_root_matches_hardware_rounding() {
+        use core::arch::x86_64::{_mm_cvtsd_f64, _mm_set_sd, _mm_sqrt_sd};
+        let check = |bits| {
+            let x = f64::from_bits(bits);
+            let expected = unsafe { _mm_cvtsd_f64(_mm_sqrt_sd(_mm_set_sd(0.0), _mm_set_sd(x))) };
+            let actual = super::fsqrt(x);
+            if expected.is_nan() { assert!(actual.is_nan()); }
+            else { assert_eq!(actual.to_bits(), expected.to_bits(), "sqrt input={bits:016x}"); }
+        };
+        check(8.0f64.to_bits());
+        for bits in [0, 1, 2, (1u64<<52)-1, 1u64<<52, 0x7fefffffffffffff,
+                     0x8000000000000000, 0x7ff0000000000000, 0xfff0000000000000,
+                     0x7ff8000000000001, (-1.0f64).to_bits()] { check(bits); }
+        for exponent in 0..2047u64 {
+            for fraction in [0, 1, (1u64<<51)-1, 1u64<<51, (1u64<<52)-1] {
+                check((exponent<<52)|fraction);
+            }
+        }
+        let mut bits = 0x715ad692834b0e1fu64;
+        for _ in 0..10000 {
+            bits ^= bits << 13; bits ^= bits >> 7; bits ^= bits << 17;
+            check(bits);
+        }
+    }
     use super::*;
 
     #[test]
@@ -1361,15 +1387,35 @@ mod membrane_simd_tests {
     }
 }
 
-/// Square root without std: a couple of Newton steps off a bit-halving seed.
-/// Enough for the scalar sqrtss/sqrtsd the code emits; not a rounding-correct
-/// libm.
+/// Binary64 square root, rounded to nearest using an exact integer remainder.
+/// Normalizing the significand also covers subnormal inputs without underflow.
 fn fsqrt(x: f64) -> f64 {
     if x < 0.0 { return f64::NAN; }
     if x == 0.0 || x.is_nan() || x.is_infinite() { return x; }
-    let mut g = f64::from_bits((x.to_bits() >> 1) + (1u64 << 61));
-    for _ in 0..6 { g = 0.5 * (g + x / g); }
-    g
+    let bits = x.to_bits();
+    let encoded_exponent = ((bits >> 52) & 0x7ff) as i32;
+    let mut significand = bits & ((1u64 << 52)-1);
+    let mut exponent;
+    if encoded_exponent == 0 {
+        let shift = significand.leading_zeros()-11;
+        significand <<= shift;
+        exponent = -1022-shift as i32;
+    } else {
+        significand |= 1u64 << 52;
+        exponent = encoded_exponent-1023;
+    }
+    if exponent & 1 != 0 { significand <<= 1; exponent -= 1; }
+    let radicand = (significand as u128) << 52;
+    let mut root = 1u128 << ((128-radicand.leading_zeros()+1)/2);
+    loop {
+        let next = (root+radicand/root)/2;
+        if next >= root { break; }
+        root = next;
+    }
+    // The midpoint square is root² + root + 1/4. An integer radicand
+    // cannot tie that midpoint, so the exact remainder decides rounding.
+    if radicand-root*root > root { root += 1; }
+    f64::from_bits((((exponent/2+1022) as u64) << 52) + root as u64)
 }
 
 fn is_float(op: &str) -> bool {

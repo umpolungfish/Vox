@@ -198,3 +198,46 @@ algorithm that obtains informative observations and locates their peaks without
 enumerating that domain or supplying the order in advance. This campaign has
 not established such an algorithm; no general 175-bit factoring result follows
 from the sparse-memory measurement.
+
+## Escalating baked execution battery
+
+`hsoa_membrane_check.py --stages 175:4 256:6 512:8` generates deterministic
+balanced semiprimes and bakes the base, modulus, and observation width into
+canonical IMASM input words. Expected factors remain outside the executable.
+Each compiled binary receives no arguments, an empty environment, and empty
+stdin. Its complete Fourier spectrum is compared with independently constructed
+modular observations and NumPy's FFT. Full module serialization must recover
+exactly, and execution via Vox must exit successfully and reproduce both output
+streams exactly. Stages stop on a failed check.
+
+All three stages pass. Their branch populations are one and their factorization
+status is unresolved. The original factor-producing controls also pass. The
+report separates factored, return-without-factors, and unresolved results from
+execution agreement. Execution timings include process startup and loading,
+and exclude compilation. The display names are "Compiled binary execution"
+and "Serialized membrane via Vox VM".
+
+`larger-close-battery.jsonl` records two successful close-factor cases at each
+of 175, 256, 512, 1024, and 2048 bits. `larger-close-battery-next.jsonl` records
+successful 4096- and 8192-bit close-factor cases. These use the dialectic
+producer with the modulus baked into each retained executable; the external
+oracle checks both factors. These measurements establish wide arithmetic and
+closure for the close-factor family. They do not establish factoring arbitrary
+balanced semiprimes of those sizes.
+
+`larger-multiplier-battery.jsonl` records two successful cases at each of 175,
+256, 512, and 1024 bits with q the next prime above 2p.
+`larger-multiplier-battery-next.jsonl` records successful 2048-, 4096-, and
+8192-bit cases in that family. Every case closes after four descents. The
+8192-bit case takes 24.935 seconds of compiled binary execution, including
+startup. Prime generation and compilation are excluded. The full release
+regression suite passes alongside these batteries.
+
+Case directories use a hash of all numerical inputs, retaining those inputs
+in the JSONL report. This avoids filesystem component-length failures for
+large decimal moduli.
+
+The local harnesses disable Python's decimal-conversion digit ceiling for
+their generated test integers. A 16384-bit decimal conversion is verified.
+The factor campaign stops after a failed or timed-out case unless
+`--keep-going` is explicitly requested. No timeout is applied by default.

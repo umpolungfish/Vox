@@ -8,9 +8,10 @@ extern crate alloc;
 
 use vox::morphism_factor::{dec_of, parse_numeral};
 
-const BASE: Option<&str> = option_env!("VOX_PHASE_BASE_WORD");
-const MODULUS: Option<&str> = option_env!("VOX_PHASE_MODULUS_WORD");
-const WIDTH: Option<&str> = option_env!("VOX_PHASE_WIDTH_WORD");
+include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
+const BASE: Option<&str> = BAKED_BASE_WORD;
+const MODULUS: Option<&str> = BAKED_MODULUS_WORD;
+const WIDTH: Option<&str> = BAKED_WIDTH_WORD;
 const EXECUTION: Option<&str> = option_env!("VOX_PHASE_EXECUTION_WORD");
 
 fn main() -> Result<(), String> {

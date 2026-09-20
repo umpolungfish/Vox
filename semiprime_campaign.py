@@ -5,9 +5,15 @@ import random
 import subprocess
 import time
 import hashlib
+import sys
 from pathlib import Path
 from sympy import nextprime, isprime
 from baked_case import build_case
+
+# These are locally generated test integers, not untrusted service requests.
+# Decimal reporting must not impose a factoring-width ceiling.
+if hasattr(sys, 'set_int_max_str_digits'):
+    sys.set_int_max_str_digits(0)
 
 ROOT = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser()
@@ -17,6 +23,7 @@ parser.add_argument('--seconds', type=float, default=None,
                     help='optional external timeout; omitted means run to completion')
 parser.add_argument('--families', nargs='+', choices=['close', 'multiplier', 'balanced', 'unbalanced'], default=['close', 'multiplier', 'balanced', 'unbalanced'])
 parser.add_argument('--output', required=True)
+parser.add_argument('--keep-going', action='store_true', help='continue after a failed or timed-out case')
 parser.add_argument('--producers', nargs='+', choices=['dialectic', 'resident', 'phase', 'braid', 'symbolic'], default=['dialectic', 'resident'])
 args = parser.parse_args()
 if args.seconds is not None and args.seconds <= 0:
@@ -73,3 +80,5 @@ with open(args.output, 'x') as output:
                     output.write(json.dumps(row)+'\n')
                     output.flush()
                     print(bits, family, sample, producer, row['status'], round(row['elapsed'], 3), flush=True)
+                    if row['status'] != 'success' and not args.keep_going:
+                        raise SystemExit('Battery stopped at failed case; evidence retained in '+args.output)
