@@ -1,0 +1,7 @@
+target/baked-semiprime/1789934951159479587/dialectic  elf  entry 0x16190  315145 byte(s) of code
+  913 function(s), 65515 instruction(s)
+  claimed 85% of the image (268646 of 315145 bytes)
+
+  913 function(s) by descent, 4176 more by fallback sweep
+  covered 100% of the image (315145 of 315145 bytes)
+  verdicts  T 146   B 880   N 4063   F 0  (F: 0 from descent, 0 from fallback sweep)
