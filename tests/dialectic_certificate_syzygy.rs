@@ -8,9 +8,8 @@ use vox::dialectic_reentry::{
     Descent, DialecticObject, EXTENDED_FERMAT_SPAN, IM_RWX, LEHMAN_LOCAL_SPAN,
     SHORT_FRONTIER_SPAN,
 };
-use vox::factorization_31_membrane::UnboundedResident;
 use vox::morphism_factor::{add, cmp, mul, tape_u64};
-use vox::producer_provenance::{resident_route_provenance, route_provenance};
+use vox::producer_provenance::{closed_support_provenance, route_provenance};
 use vox::reentry_certificate::{certify_reentry, verify_reentry_certificate};
 use vox::trace_algebra::witness_valid;
 use vox::vox::{EVALF, EVALT};
@@ -25,7 +24,7 @@ fn flip(mark: char) -> char {
 }
 
 #[test]
-fn three_dialectic_closure_depths_are_the_existing_route_provenance_fibres() {
+fn three_dialectic_closure_depths_are_structurally_congruent_to_route_provenance() {
     let cases = [
         (1_000_003u64, 1_001_003u64, "frontier", 1usize),
         (1_000_003u64, 1_032_007u64, "near-root", 2usize),
@@ -53,15 +52,15 @@ fn three_dialectic_closure_depths_are_the_existing_route_provenance_fibres() {
             &q,
         ));
 
-        let named = route_provenance(expected_route).unwrap();
-        assert_eq!(summary.terminal_support, named.ladder[0]);
-
-        let mut resident = UnboundedResident::new(n.clone());
-        resident.run();
-        let resident_provenance = resident_route_provenance(&resident)
-            .expect("resident did not close the common product boundary");
-        assert_eq!(resident_provenance.route, expected_route);
-        assert_eq!(resident_provenance.ladder[0], summary.terminal_support);
+        // The terminal dialectic support is itself the complete restored outer
+        // support. Project its two nested deposits directly, then compare the
+        // whole envelope to the existing producer fibre. This preserves the
+        // factor-bearing structural seam without running a second factor
+        // producer inside a certificate/provenance congruence test.
+        let expected_provenance = route_provenance(expected_route).unwrap();
+        let dialectic_provenance = closed_support_provenance(summary.terminal_support)
+            .expect("closed dialectic support did not encode a route provenance envelope");
+        assert_eq!(dialectic_provenance, expected_provenance);
 
         let terminal = verify_reentry_certificate(
             &certify_reentry(&summary.terminal_carrier).unwrap(),
