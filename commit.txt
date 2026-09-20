@@ -1,7 +1,7 @@
-I bake my phase and semiprime inputs into per-case IMASM binaries
+I execute my phase observation word over deposited payloads
 
-I compile each campaign case with canonical IMASM numerals and retain its
-executable and hash. I remove runtime numeric inputs from the probe and test
-that runtime overrides leave the baked phase observations unchanged.
-I implement observation banking across descent and fusion, test exact payload
-preservation, and document the remaining blueprint execution and acquisition work.
+I dispatch the twelve marks over observation-bearing deposits and nested frames.
+I preserve payload identity through clears and fusion and keep seeded T separate
+from deposited observations. I bake every blueprint rotation into a separate
+175-bit case binary and check the supplied cut-dependent transport readouts.
+I retain the remaining non-enumerating acquisition boundary in the documentation.

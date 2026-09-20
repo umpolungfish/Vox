@@ -20,19 +20,35 @@ primality certificates. Seeds and exact inputs are retained for reproduction.
 ## Baked phase observation controls
 
 `python3 baked_phase_check.py` builds separate observation binaries for an
-arithmetic control and the balanced 175-bit input at two register widths.
+arithmetic control and every rotation of the blueprint on the balanced 175-bit
+input, plus a second register width at the original cut. The execution word is
+read from the supplied ob3ect JSON and baked into each binary alongside its
+IMASM input numerals. The report records the blueprint hash and rotated word.
 The external harness checks Fourier queries against independent modular powers,
 and confirms that conflicting runtime arguments, stdin, and environment cannot
-change a baked case. All three cases pass. Reports and binaries are retained
+change a baked case. Reports and binaries are retained
 under `target/baked-phase/`.
 
 `PhaseObservationFrame` implements payload banking, live-register clearing, and
 fusion restoration. Its regression checks exact payload and spectrum preservation
-and rejects a changed live payload at fusion. The phase binary's nine unit tests
-pass. This is the transport segment of the supplied phase-observation blueprint.
-The complete twelve-mark execution and non-enumerating observation acquisition
-remain unimplemented. The frame currently transports the existing sparse modular
-walk's observations; it does not extract an order.
+and rejects a changed live payload at fusion.
+`phase_word.rs` implements sequential dispatch of all twelve marks over
+observation-bearing deposits and nested frames. Each deposit keeps an identity,
+lane, and actual modular-observation payload; fusion unions identities so an
+uncleared deposit is not counted twice. Seeding T creates no observation.
+The executable now uses this interpreter in place of a hardcoded sequence of
+frame-method calls. Unit tests reproduce all twelve supplied rotation readouts,
+including exposed clears and vacuous seeded landings, and test nested restoration
+and malformed words. The phase binary has eleven passing unit tests.
+All fourteen baked cases passed, and their register landings agree with the
+independent existing `IMASM16_3_Machine`. The run is retained at
+`target/baked-phase/1789929213605065499/results.jsonl`.
+
+This interpreter implements the sequential register/weight transport question.
+Graph ancestry and closure remain separate judgments. Its lane labels mark
+transported observations; they do not establish a modular period. Acquisition
+still uses the existing sparse modular walk and enumerates the register.
+Non-enumerating acquisition and order extraction from it remain unfinished.
 
 `semiprime-baked-input-control.jsonl` records the 175-bit close-pair factoring
 control with embedded modulus and base. `phase-sparse-scaling-baked.jsonl`
