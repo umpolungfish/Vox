@@ -216,8 +216,7 @@ fn fermat_factor(n: u64) -> Option<u64> {
     if n < 9 { return None; }
     let mut a = integer_sqrt(n);
     if a.saturating_mul(a) < n { a = a.saturating_add(1); }
-    let limit = a.saturating_add(1_000_000);
-    while a <= limit {
+    loop {
         let aa = (a as u128) * (a as u128);
         let b2 = aa.checked_sub(n as u128)?;
         let b = if b2 <= u64::MAX as u128 {
@@ -231,7 +230,6 @@ fn fermat_factor(n: u64) -> Option<u64> {
         }
         a = a.checked_add(1)?;
     }
-    None
 }
 
 fn integer_sqrt(mut n: u64) -> u64 {

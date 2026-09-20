@@ -54,6 +54,14 @@ fn main() {
         let (q, rem) = vox::morphism_factor::divmod(&n, &p);
         assert!(vox::morphism_factor::zero(&rem));
         println!("factor {}\nfactor {}", dec_of(&p), dec_of(&q));
+    } else if mode == "smart" {
+        eprintln!("stage general unbounded tape factor route");
+        let (factors, route) = vox::morphism_factor::smart_factor(&n);
+        if factors.len() < 2 { panic!("general route returned no composite factor"); }
+        let product = factors.iter().fold(vox::morphism_factor::one(), |acc, f| vox::morphism_factor::mul(&acc, f));
+        assert_eq!(product, n, "general route product does not reconstruct N");
+        for factor in factors { println!("factor {}", dec_of(&factor)); }
+        eprintln!("route {route}");
     } else if mode == "resident" {
         let mut resident = vox::factorization_31_membrane::UnboundedResident::new(n);
         resident.run();

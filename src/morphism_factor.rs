@@ -1612,7 +1612,7 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
 /// one double-step per round, so this also caps its rho reach; a balanced N whose
 /// smaller factor is near 2^40 wants roughly 2^20 steps, and the sieve takes over
 /// only past where rho's N^(1/4) cost exceeds the sieve's sub-exponential one.
-pub const HARD_CARRIER_ROUNDS: u64 = 1u64 << 22;
+pub const HARD_CARRIER_ROUNDS: u64 = u64::MAX;
 
 /// The full nine-arm carrier word, the deepest routing in one string.
 pub const NINE_ARM: &str =
