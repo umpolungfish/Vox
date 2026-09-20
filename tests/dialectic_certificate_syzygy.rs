@@ -62,6 +62,22 @@ fn three_dialectic_closure_depths_are_structurally_congruent_to_route_provenance
             .expect("closed dialectic support did not encode a route provenance envelope");
         assert_eq!(dialectic_provenance, expected_provenance);
 
+        // Multiplier provenance belongs only to the Lehman lattice. The short
+        // and extended closures have no multiplier coordinate; the HARD closure
+        // carries exactly its current k. Neither form may be relabelled.
+        let expected_multiplier = if expected_route == "HARD" {
+            Some(tape_u64(10))
+        } else {
+            None
+        };
+        assert_eq!(certificate.lehman_multiplier, expected_multiplier);
+        let mut wrong_multiplier = certificate.clone();
+        wrong_multiplier.lehman_multiplier = match expected_multiplier {
+            Some(_) => None,
+            None => Some(tape_u64(1)),
+        };
+        assert!(verify_dialectic_certificate(&wrong_multiplier).is_err());
+
         let terminal = verify_reentry_certificate(
             &certify_reentry(&summary.terminal_carrier).unwrap(),
         )
