@@ -1,5 +1,41 @@
 # Semiprime execution campaign
 
+## HSOA membrane integration
+
+The project's working architectural description is a fractal holomorphic
+semiotic operator algebraic P-system. Executable checks below specify which
+properties have been measured in this implementation.
+
+`python3 hsoa_membrane_check.py` builds baked-input phase membranes and compares
+their entire spectra with `G-mOMonadOS/hsoa_shor_state.py`'s NumPy Fourier
+readout. The external reference state is prepared from modular powers without
+calling `true_period`. Factors close from the Rust recovered winding, rather
+than a reference order. The native controls recover 4, 6, and 12 for the
+15, 21, and 35 cases and emit verified pairs. The 175-bit balanced case at
+four register qubits remains a singleton observation with no inferred winding.
+This is a wide-arithmetic negative control, not a 175-bit factoring result.
+
+Each executable is lifted with the existing `vox imasm`, serialized with
+`vox glyphs`, and recovered with `vox unglyphs`. Exact module recovery is
+checked before `vox run`; native stdout/stderr and VM exit must all agree.
+Failures are retained and make the battery exit nonzero. Logs and executable
+modules live under `membranes/hsoa/` in unique run directories.
+
+Current integration status: native checks and exact serialized-module recovery
+pass; complete VM execution fails. The latest run is
+`membranes/hsoa/1789930211024109590/results.jsonl`. The first control halts at
+an address with no decoded instruction, `0x19543`, after 1,355,452 VM steps.
+Explicit token-match validation gets past the earlier word-validation failure;
+the remaining loader/decoder/execution discrepancy is unresolved. The battery
+must remain red until the full execution agrees. Earlier failed static-glibc
+and dynamically linked builds are retained in their original run directories.
+
+The experimental `phase_partners.rs` resident observes modular powers at dyadic
+exponents. Equal residues produce a return-exponent witness, replayed against
+both exponents and the modulus. This may be a multiple of the minimal order.
+Small controls and corrupted-witness rejection pass; no wide factoring or
+Fourier-sampling claim is attached to this experimental path.
+
 Run `python3 semiprime_campaign.py --output results.jsonl`.
 The Python harness requires SymPy. Output files are created exclusively and
 each completed case is flushed immediately. The default minimum width is 175

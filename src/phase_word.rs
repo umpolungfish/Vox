@@ -31,7 +31,8 @@ fn union<T: Clone>(target: &mut Vec<Deposit<T>>, source: &[Deposit<T>]) -> usize
 
 pub fn execute<T: Clone>(word: &str, observation: &T) -> Result<Readout<T>, String> {
     // Validate before execution, including marks that would be inert after ⊡.
-    if word.is_empty() || word.chars().any(|m| !"⊢⊣≻≺⋈⊙∈∋⊤⊥⊞⊡".contains(m)) {
+    if word.is_empty() || word.chars().any(|m| !matches!(m,
+        '⊢'|'⊣'|'≻'|'≺'|'⋈'|'⊙'|'∈'|'∋'|'⊤'|'⊥'|'⊞'|'⊡')) {
         return Err("invalid phase execution word".into());
     }
     let mut out = Readout { register: 0, surviving: Vec::new(), cleared: 0,
