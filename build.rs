@@ -10,7 +10,7 @@ fn main() {
         fs::read_to_string(path).expect("read build-time IMASM input file")
     });
     let lines: Vec<_> = file.as_deref().map(|s| s.lines().collect()).unwrap_or_default();
-    if file.is_some() { assert!((2..=3).contains(&lines.len()), "expected modulus, base, optional width"); }
+    if file.is_some() { assert!((1..=3).contains(&lines.len()), "expected modulus, optional base, optional width"); }
     let mut source = String::new();
     for (i, (key, name)) in keys.iter().zip(names).enumerate() {
         println!("cargo:rerun-if-env-changed={key}");
