@@ -18,6 +18,13 @@ impl Winding {
         }
     }
 
+    fn add(self, other: Self) -> Self {
+        Self::new(
+            self.num * other.den + other.num * self.den,
+            self.den * other.den,
+        )
+    }
+
     fn is_self_inverse(self) -> bool {
         self.num == 0 || (self.den == 2 && self.num == 1)
     }
@@ -222,6 +229,32 @@ fn generic_cyclic_winding_is_real_only_at_orders_one_and_two() {
                     Winding::new(j * k, d).is_self_inverse(),
                     "order {d} entry ({j},{k}) was not real",
                 );
+            }
+        }
+    }
+}
+
+#[test]
+fn cyclic_winding_character_is_bilinear_mod_one() {
+    for d in 1u64..=32 {
+        for a in 0..d {
+            for b in 0..d {
+                let sum = (a + b) % d;
+                for k in 0..d {
+                    let left = Winding::new(sum * k, d);
+                    let right = Winding::new(a * k, d).add(Winding::new(b * k, d));
+                    assert_eq!(
+                        left, right,
+                        "left character law failed at order {d}, a={a}, b={b}, k={k}",
+                    );
+
+                    let left = Winding::new(k * sum, d);
+                    let right = Winding::new(k * a, d).add(Winding::new(k * b, d));
+                    assert_eq!(
+                        left, right,
+                        "right character law failed at order {d}, a={a}, b={b}, k={k}",
+                    );
+                }
             }
         }
     }
