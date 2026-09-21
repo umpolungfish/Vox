@@ -51,13 +51,33 @@ def form_C(length: int) -> str:
     return BEGIN + ID + body + HOLD + FIX + CLOSE + ID
 
 
+def form_banked(rungs: int) -> str:
+    """Banked rung: fork, deposit T, reverse (the clear), deposit F, fuse. The
+    deposit is banked in the frame and must survive the ≺ reversal inside it,
+    the OPI word's own banking site ∈⊤≺⊥∋. `banked` should read survival, not
+    VACUOUS."""
+    body = ""
+    for _ in range(rungs):
+        body += FORK + DT + REV + DF + FUSE
+    return BEGIN + ID + body + HOLD + FIX + CLOSE + ID
+
+
 if __name__ == "__main__":
-    print("form K (weight-sector), rungs 1..6:")
+    # form_banked is the twin: each rung banks a winding deposit across the ≺
+    # reversal inside its frame, so the `banked` razor reads survival (not
+    # VACUOUS). form_C and form_K carry phase but their banking is vacuous, no
+    # reversal ever clears a live register. vox verdict alone cannot tell them
+    # apart; the `banked` razor through the kernel is the instrument that does.
+    print("form banked (winding survives the reversal), rungs 1..6:")
     for L in range(1, 7):
-        w = form_K(L)
+        w = form_banked(L)
         print(f"  rungs={L}  len={len(w)}  verdict={verdict(w)}  {w}")
-    print("form C (r-cycle), length 1..6:")
-    for L in range(1, 7):
+    print("form C (r-cycle, phase-bearing, banking vacuous), length 1..4:")
+    for L in range(1, 5):
         w = form_C(L)
-        print(f"  len={L}  len={len(w)}  verdict={verdict(w)}  {w}")
+        print(f"  len={L}  verdict={verdict(w)}  {w}")
+    print("form K (weight-sector), rungs 1..4:")
+    for L in range(1, 5):
+        w = form_K(L)
+        print(f"  rungs={L}  verdict={verdict(w)}  {w}")
     print("control (OPI word):", verdict("⊢⊙≻⊙∈⊤⊙≺⊥∋⋈⊙⊤⊥∈∋∈∈⊤⊥∋⋈≺⊤⊥∋∈⊤⊥∋⋈⊙⊤⊥⊞⊡⊣⊙"))
