@@ -1,9 +1,10 @@
 //! Order-two Hadamard bridge into passive factor extraction.
 //!
 //! The seed object is `HadamardCarrier`: it owns N and no factor witness.  A
-//! preceding phase boundary may imscribe either a residue x directly or an
-//! `(a, r)` phase/order relation into the succeeding whole object.  This bridge
-//! consumes that object and judges the exposed order-two relation:
+//! preceding phase boundary may imscribe a residue x directly, an `(a, r)`
+//! phase/order relation, or one measured phase fraction `k/M` into the
+//! succeeding whole object.  This bridge consumes that object and judges the
+//! exposed order-two relation:
 //!
 //!   T -- x is a nontrivial involution whose two gcd boundaries are
 //!        complementary and reconstruct N; the succeeding object is a
@@ -11,13 +12,17 @@
 //!   B -- x is a nontrivial involution and both gcd boundaries distinguish N,
 //!        but the two distinctions overlap rather than closing a factor pair.
 //!   N -- the imscribed relation yields no new factor distinction (including
-//!        x = +/-1, x^2 != 1 mod N, or an odd/unusable period); the transformed
+//!        x = +/-1, x^2 != 1 mod N, an odd/unusable period, or a phase sample
+//!        whose continued-fraction readout certifies no period); the transformed
 //!        Hadamard carrier remains.
 //!   F -- a newly imscribed numeral tape is structurally malformed.
 //!
-//! No search for x, r, p, or q occurs here.  In particular, the passive
-//! extractor remains downstream: it only receives T, where p and q are already
-//! carried by the limiting object.
+//! No search for x, r, p, or q occurs here.  `descend_phase_sample` reads only
+//! the continued-fraction convergents of the one supplied phase measurement and
+//! certifies them against the resident modular relation.  It never walks the
+//! modular orbit to discover an order and never enumerates factor candidates.
+//! The passive extractor remains downstream: it only receives T, where p and q
+//! are already carried by the limiting object.
 
 use core::cmp::Ordering;
 
@@ -58,20 +63,74 @@ fn valid_numeral_tape(tape: &[char]) -> bool {
     !tape.is_empty() && tape.iter().all(|&mark| mark == EVALT || mark == EVALF)
 }
 
-/// Tape-native modular exponentiation used only to transport an already-exposed
-/// phase/order relation to its order-two boundary.  The exponent is consumed
-/// LSB-first directly from its IMASM numeral tape; no host-width integer is
-/// reconstructed.
-fn phase_half_power(base: &[char], half_period: &[char], n: &[char]) -> Tape {
+/// Tape-native modular exponentiation.  The exponent is consumed LSB-first
+/// directly from its IMASM numeral tape; no host-width integer is reconstructed.
+fn phase_power(base: &[char], exponent: &[char], n: &[char]) -> Tape {
     let mut result = one();
     let mut power = modulo(base, n);
-    for &cell in half_period {
+    for &cell in exponent {
         if cell == EVALF {
             result = modulo(&mul(&result, &power), n);
         }
         power = modulo(&mul(&power, &power), n);
     }
     result
+}
+
+/// Deterministically read the continued-fraction convergents of one measured
+/// phase fraction k/M.  A denominator is returned only when the resident
+/// modular relation certifies a^q = 1 (mod N).  This is phase readout, not an
+/// order walk: no successive modular orbit states are generated to find q.
+fn certified_period_from_sample(
+    base: &[char],
+    k: &[char],
+    m: &[char],
+    n: &[char],
+) -> Option<Tape> {
+    if zero(m) {
+        return None;
+    }
+
+    let mut num = modulo(k, m);
+    if zero(&num) {
+        return None;
+    }
+    let mut den = m.to_vec();
+
+    // Continued-fraction recurrence:
+    // p[-2]=0, p[-1]=1; q[-2]=1, q[-1]=0.
+    let z = sub(&one(), &one());
+    let mut p_prev = z.clone();
+    let mut p_curr = one();
+    let mut q_prev = one();
+    let mut q_curr = z;
+
+    while !zero(&den) {
+        let (a, rem) = divmod(&num, &den);
+        let p_next = add(&mul(&a, &p_curr), &p_prev);
+        let q_next = add(&mul(&a, &q_curr), &q_prev);
+
+        if !zero(&q_next) {
+            // For N > 2, a multiplicative order useful here is strictly below N.
+            // Convergent denominators only increase, so there is no useful later
+            // candidate once this boundary is reached.
+            if cmp(&q_next, n) != Ordering::Less {
+                break;
+            }
+            if cmp(&phase_power(base, &q_next, n), &one()) == Ordering::Equal {
+                return Some(q_next);
+            }
+        }
+
+        p_prev = p_curr;
+        p_curr = p_next;
+        q_prev = q_curr;
+        q_curr = q_next;
+        num = den;
+        den = rem;
+    }
+
+    None
 }
 
 impl HadamardCarrier {
@@ -154,8 +213,36 @@ impl HadamardCarrier {
             return HadamardDescent::N(self);
         }
 
-        let x = phase_half_power(base, &half, self.n());
+        let x = phase_power(base, &half, self.n());
         self.descend_involution(&x)
+    }
+
+    /// Consume one measured phase fraction k/M and, in this same outer
+    /// invocation, read its continued-fraction convergents until the resident
+    /// modular relation certifies one denominator as a period.  The certified
+    /// relation is then handed directly to the order-two descent above.
+    ///
+    /// This method does not repeat the measurement, lift an uncertified
+    /// denominator through multiples, scan bases, walk an orbit, or enumerate
+    /// factors.  An uninformative single read therefore returns N.
+    pub fn descend_phase_sample(
+        self,
+        base: &[char],
+        k: &[char],
+        m: &[char],
+    ) -> HadamardDescent {
+        if !valid_numeral_tape(base) || !valid_numeral_tape(k) || !valid_numeral_tape(m) {
+            return HadamardDescent::F;
+        }
+        if cmp(self.n(), &one()) != Ordering::Greater || zero(m) {
+            return HadamardDescent::N(self);
+        }
+
+        let n = self.n().to_vec();
+        match certified_period_from_sample(base, k, m, &n) {
+            Some(period) => self.descend_phase_order(base, &period),
+            None => HadamardDescent::N(self),
+        }
     }
 }
 
@@ -215,6 +302,51 @@ mod tests {
     }
 
     #[test]
+    fn exact_phase_sample_closes_without_an_order_walk() {
+        // One exact Fourier support point for r=4: k/M = 4/16 = 1/4.
+        // The CF denominator 4 is certified by 2^4 = 1 mod 15 and immediately
+        // feeds the order-two boundary; no orbit is walked to discover r.
+        let seed = HadamardCarrier::new(&tape_u64(15)).unwrap();
+        let factor_carrier = match seed.descend_phase_sample(
+            &tape_u64(2),
+            &tape_u64(4),
+            &tape_u64(16),
+        ) {
+            HadamardDescent::T(carrier) => carrier,
+            other => panic!("expected T factor carrier, got {other:?}"),
+        };
+        assert_eq!(read_t(factor_carrier), (tape_u64(3), tape_u64(5)));
+    }
+
+    #[test]
+    fn one_near_peak_phase_sample_certifies_order_six() {
+        // 43/256 is a one-shot phase read near 1/6.  Its continued-fraction
+        // sequence contains 1/6; q=6 certifies because 2^6 = 1 mod 21.  The
+        // same outer descent then exposes x=2^3=8 and closes 3 * 7.
+        let seed = HadamardCarrier::new(&tape_u64(21)).unwrap();
+        let factor_carrier = match seed.descend_phase_sample(
+            &tape_u64(2),
+            &tape_u64(43),
+            &tape_u64(256),
+        ) {
+            HadamardDescent::T(carrier) => carrier,
+            other => panic!("expected T factor carrier, got {other:?}"),
+        };
+        assert_eq!(read_t(factor_carrier), (tape_u64(3), tape_u64(7)));
+    }
+
+    #[test]
+    fn uninformative_single_phase_read_routes_around_as_n() {
+        // 85/256 reduces toward 1/3 for this register, but q=3 does not close
+        // 2 mod 21.  With no denominator lifting or second shot, this read is N.
+        let seed = HadamardCarrier::new(&tape_u64(21)).unwrap();
+        assert!(matches!(
+            seed.descend_phase_sample(&tape_u64(2), &tape_u64(85), &tape_u64(256)),
+            HadamardDescent::N(_)
+        ));
+    }
+
+    #[test]
     fn odd_or_nonclosing_phase_relations_route_around_as_n() {
         let n = tape_u64(15);
         for period in [3u64, 2] {
@@ -264,5 +396,23 @@ mod tests {
 
         let seed = HadamardCarrier::new(&tape_u64(15)).unwrap();
         assert_eq!(seed.descend_phase_order(&tape_u64(2), &['?']), HadamardDescent::F);
+
+        let seed = HadamardCarrier::new(&tape_u64(15)).unwrap();
+        assert_eq!(
+            seed.descend_phase_sample(&['?'], &tape_u64(4), &tape_u64(16)),
+            HadamardDescent::F
+        );
+
+        let seed = HadamardCarrier::new(&tape_u64(15)).unwrap();
+        assert_eq!(
+            seed.descend_phase_sample(&tape_u64(2), &['?'], &tape_u64(16)),
+            HadamardDescent::F
+        );
+
+        let seed = HadamardCarrier::new(&tape_u64(15)).unwrap();
+        assert_eq!(
+            seed.descend_phase_sample(&tape_u64(2), &tape_u64(4), &['?']),
+            HadamardDescent::F
+        );
     }
 }
