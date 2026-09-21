@@ -26,5 +26,5 @@ jobs:
       - name: Run library tests
         run: make test
 
-      - name: Compile and execute baked 31-bit fixed-point membrane
+      - name: Compile and execute baked fixed-point semiprime ladder
         run: ./scripts/test_fixed_point_semiprime_baked.sh
