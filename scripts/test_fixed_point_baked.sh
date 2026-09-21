@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-case_file="$repo/tests/baked/fixed_point_n15.imasm"
+case_file="$repo/tests/baked/fixed_point_n15.word"
 target_dir="$repo/target/baked-fixed-point-n15"
 
 rm -rf "$target_dir"

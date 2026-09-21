@@ -18,6 +18,12 @@ fn main() -> Result<(), String> {
         return Err(String::from("fixed_point_baked accepts no runtime arguments"));
     }
 
+    // The shared bake file also declares the optional phase-binary fields.
+    // This artifact deliberately consumes none of them; touching the generated
+    // constants only keeps the compiler audit clean while N remains the sole
+    // baked input required by this executable.
+    let _ = (BAKED_BASE_WORD, BAKED_WIDTH_WORD);
+
     let n_word = BAKED_MODULUS_WORD.ok_or("build with one baked IMASM modulus word")?;
     let n = parse_numeral(n_word)?;
     if emit_numeral(&n) != n_word {
