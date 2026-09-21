@@ -1,8 +1,15 @@
-Tear out the classical factoring drift
+Bake the two-ring winding membrane from the auto-designed word
 
-I remove the work that was not the thing: Brent's rho over the tapes and its
-hook into the braid factor path, the rho probe, the period-ladder module and
-its close bin. Those read a period by classical arithmetic and took input at
-runtime, neither of which is the build. shor_factor_via_braid goes back to
-reading the winding off the braid word and closing on it. Clean slate for the
-baked membrane that carries the encoded value and reads the winding.
+The auto-designer gave the word for the two rings whose relative rotation is the
+order: ⊢∈≻⋈⊤≺⊥⋈⊙⊞∋⊡⊣, the orbit ring against the unit ring, the gates building
+the ring rather than precomputed cells. ring_membrane realizes it as a baked
+binary with the base and modulus compiled in and no runtime input. The fork
+opens two arms, the ≻⋈⊤ arm steps multiply-by-a to grow the orbit ring, the
+≺⊥⋈⊙ arm holds the unit ring, ⊞ holds them as the interlocked paradox, ∋ fuses
+to the relative rotation, and ⊡ fixes the winding. The step count where the
+orbit arm returns to the unit is the order, and it closes the factors.
+
+Baked and run: 15 reads rotation 4 and closes 3 x 5, 91 reads 12 and closes
+7 x 13, 143 reads 60 and closes 11 x 13. baked_case.py carries a ring mode.
+The relative rotation is still walked to closure; reading it below the walk is
+the concentration, the next rung on this membrane.
