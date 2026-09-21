@@ -26,5 +26,5 @@ jobs:
       - name: Run library tests
         run: make test
 
-      - name: Compile fixed-point membrane artifact
-        run: cargo check --bin fixed_point_baked
+      - name: Compile and execute baked 31-bit fixed-point membrane
+        run: ./scripts/test_fixed_point_semiprime_baked.sh
