@@ -23,6 +23,33 @@ impl Winding {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct ComplexPhase {
+    re: f64,
+    im: f64,
+}
+
+impl ComplexPhase {
+    const fn new(re: f64, im: f64) -> Self {
+        Self { re, im }
+    }
+
+    fn add(self, other: Self) -> Self {
+        Self::new(self.re + other.re, self.im + other.im)
+    }
+
+    fn mul(self, other: Self) -> Self {
+        Self::new(
+            self.re * other.re - self.im * other.im,
+            self.re * other.im + self.im * other.re,
+        )
+    }
+
+    fn conj(self) -> Self {
+        Self::new(self.re, -self.im)
+    }
+}
+
 fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
     while b != 0 {
         let r = a % b;
@@ -30,6 +57,54 @@ fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
         b = r;
     }
     a
+}
+
+fn abs_f64(x: f64) -> f64 {
+    if x < 0.0 { -x } else { x }
+}
+
+fn cos_sin(theta: f64) -> (f64, f64) {
+    const PI: f64 = 3.14159265358979323846264338327950288;
+    const TAU: f64 = 6.28318530717958647692528676655900576;
+
+    let mut t = theta % TAU;
+    if t > PI {
+        t -= TAU;
+    }
+    if t < -PI {
+        t += TAU;
+    }
+
+    let t2 = t * t;
+
+    let mut cos = 1.0;
+    let mut cos_term = 1.0;
+    for n in 1u32..=12 {
+        let a = (2 * n - 1) as f64;
+        let b = (2 * n) as f64;
+        cos_term *= -t2 / (a * b);
+        cos += cos_term;
+    }
+
+    let mut sin = t;
+    let mut sin_term = t;
+    for n in 1u32..=12 {
+        let a = (2 * n) as f64;
+        let b = (2 * n + 1) as f64;
+        sin_term *= -t2 / (a * b);
+        sin += sin_term;
+    }
+
+    (cos, sin)
+}
+
+fn cyclic_character(row: u64, column: u64, order: u64) -> ComplexPhase {
+    const TAU: f64 = 6.28318530717958647692528676655900576;
+    assert!(order != 0);
+    let turn = (row * column) % order;
+    let theta = -TAU * (turn as f64) / (order as f64);
+    let (re, im) = cos_sin(theta);
+    ComplexPhase::new(re, im)
 }
 
 fn is_quadratic_residue_mod_11(r: u64) -> bool {
@@ -146,6 +221,38 @@ fn generic_cyclic_winding_is_real_only_at_orders_one_and_two() {
                 assert!(
                     Winding::new(j * k, d).is_self_inverse(),
                     "order {d} entry ({j},{k}) was not real",
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn complex_cyclic_character_table_remains_orthogonal_before_real_retraction() {
+    const TOL: f64 = 1.0e-10;
+
+    for d in 1u64..=16 {
+        for a in 0..d {
+            for b in 0..d {
+                let mut inner = ComplexPhase::new(0.0, 0.0);
+                for k in 0..d {
+                    inner = inner.add(
+                        cyclic_character(a, k, d)
+                            .conj()
+                            .mul(cyclic_character(b, k, d)),
+                    );
+                }
+
+                let expected_re = if a == b { d as f64 } else { 0.0 };
+                assert!(
+                    abs_f64(inner.re - expected_re) < TOL,
+                    "order {d} rows {a},{b} had real inner product {} instead of {expected_re}",
+                    inner.re,
+                );
+                assert!(
+                    abs_f64(inner.im) < TOL,
+                    "order {d} rows {a},{b} had imaginary inner product {}",
+                    inner.im,
                 );
             }
         }
