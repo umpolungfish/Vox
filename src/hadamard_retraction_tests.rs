@@ -28,6 +28,15 @@ impl Winding {
     fn is_self_inverse(self) -> bool {
         self.num == 0 || (self.den == 2 && self.num == 1)
     }
+
+    fn nearest_self_inverse_sign(self) -> i8 {
+        let four_num = 4 * self.num;
+        if four_num <= self.den || four_num >= 3 * self.den {
+            1
+        } else {
+            -1
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -289,6 +298,34 @@ fn complex_cyclic_character_table_remains_orthogonal_before_real_retraction() {
                 );
             }
         }
+    }
+}
+
+#[test]
+fn nearest_self_inverse_retraction_preserves_orthogonality_only_at_orders_one_and_two() {
+    for d in 1u64..=32 {
+        let mut orthogonal = true;
+        'rows: for a in 0..d {
+            for b in 0..d {
+                let dot: i64 = (0..d)
+                    .map(|k| {
+                        i64::from(Winding::new(a * k, d).nearest_self_inverse_sign())
+                            * i64::from(Winding::new(b * k, d).nearest_self_inverse_sign())
+                    })
+                    .sum();
+                let expected = if a == b { d as i64 } else { 0 };
+                if dot != expected {
+                    orthogonal = false;
+                    break 'rows;
+                }
+            }
+        }
+
+        assert_eq!(
+            orthogonal,
+            d <= 2,
+            "nearest pointwise real retraction had unexpected orthogonality at order {d}",
+        );
     }
 }
 
