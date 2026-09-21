@@ -15,7 +15,7 @@ use alloc::vec::Vec;
 
 use crate::fixed_point_protocol::FixedWindingDeposit;
 use crate::hadamard_factor_bridge::HadamardDescent;
-use crate::hadamard_gate::{FixedPointSpectralConstruction, Tape};
+use crate::hadamard_gate::{FixedPointSpectralConstruction, SpectralWinding, Tape};
 use crate::morphism_factor::{add, cmp, one, sub};
 use crate::vox::{AFWD, CLINK, ENGAGR, IFIX, IMSCRIB, TANCH};
 
@@ -56,6 +56,24 @@ impl FixedPointReentryState {
     }
 }
 
+/// Audit of one exact scheduler cycle through the self-referential tail.
+///
+/// The explicit call supplies one re-entry marker.  AFWD consumes it exactly
+/// once; CLINK certifies the spectral frame collapse as an idempotent
+/// retraction; IMSCRIB and ENGAGR commit the self-reference and dialetheic
+/// witness; IFIX records exactly the one new winding; and TANCH closes the cycle
+/// back at the fixed-point anchor.
+#[derive(Clone, PartialEq, Debug)]
+pub struct FixedPointReentryCycle {
+    pub word: Vec<char>,
+    pub marker_consumed: bool,
+    pub frame_collapse_idempotent: bool,
+    pub self_reference_asserted: bool,
+    pub dialetheic_witness_held: bool,
+    pub anchored: bool,
+    pub next: FixedPointReentryState,
+}
+
 impl FixedPointSpectralConstruction {
     /// Recover the terminal anchored state of the repaired boundary: V3, w=4.
     /// This executes the boundary once and takes its final IFIX deposit; it does
@@ -71,33 +89,111 @@ impl FixedPointSpectralConstruction {
         Ok(FixedPointReentryState { scale, fixed })
     }
 
-    /// Execute exactly one scale recursion V_n -> V_{n+1}.
+    /// Execute the exact six-op scheduler tail once.
     ///
-    /// The resulting winding is w+1 and its modular phase is evaluated directly
-    /// by tape-native square-and-multiply.  There is deliberately no loop and no
-    /// branch that keeps re-entering until a closing phase is found.
-    pub fn reenter_once(
+    /// The call itself supplies one re-entry marker.  There is no loop, no
+    /// closure-triggered retry, and no inspection of any winding other than the
+    /// one produced by this invocation.
+    pub fn run_reentry_cycle(
         &self,
         state: &FixedPointReentryState,
-    ) -> Result<FixedPointReentryState, &'static str> {
+    ) -> Result<FixedPointReentryCycle, &'static str> {
         let expected_winding = add(&state.scale, &one());
         if cmp(&expected_winding, &state.fixed.winding) != core::cmp::Ordering::Equal {
             return Err("fixed-point re-entry scale/winding invariant is broken");
         }
 
-        let scale = add(&state.scale, &one());
-        let winding = add(&state.fixed.winding, &one());
-        let modular_phase = self.modular_branch(&winding)?;
-        let closes_modular_phase = cmp(&modular_phase, &one()) == core::cmp::Ordering::Equal;
+        let mut scale = state.scale.clone();
+        let mut winding = state.fixed.winding.clone();
+        let mut marker_present = true;
+        let mut marker_consumed = false;
+        let mut frame_collapse_idempotent = false;
+        let mut self_reference_asserted = false;
+        let mut dialetheic_witness_held = false;
+        let mut fixed: Option<FixedWindingDeposit> = None;
+        let mut anchored = false;
 
-        Ok(FixedPointReentryState {
-            scale,
-            fixed: FixedWindingDeposit {
-                winding,
-                modular_phase,
-                closes_modular_phase,
-            },
+        for &op in &FIXED_POINT_REENTRY_WORD {
+            match op {
+                AFWD => {
+                    if !marker_present || marker_consumed {
+                        return Err("fixed-point re-entry marker was not available exactly once");
+                    }
+                    marker_present = false;
+                    marker_consumed = true;
+                    scale = add(&scale, &one());
+                    winding = add(&winding, &one());
+                }
+                CLINK => {
+                    // The existing spectral split/fuse is the executable form of
+                    // the frame collapse.  Certify both rho(x)=x and rho²=rho.
+                    let probe = SpectralWinding::new(&winding, &one())?;
+                    let once = probe.delta().mu()?;
+                    let twice = once.delta().mu()?;
+                    frame_collapse_idempotent = once == probe && twice == once;
+                    if !frame_collapse_idempotent {
+                        return Err("fixed-point frame collapse is not idempotent");
+                    }
+                }
+                IMSCRIB => {
+                    self_reference_asserted = true;
+                }
+                ENGAGR => {
+                    dialetheic_witness_held = true;
+                }
+                IFIX => {
+                    if !marker_consumed
+                        || !frame_collapse_idempotent
+                        || !self_reference_asserted
+                        || !dialetheic_witness_held
+                    {
+                        return Err("fixed-point re-entry reached IFIX before its scheduler commitments");
+                    }
+                    let modular_phase = self.modular_branch(&winding)?;
+                    let closes_modular_phase =
+                        cmp(&modular_phase, &one()) == core::cmp::Ordering::Equal;
+                    fixed = Some(FixedWindingDeposit {
+                        winding: winding.clone(),
+                        modular_phase,
+                        closes_modular_phase,
+                    });
+                }
+                TANCH => {
+                    if fixed.is_none() || marker_present {
+                        return Err("fixed-point re-entry reached TANCH before fixation");
+                    }
+                    anchored = true;
+                }
+                _ => return Err("unexpected opcode in fixed-point re-entry word"),
+            }
+        }
+
+        if !anchored {
+            return Err("fixed-point re-entry did not return to TANCH");
+        }
+        let fixed = fixed.ok_or("fixed-point re-entry did not produce an IFIX deposit")?;
+        let next = FixedPointReentryState { scale, fixed };
+
+        Ok(FixedPointReentryCycle {
+            word: FIXED_POINT_REENTRY_WORD.to_vec(),
+            marker_consumed,
+            frame_collapse_idempotent,
+            self_reference_asserted,
+            dialetheic_witness_held,
+            anchored,
+            next,
         })
+    }
+
+    /// Execute exactly one scale recursion V_n -> V_{n+1}.
+    ///
+    /// This is the state-only projection of `run_reentry_cycle`.  The exact
+    /// six-op tail performs the work; this method simply returns its next state.
+    pub fn reenter_once(
+        &self,
+        state: &FixedPointReentryState,
+    ) -> Result<FixedPointReentryState, &'static str> {
+        Ok(self.run_reentry_cycle(state)?.next)
     }
 
     /// Consume one explicitly exposed re-entry state and hand its fixed winding
@@ -165,6 +261,26 @@ mod tests {
         assert_eq!(anchor.winding(), tape_u64(4).as_slice());
         assert_eq!(anchor.modular_phase(), tape_u64(1).as_slice());
         assert!(anchor.closes_modular_phase());
+    }
+
+    #[test]
+    fn reentry_cycle_executes_every_scheduler_commit() {
+        let spectral = HadamardCarrier::new(&tape_u64(21))
+            .unwrap()
+            .fixed_point_spectral_construction()
+            .unwrap();
+        let anchor = spectral.reentry_anchor().unwrap();
+        let cycle = spectral.run_reentry_cycle(&anchor).unwrap();
+
+        assert_eq!(cycle.word.as_slice(), FIXED_POINT_REENTRY_WORD.as_slice());
+        assert!(cycle.marker_consumed);
+        assert!(cycle.frame_collapse_idempotent);
+        assert!(cycle.self_reference_asserted);
+        assert!(cycle.dialetheic_witness_held);
+        assert!(cycle.anchored);
+        assert_eq!(cycle.next.scale(), tape_u64(4).as_slice());
+        assert_eq!(cycle.next.winding(), tape_u64(5).as_slice());
+        assert_eq!(cycle.next.modular_phase(), tape_u64(11).as_slice());
     }
 
     #[test]
