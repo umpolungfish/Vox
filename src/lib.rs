@@ -58,6 +58,7 @@ pub mod membrane_state;
 pub mod winding_readout;
 pub mod shor_braid;
 pub mod hadamard_gate;
+pub mod hadamard_factor_bridge;
 // pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)
 // pub mod fde_shor_membrane;  // bin-only: uses std + ::vox
 
