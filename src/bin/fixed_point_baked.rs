@@ -2,9 +2,15 @@
 //!
 //! `N` is supplied only at build time as a canonical IMASM numeral word. The
 //! compiled executable contains that word, reconstructs its numeral tape, runs
-//! the fixed-point spectral boundary, and prints only the factors produced by
-//! the existing passive extractor. No factor, period, base, or re-entry count is
-//! accepted from argv or read from a runtime file.
+//! the fixed-point spectral construction, and prints only the factors produced
+//! by the existing passive extractor. No factor, period, base, or re-entry count
+//! is accepted from argv or read from a runtime file.
+//!
+//! The repaired boundary keeps its instant non-walking read unchanged. If that
+//! boundary has no closing IFIX deposit, this artifact follows the source TANCH
+//! scheduler explicitly: one six-op re-entry cycle at a time, with each cycle
+//! consuming one marker and producing exactly one next winding. The executable
+//! therefore needs only baked N; no host-side re-entry count is supplied.
 
 use vox::factor_extract::extract;
 use vox::hadamard_factor_bridge::HadamardDescent;
@@ -32,11 +38,44 @@ fn main() -> Result<(), String> {
 
     let spectral = HadamardCarrier::new(&n)?
         .fixed_point_spectral_construction()?;
-    let factor_carrier = match spectral.descend_boundary_measurement() {
-        HadamardDescent::T(carrier) => carrier,
-        HadamardDescent::B(_) => return Err(String::from("baked N produced only a productive fork")),
-        HadamardDescent::N(_) => return Err(String::from("baked N did not close at a fixed boundary winding")),
-        HadamardDescent::F => return Err(String::from("baked fixed-point descent failed")),
+
+    let factor_carrier = if spectral.instant_non_walking_read()?.is_some() {
+        match spectral.descend_boundary_measurement() {
+            HadamardDescent::T(carrier) => carrier,
+            HadamardDescent::B(_) => {
+                return Err(String::from("baked N produced only a productive boundary fork"));
+            }
+            HadamardDescent::N(_) => {
+                return Err(String::from("baked N closed at the boundary without a nontrivial split"));
+            }
+            HadamardDescent::F => {
+                return Err(String::from("baked fixed-point boundary descent failed"));
+            }
+        }
+    } else {
+        // TANCH is the cyclic fixed-point anchor. Follow its scheduler exactly
+        // one structural cycle per iteration. This does not alter or call the
+        // instant non-walking read again, and no period/re-entry count is baked.
+        let mut state = spectral.reentry_anchor()?;
+        loop {
+            state = spectral.run_reentry_cycle(&state)?.next;
+            if !state.closes_modular_phase() {
+                continue;
+            }
+
+            break match spectral.descend_reentry_state(&state) {
+                HadamardDescent::T(carrier) => carrier,
+                HadamardDescent::B(_) => {
+                    return Err(String::from("baked N produced only a productive re-entry fork"));
+                }
+                HadamardDescent::N(_) => {
+                    return Err(String::from("first closing re-entry did not yield a nontrivial split"));
+                }
+                HadamardDescent::F => {
+                    return Err(String::from("baked fixed-point re-entry descent failed"));
+                }
+            };
+        }
     };
 
     let readout = extract(&factor_carrier)?;
