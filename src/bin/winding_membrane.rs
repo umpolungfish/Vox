@@ -129,12 +129,10 @@ fn main() -> Result<(), String> {
     };
     println!("base {}  modulus {}  qubits {qubits}", dec_of(&a), dec_of(&n));
 
-    // arm 1: the phase register
-    match shor_qft::ObservedPhaseRegister::from_modulus(a.clone(), n.clone(), qubits) {
-        Ok(reg) => match reg.extract_order() {
-            Some(r) => println!("phase-register  winding {}  {}", dec_of(&r), close(&a, &n, &r)),
-            None => println!("phase-register  no certified winding"),
-        },
+    // arm 1: the phase register, register grown to the smallest width that
+    // exposes the winding (near the order, not the N^2 blowup of a fixed width).
+    match shor_qft::observe_order(a.clone(), n.clone()) {
+        Ok(r) => println!("phase-register  winding {}  {}", dec_of(&r), close(&a, &n, &r)),
         Err(e) => println!("phase-register  refused: {e}"),
     }
 
