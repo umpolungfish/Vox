@@ -22,3 +22,7 @@ mpqs_debug = []
 [profile.release]
 opt-level = 3
 lto = true
+
+[[bin]]
+name = "factor_one"
+path = "src/bin/factor_one.rs"

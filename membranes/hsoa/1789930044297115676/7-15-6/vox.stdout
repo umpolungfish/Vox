@@ -1,0 +1,82 @@
+entry(...) halted: no instruction at 0x0 after 2706 steps
+  previous 12:
+  2c39e0: ⊞ punpcklqdq r:xmm0 r:xmm4
+  2c39e4: ⊡ movups m:r14::1:0x18:16 r:xmm3
+  2c39e9: ⊡ movups m:r14::1:0x28:16 r:xmm0
+  2c39ee: ⊞ add r:rsp i:0x10
+  2c39f2: ⋈ pop r:rbx
+  2c39f3: ⋈ pop r:rbp
+  2c39f4: ⋈ pop r:r12
+  2c39f6: ⋈ pop r:r13
+  2c39f8: ⋈ pop r:r14
+  2c39fa: ⊣ ret
+  2bd7e7: ⊞ movdqa r:xmm0 m:rsp::1:0x0:16
+  2bd7ec: ⋈ mov r:rsi r:r12
+  2bd7ef: ⋈ mov r:ecx r:r14d
+  2bd7f2: ⋈ mov r:rdx r:r13
+  2bd7f5: ⋈ mov r:rdi r:r15
+  2bd7f8: ⊡ and m:rsp::1:0x10:4 i:-0x2
+  2bd7fd: ⊡ movaps m:rsp::1:0xf0:16 r:xmm0
+  2bd805: ≻ call i:0x2b6800
+  2b6800: ⊞ endbr64
+  2b6804: ⋈ push r:r15
+  2b6806: ⋈ push r:r14
+  2b6808: ⋈ push r:r13
+  2b680a: ⋈ push r:r12
+  2b680c: ⋈ push r:rbp
+  2b680d: ⋈ mov r:rbp r:rdi
+  2b6810: ⋈ push r:rbx
+  2b6811: ⊞ sub r:rsp i:0x538
+  2b6818: ⋈ mov m:rsp::1:0x8:8 r:rsi
+  2b681d: ⋈ mov m:rsp::1:0x20:8 r:rdx
+  2b6822: ⋈ mov m:rsp::1:0x6c:4 r:ecx
+  2b6826: ⋈ mov r:rax m:fs::1:0x28:8
+  2b682f: ⋈ mov m:rsp::1:0x528:8 r:rax
+  2b6837: ⋈ mov r:rax i:-0x48
+  2b683e: ⋈ mov r:eax m:fs+rax::1:0x0:4
+  2b6841: ⋈ mov m:rsp::1:0x7c:4 r:eax
+  2b6845: ⋈ mov r:eax m:rdi::1:0xc0:4
+  2b684b: ⊤ test r:eax r:eax
+  2b684d: ∈ ne i:0x2b6c98
+  2b6c98: ⊤ cmp r:eax i:-0x1
+  2b6c9b: ∈ e i:0x2b685d
+  2b685d: ⋈ mov r:ebx m:rbp::1:0x0:4
+  2b6860: ⊤ test r:bl i:0x8
+  2b6863: ∈ ne i:0x2b8950
+  2b6869: ⊤ cmp m:rsp::1:0x8:8 i:0x0
+  2b686f: ∈ e i:0x2b8a1c
+  2b6875: ⊤ test r:bl i:0x2
+  2b6878: ∈ ne i:0x2b7cf0
+  2b687e: ⋈ mov r:rax m:rsp::1:0x20:8
+  2b6883: ⋈ mov r:rdi m:rsp::1:0x8:8
+  2b6888: ⋈ mov r:esi i:0x25
+  2b688d: ⊞ movdqu r:xmm1 m:rax::1:0x0:16
+  2b6891: ⊡ movups m:rsp::1:0x118:16 r:xmm1
+  2b6899: ⋈ mov r:rax m:rax::1:0x10:8
+  2b689d: ⊡ movaps m:rsp::1:0x10:16 r:xmm1
+  2b68a2: ⋈ mov m:rsp::1:0x128:8 r:rax
+  2b68aa: ≻ call i:0x340680
+  340680: ⊙ jmp m:rip::1:0x4ad2:4
+  3056b0: ⊞ endbr64
+  3056b4: ⊞ movd r:xmm1 r:esi
+  3056b8: ⋈ mov r:eax r:edi
+  3056ba: ⊞ and r:eax i:0xfff
+  3056c1: ⊞ pushad
+  3056c2: ⋈ leave
+  3056c3: ⊤ cmp r:eax i:0xfc0
+  3056ca: ⊞ popad
+  3056cb: ⋈ leave
+  3056cc: ⊞ pshufd r:xmm1 r:xmm1 i:0x0
+  3056d1: ∈ g i:0x305820
+  3056d7: ⊞ movdqu r:xmm0 m:rdi::1:0x0:16
+  3056db: ⊞ pxor r:xmm3 r:xmm3
+  3056df: ⊞ movdqa r:xmm4 r:xmm0
+  3056e3: ⊞ pcmpeqb r:xmm0 r:xmm1
+  3056e7: ⊞ pcmpeqb r:xmm4 r:xmm3
+  3056eb: ⊞ por r:xmm0 r:xmm4
+  3056ef: ⊞ pmovmskb r:eax r:xmm0
+  3056f3: ⊤ test r:eax r:eax
+  3056f5: ∈ e i:0x305700
+  3056f7: ⊞ bsf r:eax r:eax
+  3056fa: ⊞ lea r:rax m:rdi:rax:1:0x0:8
+  3056fe: ⊣ ret   [2706 steps]

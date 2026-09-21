@@ -1,0 +1,82 @@
+entry(...) halted: no instruction at 0x19543 after 693569 steps
+  previous 12:
+  5f474: ⋈ mov r:rcx r:rdx
+  5f477: ⊞ shr r:rcx i:0x3
+  5f47b: ⊡ rep_movs i:0x8
+  5f47e: ⊞ and r:edx i:0x7
+  5f481: ∈ e i:0x5f488
+  5f488: ⊣ ret
+  1754d: ⋈ mov r:r13 m:rsp::1:0x18:8
+  17552: ⊤ cmp r:r15 m:r13::1:0x0:8
+  17556: ∈ ne i:0x17480
+  17480: ⊞ lea r:rax m:r15:r15:4:0x0:8
+  17484: ⋈ mov m:rbx:rax:8:0x0:8 r:r14
+  17488: ⋈ mov m:rbx:rax:8:0x8:8 r:r12
+  1748d: ⋈ mov m:rbx:rax:8:0x10:8 r:r14
+  17492: ⋈ mov m:rbx:rax:8:0x18:8 r:rbp
+  17497: ⋈ movzx r:ecx m:rsp::1:0x7:1
+  1749c: ⋈ mov m:rbx:rax:8:0x20:1 r:cl
+  174a0: ⊞ inc r:r15
+  174a3: ⋈ mov m:r13::1:0x10:8 r:r15
+  174a7: ⋈ mov r:rsi m:rsp::1:0x20:8
+  174ac: ⋈ mov r:rdi m:rsp::1:0x10:8
+  174b1: ⊤ cmp r:rsi r:rdi
+  174b4: ∈ e i:0x1756d
+  1756d: ⊞ sub r:r15 m:rsp::1:0x8:8
+  17572: ⋈ mov r:rax r:r15
+  17575: ⊞ add r:rsp i:0x28
+  17579: ⋈ pop r:rbx
+  1757a: ⋈ pop r:r12
+  1757c: ⋈ pop r:r13
+  1757e: ⋈ pop r:r14
+  17580: ⋈ pop r:r15
+  17582: ⋈ pop r:rbp
+  17583: ⊣ ret
+  18f84: ⊡ add m:rsp::1:0xf8:8 r:rax
+  18f8c: ⊤ test r:r12 r:r12
+  18f8f: ∈ e i:0x195fc
+  18f95: ⊞ lea r:rax m::r12:8:0x0:8
+  18f9d: ⊞ lea r:rsi m:rax:rax:4:0x0:8
+  18fa1: ⋈ movzx r:edi m:rsp::1:0x120:1
+  18fa9: ⊞ lea r:rcx m:rsi::1:-0x28:8
+  18fad: ⋈ mov r:rax r:rcx
+  18fb0: ⋈ movabs r:rdx i:-0x3333333333333333
+  18fba: ⊞ mul r:rdx
+  18fbd: ⊞ shr r:rdx i:0x5
+  18fc1: ⋈ mov r:eax r:edx
+  18fc3: ⊞ not r:eax
+  18fc5: ⊤ test r:al i:0x7
+  18fc7: ∈ ne i:0x194eb
+  194eb: ⊞ inc r:rdx
+  194ee: ⋈ mov r:eax r:edx
+  194f0: ⊞ and r:eax i:0x7
+  194f3: ⊤ cmp r:eax i:0x4
+  194f6: ∈ ae i:0x19501
+  19501: ⊞ and r:edx i:0x4
+  19504: ⊞ lea r:r8 m:rdx:rdx:4:0x0:8
+  19508: ⋈ mov r:r9 m:rsp::1:0x10:8
+  1950d: ⊞ lea r:r8 m:r9:r8:8:0x0:8
+  19511: ⋈ movzx r:edi r:dil
+  19515: ⊞ movd r:xmm0 r:edi
+  19519: ⊞ lea r:rdi m:r9::1:0x98:8
+  19520: ⋈ mov r:r9 r:rdx
+  19523: ⋈ movzx r:r10d m:rdi::1:-0x78:1
+  19528: ⋈ movzx r:r11d m:rdi::1:-0x50:1
+  1952d: ⋈ movzx r:ebx m:rdi::1:-0x28:1
+  19531: ⊞ shl r:r11d i:0x8
+  19535: ⊞ or r:r11d r:r10d
+  19538: ⊞ shl r:ebx i:0x10
+  1953b: ⊞ or r:ebx r:r11d
+  1953e: ⋈ mov r:r10d m:rdi::1:0x0:4
+  19541: ⊞ shl r:r10d i:0x18
+  19545: ⊞ or r:r10d r:ebx
+  19548: ⊞ movd r:xmm1 r:r10d
+  1954d: ⊞ por r:xmm0 r:xmm1
+  19551: ⊞ add r:rdi i:0xa0
+  19558: ⊞ add r:r9 i:-0x4
+  1955c: ∈ ne i:0x19523
+  1955e: ⊞ movdqa r:xmm1 r:xmm0
+  19562: ⊞ psrld r:xmm1 i:0x10
+  19567: ⊞ por r:xmm1 r:xmm0
+  1956b: ⊞ movdqa r:xmm0 r:xmm1
+  19571: ∈ no i:0x19543   [693569 steps]

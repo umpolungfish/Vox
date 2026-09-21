@@ -1,23 +1,13 @@
-//! Single-execution factorizer with N baked in as its IMASM numeral.
+//! A factoring transformation baked into a membrane, run as pure execution.
 //!
-//! The number is part of the program, not an argument. The decimal is consumed
-//! before compilation by `vox numeral`, which emits the IMASM numeral word; that
-//! word is baked in here at compile by option_env!, so the built artifact IS the
-//! factorization of that one N and the run takes no input. Build and run in one
-//! step with factor_one.sh, which does the encode-then-bake.
-//!
-//!   FACTOR_N_WORD="$(vox numeral 8051)" cargo build --release --bin factor_one
-//!   ./target/release/factor_one
-
+//! N is baked as its IMASM numeral before compilation, so the built artifact IS
+//! this one transformation and the run takes no input. The membrane splits N
+//! (delta into the two lanes), the core multiply-mu closes only on p*q = N, and
+//! the factor pair is read off the closure.
 fn main() {
-    // Baked at compile time as the IMASM numeral word. The default is the numeral
-    // for 0 so the crate still builds normally when unset; the wrapper sets it.
     let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");
-    match ::vox::morphism_factor::parse_numeral(word) {
-        Ok(n) => println!("{}", ::vox::morphism_factor::repl_smart_factor(&n)),
-        Err(e) => {
-            eprintln!("FACTOR_N_WORD was not an IMASM numeral: {e}");
-            std::process::exit(2);
-        }
+    match ::vox::factorization_31_membrane::factor_n(word) {
+        Ok(report) => println!("{report}"),
+        Err(e) => { eprintln!("factor membrane: {e}"); std::process::exit(2); }
     }
 }

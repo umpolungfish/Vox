@@ -1,0 +1,7 @@
+
+thread 'main' (0) panicked at src/bin/semiprime_probe.rs:76:31:
+F before closure
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fatal runtime error: failed to initiate panic, error 5, aborting
+regs at halt: rax=0 rbx=de00 rcx=0 rdx=0 rsi=7ffef668 rdi=1 rbp=7ffef6a0 rsp=7ffef668 r12=7ffef958 r13=7ffef910 r14=7ffefa18 r15=77410
+call chain: 3949 3994 1ff40 43a68 439e9 43fec 32bb 1eff9 0

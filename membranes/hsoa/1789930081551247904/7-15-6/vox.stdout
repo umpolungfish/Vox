@@ -1,0 +1,14 @@
+entry(...) halted: no instruction at 0x0 after 12 steps
+  previous 12:
+  121c0: ⊞ endbr64
+  121c4: ⊞ xor r:ebp r:ebp
+  121c6: ⋈ mov r:r9 r:rdx
+  121c9: ⋈ pop r:rsi
+  121ca: ⋈ mov r:rdx r:rsp
+  121cd: ⊞ and r:rsp i:-0x10
+  121d1: ⋈ push r:rax
+  121d2: ⋈ push r:rsp
+  121d3: ⊞ xor r:r8d r:r8d
+  121d6: ⊞ xor r:ecx r:ecx
+  121d8: ⊞ lea r:rdi m:rip::1:0x12a01:8
+  121df: ⊙ call m:rip::1:0x5093b:4   [12 steps]

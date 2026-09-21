@@ -1,0 +1,7 @@
+/home/mrnob0dy666/imsgct/Vox/membranes/hsoa/1789932551252430415/2048bit-q10-58c8a1451abe020c79a7e136432b601ef015bc7213b34c1244c64f352c25d28f/payload.elf  elf  entry 0x8b5e  388854 byte(s) of code
+  1368 function(s), 79331 instruction(s)
+  claimed 82% of the image (319574 of 388854 bytes)
+
+  1368 function(s) by descent, 1796 more by fallback sweep
+  covered 100% of the image (388854 of 388854 bytes)
+  verdicts  T 171   B 1056   N 1937   F 0  (F: 0 from descent, 0 from fallback sweep)

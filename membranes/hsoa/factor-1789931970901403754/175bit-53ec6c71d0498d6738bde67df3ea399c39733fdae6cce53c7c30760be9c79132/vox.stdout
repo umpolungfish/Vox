@@ -1,0 +1,82 @@
+entry(...) halted: no instruction at 0x7ffefa18 after 5389774 steps
+  previous 12:
+  7f84: ⊙ call m:rip::1:0x6ff9e:4
+  59f46: ⊞ sub r:rsp i:0x38
+  59f4a: ⋈ mov r:edi i:0x6
+  59f4f: ≻ call i:0x5c4c0
+  5c4c0: ⋈ push r:rbp
+  5c4c1: ⋈ push r:rbx
+  5c4c2: ⋈ mov r:ebx r:edi
+  5c4c4: ⊞ sub r:rsp i:0x88
+  5c4cb: ⋈ mov r:rbp r:rsp
+  5c4ce: ⋈ mov r:rdi r:rbp
+  5c4d1: ≻ call i:0x5c48e
+  5c48e: ⋈ mov r:rdx r:rdi
+  5c491: ⋈ mov r:r10d i:0x8
+  5c497: ⊞ lea r:rsi m:rip::1:0xed02:8
+  5c49e: ⊞ xor r:edi r:edi
+  5c4a0: ⋈ mov r:eax i:0xe
+  5c4a5: ⊙ syscall
+  5c4a7: ⊣ ret
+  5c4d6: ⋈ movsxd r:rsi r:ebx
+  5c4d9: ⋈ mov r:rax m:fs::1:0x0:8
+  5c4e2: ⋈ movsxd r:rdi m:rax::1:0x30:4
+  5c4e6: ⋈ mov r:eax i:0xc8
+  5c4eb: ⊙ syscall
+  5c4ed: ⋈ mov r:rdi r:rax
+  5c4f0: ≻ call i:0x5a21a
+  5a21a: ⊤ cmp r:rdi i:-0x1000
+  5a221: ∈ a i:0x5a227
+  5a223: ⋈ mov r:rax r:rdi
+  5a226: ⊣ ret
+  5c4f5: ⋈ mov r:rdi r:rbp
+  5c4f8: ⋈ mov r:rbx r:rax
+  5c4fb: ≻ call i:0x5c4a8
+  5c4a8: ⋈ mov r:rsi r:rdi
+  5c4ab: ⋈ mov r:r10d i:0x8
+  5c4b1: ⋈ mov r:eax i:0xe
+  5c4b6: ⊞ xor r:edx r:edx
+  5c4b8: ⋈ mov r:edi i:0x2
+  5c4bd: ⊙ syscall
+  5c4bf: ⊣ ret
+  5c500: ⊞ add r:rsp i:0x88
+  5c507: ⋈ mov r:eax r:ebx
+  5c509: ⋈ pop r:rbx
+  5c50a: ⋈ pop r:rbp
+  5c50b: ⊣ ret
+  59f54: ⊞ xor r:edi r:edi
+  59f56: ≻ call i:0x5c474
+  5c474: ⋈ mov r:rdx r:rdi
+  5c477: ⋈ mov r:r10d i:0x8
+  5c47d: ⊞ lea r:rsi m:rip::1:0xed24:8
+  5c484: ⊞ xor r:edi r:edi
+  5c486: ⋈ mov r:eax i:0xe
+  5c48b: ⊙ syscall
+  5c48d: ⊣ ret
+  59f5b: ⊞ lea r:rdi m:rip::1:0x1fa56:8
+  59f62: ≻ call i:0x5f20d
+  5f20d: ⋈ movsx r:ecx m:rip::1:0x1a7ef:1
+  5f214: ⊤ test r:ecx r:ecx
+  5f216: ∈ e i:0x5f2ce
+  5f2ce: ⊣ ret
+  59f67: ⊞ pxor r:xmm0 r:xmm0
+  59f6b: ⊞ lea r:rsi m:rsp::1:0x10:8
+  59f70: ⊞ xor r:edx r:edx
+  59f72: ⋈ mov r:r8d i:0x6
+  59f78: ⊡ movaps m:rsp::1:0x10:16 r:xmm0
+  59f7d: ⋈ mov r:eax i:0xd
+  59f82: ⋈ mov r:r10d i:0x8
+  59f88: ⊡ movaps m:rsp::1:0x20:16 r:xmm0
+  59f8d: ⋈ mov r:rdi r:r8
+  59f90: ⊙ syscall
+  59f92: ⋈ mov r:rax m:fs::1:0x0:8
+  59f9b: ⋈ mov r:rsi r:r8
+  59f9e: ⋈ movsxd r:rdi m:rax::1:0x30:4
+  59fa2: ⋈ mov r:eax i:0xc8
+  59fa7: ⊙ syscall
+  59fa9: ⋈ mov r:eax i:0xe
+  59fae: ⊞ lea r:rsi m:rsp::1:0x8:8
+  59fb3: ⋈ mov r:edi i:0x1
+  59fb8: ⋈ mov m:rsp::1:0x8:8 i:0x20
+  59fc1: ⊙ syscall
+  59fc3: ⊣ hlt   [5389774 steps]
