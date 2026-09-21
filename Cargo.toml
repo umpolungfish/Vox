@@ -294,3 +294,7 @@ path = "src/bin/tower_words_cli.rs"
 [[bin]]
 name = "winding_membrane"
 path = "src/bin/winding_membrane.rs"
+
+[[bin]]
+name = "ring_membrane"
+path = "src/bin/ring_membrane.rs"
