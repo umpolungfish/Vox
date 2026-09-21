@@ -294,3 +294,7 @@ path = "src/bin/tower_words_cli.rs"
 [[bin]]
 name = "rho_probe"
 path = "src/bin/rho_probe.rs"
+
+[[bin]]
+name = "period_close"
+path = "src/bin/period_close.rs"

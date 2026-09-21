@@ -1,14 +1,12 @@
-Get phaseB_fac building and fix the TV battery's factor parse
+Give the braid factor path a real fold engine
 
-phaseB_fac did not compile: the include! that pulls the build-time baked_inputs.rs
-sat inside fn main as a statement, but that file declares const items, which parse
-only at module scope. Moved the include! to item position. Release builds clean;
-build_case('phaseB') bakes the two IMASM words in and the binary factors 15 = 3 x 5
-through the braid. The generated BAKED_WIDTH_WORD is marked live so there is no
-dead-code warning; phaseB takes no width.
-
-tv_battery.py still parsed the old semiprime_probe output, which printed `factor p`
-on two lines. phaseB_fac prints `factors p x q` on one, so every case parsed to no
-factors and would fail. Parse the single line into the two prime factors.
-
-Whole-tree snapshot.
+The braid route resolved the multiplicative order by brute force and then
+read the winding back off that same order, so it only ever closed the toy
+moduli whose order is tiny. I put Brent's variant of Pollard's rho over the
+numeral tapes in morphism_factor and route shor_factor_via_braid through it
+first: the orbit y <- y^2+c on the residue ring is a winding, and a
+non-trivial gcd of the accumulated branch differences against N is the
+address where two branches fold onto one residue, which names a factor
+without first resolving the whole order. rho_probe exposes it directly for
+measurement. Verified on the small cases and on a balanced 64-bit semiprime;
+the order/winding closure stays as the fallback arm.
