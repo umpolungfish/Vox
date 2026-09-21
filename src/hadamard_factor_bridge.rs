@@ -27,7 +27,7 @@
 use core::cmp::Ordering;
 
 use crate::factor_extract::FactorCarrier;
-use crate::hadamard_gate::{HadamardCarrier, Tape};
+use crate::hadamard_gate::{modular_phase_power, HadamardCarrier, Tape};
 use crate::morphism_factor::{add, cmp, divmod, gcd, modulo, mul, one, sub, zero};
 use crate::router_marks::{GStep, M_FIX, M_T};
 use crate::vox::{EVALF, EVALT};
@@ -61,20 +61,6 @@ fn closing_trace() -> [GStep; 1] {
 
 fn valid_numeral_tape(tape: &[char]) -> bool {
     !tape.is_empty() && tape.iter().all(|&mark| mark == EVALT || mark == EVALF)
-}
-
-/// Tape-native modular exponentiation.  The exponent is consumed LSB-first
-/// directly from its IMASM numeral tape; no host-width integer is reconstructed.
-fn phase_power(base: &[char], exponent: &[char], n: &[char]) -> Tape {
-    let mut result = one();
-    let mut power = modulo(base, n);
-    for &cell in exponent {
-        if cell == EVALF {
-            result = modulo(&mul(&result, &power), n);
-        }
-        power = modulo(&mul(&power, &power), n);
-    }
-    result
 }
 
 /// Deterministically read the continued-fraction convergents of one measured
@@ -117,8 +103,10 @@ fn certified_period_from_sample(
             if cmp(&q_next, n) != Ordering::Less {
                 break;
             }
-            if cmp(&phase_power(base, &q_next, n), &one()) == Ordering::Equal {
-                return Some(q_next);
+            if let Ok(power) = modular_phase_power(base, &q_next, n) {
+                if cmp(&power, &one()) == Ordering::Equal {
+                    return Some(q_next);
+                }
             }
         }
 
@@ -213,7 +201,10 @@ impl HadamardCarrier {
             return HadamardDescent::N(self);
         }
 
-        let x = phase_power(base, &half, self.n());
+        let x = match modular_phase_power(base, &half, self.n()) {
+            Ok(x) => x,
+            Err(_) => return HadamardDescent::F,
+        };
         self.descend_involution(&x)
     }
 
