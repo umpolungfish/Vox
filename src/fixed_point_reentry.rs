@@ -14,6 +14,7 @@
 use alloc::vec::Vec;
 
 use crate::fixed_point_protocol::FixedWindingDeposit;
+use crate::hadamard_factor_bridge::HadamardDescent;
 use crate::hadamard_gate::{FixedPointSpectralConstruction, Tape};
 use crate::morphism_factor::{add, cmp, one, sub};
 use crate::vox::{AFWD, CLINK, ENGAGR, IFIX, IMSCRIB, TANCH};
@@ -98,11 +99,51 @@ impl FixedPointSpectralConstruction {
             },
         })
     }
+
+    /// Consume one explicitly exposed re-entry state and hand its fixed winding
+    /// to the existing Hadamard order-two descent.
+    ///
+    /// This is not an order read.  The caller already chose and executed every
+    /// structural re-entry needed to produce `state`.  Before descent we verify
+    /// both tower invariants and recompute the resident modular phase at exactly
+    /// that one winding.  A nonclosing state routes around as N; a malformed or
+    /// cross-construction state is F.  No later winding is inspected.
+    pub fn descend_reentry_state(
+        self,
+        state: &FixedPointReentryState,
+    ) -> HadamardDescent {
+        let expected_winding = add(&state.scale, &one());
+        if cmp(&expected_winding, &state.fixed.winding) != core::cmp::Ordering::Equal {
+            return HadamardDescent::F;
+        }
+
+        let resident_phase = match self.modular_branch(&state.fixed.winding) {
+            Ok(phase) => phase,
+            Err(_) => return HadamardDescent::F,
+        };
+        if cmp(&resident_phase, &state.fixed.modular_phase) != core::cmp::Ordering::Equal {
+            return HadamardDescent::F;
+        }
+
+        let closes_modular_phase = cmp(&resident_phase, &one()) == core::cmp::Ordering::Equal;
+        if closes_modular_phase != state.fixed.closes_modular_phase {
+            return HadamardDescent::F;
+        }
+
+        let base = self.base().to_vec();
+        let carrier = self.into_carrier();
+        if !closes_modular_phase {
+            return HadamardDescent::N(carrier);
+        }
+
+        carrier.descend_phase_order(&base, &state.fixed.winding)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::factor_extract::extract;
     use crate::hadamard_gate::HadamardCarrier;
     use crate::morphism_factor::tape_u64;
 
@@ -162,5 +203,47 @@ mod tests {
         assert_eq!(v5.modular_phase(), tape_u64(1).as_slice());
         assert!(v5.closes_modular_phase());
         assert_eq!(spectral.instant_non_walking_read().unwrap(), None);
+    }
+
+    #[test]
+    fn explicit_closing_reentry_feeds_existing_hadamard_descent() {
+        // The tower exposes w=6 only because the caller explicitly performs two
+        // re-entry steps.  The final handoff consumes that one exposed state;
+        // it does not scan w=4,5,6 or search for a closing exponent.
+        let spectral = HadamardCarrier::new(&tape_u64(21))
+            .unwrap()
+            .fixed_point_spectral_construction()
+            .unwrap();
+        let v3 = spectral.reentry_anchor().unwrap();
+        let v4 = spectral.reenter_once(&v3).unwrap();
+        let v5 = spectral.reenter_once(&v4).unwrap();
+
+        let factor_carrier = match spectral.descend_reentry_state(&v5) {
+            HadamardDescent::T(carrier) => carrier,
+            other => panic!("expected T factor carrier, got {other:?}"),
+        };
+        let readout = extract(&factor_carrier).unwrap();
+        let p = readout.p.0;
+        let q = readout.q.0;
+        let direct = p == tape_u64(3) && q == tape_u64(7);
+        let swapped = p == tape_u64(7) && q == tape_u64(3);
+        assert!(direct || swapped);
+    }
+
+    #[test]
+    fn explicit_nonclosing_reentry_routes_around_without_advancing_again() {
+        let spectral = HadamardCarrier::new(&tape_u64(21))
+            .unwrap()
+            .fixed_point_spectral_construction()
+            .unwrap();
+        let v3 = spectral.reentry_anchor().unwrap();
+        let v4 = spectral.reenter_once(&v3).unwrap();
+        assert_eq!(v4.winding(), tape_u64(5).as_slice());
+        assert!(!v4.closes_modular_phase());
+
+        assert!(matches!(
+            spectral.descend_reentry_state(&v4),
+            HadamardDescent::N(_)
+        ));
     }
 }
