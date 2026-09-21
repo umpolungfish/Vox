@@ -18,7 +18,6 @@
 //! remains downstream: it only receives T, where p and q are already carried by
 //! the limiting object.
 
-use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 use crate::factor_extract::FactorCarrier;
