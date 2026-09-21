@@ -59,3 +59,6 @@ pub mod winding_readout;
 pub mod shor_braid;
 // pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)
 // pub mod fde_shor_membrane;  // bin-only: uses std + ::vox
+
+#[cfg(test)]
+mod hadamard_retraction_tests;
