@@ -65,6 +65,4 @@ pub mod hadamard_factor_bridge;
 #[cfg(test)]
 mod hadamard_retraction_tests;
 #[cfg(test)]
-mod hadamard_semiprime_scale_tests;
-#[cfg(test)]
-mod hadamard_semiprime_width_tests;
+mod factor_extraction_scale_tests;
