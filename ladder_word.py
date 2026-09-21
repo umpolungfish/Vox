@@ -62,13 +62,27 @@ def form_banked(rungs: int) -> str:
     return BEGIN + ID + body + HOLD + FIX + CLOSE + ID
 
 
+def form_concentrated(rungs: int) -> str:
+    """The free-lunch nesting: one exterior banked work frame wrapping the whole
+    r-cycle nest. The exterior fork deposits, the nest of non-work rungs is
+    carried inside, and a single ≺ reversal clears once and is banked. The
+    `banked` razor reads one survived clear for any nest size, so the banking
+    cost is one frame, not one per rung, while the winding is still carried."""
+    nest = "".join(FORK + DT + FUSE for _ in range(rungs))
+    return BEGIN + ID + FORK + DT + nest + REV + DF + FUSE + HOLD + FIX + CLOSE + ID
+
+
 if __name__ == "__main__":
     # form_banked is the twin: each rung banks a winding deposit across the ≺
     # reversal inside its frame, so the `banked` razor reads survival (not
     # VACUOUS). form_C and form_K carry phase but their banking is vacuous, no
     # reversal ever clears a live register. vox verdict alone cannot tell them
     # apart; the `banked` razor through the kernel is the instrument that does.
-    print("form banked (winding survives the reversal), rungs 1..6:")
+    print("form concentrated (one exterior frame banks the whole nest), rungs 1..6:")
+    for L in range(1, 7):
+        w = form_concentrated(L)
+        print(f"  rungs={L}  len={len(w)}  verdict={verdict(w)}  {w}")
+    print("form banked (one clear per rung), rungs 1..6:")
     for L in range(1, 7):
         w = form_banked(L)
         print(f"  rungs={L}  len={len(w)}  verdict={verdict(w)}  {w}")
