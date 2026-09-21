@@ -306,3 +306,7 @@ path = "src/bin/base_mod_membrane.rs"
 [[bin]]
 name = "reduce_delete_membrane"
 path = "src/bin/reduce_delete_membrane.rs"
+
+[[bin]]
+name = "cylinder_membrane"
+path = "src/bin/cylinder_membrane.rs"
