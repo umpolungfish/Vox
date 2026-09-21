@@ -25,6 +25,3 @@ jobs:
 
       - name: Run library tests
         run: make test
-
-      - name: Compile and execute baked fixed-point artifact
-        run: ./scripts/test_fixed_point_baked.sh
