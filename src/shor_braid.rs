@@ -144,17 +144,6 @@ pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> 
 
 /// Composition: walk to closure, emit braid, read winding, close factors.
 pub fn shor_factor_via_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, Vec<char>), String> {
-    // The rho winding folds two orbit branches onto one residue — the direct
-    // structural fold that names a factor at arbitrary width, without first
-    // resolving the full multiplicative order. Budget scales with the residue
-    // ring; a spent budget hands off to the order/winding closure below.
-    let budget: u64 = 1u64 << 34;
-    if let Some(d) = crate::morphism_factor::pollard_rho_brent(n, budget) {
-        let (q, rem) = divmod(n, &d);
-        if zero(&rem) && cmp(&d, &one()) != core::cmp::Ordering::Equal && cmp(&d, n) != core::cmp::Ordering::Equal {
-            return Ok((d, q));
-        }
-    }
     let (word, _levels) = shor_braid(a, n)?;
     let r_tape = crate::winding_readout::winding_number_tape(&word)?;
     factor_close_public(a, n, &r_tape)

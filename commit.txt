@@ -1,12 +1,8 @@
-Give the braid factor path a real fold engine
+Tear out the classical factoring drift
 
-The braid route resolved the multiplicative order by brute force and then
-read the winding back off that same order, so it only ever closed the toy
-moduli whose order is tiny. I put Brent's variant of Pollard's rho over the
-numeral tapes in morphism_factor and route shor_factor_via_braid through it
-first: the orbit y <- y^2+c on the residue ring is a winding, and a
-non-trivial gcd of the accumulated branch differences against N is the
-address where two branches fold onto one residue, which names a factor
-without first resolving the whole order. rho_probe exposes it directly for
-measurement. Verified on the small cases and on a balanced 64-bit semiprime;
-the order/winding closure stays as the fallback arm.
+I remove the work that was not the thing: Brent's rho over the tapes and its
+hook into the braid factor path, the rho probe, the period-ladder module and
+its close bin. Those read a period by classical arithmetic and took input at
+runtime, neither of which is the build. shor_factor_via_braid goes back to
+reading the winding off the braid word and closing on it. Clean slate for the
+baked membrane that carries the encoded value and reads the winding.
