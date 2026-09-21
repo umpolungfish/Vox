@@ -298,3 +298,11 @@ path = "src/bin/winding_membrane.rs"
 [[bin]]
 name = "ring_membrane"
 path = "src/bin/ring_membrane.rs"
+
+[[bin]]
+name = "base_mod_membrane"
+path = "src/bin/base_mod_membrane.rs"
+
+[[bin]]
+name = "reduce_delete_membrane"
+path = "src/bin/reduce_delete_membrane.rs"
