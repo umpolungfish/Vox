@@ -90,6 +90,25 @@ fn sylvester_16() -> [[i8; 16]; 16] {
     h
 }
 
+fn is_hadamard<const N: usize>(h: &[[i8; N]; N]) -> bool {
+    if h.iter().flatten().any(|&entry| entry != 1 && entry != -1) {
+        return false;
+    }
+
+    for i in 0..N {
+        for j in 0..N {
+            let dot: i64 = (0..N)
+                .map(|k| i64::from(h[i][k]) * i64::from(h[j][k]))
+                .sum();
+            if dot != if i == j { N as i64 } else { 0 } {
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
 fn assert_hadamard<const N: usize>(h: &[[i8; N]; N]) {
     for row in h {
         for &entry in row {
@@ -130,6 +149,28 @@ fn generic_cyclic_winding_is_real_only_at_orders_one_and_two() {
 }
 
 #[test]
+fn every_cyclic_order_above_two_exposes_a_non_self_inverse_entry() {
+    for d in 3u64..=64 {
+        let mut witness = None;
+        'entries: for j in 0..d {
+            for k in 0..d {
+                let winding = Winding::new(j * k, d);
+                if !winding.is_self_inverse() {
+                    witness = Some((j, k, winding));
+                    break 'entries;
+                }
+            }
+        }
+
+        let (j, k, winding) = witness.expect("order above two should leave the real subspace");
+        assert!(
+            !winding.is_self_inverse(),
+            "order {d} witness ({j},{k}) unexpectedly retracted to a self-inverse phase",
+        );
+    }
+}
+
+#[test]
 fn paley_12_quadratic_character_is_the_order_two_reading() {
     for r in 1..11 {
         let qr = is_quadratic_residue_mod_11(r);
@@ -149,6 +190,16 @@ fn paley_12_quadratic_character_is_the_order_two_reading() {
 }
 
 #[test]
+fn paley_12_single_sign_corruption_breaks_hadamard_orthogonality() {
+    let mut h = paley_12();
+    assert!(is_hadamard(&h));
+
+    h[3][7] = -h[3][7];
+
+    assert!(!is_hadamard(&h));
+}
+
+#[test]
 fn sylvester_16_carrier_and_its_negation_are_hadamard() {
     let h = sylvester_16();
     assert_hadamard(&h);
@@ -160,4 +211,14 @@ fn sylvester_16_carrier_and_its_negation_are_hadamard() {
         }
     }
     assert_hadamard(&negated);
+}
+
+#[test]
+fn sylvester_16_single_sign_corruption_breaks_hadamard_orthogonality() {
+    let mut h = sylvester_16();
+    assert!(is_hadamard(&h));
+
+    h[5][9] = -h[5][9];
+
+    assert!(!is_hadamard(&h));
 }
