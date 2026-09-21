@@ -35,11 +35,11 @@ pub const FIXED_POINT_SPECTRAL_WORD: [char; 25] = [
     ENGAGR, IFIX, TANCH,
 ];
 
-const W_T: u8 = 0b0001;
-const W_F: u8 = 0b0010;
-const W_t: u8 = 0b0100;
-const W_f: u8 = 0b1000;
-const W_A: u8 = W_T | W_F | W_t | W_f;
+const W_UPPER_T: u8 = 0b0001;
+const W_UPPER_F: u8 = 0b0010;
+const W_LOWER_T: u8 = 0b0100;
+const W_LOWER_F: u8 = 0b1000;
+const W_A: u8 = W_UPPER_T | W_UPPER_F | W_LOWER_T | W_LOWER_F;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct FixedWindingDeposit {
@@ -102,10 +102,10 @@ fn bit_count(mask: u8) -> usize {
 
 fn surviving(mask: u8) -> [u8; 4] {
     [
-        u8::from(mask & W_T != 0),
-        u8::from(mask & W_F != 0),
-        u8::from(mask & W_t != 0),
-        u8::from(mask & W_f != 0),
+        u8::from(mask & W_UPPER_T != 0),
+        u8::from(mask & W_UPPER_F != 0),
+        u8::from(mask & W_LOWER_T != 0),
+        u8::from(mask & W_LOWER_F != 0),
     ]
 }
 
@@ -195,7 +195,7 @@ impl FixedPointSpectralConstruction {
                     changed = true;
                 }
                 EVALT => {
-                    if deposit(&mut live, frames.as_mut_slice(), W_T) {
+                    if deposit(&mut live, frames.as_mut_slice(), W_UPPER_T) {
                         deposits += 1;
                         changed = true;
                     }
@@ -214,7 +214,7 @@ impl FixedPointSpectralConstruction {
                     }
                 }
                 EVALF => {
-                    if deposit(&mut live, frames.as_mut_slice(), W_F) {
+                    if deposit(&mut live, frames.as_mut_slice(), W_UPPER_F) {
                         deposits += 1;
                         changed = true;
                     }
@@ -230,7 +230,7 @@ impl FixedPointSpectralConstruction {
                 ENGAGR => {
                     // One paradice engagement deposits the lower-case pair as
                     // one event.  At the second ENGAGR A is already saturated.
-                    if deposit(&mut live, frames.as_mut_slice(), W_t | W_f) {
+                    if deposit(&mut live, frames.as_mut_slice(), W_LOWER_T | W_LOWER_F) {
                         deposits += 1;
                         changed = true;
                     }
