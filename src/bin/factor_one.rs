@@ -6,9 +6,37 @@
 //! free-lunch nesting), and closes the layer where a rotor aligns: gcd(a^E - 1,
 //! N) is a proper divisor. The surviving lane pair is p and q. If no rotor
 //! aligns within the stack, it hands to the 31-membrane's own split.
-use vox::morphism_factor::{parse_numeral, dec_of, one, cmp, modulo, mul, sub, gcd, divmod, tape_u64};
+use vox::morphism_factor::{parse_numeral, dec_of, one, cmp, modulo, mul, sub, add, gcd, divmod, tape_u64, isqrt};
 
 type Tape = Vec<char>;
+
+fn is_square(x: &[char]) -> Option<Tape> {
+    let r = isqrt(x);
+    if cmp(&mul(&r, &r), x) == core::cmp::Ordering::Equal { Some(r) } else { None }
+}
+
+/// The difference-of-squares lane: a from ceil(sqrt N) up, close the layer where
+/// a^2 - N is a perfect square b^2, so the lanes are (a-b, a+b). No order
+/// structure needed; it lands the layer where the two primes sit near sqrt N.
+fn squares_split(n: &[char], layers: usize) -> Option<(Tape, Tape)> {
+    let one_t = one();
+    let mut a = isqrt(n);
+    if cmp(&mul(&a, &a), n) == core::cmp::Ordering::Less { a = add(&a, &one_t); }
+    for _ in 0..layers {
+        let a2 = mul(&a, &a);
+        if cmp(&a2, n) != core::cmp::Ordering::Less {
+            if let Some(b) = is_square(&sub(&a2, n)) {
+                let p = sub(&a, &b);
+                if cmp(&p, &one_t) == core::cmp::Ordering::Greater {
+                    let (q, r) = divmod(n, &p);
+                    if cmp(&r, &tape_u64(0)) == core::cmp::Ordering::Equal { return Some((p, q)); }
+                }
+            }
+        }
+        a = add(&a, &one_t);
+    }
+    None
+}
 
 /// The nested-squaring split: over several bases, square the rotor per layer,
 /// a -> a^2, so layer k carries a^(2^k), and read gcd(a^(2^k) - 1, N) at each.
@@ -42,6 +70,10 @@ fn main() {
         Ok(v) => v,
         Err(e) => { eprintln!("factor membrane: {e}"); std::process::exit(2); }
     };
+    if let Some((p, q)) = squares_split(&n, 200_000) {
+        println!("N={}\nfactors: {} x {}   [difference-of-squares lane]", dec_of(&n), dec_of(&p), dec_of(&q));
+        return;
+    }
     if let Some((p, q)) = structural_split(&n, 4096, 256) {
         println!("N={}\nfactors: {} x {}   [nested-squaring split]", dec_of(&n), dec_of(&p), dec_of(&q));
         return;
