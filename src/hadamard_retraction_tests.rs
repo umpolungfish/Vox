@@ -76,15 +76,19 @@ fn paley_12() -> [[i8; 12]; 12] {
     h
 }
 
+fn sylvester_character(i: u32, j: u32) -> i8 {
+    if (i & j).count_ones() & 1 == 0 {
+        1
+    } else {
+        -1
+    }
+}
+
 fn sylvester_16() -> [[i8; 16]; 16] {
     let mut h = [[0i8; 16]; 16];
     for i in 0u32..16 {
         for j in 0u32..16 {
-            h[i as usize][j as usize] = if (i & j).count_ones() & 1 == 0 {
-                1
-            } else {
-                -1
-            };
+            h[i as usize][j as usize] = sylvester_character(i, j);
         }
     }
     h
@@ -190,6 +194,24 @@ fn paley_12_quadratic_character_is_the_order_two_reading() {
 }
 
 #[test]
+fn paley_quadratic_character_is_multiplicative_on_f11_units() {
+    for a in 1i64..11 {
+        let chi_a = quadratic_character_mod_11(a);
+        assert!(chi_a == 1 || chi_a == -1, "a={a}");
+
+        for b in 1i64..11 {
+            let chi_b = quadratic_character_mod_11(b);
+            let chi_ab = quadratic_character_mod_11(a * b);
+            assert_eq!(
+                chi_ab,
+                chi_a * chi_b,
+                "quadratic character failed multiplicativity at a={a}, b={b}",
+            );
+        }
+    }
+}
+
+#[test]
 fn paley_12_single_sign_corruption_breaks_hadamard_orthogonality() {
     let mut h = paley_12();
     assert!(is_hadamard(&h));
@@ -197,6 +219,26 @@ fn paley_12_single_sign_corruption_breaks_hadamard_orthogonality() {
     h[3][7] = -h[3][7];
 
     assert!(!is_hadamard(&h));
+}
+
+#[test]
+fn sylvester_character_is_bilinear_over_f2_xor() {
+    for a in 0u32..16 {
+        for b in 0u32..16 {
+            for k in 0u32..16 {
+                assert_eq!(
+                    sylvester_character(a ^ b, k),
+                    sylvester_character(a, k) * sylvester_character(b, k),
+                    "left character law failed at a={a}, b={b}, k={k}",
+                );
+                assert_eq!(
+                    sylvester_character(k, a ^ b),
+                    sylvester_character(k, a) * sylvester_character(k, b),
+                    "right character law failed at a={a}, b={b}, k={k}",
+                );
+            }
+        }
+    }
 }
 
 #[test]
