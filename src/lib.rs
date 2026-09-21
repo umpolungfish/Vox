@@ -65,3 +65,7 @@ pub mod fixed_point_protocol;
 
 #[cfg(test)]
 mod hadamard_retraction_tests;
+#[cfg(test)]
+mod hadamard_semiprime_width_tests;
+#[cfg(test)]
+mod hadamard_semiprime_scale_tests;
