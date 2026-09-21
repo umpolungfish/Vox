@@ -25,3 +25,6 @@ jobs:
 
       - name: Run library tests
         run: make test
+
+      - name: Compile fixed-point membrane artifact
+        run: cargo check --bin fixed_point_baked
