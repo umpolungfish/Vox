@@ -1,242 +1,94 @@
-//! Structural quantum phase-estimation register for the fixed-point membrane.
+//! Properly nested phase register for the fixed-point spectral membrane.
 //!
-//! Nothing in this module searches a period or a factor. Register width is
-//! determined only by the resident IMASM numeral width of N. Controlled modular
-//! phases are addressed independently by the basis exponent 2^j, and every
-//! quantum operation carries explicit matched `∈ ... ∋` nesting. The inverse-QFT
-//! and final measurement boundary are IMASM topology, not host-side amplitude
-//! simulation.
+//! The register is not expanded into one Rust object per basis address, control,
+//! inverse-QFT gate, or measurement wire.  Proper IMASM nesting is the register:
+//! depth `t` carries the complete `2^t` denominator while matched `∈ ... ∋`
+//! frames bank the resident relation across the reversal.  The whole tower then
+//! dissolves to one retained membrane at the fixed-point boundary.
+//!
+//! This is the free composition supplied by the fixed-point nesting rule.  The
+//! host records O(t) frame depth; it does not enumerate the orbit represented by
+//! those frames.
 
 use alloc::vec;
 use alloc::vec::Vec;
 
-use crate::fixed_point_imasm::FrameEdge;
+use crate::fixed_point_imasm::{NestedImasmTower, FIXED_POINT_NESTED_BODY};
 use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
 use crate::hadamard_gate::Tape;
-use crate::vox::{
-    AFWD, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT,
-};
+use crate::vox::{EVALF, EVALT, TANCH, VINIT};
 
-/// Pair first, then advance. The pair/link exists before punctum transport.
-pub const CONTROLLED_MODULAR_PHASE_WORD: [char; 6] =
-    [FSPLIT, CLINK, AFWD, IMSCRIB, IFIX, FFUSE];
-pub const INVERSE_QFT_HADAMARD_WORD: [char; 4] = [FSPLIT, EVALT, EVALF, FFUSE];
-pub const INVERSE_QFT_PHASE_WORD: [char; 4] = [FSPLIT, CLINK, IMSCRIB, FFUSE];
-pub const INVERSE_QFT_SWAP_WORD: [char; 1] = [CLINK];
-/// Measurement is also pair-first: expose both Boolean-core arms, fuse, fix.
-pub const PHASE_MEASUREMENT_WORD: [char; 6] = [FSPLIT, CLINK, EVALT, EVALF, FFUSE, IFIX];
-
+/// Canonical IMASM numeral tape for 2^bit, LSB first.
 pub(crate) fn power_of_two(bit: usize) -> Tape {
     let mut tape = vec![EVALT; bit + 1];
     tape[bit] = EVALF;
     tape
 }
 
-/// One operation with actual topology, not merely a glued glyph word.
-#[derive(Clone, PartialEq, Debug)]
-pub struct NestedQuantumGate {
-    body: Vec<char>,
-    word: Vec<char>,
-    frames: Vec<FrameEdge>,
-    outer_depth: usize,
-    max_depth: usize,
-}
-
-impl NestedQuantumGate {
-    pub(crate) fn around(body: &[char], outer_depth: usize) -> Result<Self, &'static str> {
-        if outer_depth == 0 {
-            return Err("quantum gate requires at least one enclosing IMASM frame");
-        }
-        let mut word = Vec::with_capacity(body.len() + outer_depth * 2 + 3);
-        word.push(VINIT);
-        for _ in 0..outer_depth { word.push(FSPLIT); }
-        word.extend_from_slice(body);
-        for _ in 0..outer_depth { word.push(FFUSE); }
-        word.push(IFIX);
-        word.push(TANCH);
-
-        let mut stack: Vec<(usize, usize)> = Vec::new();
-        let mut frames = Vec::new();
-        let mut max_depth = 0usize;
-        for (at, &mark) in word.iter().enumerate() {
-            match mark {
-                FSPLIT => {
-                    let depth = stack.len() + 1;
-                    max_depth = max_depth.max(depth);
-                    stack.push((at, depth));
-                }
-                FFUSE => {
-                    let (open, depth) = stack.pop().ok_or("quantum gate has an unmatched fuse")?;
-                    frames.push(FrameEdge { open, close: at, depth });
-                }
-                _ => {}
-            }
-        }
-        if !stack.is_empty() {
-            return Err("quantum gate has an unmatched split");
-        }
-        frames.sort_by_key(|edge| edge.depth);
-        Ok(Self { body: body.to_vec(), word, frames, outer_depth, max_depth })
-    }
-
-    pub fn body(&self) -> &[char] { &self.body }
-    pub fn word(&self) -> &[char] { &self.word }
-    pub fn frames(&self) -> &[FrameEdge] { &self.frames }
-    pub fn outer_depth(&self) -> usize { self.outer_depth }
-    pub fn max_depth(&self) -> usize { self.max_depth }
-
-    /// Collapse repeated outer scale frames to one retained membrane frame.
-    /// The operator body's own internal topology is untouched.
-    pub fn dissolved_word(&self) -> Vec<char> {
-        let mut out = Vec::with_capacity(self.body.len() + 5);
-        out.push(VINIT);
-        out.push(FSPLIT);
-        out.extend_from_slice(&self.body);
-        out.push(FFUSE);
-        out.push(IFIX);
-        out.push(TANCH);
-        out
-    }
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct ControlledModularPhase {
-    control: usize,
-    exponent: Tape,
-    phase: Tape,
-    gate: NestedQuantumGate,
-}
-
-impl ControlledModularPhase {
-    pub fn control(&self) -> usize { self.control }
-    pub fn exponent(&self) -> &[char] { &self.exponent }
-    pub fn phase(&self) -> &[char] { &self.phase }
-    pub fn operator_word(&self) -> &[char] { self.gate.body() }
-    pub fn nested_gate(&self) -> &NestedQuantumGate { &self.gate }
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub enum InverseQftGate {
-    ControlledPhase { control: usize, target: usize, distance: usize, gate: NestedQuantumGate },
-    Hadamard { wire: usize, gate: NestedQuantumGate },
-    Swap { left: usize, right: usize, gate: NestedQuantumGate },
-}
-
-impl InverseQftGate {
-    pub fn operator_word(&self) -> &[char] { self.nested_gate().body() }
-    pub fn nested_gate(&self) -> &NestedQuantumGate {
-        match self {
-            Self::ControlledPhase { gate, .. }
-            | Self::Hadamard { gate, .. }
-            | Self::Swap { gate, .. } => gate,
-        }
-    }
-}
-
-/// Structural QPE state before measurement. There is deliberately no sample.
+/// One coherent phase register represented by one properly nested membrane.
+///
+/// `width == t` means the nesting carries the complete denominator `M = 2^t`.
+/// There is no vector of 2^t addresses and no quadratic list of Fourier gates.
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseRegister {
     width: usize,
     denominator: Tape,
-    controls: Vec<ControlledModularPhase>,
-    inverse_qft: Vec<InverseQftGate>,
+    tower: NestedImasmTower,
 }
 
 impl QuantumPhaseRegister {
     pub fn width(&self) -> usize { self.width }
     pub fn denominator(&self) -> &[char] { &self.denominator }
-    pub fn controls(&self) -> &[ControlledModularPhase] { &self.controls }
-    pub fn inverse_qft(&self) -> &[InverseQftGate] { &self.inverse_qft }
-    pub fn hadamard_count(&self) -> usize {
-        self.inverse_qft.iter().filter(|g| matches!(g, InverseQftGate::Hadamard { .. })).count()
-    }
-    pub fn controlled_phase_count(&self) -> usize {
-        self.inverse_qft.iter().filter(|g| matches!(g, InverseQftGate::ControlledPhase { .. })).count()
-    }
-    pub fn swap_count(&self) -> usize {
-        self.inverse_qft.iter().filter(|g| matches!(g, InverseQftGate::Swap { .. })).count()
-    }
+    pub fn tower(&self) -> &NestedImasmTower { &self.tower }
 
-    /// Consume the coherent register into the one-shot measurement membrane.
+    /// Consume the coherent register into its single fixed-point boundary.
+    /// The nested bulk is retained only through the tower's structural depth;
+    /// no per-wire measurement objects survive beside it.
     pub fn into_measurement_program(self) -> Result<PhaseMeasurementProgram, &'static str> {
-        let mut measurements = Vec::with_capacity(self.width);
-        for wire in 0..self.width {
-            measurements.push(NestedQuantumGate::around(&PHASE_MEASUREMENT_WORD, wire + 1)?);
+        if self.tower.max_depth() != self.width {
+            return Err("quantum phase nesting depth changed before fixation");
+        }
+        if !self.tower.banking_audit().banked {
+            return Err("quantum phase reversal escaped its enclosing bank");
         }
         Ok(PhaseMeasurementProgram {
             width: self.width,
             denominator: self.denominator,
-            controls: self.controls,
-            inverse_qft: self.inverse_qft,
-            measurements,
+            tower: self.tower,
         })
     }
 }
 
-/// The complete one-shot quantum program immediately before collapse.
-///
-/// This object still contains no measured numerator and no factor/order fields.
-/// It owns the controlled modular phase register, inverse-QFT and measurement
-/// topology so an executor cannot reuse them after producing one measurement.
+/// The one-shot fixed-point boundary immediately before the winding preimage is
+/// fixed.  The complete represented denominator lives in `tower.max_depth()`;
+/// the nested copies are not materialized as independent host operations.
 #[derive(Clone, PartialEq, Debug)]
 pub struct PhaseMeasurementProgram {
     width: usize,
     denominator: Tape,
-    controls: Vec<ControlledModularPhase>,
-    inverse_qft: Vec<InverseQftGate>,
-    measurements: Vec<NestedQuantumGate>,
+    tower: NestedImasmTower,
 }
 
 impl PhaseMeasurementProgram {
     pub fn width(&self) -> usize { self.width }
     pub fn denominator(&self) -> &[char] { &self.denominator }
-    pub fn controls(&self) -> &[ControlledModularPhase] { &self.controls }
-    pub fn inverse_qft(&self) -> &[InverseQftGate] { &self.inverse_qft }
-    pub fn measurements(&self) -> &[NestedQuantumGate] { &self.measurements }
+    pub fn tower(&self) -> &NestedImasmTower { &self.tower }
+    pub fn dissolved_word(&self) -> Vec<char> { self.tower.dissolved_word() }
 }
 
 impl FixedPointQuantumMembrane {
-    /// Build the nested structural phase-estimation register.
+    /// Build the resident phase denominator as proper nesting.
+    ///
+    /// Width is fixed by N alone.  A depth-t tower stands for the entire 2^t
+    /// spectral denominator and remains O(t) in the host representation.
     pub fn phase_estimation_register(&self) -> Result<QuantumPhaseRegister, &'static str> {
         let width = self.n().len().saturating_mul(2).max(2);
         let denominator = power_of_two(width);
-        let mut controls = Vec::with_capacity(width);
-
-        for control in 0..width {
-            let exponent = power_of_two(control);
-            let phase = self.modular_phase(&exponent)?;
-            controls.push(ControlledModularPhase {
-                control,
-                exponent,
-                phase,
-                gate: NestedQuantumGate::around(&CONTROLLED_MODULAR_PHASE_WORD, control + 1)?,
-            });
+        let tower = NestedImasmTower::from_depth(width)?;
+        if !tower.banking_audit().banked {
+            return Err("quantum fixed-point denominator leaves the reversal exposed");
         }
-
-        let mut inverse_qft = Vec::new();
-        for target in 0..width {
-            for control in (target + 1)..width {
-                let distance = control - target;
-                inverse_qft.push(InverseQftGate::ControlledPhase {
-                    control,
-                    target,
-                    distance,
-                    gate: NestedQuantumGate::around(&INVERSE_QFT_PHASE_WORD, distance)?,
-                });
-            }
-            inverse_qft.push(InverseQftGate::Hadamard {
-                wire: target,
-                gate: NestedQuantumGate::around(&INVERSE_QFT_HADAMARD_WORD, target + 1)?,
-            });
-        }
-        for left in 0..(width / 2) {
-            inverse_qft.push(InverseQftGate::Swap {
-                left,
-                right: width - 1 - left,
-                gate: NestedQuantumGate::around(&INVERSE_QFT_SWAP_WORD, 1)?,
-            });
-        }
-        Ok(QuantumPhaseRegister { width, denominator, controls, inverse_qft })
+        Ok(QuantumPhaseRegister { width, denominator, tower })
     }
 }
 
@@ -256,71 +108,55 @@ mod tests {
     }
 
     #[test]
-    fn controls_are_power_of_two_addresses_with_real_nested_edges() {
-        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
-        let register = membrane.phase_estimation_register().unwrap();
-        for (j, control) in register.controls().iter().enumerate() {
-            assert_eq!(control.control(), j);
-            assert_eq!(control.exponent(), power_of_two(j).as_slice());
-            assert_eq!(control.phase(), membrane.modular_phase(control.exponent()).unwrap().as_slice());
-            assert_eq!(control.operator_word(), CONTROLLED_MODULAR_PHASE_WORD);
-            assert_eq!(control.operator_word()[0], FSPLIT);
-            assert_eq!(control.operator_word()[1], CLINK);
-            assert_eq!(control.operator_word()[2], AFWD);
-            assert_eq!(control.nested_gate().outer_depth(), j + 1);
-            assert!(control.nested_gate().frames().len() >= j + 1);
-        }
-    }
-
-    #[test]
-    fn repeated_scale_nesting_dissolves_without_changing_gate_body() {
-        let shallow = NestedQuantumGate::around(&CONTROLLED_MODULAR_PHASE_WORD, 1).unwrap();
-        let deep = NestedQuantumGate::around(&CONTROLLED_MODULAR_PHASE_WORD, 23).unwrap();
-        assert_ne!(shallow.word(), deep.word());
-        assert_ne!(shallow.max_depth(), deep.max_depth());
-        assert_eq!(shallow.dissolved_word(), deep.dissolved_word());
-    }
-
-    #[test]
-    fn denominator_is_exactly_two_to_register_width() {
+    fn denominator_is_exactly_two_to_nesting_depth() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(65_537)).unwrap();
         let register = membrane.phase_estimation_register().unwrap();
         assert_eq!(register.denominator(), power_of_two(register.width()).as_slice());
         assert_eq!(register.denominator().iter().filter(|&&c| c == EVALF).count(), 1);
         assert_eq!(register.denominator()[register.width()], EVALF);
+        assert_eq!(register.tower().max_depth(), register.width());
     }
 
     #[test]
-    fn inverse_qft_is_explicit_nested_polynomial_topology() {
+    fn represented_exponential_denominator_costs_only_linear_nesting() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let register = membrane.phase_estimation_register().unwrap();
         let t = register.width();
-        assert_eq!(register.hadamard_count(), t);
-        assert_eq!(register.controlled_phase_count(), t * (t - 1) / 2);
-        assert_eq!(register.swap_count(), t / 2);
-        assert_eq!(register.inverse_qft().len(), t + t * (t - 1) / 2 + t / 2);
-        assert!(register.inverse_qft().iter().all(|g| {
-            !g.operator_word().is_empty()
-                && !g.nested_gate().frames().is_empty()
-                && g.nested_gate().word().first() == Some(&VINIT)
-                && g.nested_gate().word().last() == Some(&TANCH)
-        }));
+        assert_eq!(register.tower().frames().len(), t);
+        assert_eq!(
+            register.tower().word().len(),
+            1 + t + FIXED_POINT_NESTED_BODY.len() + t + 2,
+        );
+        assert!(register.tower().banking_audit().banked);
+        assert_eq!(register.tower().banking_audit().exposed, 0);
     }
 
     #[test]
-    fn measurement_program_consumes_register_and_nests_every_wire() {
+    fn nesting_dissolves_to_one_depth_invariant_membrane() {
+        let a = NestedImasmTower::from_depth(2).unwrap();
+        let b = NestedImasmTower::from_depth(23).unwrap();
+        assert_ne!(a.word(), b.word());
+        assert_eq!(a.dissolved_word(), b.dissolved_word());
+        let dissolved = a.dissolved_word();
+        assert_eq!(dissolved.first(), Some(&VINIT));
+        assert_eq!(dissolved.last(), Some(&TANCH));
+    }
+
+    #[test]
+    fn measurement_boundary_consumes_one_tower_not_one_object_per_wire() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
-        let program = membrane.phase_estimation_register().unwrap().into_measurement_program().unwrap();
-        assert_eq!(program.measurements().len(), program.width());
-        for (wire, gate) in program.measurements().iter().enumerate() {
-            assert_eq!(gate.outer_depth(), wire + 1);
-            assert_eq!(gate.body(), PHASE_MEASUREMENT_WORD);
-            assert!(!gate.frames().is_empty());
-        }
+        let register = membrane.phase_estimation_register().unwrap();
+        let width = register.width();
+        let original_word = register.tower().word().to_vec();
+        let program = register.into_measurement_program().unwrap();
+        assert_eq!(program.width(), width);
+        assert_eq!(program.tower().max_depth(), width);
+        assert_eq!(program.tower().word(), original_word.as_slice());
+        assert_eq!(program.dissolved_word(), NestedImasmTower::from_depth(1).unwrap().dissolved_word());
     }
 
     #[test]
-    fn constructing_register_does_not_advance_hidden_phase_state() {
+    fn constructing_nested_denominator_does_not_advance_modular_phase_state() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let before = membrane.modular_phase(&tape_u64(7)).unwrap();
         let _ = membrane.phase_estimation_register().unwrap();
