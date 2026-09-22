@@ -6,7 +6,9 @@
 //! word executes once. Runtime cost is therefore depth-invariant: one process
 //! word, one banked live clear, one collapse tick.
 
-use crate::fixed_point_imasm::{HypernestAudit, HypernestedImasmCarrier};
+use crate::fixed_point_imasm::HypernestAudit;
+#[cfg(test)]
+use crate::fixed_point_imasm::HypernestedImasmCarrier;
 use crate::vox::{
     verdict, AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH,
     VINIT,
