@@ -64,6 +64,7 @@ pub mod fixed_point_reentry;
 pub mod fixed_point_imasm;
 pub mod fixed_point_word_arithmetic;
 pub mod fixed_point_word_vessel;
+pub mod fixed_point_word_collapse;
 pub mod fixed_point_membrane;
 // pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)
 // pub mod fde_shor_membrane;  // bin-only: uses std + ::vox
