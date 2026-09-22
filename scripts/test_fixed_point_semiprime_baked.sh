@@ -42,3 +42,4 @@ run_case() {
 run_case 31 "$repo/tests/baked/fixed_point_semiprime_31.word" 54559 37243
 run_case 40 "$repo/tests/baked/fixed_point_semiprime_40.word" 972221 976231
 run_case 47 "$repo/tests/baked/fixed_point_semiprime_47.word" 8424287 13575097
+run_case 56 "$repo/tests/baked/fixed_point_semiprime_56.word" 243325237 200504561
