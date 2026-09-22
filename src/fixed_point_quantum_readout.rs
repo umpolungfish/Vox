@@ -3,7 +3,8 @@
 //! A `QuantumPhaseSample` has no production constructor that accepts a host
 //! numerator. The complete denominator is carried by hypernest winding while one
 //! canonical carrier executes once. A sample can only be minted at the explicit
-//! pair-before-advance landing boundary.
+//! pair-before-advance landing boundary and remains bound to that landing's
+//! resident modular relation `(a, N)`.
 
 use core::cmp::Ordering;
 
@@ -22,6 +23,8 @@ use crate::vox::{verdict, AFWD, CLINK, EVALF, EVALT};
 pub struct QuantumPhaseSample {
     numerator: Tape,
     denominator: Tape,
+    n: Tape,
+    base: Tape,
     fixation_word: Vec<char>,
 }
 
@@ -81,6 +84,9 @@ impl QuantumPhaseSample {
         if !audit.closed {
             return Err("quantum phase landing lost control-flow closure");
         }
+        if !valid_tape(landing.n()) || !valid_tape(landing.base()) {
+            return Err("quantum phase landing lost its resident modular relation");
+        }
 
         let denominator = landing.denominator().to_vec();
         if denominator != power_of_two(width) {
@@ -93,21 +99,26 @@ impl QuantumPhaseSample {
         Ok(Self {
             numerator,
             denominator,
+            n: landing.n().to_vec(),
+            base: landing.base().to_vec(),
             fixation_word: word.to_vec(),
         })
     }
 
     pub fn numerator(&self) -> &[char] { &self.numerator }
     pub fn denominator(&self) -> &[char] { &self.denominator }
+    pub fn n(&self) -> &[char] { &self.n }
+    pub fn base(&self) -> &[char] { &self.base }
     pub fn fixation_word(&self) -> &[char] { &self.fixation_word }
 }
 
 impl FixedPointQuantumMembrane {
     /// Consume the resident membrane and one opaque fixed winding preimage.
     ///
-    /// This boundary only interprets an already-produced quantum readout. It
-    /// never repeats measurement, scans bases, walks a modular orbit, or searches
-    /// factor candidates.
+    /// This boundary only interprets an already-produced quantum readout. The
+    /// sample must have been fixed from this exact resident `(a, N)` relation.
+    /// It never repeats measurement, scans bases, walks a modular orbit, or
+    /// searches factor candidates.
     pub fn descend_quantum_measurement(
         self,
         sample: QuantumPhaseSample,
@@ -116,13 +127,16 @@ impl FixedPointQuantumMembrane {
         if sample.denominator != power_of_two(width) {
             return HadamardDescent::F;
         }
+        if sample.n.as_slice() != self.n() || sample.base.as_slice() != self.base() {
+            return HadamardDescent::F;
+        }
         if sample.fixation_word != PAIR_BEFORE_ADVANCE_READOUT_WORD {
             return HadamardDescent::F;
         }
         if verdict(&sample.fixation_word) != 'T' {
             return HadamardDescent::F;
         }
-        let base = self.base().to_vec();
+        let base = sample.base.clone();
         let spectral = self.into_spectral();
         let carrier = spectral.into_carrier();
         carrier.descend_phase_sample(&base, &sample.numerator, &sample.denominator)
@@ -146,9 +160,13 @@ mod tests {
     fn test_seam_consumes_pair_before_advance_landing_into_k_over_m() {
         let landing = landing_for(257);
         let width = landing.width();
+        let expected_n = landing.n().to_vec();
+        let expected_base = landing.base().to_vec();
         let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(5)).unwrap();
         assert_eq!(sample.numerator(), tape_u64(5).as_slice());
         assert_eq!(sample.denominator(), power_of_two(width).as_slice());
+        assert_eq!(sample.n(), expected_n.as_slice());
+        assert_eq!(sample.base(), expected_base.as_slice());
         assert_eq!(sample.fixation_word(), PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice());
         assert_eq!(verdict(sample.fixation_word()), 'T');
         let link = sample.fixation_word().iter().position(|&mark| mark == CLINK).unwrap();
@@ -164,6 +182,14 @@ mod tests {
 
         let landing = landing_for(257);
         assert!(QuantumPhaseSample::fix_from_landing_for_test(landing, vec!['⊙']).is_err());
+    }
+
+    #[test]
+    fn sample_cannot_cross_resident_modulus_boundary() {
+        let landing = landing_for(257);
+        let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(5)).unwrap();
+        let other = FixedPointQuantumMembrane::from_n(&tape_u64(263)).unwrap();
+        assert_eq!(other.descend_quantum_measurement(sample), HadamardDescent::F);
     }
 
     #[test]
