@@ -15,14 +15,14 @@ type Tape = Vec<char>;
 fn carrier(name: &str) -> Option<&'static str> {
     Some(match name {
         "phase"      => "⊢⊙∈≻⊤⋈≺⊥⊞∋⊡⋈⊙⊣",
-        "shor"       => "⊢∈≻⋈⊞∈⊤≻⊥≺∋⊙⋈⊡⊣",
+        "shor"       => "⊢∈≻⋈⊞∈⊤≻⊥≺∋⊙⋈∋⊡⊣",
         "fib" | "fibonacci" | "anyon" => "⊢⊙∈≻⋈⊤≻⊥⊞≺⋈∈⊤⊥∋⊡⋈≻⊙∋⊣",
         "arithmetic" => "⊢⊙∈≻⊤⋈≺⊥⊞∋⊡⋈⊙⊣",
         "branch"     => "⊢∈⊤⊥∋⊡⊣",
         // The factoring membrane ob3ects, by their grounded glyph words.
         "mk" | "msep" => "⊢∈≻⊤≺⊥⊞⋈∋⊙⊡⊣",            // factor-separating M_κ
         "braider"     => "⊢∈≻⊤≺⊥⊞⋈∋⊙⊡⊣",            // prime-number inverse braider
-        "imprime"     => "⊢⊣≻∈⊤⋈≺⊥⊞⊙⋈∈⊤≺⊥∋⊡⊣",       // imscribing prime factorizer
+        "imprime"     => "⊢≻∈⊤⋈≺⊥⊞⊙⋈∈⊤≺⊥∋∋⊡⊣",       // imscribing prime factorizer (fork closed)
         "fixation"    => "⊢⊙≻∈⊤⋈⊥≺⊞∋⊡⊣",             // post-membrane numerical fixation
         "divisor"     => "⊢⊣≻∈⊤⋈≺⊥⊞⊙∋⋈∈⊤≺⊥∋⊡⊣",       // closed prime factorizer, divisor search
         "semiprime" | "period" => "⊢∈≻⋈∈⊤≺⊥∋∈⊤⊥⊞∋⊙≺⋈∋⊡⊣≻≺⋈⊞⊥⊤∋∈⊡⊙⊣⊣", // semiprime factorizer, period-combining
