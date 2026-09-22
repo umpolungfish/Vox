@@ -1,10 +1,12 @@
 //! One-shot readout boundary for the collapsed hypernested fixed-point membrane.
 //!
 //! A `QuantumPhaseSample` has no production constructor that accepts a host
-//! numerator. The complete denominator is carried by hypernest winding while one
-//! resident N-dependent IMASM carrier executes once. A sample can only be minted
-//! at the explicit pair-before-advance landing boundary and remains bound to that
-//! landing's resident modular relation `(a, N)`.
+//! numerator. The collapsed hypernest carries the QPE precision denominator
+//! `M = 2^t`; it does not by itself claim the multiplicative period `r`.
+//! A sample can only be minted at the explicit pair-before-advance landing
+//! boundary and remains bound to that landing's resident modular relation
+//! `(a, N)`. The existing Hadamard bridge may infer a period from a genuine
+//! fixed phase sample `k/M`; this module never relabels `M` as that period.
 
 use core::cmp::Ordering;
 
@@ -21,7 +23,7 @@ use crate::vox::{verdict, AFWD, CLINK, EVALF, EVALT};
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseSample {
     numerator: Tape,
-    denominator: Tape,
+    precision_denominator: Tape,
     n: Tape,
     base: Tape,
     fixation_word: Vec<char>,
@@ -44,8 +46,12 @@ impl QuantumPhaseSample {
 
     /// Private mint used only by the membrane executor. The landing object is
     /// consumed, so a caller cannot bypass the pair-before-advance ordering and
-    /// later attach an unrelated phase sample.  The fixation word is rebuilt
+    /// later attach an unrelated phase sample. The fixation word is rebuilt
     /// from the resident IMASM numerals themselves, not from a generic shell.
+    ///
+    /// `landing.denominator()` is the QPE precision denominator `M = 2^t`.
+    /// It is deliberately stored under that name here so it cannot be confused
+    /// with the multiplicative period denominator recovered from a real phase.
     fn from_executor_landing(
         landing: PhaseLandingProgram,
         numerator: Tape,
@@ -88,17 +94,17 @@ impl QuantumPhaseSample {
             return Err("quantum phase landing lost its resident modular relation");
         }
 
-        let denominator = landing.denominator().to_vec();
-        if denominator != power_of_two(width) {
-            return Err("quantum phase landing denominator changed");
+        let precision_denominator = landing.denominator().to_vec();
+        if precision_denominator != power_of_two(width) {
+            return Err("quantum phase landing precision denominator changed");
         }
-        if cmp(&numerator, &denominator) != Ordering::Less {
-            return Err("quantum phase landing lies outside its hypernested denominator");
+        if cmp(&numerator, &precision_denominator) != Ordering::Less {
+            return Err("quantum phase landing lies outside its precision denominator");
         }
 
         Ok(Self {
             numerator,
-            denominator,
+            precision_denominator,
             n: landing.n().to_vec(),
             base: landing.base().to_vec(),
             fixation_word: word,
@@ -106,25 +112,35 @@ impl QuantumPhaseSample {
     }
 
     pub fn numerator(&self) -> &[char] { &self.numerator }
-    pub fn denominator(&self) -> &[char] { &self.denominator }
+
+    /// The QPE precision denominator `M = 2^t` represented by hypernest depth.
+    /// This value is not, in general, the multiplicative period `r`.
+    pub fn precision_denominator(&self) -> &[char] { &self.precision_denominator }
+
+    /// Compatibility alias for the phase-sample denominator `M`.
+    /// New code should prefer `precision_denominator()` so `M` is not mistaken
+    /// for the period denominator recovered by continued-fraction descent.
+    pub fn denominator(&self) -> &[char] { self.precision_denominator() }
+
     pub fn n(&self) -> &[char] { &self.n }
     pub fn base(&self) -> &[char] { &self.base }
     pub fn fixation_word(&self) -> &[char] { &self.fixation_word }
 }
 
 impl FixedPointQuantumMembrane {
-    /// Consume the resident membrane and one opaque fixed winding preimage.
+    /// Consume the resident membrane and one opaque fixed phase sample `k/M`.
     ///
     /// This boundary only interprets an already-produced quantum readout. The
     /// sample must have been fixed from this exact resident `(a, N)` relation.
-    /// It never repeats measurement, scans bases, walks a modular orbit, or
-    /// searches factor candidates.
+    /// `M` is the precision denominator; the existing Hadamard bridge may infer
+    /// a candidate period from `k/M`. This function never repeats measurement,
+    /// scans bases, walks a modular orbit, or searches factor candidates.
     pub fn descend_quantum_measurement(
         self,
         sample: QuantumPhaseSample,
     ) -> HadamardDescent {
         let width = self.n().len().saturating_mul(2).max(2);
-        if sample.denominator != power_of_two(width) {
+        if sample.precision_denominator != power_of_two(width) {
             return HadamardDescent::F;
         }
         if sample.n.as_slice() != self.n() || sample.base.as_slice() != self.base() {
@@ -136,7 +152,7 @@ impl FixedPointQuantumMembrane {
         let base = sample.base.clone();
         let spectral = self.into_spectral();
         let carrier = spectral.into_carrier();
-        carrier.descend_phase_sample(&base, &sample.numerator, &sample.denominator)
+        carrier.descend_phase_sample(&base, &sample.numerator, &sample.precision_denominator)
     }
 }
 
@@ -162,7 +178,8 @@ mod tests {
         let expected_word = resident_landing_word(&landing).unwrap();
         let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(5)).unwrap();
         assert_eq!(sample.numerator(), tape_u64(5).as_slice());
-        assert_eq!(sample.denominator(), power_of_two(width).as_slice());
+        assert_eq!(sample.precision_denominator(), power_of_two(width).as_slice());
+        assert_eq!(sample.denominator(), sample.precision_denominator());
         assert_eq!(sample.n(), expected_n.as_slice());
         assert_eq!(sample.base(), expected_base.as_slice());
         assert_eq!(sample.fixation_word(), expected_word.as_slice());
@@ -200,7 +217,21 @@ mod tests {
             let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(1)).unwrap();
             assert!(sample.fixation_word().windows(expected_n.len()).any(|w| w == expected_n));
             assert!(sample.fixation_word().windows(expected_base.len()).any(|w| w == expected_base));
-            assert_eq!(sample.denominator(), power_of_two(width).as_slice());
+            assert_eq!(sample.precision_denominator(), power_of_two(width).as_slice());
         }
+    }
+
+    #[test]
+    fn precision_denominator_is_not_relabelled_as_period() {
+        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(21)).unwrap();
+        let landing = membrane
+            .phase_estimation_register().unwrap()
+            .into_measurement_program().unwrap()
+            .into_landing_program().unwrap();
+        let width = landing.width();
+        let precision_denominator = landing.denominator().to_vec();
+
+        assert_eq!(precision_denominator, power_of_two(width));
+        assert_ne!(membrane.modular_phase(&precision_denominator).unwrap(), tape_u64(1));
     }
 }
