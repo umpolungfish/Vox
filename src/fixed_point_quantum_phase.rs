@@ -27,13 +27,28 @@ pub(crate) fn power_of_two(bit: usize) -> Tape {
     tape
 }
 
-/// The readout shell that fixes the pair before transport advances it.
+/// Properly nested pair-before-advance landing.
 ///
-/// This ordering is distinct from the resident carrier. `CLINK` forms the
-/// spectral pair while the current phase is still resident; only then may
-/// `AFWD` transport the fixed pair to the terminal boundary.
-pub const PAIR_BEFORE_ADVANCE_READOUT_WORD: [char; 11] = [
-    VINIT, IMSCRIB, FSPLIT, EVALT, AREV, EVALF, CLINK, AFWD, FFUSE, IFIX, TANCH,
+/// This is an enclosure, not two complete words concatenated.  The outer hold
+/// opens first, the inner readout payload is spliced directly against its fuse,
+/// the outer fuse closes after it, and there is exactly one terminal fixation
+/// after both fuses.  `CLINK` therefore forms the spectral pair before `AFWD`
+/// transports it, while the one live `AREV` remains banked through both frames.
+pub const PAIR_BEFORE_ADVANCE_READOUT_WORD: [char; 14] = [
+    VINIT,
+    FSPLIT,
+    EVALT,
+    IMSCRIB,
+    FSPLIT,
+    EVALT,
+    AREV,
+    EVALF,
+    CLINK,
+    AFWD,
+    FFUSE,
+    FFUSE,
+    IFIX,
+    TANCH,
 ];
 
 /// One coherent phase register represented by one collapsed hypernest.
@@ -107,37 +122,67 @@ impl PhaseMeasurementProgram {
     pub fn fixation_word(&self) -> &[char] { self.hypernest.word() }
     pub fn execution_ticks(&self) -> usize { self.hypernest.execution_ticks() }
 
-    /// Consume the measurement boundary into the pair-before-advance landing
-    /// shell. The denominator, resident modular relation, and hypernest winding
-    /// move together; no host sample is introduced at this transition.
+    /// Consume the measurement boundary into one properly nested landing.
+    /// The inner readout has no independent VINIT/TANCH/IFIX interface: its
+    /// payload is enclosed by the outer frame and the only fixation is terminal.
+    /// The denominator, resident modular relation, and winding move together.
     pub fn into_landing_program(self) -> Result<PhaseLandingProgram, &'static str> {
-        let link = PAIR_BEFORE_ADVANCE_READOUT_WORD
+        let word = &PAIR_BEFORE_ADVANCE_READOUT_WORD;
+        let link = word
             .iter()
             .position(|&mark| mark == CLINK)
             .ok_or("quantum landing has no pair operation")?;
-        let advance = PAIR_BEFORE_ADVANCE_READOUT_WORD
+        let advance = word
             .iter()
             .position(|&mark| mark == AFWD)
             .ok_or("quantum landing has no transport operation")?;
-        let split = PAIR_BEFORE_ADVANCE_READOUT_WORD
-            .iter()
-            .position(|&mark| mark == FSPLIT)
-            .ok_or("quantum landing has no bank")?;
-        let clear = PAIR_BEFORE_ADVANCE_READOUT_WORD
+        let clear = word
             .iter()
             .position(|&mark| mark == AREV)
             .ok_or("quantum landing has no live clear")?;
-        let fuse = PAIR_BEFORE_ADVANCE_READOUT_WORD
+        let outer_split = word
+            .iter()
+            .position(|&mark| mark == FSPLIT)
+            .ok_or("quantum landing has no outer bank")?;
+        let inner_split = word
+            .iter()
+            .enumerate()
+            .filter_map(|(at, &mark)| (mark == FSPLIT).then_some(at))
+            .nth(1)
+            .ok_or("quantum landing has no nested bank")?;
+        let inner_fuse = word
             .iter()
             .position(|&mark| mark == FFUSE)
-            .ok_or("quantum landing has no fuse")?;
+            .ok_or("quantum landing has no inner fuse")?;
+        let outer_fuse = word
+            .iter()
+            .rposition(|&mark| mark == FFUSE)
+            .ok_or("quantum landing has no outer fuse")?;
+        let fixation = word
+            .iter()
+            .position(|&mark| mark == IFIX)
+            .ok_or("quantum landing has no terminal fixation")?;
+
         if link >= advance {
             return Err("quantum landing advances before forming the spectral pair");
         }
-        if !(split < clear && clear < fuse) {
-            return Err("quantum landing exposes the live clear outside its bank");
+        if word.iter().filter(|&&mark| mark == FSPLIT).count() != 2
+            || word.iter().filter(|&&mark| mark == FFUSE).count() != 2
+            || word.iter().filter(|&&mark| mark == IFIX).count() != 1
+            || word.iter().filter(|&&mark| mark == VINIT).count() != 1
+            || word.iter().filter(|&&mark| mark == TANCH).count() != 1
+        {
+            return Err("quantum landing is juxtaposed words instead of one nested carrier");
         }
-        if verdict(&PAIR_BEFORE_ADVANCE_READOUT_WORD) != 'T' {
+        if !(outer_split < inner_split
+            && inner_split < clear
+            && clear < inner_fuse
+            && inner_fuse < outer_fuse
+            && outer_fuse < fixation)
+        {
+            return Err("quantum landing lost enclosure or banked-clear ordering");
+        }
+        if verdict(word) != 'T' {
             return Err("quantum landing boundary does not close");
         }
         if self.hypernest.winding() != self.width || self.hypernest.execution_ticks() != 1 {
@@ -294,6 +339,30 @@ mod tests {
         assert_eq!(landing.execution_ticks(), 1);
         assert_eq!(landing.hypernest().winding(), landing.width());
         assert_eq!(word.len(), PAIR_BEFORE_ADVANCE_READOUT_WORD.len());
+    }
+
+    #[test]
+    fn landing_is_enclosure_not_concatenated_complete_words() {
+        let landing = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap()
+            .phase_estimation_register().unwrap()
+            .into_measurement_program().unwrap()
+            .into_landing_program().unwrap();
+        let word = landing.readout_word();
+        let splits: alloc::vec::Vec<usize> = word.iter().enumerate()
+            .filter_map(|(at, &mark)| (mark == FSPLIT).then_some(at)).collect();
+        let fuses: alloc::vec::Vec<usize> = word.iter().enumerate()
+            .filter_map(|(at, &mark)| (mark == FFUSE).then_some(at)).collect();
+        let clear = word.iter().position(|&mark| mark == AREV).unwrap();
+        let fix = word.iter().position(|&mark| mark == IFIX).unwrap();
+
+        assert_eq!(splits.len(), 2);
+        assert_eq!(fuses.len(), 2);
+        assert!(splits[0] < splits[1]);
+        assert!(splits[1] < clear && clear < fuses[0]);
+        assert!(fuses[0] < fuses[1] && fuses[1] < fix);
+        assert_eq!(word.iter().filter(|&&mark| mark == VINIT).count(), 1);
+        assert_eq!(word.iter().filter(|&&mark| mark == TANCH).count(), 1);
+        assert_eq!(word.iter().filter(|&&mark| mark == IFIX).count(), 1);
     }
 
     #[test]
