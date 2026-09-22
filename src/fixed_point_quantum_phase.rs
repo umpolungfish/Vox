@@ -1,10 +1,11 @@
 //! Structural quantum phase-estimation register for the fixed-point membrane.
 //!
-//! Nothing in this module searches a period or a factor.  Register width is
-//! determined only by the resident IMASM numeral width of N.  Controlled
-//! modular phases are addressed independently by the basis exponent 2^j, and
-//! every quantum operation carries explicit matched `∈ ... ∋` nesting.  The
-//! inverse-QFT is an IMASM topology, not a host-side amplitude simulation.
+//! Nothing in this module searches a period or a factor. Register width is
+//! determined only by the resident IMASM numeral width of N. Controlled modular
+//! phases are addressed independently by the basis exponent 2^j, and every
+//! quantum operation carries explicit matched `∈ ... ∋` nesting. The inverse-QFT
+//! and final measurement boundary are IMASM topology, not host-side amplitude
+//! simulation.
 
 use alloc::vec;
 use alloc::vec::Vec;
@@ -16,26 +17,22 @@ use crate::vox::{
     AFWD, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT,
 };
 
-/// Pair first, then advance.  The successful instant membrane ordering forms
-/// the pair before punctum transport acts on it.
+/// Pair first, then advance. The pair/link exists before punctum transport.
 pub const CONTROLLED_MODULAR_PHASE_WORD: [char; 6] =
     [FSPLIT, CLINK, AFWD, IMSCRIB, IFIX, FFUSE];
 pub const INVERSE_QFT_HADAMARD_WORD: [char; 4] = [FSPLIT, EVALT, EVALF, FFUSE];
 pub const INVERSE_QFT_PHASE_WORD: [char; 4] = [FSPLIT, CLINK, IMSCRIB, FFUSE];
 pub const INVERSE_QFT_SWAP_WORD: [char; 1] = [CLINK];
+/// Measurement is also pair-first: expose both Boolean-core arms, fuse, fix.
+pub const PHASE_MEASUREMENT_WORD: [char; 6] = [FSPLIT, CLINK, EVALT, EVALF, FFUSE, IFIX];
 
-fn power_of_two(bit: usize) -> Tape {
+pub(crate) fn power_of_two(bit: usize) -> Tape {
     let mut tape = vec![EVALT; bit + 1];
     tape[bit] = EVALF;
     tape
 }
 
 /// One operation with actual topology, not merely a glued glyph word.
-///
-/// `outer_depth` is the scale nesting supplied by the phase circuit.  Operator
-/// bodies may contain their own split/fuse pair; all pairs are recorded in
-/// `frames`, so two equal bodies at different outer depths remain different
-/// programs until dissolution.
 #[derive(Clone, PartialEq, Debug)]
 pub struct NestedQuantumGate {
     body: Vec<char>,
@@ -46,7 +43,7 @@ pub struct NestedQuantumGate {
 }
 
 impl NestedQuantumGate {
-    fn around(body: &[char], outer_depth: usize) -> Result<Self, &'static str> {
+    pub(crate) fn around(body: &[char], outer_depth: usize) -> Result<Self, &'static str> {
         if outer_depth == 0 {
             return Err("quantum gate requires at least one enclosing IMASM frame");
         }
@@ -79,14 +76,7 @@ impl NestedQuantumGate {
             return Err("quantum gate has an unmatched split");
         }
         frames.sort_by_key(|edge| edge.depth);
-
-        Ok(Self {
-            body: body.to_vec(),
-            word,
-            frames,
-            outer_depth,
-            max_depth,
-        })
+        Ok(Self { body: body.to_vec(), word, frames, outer_depth, max_depth })
     }
 
     pub fn body(&self) -> &[char] { &self.body }
@@ -127,21 +117,9 @@ impl ControlledModularPhase {
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum InverseQftGate {
-    ControlledPhase {
-        control: usize,
-        target: usize,
-        distance: usize,
-        gate: NestedQuantumGate,
-    },
-    Hadamard {
-        wire: usize,
-        gate: NestedQuantumGate,
-    },
-    Swap {
-        left: usize,
-        right: usize,
-        gate: NestedQuantumGate,
-    },
+    ControlledPhase { control: usize, target: usize, distance: usize, gate: NestedQuantumGate },
+    Hadamard { wire: usize, gate: NestedQuantumGate },
+    Swap { left: usize, right: usize, gate: NestedQuantumGate },
 }
 
 impl InverseQftGate {
@@ -155,11 +133,7 @@ impl InverseQftGate {
     }
 }
 
-/// A phase-estimation circuit description resident in the membrane.
-///
-/// `denominator` is exactly M=2^width as an IMASM numeral tape.  There is no
-/// phase sample field: a sample is a later measurement product, never an input
-/// or compile-time hint.
+/// Structural QPE state before measurement. There is deliberately no sample.
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseRegister {
     width: usize,
@@ -173,7 +147,6 @@ impl QuantumPhaseRegister {
     pub fn denominator(&self) -> &[char] { &self.denominator }
     pub fn controls(&self) -> &[ControlledModularPhase] { &self.controls }
     pub fn inverse_qft(&self) -> &[InverseQftGate] { &self.inverse_qft }
-
     pub fn hadamard_count(&self) -> usize {
         self.inverse_qft.iter().filter(|g| matches!(g, InverseQftGate::Hadamard { .. })).count()
     }
@@ -183,15 +156,47 @@ impl QuantumPhaseRegister {
     pub fn swap_count(&self) -> usize {
         self.inverse_qft.iter().filter(|g| matches!(g, InverseQftGate::Swap { .. })).count()
     }
+
+    /// Consume the coherent register into the one-shot measurement membrane.
+    pub fn into_measurement_program(self) -> Result<PhaseMeasurementProgram, &'static str> {
+        let mut measurements = Vec::with_capacity(self.width);
+        for wire in 0..self.width {
+            measurements.push(NestedQuantumGate::around(&PHASE_MEASUREMENT_WORD, wire + 1)?);
+        }
+        Ok(PhaseMeasurementProgram {
+            width: self.width,
+            denominator: self.denominator,
+            controls: self.controls,
+            inverse_qft: self.inverse_qft,
+            measurements,
+        })
+    }
+}
+
+/// The complete one-shot quantum program immediately before collapse.
+///
+/// This object still contains no measured numerator and no factor/order fields.
+/// It owns the controlled modular phase register, inverse-QFT and measurement
+/// topology so an executor cannot reuse them after producing one measurement.
+#[derive(Clone, PartialEq, Debug)]
+pub struct PhaseMeasurementProgram {
+    width: usize,
+    denominator: Tape,
+    controls: Vec<ControlledModularPhase>,
+    inverse_qft: Vec<InverseQftGate>,
+    measurements: Vec<NestedQuantumGate>,
+}
+
+impl PhaseMeasurementProgram {
+    pub fn width(&self) -> usize { self.width }
+    pub fn denominator(&self) -> &[char] { &self.denominator }
+    pub fn controls(&self) -> &[ControlledModularPhase] { &self.controls }
+    pub fn inverse_qft(&self) -> &[InverseQftGate] { &self.inverse_qft }
+    pub fn measurements(&self) -> &[NestedQuantumGate] { &self.measurements }
 }
 
 impl FixedPointQuantumMembrane {
     /// Build the nested structural phase-estimation register.
-    ///
-    /// Two control cells per resident N cell provide the rational-readout
-    /// precision budget without inspecting factors or an order.  Control j is
-    /// placed at scale depth j+1; its modular phase is independently evaluated
-    /// at exponent 2^j, never advanced from a preceding orbit state.
     pub fn phase_estimation_register(&self) -> Result<QuantumPhaseRegister, &'static str> {
         let width = self.n().len().saturating_mul(2).max(2);
         let denominator = power_of_two(width);
@@ -231,7 +236,6 @@ impl FixedPointQuantumMembrane {
                 gate: NestedQuantumGate::around(&INVERSE_QFT_SWAP_WORD, 1)?,
             });
         }
-
         Ok(QuantumPhaseRegister { width, denominator, controls, inverse_qft })
     }
 }
@@ -301,6 +305,18 @@ mod tests {
                 && g.nested_gate().word().first() == Some(&VINIT)
                 && g.nested_gate().word().last() == Some(&TANCH)
         }));
+    }
+
+    #[test]
+    fn measurement_program_consumes_register_and_nests_every_wire() {
+        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
+        let program = membrane.phase_estimation_register().unwrap().into_measurement_program().unwrap();
+        assert_eq!(program.measurements().len(), program.width());
+        for (wire, gate) in program.measurements().iter().enumerate() {
+            assert_eq!(gate.outer_depth(), wire + 1);
+            assert_eq!(gate.body(), PHASE_MEASUREMENT_WORD);
+            assert!(!gate.frames().is_empty());
+        }
     }
 
     #[test]
