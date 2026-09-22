@@ -28,11 +28,8 @@ pub const FIXED_POINT_NESTED_BODY: [char; 10] = [
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FrameEdge {
-    /// Position of the opening `∈` in the program word.
     pub open: usize,
-    /// Position of the matching `∋` in the program word.
     pub close: usize,
-    /// One-based depth of this frame. The outermost frame is depth 1.
     pub depth: usize,
 }
 
@@ -44,9 +41,6 @@ pub struct BankingAudit {
     pub banked: bool,
 }
 
-/// A properly nested IMASM tower. `word` is the node sequence; `frames` is the
-/// missing wiring information that distinguishes two programs with the same
-/// glued word but different topology.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NestedImasmTower {
     word: Vec<char>,
@@ -72,9 +66,12 @@ fn is_imasm(mark: char) -> bool {
     )
 }
 
+#[cfg(test)]
+pub(crate) fn is_imasm_for_test(mark: char) -> bool {
+    is_imasm(mark)
+}
+
 impl NestedImasmTower {
-    /// Construct the tower at an explicit nesting depth. No numeric carrier is
-    /// accepted here: this builds topology only.
     pub fn from_depth(depth: usize) -> Result<Self, &'static str> {
         if depth == 0 {
             return Err("fixed-point tower requires at least one enclosing frame");
@@ -95,7 +92,6 @@ impl NestedImasmTower {
         Self::from_word(word)
     }
 
-    /// The construction's documented `d = m - 3` scale/depth relation.
     pub fn from_scale(m: usize) -> Result<Self, &'static str> {
         let depth = m
             .checked_sub(3)
@@ -197,9 +193,6 @@ impl NestedImasmTower {
         self.max_depth
     }
 
-    /// Structural banking invariant for the canonical body. The three resident
-    /// deposits are protected by every enclosing frame when the single live
-    /// reversal fires, so none is exposed.
     pub fn banking_audit(&self) -> BankingAudit {
         let reversal = self.word.iter().position(|&mark| mark == AREV);
         let banked = reversal
@@ -217,10 +210,6 @@ impl NestedImasmTower {
         }
     }
 
-    /// Apply the documented dissolution rule to the topology: all matched
-    /// split/fuse pairs contained by the outer pair dissolve to the same one-
-    /// frame structural representative. A dangling split/fuse can never reach
-    /// this method because construction fails closed above.
     pub fn dissolved_word(&self) -> Vec<char> {
         let mut out = Vec::with_capacity(FIXED_POINT_NESTED_BODY.len() + 5);
         out.push(VINIT);
@@ -233,9 +222,6 @@ impl NestedImasmTower {
     }
 }
 
-/// An opaque IMASM numeral value. The value remains a glyph word; this type
-/// intentionally provides no conversion to `u64`, `u128`, limbs, or a host
-/// numeric representation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ImasmNumeralWord(String);
 
@@ -249,7 +235,6 @@ impl ImasmNumeralWord {
             return Err("IMASM numeral contains a non-IMASM mark");
         }
         if marks.iter().all(|&mark| mark != EVALT && mark != EVALF) {
-            // The canonical zero word is the only numeral with no payload bit.
             if marks.as_slice() != [VINIT, IMSCRIB, IFIX, TANCH] {
                 return Err("IMASM numeral contains no numeral payload");
             }
