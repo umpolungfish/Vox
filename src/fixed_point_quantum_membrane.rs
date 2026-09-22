@@ -11,9 +11,10 @@
 
 use crate::fixed_point_hypernest::CollapsedHypernest;
 use crate::hadamard_gate::{
-    hadamard_character, FixedPointSpectralConstruction, HadamardCarrier,
-    SpectralWinding, Tape,
+    hadamard_character, FixedPointSpectralConstruction, HadamardCarrier, Tape,
 };
+#[cfg(test)]
+use crate::hadamard_gate::SpectralWinding;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct FixedPointQuantumMembrane {
@@ -46,15 +47,22 @@ impl FixedPointQuantumMembrane {
     pub fn resident_winding(&self) -> usize { self.topology.winding() }
     pub fn execution_ticks(&self) -> usize { self.topology.execution_ticks() }
 
+    /// N-dependent modular phase operator. The exponent addresses one coherent
+    /// branch directly; this does not expose or accept a measured k/M sample.
     pub fn modular_phase(&self, exponent: &[char]) -> Result<Tape, &'static str> {
         self.spectral.modular_branch(exponent)
     }
 
-    pub fn winding(&self, raw_numerator: &[char], denominator: &[char]) -> Result<SpectralWinding, &'static str> {
+    /// Raw phase-coordinate construction is deliberately test-only here. The
+    /// production quantum membrane can only reach phase descent through the
+    /// opaque pair-before-advance landing boundary.
+    #[cfg(test)]
+    fn winding(&self, raw_numerator: &[char], denominator: &[char]) -> Result<SpectralWinding, &'static str> {
         self.spectral.winding(raw_numerator, denominator)
     }
 
-    pub fn split_fuse(&self, raw_numerator: &[char], denominator: &[char]) -> Result<SpectralWinding, &'static str> {
+    #[cfg(test)]
+    fn split_fuse(&self, raw_numerator: &[char], denominator: &[char]) -> Result<SpectralWinding, &'static str> {
         let winding = self.winding(raw_numerator, denominator)?;
         let fused = winding.clone().delta().mu()?;
         if fused != winding {
@@ -67,11 +75,15 @@ impl FixedPointQuantumMembrane {
         hadamard_character(source, target)
     }
 
-    pub fn fixed_point_sign(&self, raw_numerator: &[char], denominator: &[char]) -> Result<Option<i8>, &'static str> {
+    #[cfg(test)]
+    fn fixed_point_sign(&self, raw_numerator: &[char], denominator: &[char]) -> Result<Option<i8>, &'static str> {
         Ok(self.split_fuse(raw_numerator, denominator)?.fixed_point_sign())
     }
 
-    pub fn into_spectral(self) -> FixedPointSpectralConstruction { self.spectral }
+    /// Crate-internal escape hatch used only by the sealed readout/descent
+    /// module. External callers cannot unwrap the resident spectral object and
+    /// inject their own raw phase coordinate.
+    pub(crate) fn into_spectral(self) -> FixedPointSpectralConstruction { self.spectral }
 }
 
 #[cfg(test)]
