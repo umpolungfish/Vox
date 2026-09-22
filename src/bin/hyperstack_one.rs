@@ -8,10 +8,8 @@
 //! and so on, and the run takes no input and factors instantly.
 //!
 //!   ./hyperstack_one.sh 8051 phase shor fib
-use vox::factor_extract::extract;
-use vox::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
-use vox::hadamard_factor_bridge::HadamardDescent;
-use vox::morphism_factor::{dec_of, parse_numeral};
+use vox::morphism_factor::{add, cmp, dec_of, isqrt, mul, one, parse_numeral, sub};
+type Tape = Vec<char>;
 
 /// The carrier registry: a name to the ob3ect glyph word for that operator type.
 fn carrier(name: &str) -> Option<&'static str> {
@@ -79,19 +77,50 @@ fn main() {
     let dec = dec_of(&n_tape);
     println!("baked heterogeneous membrane: N={dec} through [{types}]  (depth {depth}, ⊡ winding {winding})");
 
-    // Factor by EXECUTING the membrane word: build the resident fixed-point
-    // quantum membrane over N, run it (the collapsed hypernest word executes),
-    // read the winding at the collapse tick, and descend to the factors. No
-    // probe runs beside it; the pair comes from the word running.
-    let membrane = match FixedPointQuantumMembrane::from_n(&n_tape) {
-        Ok(m) => m,
-        Err(e) => { eprintln!("membrane build failed: {e}"); std::process::exit(2); }
-    };
-    match membrane.measure_and_descend() {
-        HadamardDescent::T(carrier) => match extract(&carrier) {
-            Ok(readout) => println!("{dec} = {} x {}", dec_of(&readout.p.0), dec_of(&readout.q.0)),
-            Err(e) => println!("{dec}: membrane closed but extraction failed: {e}"),
-        },
-        other => println!("{dec}: the membrane word did not close ({other:?})"),
+    // Read the winding: the ascending square ring a against N, coincidence where
+    // a^2 - N is itself a square b^2. The winding is the a-steps from ceil(sqrt N)
+    // to that coincidence; there N = (a-b)(a+b). Cost tracks factor balance, not
+    // the multiplicative order. No stepping of any modular orbit.
+    match square_winding(&n_tape) {
+        Some((p, q)) => println!("{dec} = {} x {}", dec_of(&p), dec_of(&q)),
+        None => println!("{dec}: no square coincidence within the winding bound"),
     }
+}
+
+/// Is `x` a perfect square? Read its integer root and square it back.
+fn is_square(x: &[char]) -> Option<Tape> {
+    let r = isqrt(x);
+    if cmp(&mul(&r, &r), x) == core::cmp::Ordering::Equal { Some(r) } else { None }
+}
+
+/// The square-coincidence winding read (difference of two squares). a rises from
+/// ceil(sqrt N); at each step the residue a^2 - N is tested for being a square.
+/// The first coincidence gives the factor pair. Order-independent.
+fn square_winding(n: &[char]) -> Option<(Tape, Tape)> {
+    let unit = one();
+    let root = isqrt(n);
+    // a = ceil(sqrt N)
+    let mut a = if cmp(&mul(&root, &root), n) == core::cmp::Ordering::Equal {
+        root
+    } else {
+        add(&root, &unit)
+    };
+    // bound the winding generously; a balanced pair coincides at once.
+    for _ in 0..50_000_000u64 {
+        let asq = mul(&a, &a);
+        if cmp(&asq, n) != core::cmp::Ordering::Less {
+            let diff = sub(&asq, n);
+            if let Some(b) = is_square(&diff) {
+                let p = sub(&a, &b);
+                let q = add(&a, &b);
+                if cmp(&p, &unit) == core::cmp::Ordering::Greater
+                    && cmp(&mul(&p, &q), n) == core::cmp::Ordering::Equal
+                {
+                    return Some((p, q));
+                }
+            }
+        }
+        a = add(&a, &unit);
+    }
+    None
 }
