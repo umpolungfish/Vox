@@ -15,10 +15,6 @@ name = "phase_baked"
 path = "src/bin/phase_baked.rs"
 
 [[bin]]
-name = "fixed_point_baked"
-path = "src/bin/fixed_point_baked.rs"
-
-[[bin]]
 name = "semiprime_probe"
 path = "src/bin/semiprime_probe.rs"
 
