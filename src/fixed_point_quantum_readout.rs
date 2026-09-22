@@ -2,19 +2,21 @@
 //!
 //! A `QuantumPhaseSample` has no production constructor that accepts a host
 //! numerator. The complete denominator is carried by hypernest winding while one
-//! canonical carrier executes once. Only the membrane executor may eventually
-//! mint the opaque fixed winding preimage consumed by Hadamard descent.
+//! canonical carrier executes once. A sample can only be minted at the explicit
+//! pair-before-advance landing boundary.
 
 use core::cmp::Ordering;
 
 use alloc::vec::Vec;
 
 use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
-use crate::fixed_point_quantum_phase::{power_of_two, PhaseMeasurementProgram};
+use crate::fixed_point_quantum_phase::{
+    power_of_two, PhaseLandingProgram, PAIR_BEFORE_ADVANCE_READOUT_WORD,
+};
 use crate::hadamard_factor_bridge::HadamardDescent;
 use crate::hadamard_gate::Tape;
 use crate::morphism_factor::cmp;
-use crate::vox::{verdict, EVALF, EVALT};
+use crate::vox::{verdict, AFWD, CLINK, EVALF, EVALT};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseSample {
@@ -28,55 +30,71 @@ fn valid_tape(tape: &[char]) -> bool {
 }
 
 impl QuantumPhaseSample {
-    /// Test-only seam for validating the readout boundary. Production code has
-    /// no path that accepts an arbitrary k/M pair; the real executor must create
-    /// this object from the N-dependent collapsed membrane itself.
+    /// Test-only seam for validating the opaque landing boundary. Production
+    /// code has no API that accepts an arbitrary k/M pair.
     #[cfg(test)]
-    fn fix_from_collapse_for_test(
-        program: PhaseMeasurementProgram,
+    fn fix_from_landing_for_test(
+        landing: PhaseLandingProgram,
         numerator: Tape,
     ) -> Result<Self, &'static str> {
-        Self::from_executor_landing(program, numerator)
+        Self::from_executor_landing(landing, numerator)
     }
 
-    /// Private mint used by the eventual membrane executor. Keeping this private
-    /// prevents every other production module from injecting a phase sample.
+    /// Private mint used only by the membrane executor. The landing object is
+    /// consumed, so a caller cannot bypass the pair-before-advance ordering and
+    /// later attach an unrelated phase sample.
     fn from_executor_landing(
-        program: PhaseMeasurementProgram,
+        landing: PhaseLandingProgram,
         numerator: Tape,
     ) -> Result<Self, &'static str> {
         if !valid_tape(&numerator) {
-            return Err("quantum phase collapse produced a malformed numeral");
+            return Err("quantum phase landing produced a malformed numeral");
         }
-        let width = program.width();
-        let audit = program.hypernest().audit();
-        if program.hypernest().depth() != width || audit.winding != width {
-            return Err("quantum phase collapse lost hypernest winding");
+
+        let word = landing.readout_word();
+        if word != PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice() || verdict(word) != 'T' {
+            return Err("quantum phase landing changed its readout boundary");
         }
-        if program.execution_ticks() != 1 {
-            return Err("quantum phase collapse expanded the hypernest at runtime");
+        let link = word
+            .iter()
+            .position(|&mark| mark == CLINK)
+            .ok_or("quantum phase landing lost its spectral pair")?;
+        let advance = word
+            .iter()
+            .position(|&mark| mark == AFWD)
+            .ok_or("quantum phase landing lost its transport")?;
+        if link >= advance {
+            return Err("quantum phase landing advanced before forming the spectral pair");
+        }
+
+        let width = landing.width();
+        let audit = landing.hypernest().audit();
+        if landing.hypernest().depth() != width || audit.winding != width {
+            return Err("quantum phase landing lost hypernest winding");
+        }
+        if landing.execution_ticks() != 1 {
+            return Err("quantum phase landing expanded the hypernest at runtime");
         }
         if audit.live_clears != 1 || !audit.banked || audit.exposed != 0 {
-            return Err("quantum phase collapse exposed its unique live clear");
+            return Err("quantum phase landing exposed its unique live clear");
         }
         if !audit.closed {
-            return Err("quantum phase collapse lost control-flow closure");
+            return Err("quantum phase landing lost control-flow closure");
         }
 
-        let denominator = program.denominator().to_vec();
+        let denominator = landing.denominator().to_vec();
         if denominator != power_of_two(width) {
-            return Err("quantum phase collapse denominator changed");
+            return Err("quantum phase landing denominator changed");
         }
         if cmp(&numerator, &denominator) != Ordering::Less {
-            return Err("quantum phase collapse lies outside its hypernested denominator");
+            return Err("quantum phase landing lies outside its hypernested denominator");
         }
 
-        let fixation_word = program.fixation_word().to_vec();
-        if verdict(&fixation_word) != 'T' {
-            return Err("quantum phase fixation is not a closed hypercarrier");
-        }
-
-        Ok(Self { numerator, denominator, fixation_word })
+        Ok(Self {
+            numerator,
+            denominator,
+            fixation_word: word.to_vec(),
+        })
     }
 
     pub fn numerator(&self) -> &[char] { &self.numerator }
@@ -98,6 +116,9 @@ impl FixedPointQuantumMembrane {
         if sample.denominator != power_of_two(width) {
             return HadamardDescent::F;
         }
+        if sample.fixation_word != PAIR_BEFORE_ADVANCE_READOUT_WORD {
+            return HadamardDescent::F;
+        }
         if verdict(&sample.fixation_word) != 'T' {
             return HadamardDescent::F;
         }
@@ -111,59 +132,48 @@ impl FixedPointQuantumMembrane {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::fixed_point_hypernest::COLLAPSED_HYPERNEST_WORD;
     use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
     use crate::morphism_factor::tape_u64;
 
+    fn landing_for(n: u64) -> PhaseLandingProgram {
+        FixedPointQuantumMembrane::from_n(&tape_u64(n)).unwrap()
+            .phase_estimation_register().unwrap()
+            .into_measurement_program().unwrap()
+            .into_landing_program().unwrap()
+    }
+
     #[test]
-    fn test_seam_consumes_collapsed_denominator_into_k_over_m_and_fixation() {
-        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
-        let program = membrane
-            .phase_estimation_register()
-            .unwrap()
-            .into_measurement_program()
-            .unwrap();
-        let width = program.width();
-        let sample = QuantumPhaseSample::fix_from_collapse_for_test(program, tape_u64(5)).unwrap();
+    fn test_seam_consumes_pair_before_advance_landing_into_k_over_m() {
+        let landing = landing_for(257);
+        let width = landing.width();
+        let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(5)).unwrap();
         assert_eq!(sample.numerator(), tape_u64(5).as_slice());
         assert_eq!(sample.denominator(), power_of_two(width).as_slice());
-        assert_eq!(sample.fixation_word(), COLLAPSED_HYPERNEST_WORD.as_slice());
+        assert_eq!(sample.fixation_word(), PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice());
         assert_eq!(verdict(sample.fixation_word()), 'T');
+        let link = sample.fixation_word().iter().position(|&mark| mark == CLINK).unwrap();
+        let advance = sample.fixation_word().iter().position(|&mark| mark == AFWD).unwrap();
+        assert!(link < advance);
     }
 
     #[test]
     fn test_seam_rejects_non_numeral_or_out_of_denominator_readout() {
-        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
-        let program = membrane
-            .phase_estimation_register()
-            .unwrap()
-            .into_measurement_program()
-            .unwrap();
-        let width = program.width();
-        assert!(QuantumPhaseSample::fix_from_collapse_for_test(program, power_of_two(width)).is_err());
+        let landing = landing_for(257);
+        let width = landing.width();
+        assert!(QuantumPhaseSample::fix_from_landing_for_test(landing, power_of_two(width)).is_err());
 
-        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
-        let program = membrane
-            .phase_estimation_register()
-            .unwrap()
-            .into_measurement_program()
-            .unwrap();
-        assert!(QuantumPhaseSample::fix_from_collapse_for_test(program, vec!['⊙']).is_err());
+        let landing = landing_for(257);
+        assert!(QuantumPhaseSample::fix_from_landing_for_test(landing, vec!['⊙']).is_err());
     }
 
     #[test]
-    fn fixation_word_stays_constant_while_denominator_winding_grows() {
+    fn landing_word_stays_constant_while_denominator_winding_grows() {
         for n in [257u64, 65_537, 4_294_967_291] {
-            let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(n)).unwrap();
-            let program = membrane
-                .phase_estimation_register()
-                .unwrap()
-                .into_measurement_program()
-                .unwrap();
-            let width = program.width();
-            let sample = QuantumPhaseSample::fix_from_collapse_for_test(program, tape_u64(1)).unwrap();
-            assert_eq!(sample.fixation_word(), COLLAPSED_HYPERNEST_WORD.as_slice());
-            assert_eq!(sample.fixation_word().len(), COLLAPSED_HYPERNEST_WORD.len());
+            let landing = landing_for(n);
+            let width = landing.width();
+            let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(1)).unwrap();
+            assert_eq!(sample.fixation_word(), PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice());
+            assert_eq!(sample.fixation_word().len(), PAIR_BEFORE_ADVANCE_READOUT_WORD.len());
             assert_eq!(sample.denominator(), power_of_two(width).as_slice());
         }
     }
