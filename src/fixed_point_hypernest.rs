@@ -1,9 +1,9 @@
 //! Collapsed runtime form of an ancestry-contained IMASM hypernest.
 //!
 //! The diagnostic expansion of a depth-d hypernest contains d complete carriers,
-//! but execution does not materialize or traverse those copies.  The fixed-point
+//! but execution does not materialize or traverse those copies. The fixed-point
 //! nesting rule carries depth as the winding register while one canonical carrier
-//! word executes once.  Runtime cost is therefore depth-invariant: one process
+//! word executes once. Runtime cost is therefore depth-invariant: one process
 //! word, one banked live clear, one collapse tick.
 
 use crate::fixed_point_imasm::{HypernestAudit, HypernestedImasmCarrier};
@@ -30,10 +30,17 @@ impl CollapsedHypernest {
         if depth == 0 {
             return Err("collapsed hypernest requires at least one carrier level");
         }
-        if verdict(&COLLAPSED_HYPERNEST_WORD) != 'T' {
-            return Err("collapsed hypernest process word does not close");
+        let collapsed = Self { depth };
+        let audit = collapsed.audit();
+        if audit.live_clears != 1
+            || audit.exposed != 0
+            || !audit.banked
+            || !audit.closed
+            || audit.winding != depth
+        {
+            return Err("collapsed hypernest process invariant failed");
         }
-        Ok(Self { depth })
+        Ok(collapsed)
     }
 
     /// Number of complete carrier embeddings represented by this membrane.
@@ -48,17 +55,33 @@ impl CollapsedHypernest {
     /// Fixed-point nesting collapses all enclosing copies in one composition.
     pub fn execution_ticks(&self) -> usize { 1 }
 
+    /// Read the runtime invariants from the canonical process word. Depth
+    /// contributes only the winding register; closure/banking are measured from
+    /// the word that actually executes.
     pub fn audit(&self) -> HypernestAudit {
+        let word = self.word();
+        let split = word.iter().position(|&mark| mark == FSPLIT);
+        let fuse = word.iter().position(|&mark| mark == FFUSE);
+        let clears: alloc::vec::Vec<usize> = word
+            .iter()
+            .enumerate()
+            .filter_map(|(at, &mark)| (mark == AREV).then_some(at))
+            .collect();
+        let live_clears = clears.len();
+        let banked = match (split, fuse, clears.as_slice()) {
+            (Some(open), Some(close), [clear]) => open < *clear && *clear < close,
+            _ => false,
+        };
         HypernestAudit {
             winding: self.depth,
-            live_clears: 1,
-            exposed: 0,
-            banked: true,
-            closed: true,
+            live_clears,
+            exposed: if banked { 0 } else { live_clears },
+            banked,
+            closed: verdict(word) == 'T',
         }
     }
 
-    /// Expand only for pairing/ancestry instrumentation.  Production execution
+    /// Expand only for pairing/ancestry instrumentation. Production execution
     /// must use the collapsed representation above.
     #[cfg(test)]
     pub fn diagnostic_expansion(&self) -> Result<HypernestedImasmCarrier, &'static str> {
@@ -84,9 +107,11 @@ mod tests {
     }
 
     #[test]
-    fn collapsed_audit_preserves_the_measured_free_lunch() {
+    fn collapsed_audit_measures_the_free_lunch_from_the_executed_word() {
         for depth in [1usize, 2, 3, 64, 1024] {
-            let audit = CollapsedHypernest::from_depth(depth).unwrap().audit();
+            let runtime = CollapsedHypernest::from_depth(depth).unwrap();
+            let audit = runtime.audit();
+            assert_eq!(runtime.word().iter().filter(|&&m| m == AREV).count(), 1);
             assert_eq!(audit.winding, depth);
             assert_eq!(audit.live_clears, 1);
             assert_eq!(audit.exposed, 0);
