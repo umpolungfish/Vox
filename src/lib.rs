@@ -67,7 +67,8 @@ pub mod fixed_point_word_arithmetic;
 pub mod fixed_point_quantum_membrane;
 pub mod fixed_point_quantum_phase;
 pub mod fixed_point_quantum_readout;
-pub mod fixed_point_membrane;
+// Legacy host-side phase-table factor membrane is intentionally not exported.
+// pub mod fixed_point_membrane;
 // pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)
 // pub mod fde_shor_membrane;  // bin-only: uses std + ::vox
 
