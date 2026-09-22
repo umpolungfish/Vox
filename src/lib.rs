@@ -62,6 +62,7 @@ pub mod hadamard_factor_bridge;
 pub mod fixed_point_protocol;
 pub mod fixed_point_reentry;
 pub mod fixed_point_imasm;
+pub mod fixed_point_hypernest;
 pub mod fixed_point_word_arithmetic;
 pub mod fixed_point_quantum_membrane;
 pub mod fixed_point_quantum_phase;
