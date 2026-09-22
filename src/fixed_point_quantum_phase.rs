@@ -7,7 +7,8 @@
 //! live `≺` remains banked through the complete ancestry.
 //!
 //! A depth-t collapsed hypernest carries the complete `2^t` phase denominator
-//! with one runtime collapse tick. No modular orbit is enumerated to construct it.
+//! with one runtime collapse tick. The resident modulus and base travel with the
+//! collapsed register so the landing boundary remains genuinely N-dependent.
 
 use alloc::vec;
 
@@ -38,17 +39,22 @@ pub const PAIR_BEFORE_ADVANCE_READOUT_WORD: [char; 11] = [
 /// One coherent phase register represented by one collapsed hypernest.
 ///
 /// `width == t` means both winding `t` and denominator `M = 2^t`. Runtime
-/// storage remains one carrier word plus the depth register.
+/// storage remains one carrier word plus the depth register and the resident
+/// modular relation `(a, N)`.
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseRegister {
     width: usize,
     denominator: Tape,
+    n: Tape,
+    base: Tape,
     hypernest: CollapsedHypernest,
 }
 
 impl QuantumPhaseRegister {
     pub fn width(&self) -> usize { self.width }
     pub fn denominator(&self) -> &[char] { &self.denominator }
+    pub fn n(&self) -> &[char] { &self.n }
+    pub fn base(&self) -> &[char] { &self.base }
     pub fn hypernest(&self) -> &CollapsedHypernest { &self.hypernest }
 
     /// Consume the coherent register into its one fixed-point measurement
@@ -67,33 +73,43 @@ impl QuantumPhaseRegister {
         if !audit.closed {
             return Err("quantum phase hypernest lost control-flow closure");
         }
+        if self.n.is_empty() || self.base.is_empty() {
+            return Err("quantum phase register lost its resident modular relation");
+        }
         Ok(PhaseMeasurementProgram {
             width: self.width,
             denominator: self.denominator,
+            n: self.n,
+            base: self.base,
             hypernest: self.hypernest,
         })
     }
 }
 
 /// The one-shot fixed-point boundary immediately before the winding preimage is
-/// fixed. The complete represented denominator is carried by hypernest winding.
+/// fixed. The complete represented denominator is carried by hypernest winding,
+/// while `(a, N)` remains resident and opaque.
 #[derive(Clone, PartialEq, Debug)]
 pub struct PhaseMeasurementProgram {
     width: usize,
     denominator: Tape,
+    n: Tape,
+    base: Tape,
     hypernest: CollapsedHypernest,
 }
 
 impl PhaseMeasurementProgram {
     pub fn width(&self) -> usize { self.width }
     pub fn denominator(&self) -> &[char] { &self.denominator }
+    pub fn n(&self) -> &[char] { &self.n }
+    pub fn base(&self) -> &[char] { &self.base }
     pub fn hypernest(&self) -> &CollapsedHypernest { &self.hypernest }
     pub fn fixation_word(&self) -> &[char] { self.hypernest.word() }
     pub fn execution_ticks(&self) -> usize { self.hypernest.execution_ticks() }
 
     /// Consume the measurement boundary into the pair-before-advance landing
-    /// shell. The denominator and hypernest winding move with it; no host sample
-    /// is introduced at this transition.
+    /// shell. The denominator, resident modular relation, and hypernest winding
+    /// move together; no host sample is introduced at this transition.
     pub fn into_landing_program(self) -> Result<PhaseLandingProgram, &'static str> {
         let link = PAIR_BEFORE_ADVANCE_READOUT_WORD
             .iter()
@@ -127,26 +143,36 @@ impl PhaseMeasurementProgram {
         if self.hypernest.winding() != self.width || self.hypernest.execution_ticks() != 1 {
             return Err("quantum landing lost collapsed hypernest winding");
         }
+        if self.n.is_empty() || self.base.is_empty() {
+            return Err("quantum landing lost its resident modular relation");
+        }
         Ok(PhaseLandingProgram {
             width: self.width,
             denominator: self.denominator,
+            n: self.n,
+            base: self.base,
             hypernest: self.hypernest,
         })
     }
 }
 
 /// Opaque landing boundary immediately before the N-dependent winding preimage
-/// is minted. It contains no numerator, period, factor, or orbit cursor.
+/// is minted. It contains the resident `(a, N)` relation and denominator, but no
+/// numerator, period, factor, or orbit cursor.
 #[derive(Clone, PartialEq, Debug)]
 pub struct PhaseLandingProgram {
     width: usize,
     denominator: Tape,
+    n: Tape,
+    base: Tape,
     hypernest: CollapsedHypernest,
 }
 
 impl PhaseLandingProgram {
     pub fn width(&self) -> usize { self.width }
     pub fn denominator(&self) -> &[char] { &self.denominator }
+    pub fn n(&self) -> &[char] { &self.n }
+    pub fn base(&self) -> &[char] { &self.base }
     pub fn hypernest(&self) -> &CollapsedHypernest { &self.hypernest }
     pub fn readout_word(&self) -> &'static [char] { &PAIR_BEFORE_ADVANCE_READOUT_WORD }
     pub fn execution_ticks(&self) -> usize { self.hypernest.execution_ticks() }
@@ -156,7 +182,8 @@ impl FixedPointQuantumMembrane {
     /// Build the resident phase denominator as a collapsed hypernested winding.
     ///
     /// Width is fixed by N alone. Depth t is winding t and carries denominator
-    /// 2^t while execution stays one process word / one collapse tick.
+    /// 2^t while execution stays one process word / one collapse tick. The same
+    /// N and canonical base remain attached all the way to the landing boundary.
     pub fn phase_estimation_register(&self) -> Result<QuantumPhaseRegister, &'static str> {
         let width = self.n().len().saturating_mul(2).max(2);
         let denominator = power_of_two(width);
@@ -170,7 +197,13 @@ impl FixedPointQuantumMembrane {
         {
             return Err("quantum fixed-point collapsed hypernest invariant failed");
         }
-        Ok(QuantumPhaseRegister { width, denominator, hypernest })
+        Ok(QuantumPhaseRegister {
+            width,
+            denominator,
+            n: self.n().to_vec(),
+            base: self.base().to_vec(),
+            hypernest,
+        })
     }
 }
 
@@ -201,6 +234,19 @@ mod tests {
     }
 
     #[test]
+    fn resident_modular_relation_survives_to_landing() {
+        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
+        let expected_n = membrane.n().to_vec();
+        let expected_base = membrane.base().to_vec();
+        let landing = membrane
+            .phase_estimation_register().unwrap()
+            .into_measurement_program().unwrap()
+            .into_landing_program().unwrap();
+        assert_eq!(landing.n(), expected_n.as_slice());
+        assert_eq!(landing.base(), expected_base.as_slice());
+    }
+
+    #[test]
     fn represented_exponential_denominator_has_constant_runtime_shape() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let register = membrane.phase_estimation_register().unwrap();
@@ -221,12 +267,16 @@ mod tests {
         let register = membrane.phase_estimation_register().unwrap();
         let width = register.width();
         let word = register.hypernest().word();
+        let expected_n = register.n().to_vec();
+        let expected_base = register.base().to_vec();
         let program = register.into_measurement_program().unwrap();
         assert_eq!(program.width(), width);
         assert_eq!(program.hypernest().depth(), width);
         assert_eq!(program.hypernest().winding(), width);
         assert_eq!(program.fixation_word(), word);
         assert_eq!(program.execution_ticks(), 1);
+        assert_eq!(program.n(), expected_n.as_slice());
+        assert_eq!(program.base(), expected_base.as_slice());
     }
 
     #[test]
