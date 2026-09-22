@@ -79,3 +79,5 @@ mod hadamard_retraction_tests;
 mod hadamard_semiprime_width_tests;
 #[cfg(test)]
 mod hadamard_semiprime_scale_tests;
+#[cfg(test)]
+mod hadamard_semiprime_battery_tests;
