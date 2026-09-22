@@ -1,9 +1,9 @@
-//! One-shot readout boundary for the properly nested fixed-point membrane.
+//! One-shot readout boundary for the hypernested fixed-point membrane.
 //!
-//! A `QuantumPhaseSample` cannot be constructed by callers.  It is the fixed
-//! winding preimage produced when one complete nested denominator collapses at
-//! IFIX.  The denominator is carried by frame depth and dissolves to one retained
-//! membrane; callers never supply an independent k/M pair at the public boundary.
+//! A `QuantumPhaseSample` cannot be constructed by callers. It is the fixed
+//! winding preimage produced when one complete hypernested denominator reaches
+//! IFIX. The denominator is carried by integer winding (`⊡` count), while the
+//! unique live clear remains banked through every enclosing carrier.
 
 use core::cmp::Ordering;
 
@@ -14,7 +14,7 @@ use crate::fixed_point_quantum_phase::{power_of_two, PhaseMeasurementProgram};
 use crate::hadamard_factor_bridge::HadamardDescent;
 use crate::hadamard_gate::Tape;
 use crate::morphism_factor::cmp;
-use crate::vox::{EVALF, EVALT, TANCH, VINIT};
+use crate::vox::{verdict, EVALF, EVALT};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseSample {
@@ -29,8 +29,8 @@ fn valid_tape(tape: &[char]) -> bool {
 
 impl QuantumPhaseSample {
     /// Crate-private on purpose: external callers cannot inject a phase sample.
-    /// The nested fixed-point executor must consume the complete denominator and
-    /// call this exactly at the IFIX boundary that fixes its winding preimage.
+    /// The hypernested fixed-point executor must consume the complete denominator
+    /// and call this exactly at the IFIX boundary that fixes its winding preimage.
     pub(crate) fn fix_from_collapse(
         program: PhaseMeasurementProgram,
         numerator: Tape,
@@ -39,27 +39,30 @@ impl QuantumPhaseSample {
             return Err("quantum phase collapse produced a malformed numeral");
         }
         let width = program.width();
-        if program.tower().max_depth() != width {
-            return Err("quantum phase collapse lost denominator nesting depth");
+        let audit = program.hypernest().audit();
+        if program.hypernest().depth() != width || audit.winding != width {
+            return Err("quantum phase collapse lost hypernest winding");
         }
-        if !program.tower().banking_audit().banked {
-            return Err("quantum phase collapse exposed its reversal");
+        if audit.live_clears != 1 || !audit.banked || audit.exposed != 0 {
+            return Err("quantum phase collapse exposed its unique live clear");
         }
+        if !audit.closed {
+            return Err("quantum phase collapse lost control-flow closure");
+        }
+
         let denominator = program.denominator().to_vec();
         if denominator != power_of_two(width) {
             return Err("quantum phase collapse denominator changed");
         }
         if cmp(&numerator, &denominator) != Ordering::Less {
-            return Err("quantum phase collapse lies outside its nested denominator");
+            return Err("quantum phase collapse lies outside its hypernested denominator");
         }
 
-        let fixation_word = program.dissolved_word();
-        if fixation_word.first() != Some(&VINIT) || fixation_word.last() != Some(&TANCH) {
-            return Err("quantum phase fixation is not a closed IMASM membrane");
+        let fixation_word = program.fixation_word().to_vec();
+        if verdict(&fixation_word) != 'T' {
+            return Err("quantum phase fixation is not a closed hypercarrier");
         }
 
-        // `program` is consumed here. The complete depth-t bulk has dissolved to
-        // this one fixed boundary; no per-depth host execution objects survive.
         Ok(Self { numerator, denominator, fixation_word })
     }
 
@@ -84,6 +87,9 @@ impl FixedPointQuantumMembrane {
         if sample.denominator != power_of_two(width) {
             return HadamardDescent::F;
         }
+        if verdict(&sample.fixation_word) != 'T' {
+            return HadamardDescent::F;
+        }
         let base = self.base().to_vec();
         let spectral = self.into_spectral();
         let carrier = spectral.into_carrier();
@@ -96,9 +102,10 @@ mod tests {
     use super::*;
     use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
     use crate::morphism_factor::tape_u64;
+    use crate::vox::IFIX;
 
     #[test]
-    fn collapse_consumes_nested_denominator_into_only_k_over_m_and_fixation() {
+    fn collapse_consumes_hypernested_denominator_into_k_over_m_and_fixation() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let program = membrane
             .phase_estimation_register()
@@ -109,8 +116,8 @@ mod tests {
         let sample = QuantumPhaseSample::fix_from_collapse(program, tape_u64(5)).unwrap();
         assert_eq!(sample.numerator(), tape_u64(5).as_slice());
         assert_eq!(sample.denominator(), power_of_two(width).as_slice());
-        assert_eq!(sample.fixation_word().first(), Some(&VINIT));
-        assert_eq!(sample.fixation_word().last(), Some(&TANCH));
+        assert_eq!(sample.fixation_word().iter().filter(|&&c| c == IFIX).count(), width);
+        assert_eq!(verdict(sample.fixation_word()), 'T');
     }
 
     #[test]
@@ -134,15 +141,17 @@ mod tests {
     }
 
     #[test]
-    fn collapse_keeps_only_one_dissolved_fixed_point_boundary() {
+    fn collapse_retains_full_winding_word_without_expanding_branches() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let program = membrane
             .phase_estimation_register()
             .unwrap()
             .into_measurement_program()
             .unwrap();
-        let expected = program.dissolved_word();
+        let expected = program.fixation_word().to_vec();
+        let width = program.width();
         let sample = QuantumPhaseSample::fix_from_collapse(program, tape_u64(5)).unwrap();
         assert_eq!(sample.fixation_word(), expected.as_slice());
+        assert_eq!(sample.fixation_word().len(), 7 * width + 4);
     }
 }
