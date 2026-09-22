@@ -2,18 +2,17 @@
 //!
 //! A `QuantumPhaseSample` has no production constructor that accepts a host
 //! numerator. The complete denominator is carried by hypernest winding while one
-//! canonical carrier executes once. A sample can only be minted at the explicit
-//! pair-before-advance landing boundary and remains bound to that landing's
-//! resident modular relation `(a, N)`.
+//! resident N-dependent IMASM carrier executes once. A sample can only be minted
+//! at the explicit pair-before-advance landing boundary and remains bound to that
+//! landing's resident modular relation `(a, N)`.
 
 use core::cmp::Ordering;
 
 use alloc::vec::Vec;
 
 use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
-use crate::fixed_point_quantum_phase::{
-    power_of_two, PhaseLandingProgram, PAIR_BEFORE_ADVANCE_READOUT_WORD,
-};
+use crate::fixed_point_quantum_phase::{power_of_two, PhaseLandingProgram};
+use crate::fixed_point_quantum_relation::resident_landing_word;
 use crate::hadamard_factor_bridge::HadamardDescent;
 use crate::hadamard_gate::Tape;
 use crate::morphism_factor::cmp;
@@ -45,7 +44,8 @@ impl QuantumPhaseSample {
 
     /// Private mint used only by the membrane executor. The landing object is
     /// consumed, so a caller cannot bypass the pair-before-advance ordering and
-    /// later attach an unrelated phase sample.
+    /// later attach an unrelated phase sample.  The fixation word is rebuilt
+    /// from the resident IMASM numerals themselves, not from a generic shell.
     fn from_executor_landing(
         landing: PhaseLandingProgram,
         numerator: Tape,
@@ -54,9 +54,9 @@ impl QuantumPhaseSample {
             return Err("quantum phase landing produced a malformed numeral");
         }
 
-        let word = landing.readout_word();
-        if word != PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice() || verdict(word) != 'T' {
-            return Err("quantum phase landing changed its readout boundary");
+        let word = resident_landing_word(&landing)?;
+        if verdict(&word) != 'T' {
+            return Err("resident quantum phase landing does not close");
         }
         let link = word
             .iter()
@@ -101,7 +101,7 @@ impl QuantumPhaseSample {
             denominator,
             n: landing.n().to_vec(),
             base: landing.base().to_vec(),
-            fixation_word: word.to_vec(),
+            fixation_word: word,
         })
     }
 
@@ -130,9 +130,6 @@ impl FixedPointQuantumMembrane {
         if sample.n.as_slice() != self.n() || sample.base.as_slice() != self.base() {
             return HadamardDescent::F;
         }
-        if sample.fixation_word != PAIR_BEFORE_ADVANCE_READOUT_WORD {
-            return HadamardDescent::F;
-        }
         if verdict(&sample.fixation_word) != 'T' {
             return HadamardDescent::F;
         }
@@ -157,17 +154,18 @@ mod tests {
     }
 
     #[test]
-    fn test_seam_consumes_pair_before_advance_landing_into_k_over_m() {
+    fn test_seam_consumes_resident_pair_before_advance_landing_into_k_over_m() {
         let landing = landing_for(257);
         let width = landing.width();
         let expected_n = landing.n().to_vec();
         let expected_base = landing.base().to_vec();
+        let expected_word = resident_landing_word(&landing).unwrap();
         let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(5)).unwrap();
         assert_eq!(sample.numerator(), tape_u64(5).as_slice());
         assert_eq!(sample.denominator(), power_of_two(width).as_slice());
         assert_eq!(sample.n(), expected_n.as_slice());
         assert_eq!(sample.base(), expected_base.as_slice());
-        assert_eq!(sample.fixation_word(), PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice());
+        assert_eq!(sample.fixation_word(), expected_word.as_slice());
         assert_eq!(verdict(sample.fixation_word()), 'T');
         let link = sample.fixation_word().iter().position(|&mark| mark == CLINK).unwrap();
         let advance = sample.fixation_word().iter().position(|&mark| mark == AFWD).unwrap();
@@ -193,13 +191,15 @@ mod tests {
     }
 
     #[test]
-    fn landing_word_stays_constant_while_denominator_winding_grows() {
+    fn fixation_word_contains_the_resident_n_and_base() {
         for n in [257u64, 65_537, 4_294_967_291] {
             let landing = landing_for(n);
             let width = landing.width();
+            let expected_n = landing.n().to_vec();
+            let expected_base = landing.base().to_vec();
             let sample = QuantumPhaseSample::fix_from_landing_for_test(landing, tape_u64(1)).unwrap();
-            assert_eq!(sample.fixation_word(), PAIR_BEFORE_ADVANCE_READOUT_WORD.as_slice());
-            assert_eq!(sample.fixation_word().len(), PAIR_BEFORE_ADVANCE_READOUT_WORD.len());
+            assert!(sample.fixation_word().windows(expected_n.len()).any(|w| w == expected_n));
+            assert!(sample.fixation_word().windows(expected_base.len()).any(|w| w == expected_base));
             assert_eq!(sample.denominator(), power_of_two(width).as_slice());
         }
     }
