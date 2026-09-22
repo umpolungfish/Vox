@@ -66,6 +66,7 @@ pub mod fixed_point_hypernest;
 pub mod fixed_point_word_arithmetic;
 pub mod fixed_point_quantum_membrane;
 pub mod fixed_point_quantum_phase;
+pub mod fixed_point_quantum_relation;
 pub mod fixed_point_quantum_readout;
 // Legacy host-side phase-table factor membrane is intentionally not exported.
 // pub mod fixed_point_membrane;
