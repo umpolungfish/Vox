@@ -54,6 +54,17 @@ const LEHMAN: &[char] = &[VINIT, FSPLIT, AFWD, CLINK, EVALT, EVALF, FFUSE, TANCH
 // hold carrying the forward/reverse cycle. One-shot: it runs the principal-form
 // cycle once and selects a factor if the reverse phase closes one.
 const SQUFOF: &[char] = &[VINIT, FSPLIT, EVALT, AREV, '⊞', EVALF, FFUSE, TANCH];
+// The bit-carry unfolding: fork a candidate low bit for each factor (FSPLIT),
+// seed the pair's running tapes (IMSCRIB), advance one position (AFWD), test
+// the low-order match (EVALT), retreat a dead branch (AREV), test the retreat
+// outcome (EVALF), combine the surviving frame (CLINK), close (FFUSE). Reads
+// p and q straight off N's own bits via a bottom-up 2-adic lift, the same
+// carry/convolution recurrence SEMIPRIMALRAGE.md derives, rather than walking
+// an order or a factor gap. At the swap-symmetric split (p_bits==q_bits) the
+// odd-parity fork's two branches are related by exchanging p and q for every
+// remaining bit, so only one is walked; the even-parity fork (both bits equal)
+// has no such symmetry and both sides are walked.
+const UNBRAID: &[char] = &[VINIT, FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, FFUSE, TANCH];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -829,6 +840,13 @@ struct State {
     round: Tape,
     exhausted: bool,
     selected: Option<Tape>,
+    // UNBRAID's explicit DFS stack: each frame is (p bits so far, q bits so
+    // far), LSB first. Lazily seeded from state.n on the first round.
+    unbraid_stack: Vec<(Tape, Tape)>,
+    unbraid_p_bits: usize,
+    unbraid_q_bits: usize,
+    unbraid_started: bool,
+    unbraid_done: bool,
 }
 
 /// The interior of each operator motif (its marks between VINIT and TANCH).
@@ -849,6 +867,7 @@ const POWER_I: &[char] = &[FSPLIT, EVALT, '⊞', EVALF, FFUSE];
 const P_PLUS_I: &[char] = &[FSPLIT, IMSCRIB, AREV, CLINK, FFUSE];
 const LEHMAN_I: &[char] = &[FSPLIT, AFWD, CLINK, EVALT, EVALF, FFUSE];
 const SQUFOF_I: &[char] = &[FSPLIT, EVALT, AREV, '⊞', EVALF, FFUSE];
+const UNBRAID_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, FFUSE];
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
@@ -866,6 +885,7 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == P_PLUS { "P_PLUS" }
     else if operator == LEHMAN { "LEHMAN" }
     else if operator == SQUFOF { "SQUFOF" }
+    else if operator == UNBRAID { "UNBRAID" }
     else { "?" }
 }
 
@@ -885,7 +905,8 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
     // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 14] = [
+    let motifs: [(&[char], &[char]); 15] = [
+        (UNBRAID_I, UNBRAID),
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
@@ -1036,8 +1057,8 @@ pub fn audit_reconciliation(object: &FactorObject<'_>) -> Result<(), String> {
 fn require_factoring_complete(tower: &[&[char]]) -> Result<(), String> {
     let has = |op: &[char]| tower.iter().any(|t| *t == op);
     let mut missing = Vec::new();
-    // EXTRACT and ECM each fold advance, decide and continue into one boundary.
-    if !has(EXTRACT) && !has(ECM) {
+    // EXTRACT, ECM and UNBRAID each fold advance, decide and continue into one boundary.
+    if !has(EXTRACT) && !has(ECM) && !has(UNBRAID) {
         if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
         if !has(SELECT) { missing.push("SELECT (decide)"); }
         if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
@@ -1209,6 +1230,11 @@ pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> 
         round: vec![EVALT],
         exhausted: false,
         selected: None,
+        unbraid_stack: Vec::new(),
+        unbraid_p_bits: 0,
+        unbraid_q_bits: 0,
+        unbraid_started: false,
+        unbraid_done: false,
     };
     let mut r = 0u64;
     loop {
@@ -1415,11 +1441,93 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             }
             state.ecm_seed = add(&state.ecm_seed, &one());
         }
+    } else if operator == UNBRAID {
+        if state.unbraid_done {
+            return;
+        }
+        if !state.unbraid_started {
+            state.unbraid_started = true;
+            let total_bits = trim(state.n.clone()).len();
+            state.unbraid_p_bits = (total_bits + 1) / 2;
+            state.unbraid_q_bits = total_bits + 1 - state.unbraid_p_bits;
+            // Seed: p0 = q0 = 1 (both odd, since N is odd -- the caller already
+            // peeled the even case before entering the tower).
+            state.unbraid_stack.push((vec![EVALF], vec![EVALF]));
+        }
+        let Some((p, q)) = state.unbraid_stack.pop() else {
+            // Search space exhausted at this split with no match: this split
+            // fails, not the tower -- signal completion without a factor.
+            state.unbraid_done = true;
+            state.exhausted = true;
+            state.selected = Some(trim(state.n.clone()));
+            return;
+        };
+        let p_bits = state.unbraid_p_bits;
+        let q_bits = state.unbraid_q_bits;
+        if p.len() == p_bits && q.len() == q_bits {
+            let prod = trim(mul(&p, &q));
+            if prod == trim(state.n.clone()) {
+                state.unbraid_done = true;
+                state.selected = Some(trim(p));
+            }
+            return;
+        }
+        let p_open = p.len() < p_bits;
+        let q_open = q.len() < q_bits;
+        let k = core::cmp::max(
+            if p_open { p.len() + 1 } else { p.len() },
+            if q_open { q.len() + 1 } else { q.len() },
+        );
+        let n_low = unbraid_low_bits(&state.n, k);
+        // c's parity fixes p_bit XOR q_bit; the two candidates at odd parity
+        // (p_bit,q_bit) = (0,1) and (1,0) are related by exchanging the two
+        // factors' identities for every bit still to come, since N=p*q is
+        // symmetric in p and q. That exchange is only a real symmetry of the
+        // FUTURE search when the tapes-so-far being exchanged are themselves
+        // identical -- swapping labels only revisits an already-reachable
+        // solution when there is nothing yet to distinguish which label is
+        // which. The instant p and q diverge (any earlier bit unequal), the
+        // "mirror" branch is no longer a relabelling of the surviving one; it
+        // is a distinct, uncovered region of the search, and skipping it
+        // loses real solutions. So the skip applies only at the genuine
+        // criticality point p==q (true only while both still read [1,1,...]
+        // from the shared seed), never merely because the two targets share a
+        // bit length.
+        let symmetric_split = p_bits == q_bits && p == q;
+        let mut pushed_swap_pair = false;
+        for &pb in &[0u8, 1u8] {
+            if !p_open && pb == 1 { continue; }
+            for &qb in &[0u8, 1u8] {
+                if !q_open && qb == 1 { continue; }
+                if symmetric_split && pb != qb && pushed_swap_pair {
+                    // The mirror of the (pb,qb) pair already pushed this round.
+                    continue;
+                }
+                let mut new_p = p.clone();
+                if p_open { new_p.push(if pb == 1 { EVALF } else { EVALT }); }
+                let mut new_q = q.clone();
+                if q_open { new_q.push(if qb == 1 { EVALF } else { EVALT }); }
+                let prod_low = unbraid_low_bits(&trim(mul(&new_p, &new_q)), k);
+                if prod_low == n_low {
+                    state.unbraid_stack.push((new_p, new_q));
+                    if symmetric_split && pb != qb { pushed_swap_pair = true; }
+                }
+            }
+        }
     } else if operator == FIX {
         if let Some(value) = state.selected.take() {
             state.selected = Some(trim(value));
         }
     }
+}
+
+/// The low `k` bits of a tape (LSB first), zero-padded if shorter than `k`.
+fn unbraid_low_bits(t: &[char], k: usize) -> Tape {
+    let mut out: Tape = t.iter().take(k).copied().collect();
+    while out.len() < k {
+        out.push(EVALT);
+    }
+    out
 }
 
 fn execute_nested(operators: &[&[char]], state: &mut State) {
@@ -1466,6 +1574,11 @@ pub fn factor(word: &str) -> Result<String, String> {
         round: vec![EVALT],
         exhausted: false,
         selected: None,
+        unbraid_stack: Vec::new(),
+        unbraid_p_bits: 0,
+        unbraid_q_bits: 0,
+        unbraid_started: false,
+        unbraid_done: false,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     loop {
@@ -2051,6 +2164,11 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         round: vec![EVALT],
         exhausted: false,
         selected: None,
+        unbraid_stack: Vec::new(),
+        unbraid_p_bits: 0,
+        unbraid_q_bits: 0,
+        unbraid_started: false,
+        unbraid_done: false,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     for _ in 0..max_steps {
