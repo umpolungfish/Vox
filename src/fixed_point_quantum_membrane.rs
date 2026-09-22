@@ -1,14 +1,15 @@
 //! Quantum-native fixed-point membrane architecture.
 //!
 //! This layer deliberately contains no factor search. The resident object is
-//! one ancestry-contained IMASM hypercarrier together with the N-dependent
-//! modular phase operator and the exact Hadamard/spectral boundaries already
-//! implemented by Vox. Classical factor geometries do not belong here.
+//! one collapsed IMASM hypernest together with the N-dependent modular phase
+//! operator and the exact Hadamard/spectral boundaries already implemented by
+//! Vox. Classical factor geometries do not belong here.
 //!
-//! Hypernest depth is winding: every complete carrier contributes one `⊡`, while
-//! the unique innermost `≺` is banked through every enclosing `∈ ... ∋` region.
+//! Hypernest depth is winding, but execution is depth-invariant: one canonical
+//! carrier word executes once while the carried depth records the complete
+//! ancestry containment.
 
-use crate::fixed_point_imasm::HypernestedImasmCarrier;
+use crate::fixed_point_hypernest::CollapsedHypernest;
 use crate::hadamard_gate::{
     hadamard_character, FixedPointSpectralConstruction, HadamardCarrier,
     SpectralWinding, Tape,
@@ -16,7 +17,7 @@ use crate::hadamard_gate::{
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct FixedPointQuantumMembrane {
-    topology: HypernestedImasmCarrier,
+    topology: CollapsedHypernest,
     spectral: FixedPointSpectralConstruction,
 }
 
@@ -24,24 +25,26 @@ impl FixedPointQuantumMembrane {
     pub fn from_n(n: &[char]) -> Result<Self, &'static str> {
         let spectral = HadamardCarrier::new(n)?.fixed_point_spectral_construction()?;
         let depth = n.len().saturating_sub(3).max(1);
-        let topology = HypernestedImasmCarrier::from_depth(depth)?;
+        let topology = CollapsedHypernest::from_depth(depth)?;
         let audit = topology.audit();
         if audit.winding != depth
             || audit.live_clears != 1
             || audit.exposed != 0
             || !audit.banked
             || !audit.closed
+            || topology.execution_ticks() != 1
         {
-            return Err("quantum fixed-point hypercarrier invariant failed");
+            return Err("quantum fixed-point collapsed hypernest invariant failed");
         }
         Ok(Self { topology, spectral })
     }
 
     pub fn n(&self) -> &[char] { self.spectral.n() }
     pub fn base(&self) -> &[char] { self.spectral.base() }
-    pub fn topology(&self) -> &HypernestedImasmCarrier { &self.topology }
+    pub fn topology(&self) -> &CollapsedHypernest { &self.topology }
     pub fn executed_word(&self) -> &[char] { self.topology.word() }
     pub fn resident_winding(&self) -> usize { self.topology.winding() }
+    pub fn execution_ticks(&self) -> usize { self.topology.execution_ticks() }
 
     pub fn modular_phase(&self, exponent: &[char]) -> Result<Tape, &'static str> {
         self.spectral.modular_branch(exponent)
@@ -77,13 +80,14 @@ mod tests {
     use crate::morphism_factor::tape_u64;
 
     #[test]
-    fn resident_topology_is_a_complete_hypercarrier() {
+    fn resident_topology_is_a_collapsed_hypercarrier() {
         for n in [17u64, 257, 65_537, 4_294_967_291] {
             let tape = tape_u64(n);
             let membrane = FixedPointQuantumMembrane::from_n(&tape).unwrap();
             let expected = tape.len().saturating_sub(3).max(1);
             assert_eq!(membrane.topology().depth(), expected);
             assert_eq!(membrane.resident_winding(), expected);
+            assert_eq!(membrane.execution_ticks(), 1);
             let audit = membrane.topology().audit();
             assert_eq!(audit.live_clears, 1);
             assert_eq!(audit.exposed, 0);
@@ -93,13 +97,13 @@ mod tests {
     }
 
     #[test]
-    fn resident_word_retains_winding_instead_of_erasing_depth() {
+    fn runtime_word_is_depth_invariant_while_winding_changes() {
         let a = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let b = FixedPointQuantumMembrane::from_n(&tape_u64(65_537)).unwrap();
         assert_ne!(a.resident_winding(), b.resident_winding());
-        assert_ne!(a.executed_word(), b.executed_word());
-        assert_eq!(a.executed_word().len(), 7 * a.resident_winding() + 4);
-        assert_eq!(b.executed_word().len(), 7 * b.resident_winding() + 4);
+        assert_eq!(a.executed_word(), b.executed_word());
+        assert_eq!(a.execution_ticks(), 1);
+        assert_eq!(b.execution_ticks(), 1);
     }
 
     #[test]
@@ -112,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn spectral_delta_mu_is_exact_inside_the_hypernested_membrane() {
+    fn spectral_delta_mu_is_exact_inside_the_collapsed_hypernest() {
         let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
         let before = membrane.winding(&tape_u64(29), &tape_u64(16)).unwrap();
         let after = membrane.split_fuse(&tape_u64(29), &tape_u64(16)).unwrap();
