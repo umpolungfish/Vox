@@ -1,20 +1,23 @@
 //! Hypernested phase register for the fixed-point spectral membrane.
 //!
 //! The register is not expanded into basis addresses, controls, Fourier gates,
-//! measurement wires, or one carrier object per nesting level.  Proper nesting
-//! collapses to one canonical process word plus a carried depth.  That depth is
+//! measurement wires, or one carrier object per nesting level. Proper nesting
+//! collapses to one canonical process word plus a carried depth. That depth is
 //! the integer winding itself: every embedding adds one `⊡`, while the single
 //! live `≺` remains banked through the complete ancestry.
 //!
 //! A depth-t collapsed hypernest carries the complete `2^t` phase denominator
-//! with one runtime collapse tick.  No modular orbit is enumerated to construct it.
+//! with one runtime collapse tick. No modular orbit is enumerated to construct it.
 
 use alloc::vec;
 
 use crate::fixed_point_hypernest::CollapsedHypernest;
 use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
 use crate::hadamard_gate::Tape;
-use crate::vox::{EVALF, EVALT};
+use crate::vox::{
+    verdict, AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH,
+    VINIT,
+};
 
 /// Canonical IMASM numeral tape for 2^bit, LSB first.
 pub(crate) fn power_of_two(bit: usize) -> Tape {
@@ -23,9 +26,18 @@ pub(crate) fn power_of_two(bit: usize) -> Tape {
     tape
 }
 
+/// The readout shell that fixes the pair before transport advances it.
+///
+/// This ordering is distinct from the resident carrier. `CLINK` forms the
+/// spectral pair while the current phase is still resident; only then may
+/// `AFWD` transport the fixed pair to the terminal boundary.
+pub const PAIR_BEFORE_ADVANCE_READOUT_WORD: [char; 11] = [
+    VINIT, IMSCRIB, FSPLIT, EVALT, AREV, EVALF, CLINK, AFWD, FFUSE, IFIX, TANCH,
+];
+
 /// One coherent phase register represented by one collapsed hypernest.
 ///
-/// `width == t` means both winding `t` and denominator `M = 2^t`.  Runtime
+/// `width == t` means both winding `t` and denominator `M = 2^t`. Runtime
 /// storage remains one carrier word plus the depth register.
 #[derive(Clone, PartialEq, Debug)]
 pub struct QuantumPhaseRegister {
@@ -40,7 +52,7 @@ impl QuantumPhaseRegister {
     pub fn hypernest(&self) -> &CollapsedHypernest { &self.hypernest }
 
     /// Consume the coherent register into its one fixed-point measurement
-    /// boundary.  No per-depth execution objects are created or retained.
+    /// boundary. No per-depth execution objects are created or retained.
     pub fn into_measurement_program(self) -> Result<PhaseMeasurementProgram, &'static str> {
         if self.hypernest.depth() != self.width || self.hypernest.winding() != self.width {
             return Err("quantum phase winding changed before fixation");
@@ -64,7 +76,7 @@ impl QuantumPhaseRegister {
 }
 
 /// The one-shot fixed-point boundary immediately before the winding preimage is
-/// fixed.  The complete represented denominator is carried by hypernest winding.
+/// fixed. The complete represented denominator is carried by hypernest winding.
 #[derive(Clone, PartialEq, Debug)]
 pub struct PhaseMeasurementProgram {
     width: usize,
@@ -78,12 +90,72 @@ impl PhaseMeasurementProgram {
     pub fn hypernest(&self) -> &CollapsedHypernest { &self.hypernest }
     pub fn fixation_word(&self) -> &[char] { self.hypernest.word() }
     pub fn execution_ticks(&self) -> usize { self.hypernest.execution_ticks() }
+
+    /// Consume the measurement boundary into the pair-before-advance landing
+    /// shell. The denominator and hypernest winding move with it; no host sample
+    /// is introduced at this transition.
+    pub fn into_landing_program(self) -> Result<PhaseLandingProgram, &'static str> {
+        let link = PAIR_BEFORE_ADVANCE_READOUT_WORD
+            .iter()
+            .position(|&mark| mark == CLINK)
+            .ok_or("quantum landing has no pair operation")?;
+        let advance = PAIR_BEFORE_ADVANCE_READOUT_WORD
+            .iter()
+            .position(|&mark| mark == AFWD)
+            .ok_or("quantum landing has no transport operation")?;
+        let split = PAIR_BEFORE_ADVANCE_READOUT_WORD
+            .iter()
+            .position(|&mark| mark == FSPLIT)
+            .ok_or("quantum landing has no bank")?;
+        let clear = PAIR_BEFORE_ADVANCE_READOUT_WORD
+            .iter()
+            .position(|&mark| mark == AREV)
+            .ok_or("quantum landing has no live clear")?;
+        let fuse = PAIR_BEFORE_ADVANCE_READOUT_WORD
+            .iter()
+            .position(|&mark| mark == FFUSE)
+            .ok_or("quantum landing has no fuse")?;
+        if link >= advance {
+            return Err("quantum landing advances before forming the spectral pair");
+        }
+        if !(split < clear && clear < fuse) {
+            return Err("quantum landing exposes the live clear outside its bank");
+        }
+        if verdict(&PAIR_BEFORE_ADVANCE_READOUT_WORD) != 'T' {
+            return Err("quantum landing boundary does not close");
+        }
+        if self.hypernest.winding() != self.width || self.hypernest.execution_ticks() != 1 {
+            return Err("quantum landing lost collapsed hypernest winding");
+        }
+        Ok(PhaseLandingProgram {
+            width: self.width,
+            denominator: self.denominator,
+            hypernest: self.hypernest,
+        })
+    }
+}
+
+/// Opaque landing boundary immediately before the N-dependent winding preimage
+/// is minted. It contains no numerator, period, factor, or orbit cursor.
+#[derive(Clone, PartialEq, Debug)]
+pub struct PhaseLandingProgram {
+    width: usize,
+    denominator: Tape,
+    hypernest: CollapsedHypernest,
+}
+
+impl PhaseLandingProgram {
+    pub fn width(&self) -> usize { self.width }
+    pub fn denominator(&self) -> &[char] { &self.denominator }
+    pub fn hypernest(&self) -> &CollapsedHypernest { &self.hypernest }
+    pub fn readout_word(&self) -> &'static [char] { &PAIR_BEFORE_ADVANCE_READOUT_WORD }
+    pub fn execution_ticks(&self) -> usize { self.hypernest.execution_ticks() }
 }
 
 impl FixedPointQuantumMembrane {
     /// Build the resident phase denominator as a collapsed hypernested winding.
     ///
-    /// Width is fixed by N alone.  Depth t is winding t and carries denominator
+    /// Width is fixed by N alone. Depth t is winding t and carries denominator
     /// 2^t while execution stays one process word / one collapse tick.
     pub fn phase_estimation_register(&self) -> Result<QuantumPhaseRegister, &'static str> {
         let width = self.n().len().saturating_mul(2).max(2);
@@ -155,6 +227,23 @@ mod tests {
         assert_eq!(program.hypernest().winding(), width);
         assert_eq!(program.fixation_word(), word);
         assert_eq!(program.execution_ticks(), 1);
+    }
+
+    #[test]
+    fn landing_forms_pair_before_advance_without_expanding_the_hypernest() {
+        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(257)).unwrap();
+        let landing = membrane
+            .phase_estimation_register().unwrap()
+            .into_measurement_program().unwrap()
+            .into_landing_program().unwrap();
+        let word = landing.readout_word();
+        let link = word.iter().position(|&mark| mark == CLINK).unwrap();
+        let advance = word.iter().position(|&mark| mark == AFWD).unwrap();
+        assert!(link < advance);
+        assert_eq!(verdict(word), 'T');
+        assert_eq!(landing.execution_ticks(), 1);
+        assert_eq!(landing.hypernest().winding(), landing.width());
+        assert_eq!(word.len(), PAIR_BEFORE_ADVANCE_READOUT_WORD.len());
     }
 
     #[test]
