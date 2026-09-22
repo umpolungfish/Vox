@@ -8,7 +8,10 @@
 //! and so on, and the run takes no input and factors instantly.
 //!
 //!   ./hyperstack_one.sh 8051 phase shor fib
-use vox::morphism_factor::{parse_numeral, repl_smart_factor};
+use vox::factor_extract::extract;
+use vox::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
+use vox::hadamard_factor_bridge::HadamardDescent;
+use vox::morphism_factor::{dec_of, parse_numeral};
 
 /// The carrier registry: a name to the ob3ect glyph word for that operator type.
 fn carrier(name: &str) -> Option<&'static str> {
@@ -50,21 +53,45 @@ fn main() {
     // Baked at compile time: the IMASM numeral for N, and the carrier stack.
     let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");
     let types: &str = option_env!("HYPERSTACK_TYPES").unwrap_or("phase shor fib");
-    let n = match parse_numeral(word) {
+    let n_tape = match parse_numeral(word) {
         Ok(n) => n,
         Err(e) => { eprintln!("FACTOR_N_WORD was not an IMASM numeral: {e}"); std::process::exit(2); }
     };
-    // Build the baked membrane's identity: N's numeral loaded through the stack.
-    let mut cur = String::from(word);
+    // N is the operand; the carrier stack is the program executed on it. The
+    // stack nests each carrier into the previous one at its fuse ∋, so the whole
+    // return loop encloses the trajectory. No numeral is embedded in the word.
+    let mut stack: Option<String> = None;
     let mut depth = 0usize;
     for t in types.split_whitespace() {
         match carrier(t) {
-            Some(c) => { cur = frame_with(c, &cur); depth += 1; }
+            Some(c) => {
+                stack = Some(match stack {
+                    Some(inner) => frame_with(c, &inner),
+                    None => String::from(c),
+                });
+                depth += 1;
+            }
             None => { eprintln!("unknown carrier type '{t}'"); std::process::exit(2); }
         }
     }
-    let winding = cur.matches('⊡').count();
-    println!("baked heterogeneous membrane: N through [{}]  (depth {}, ⊡ winding {})", types, depth, winding);
-    // Factor instantly by reading the winding of the baked numeral.
-    println!("{}", repl_smart_factor(&n));
+    let program = stack.unwrap_or_default();
+    let winding = program.matches('⊡').count();
+    let dec = dec_of(&n_tape);
+    println!("baked heterogeneous membrane: N={dec} through [{types}]  (depth {depth}, ⊡ winding {winding})");
+
+    // Factor by EXECUTING the membrane word: build the resident fixed-point
+    // quantum membrane over N, run it (the collapsed hypernest word executes),
+    // read the winding at the collapse tick, and descend to the factors. No
+    // probe runs beside it; the pair comes from the word running.
+    let membrane = match FixedPointQuantumMembrane::from_n(&n_tape) {
+        Ok(m) => m,
+        Err(e) => { eprintln!("membrane build failed: {e}"); std::process::exit(2); }
+    };
+    match membrane.measure_and_descend() {
+        HadamardDescent::T(carrier) => match extract(&carrier) {
+            Ok(readout) => println!("{dec} = {} x {}", dec_of(&readout.p.0), dec_of(&readout.q.0)),
+            Err(e) => println!("{dec}: membrane closed but extraction failed: {e}"),
+        },
+        other => println!("{dec}: the membrane word did not close ({other:?})"),
+    }
 }
