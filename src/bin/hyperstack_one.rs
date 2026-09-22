@@ -29,16 +29,17 @@ fn carrier(name: &str) -> Option<&'static str> {
     })
 }
 
-/// Load a payload into a carrier: place it after the carrier's first fork ∈, so
-/// the inner word becomes this carrier's bulk.
+/// Load a payload into a carrier: place it immediately adjacent to the carrier's
+/// fuse ∋, so the payload rides into the FFUSE and the return loop closes over
+/// it. The insertion is at the fuse of the level being inserted into (the first
+/// ∋), never after the ∈ fork.
 fn frame_with(carrier: &str, payload: &str) -> String {
-    match carrier.find('∈') {
+    match carrier.find('∋') {
         Some(i) => {
-            let cut = i + '∈'.len_utf8();
             let mut s = String::with_capacity(carrier.len() + payload.len());
-            s.push_str(&carrier[..cut]);
+            s.push_str(&carrier[..i]);
             s.push_str(payload);
-            s.push_str(&carrier[cut..]);
+            s.push_str(&carrier[i..]);
             s
         }
         None => { let mut s = String::from(carrier); s.push_str(payload); s }

@@ -89,10 +89,73 @@ impl CollapsedHypernest {
     }
 }
 
+/// Dissolve a diagnostic expansion into its properly nested form.
+///
+/// The expanded word repeats the full carrier `d` times, each copy carrying its
+/// own `VINIT`/`FSPLIT` opening and `FFUSE`/`TANCH` closing. Proper nesting
+/// keeps only the outermost of each boundary: the first `VINIT` and first
+/// `FSPLIT` open the single frame, the last `FFUSE` and last `TANCH` are the
+/// one return loop enclosing the whole transformation. Every interior boundary
+/// token is dissolved. The inner phase body and the `IFIX` winding records are
+/// untouched, so the winding (depth) is preserved while the boundary count
+/// drops to one of each. This is the free lunch made explicit: the same
+/// transformation, one enclosing loop, executed once.
+pub fn collapse_to_nested(word: &[char]) -> alloc::vec::Vec<char> {
+    let last_ffuse = word.iter().rposition(|&m| m == FFUSE);
+    let last_tanch = word.iter().rposition(|&m| m == TANCH);
+    let mut seen_vinit = false;
+    let mut seen_fsplit = false;
+    let mut out = alloc::vec::Vec::with_capacity(word.len());
+    for (i, &mark) in word.iter().enumerate() {
+        let keep = match mark {
+            VINIT => {
+                let first = !seen_vinit;
+                seen_vinit = true;
+                first
+            }
+            FSPLIT => {
+                let first = !seen_fsplit;
+                seen_fsplit = true;
+                first
+            }
+            FFUSE => Some(i) == last_ffuse,
+            TANCH => Some(i) == last_tanch,
+            _ => true,
+        };
+        if keep {
+            out.push(mark);
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::vox::pairing;
+
+    #[test]
+    fn collapse_dissolves_interior_boundaries_and_keeps_the_winding() {
+        // Six spectral_phase_factorizer cells, expanded then hand-nested.
+        let expanded: alloc::vec::Vec<char> =
+            "⊢⊙∈≻⊤⋈≺⊥⊞⊢⊙∈≻⊤⋈≺⊥⊞⊢⊙∈≻⊤⋈≺⊥⊞⊢⊙∈≻⊤⋈≺⊥⊞⊢⊙∈≻⊤⋈≺⊥⊞⊢⊙∈≻⊤⋈≺⊥⊞∋⊡⋈⊙⊣∋⊡⋈⊙⊣∋⊡⋈⊙⊣∋⊡⋈⊙⊣∋⊡⋈⊙⊣∋⊡⋈⊙⊣"
+                .chars().collect();
+        let nested: alloc::vec::Vec<char> =
+            "⊢⊙∈≻⊤⋈≺⊥⊞⊙≻⊤⋈≺⊥⊞⊙≻⊤⋈≺⊥⊞⊙≻⊤⋈≺⊥⊞⊙≻⊤⋈≺⊥⊞⊙≻⊤⋈≺⊥⊞⊡⋈⊙⊡⋈⊙⊡⋈⊙⊡⋈⊙⊡⋈⊙∋⊡⋈⊙⊣"
+                .chars().collect();
+        let got = collapse_to_nested(&expanded);
+        assert_eq!(got, nested, "collapse did not reproduce the hand-nested word");
+        // one enclosing frame, one return loop
+        assert_eq!(got.iter().filter(|&&m| m == VINIT).count(), 1);
+        assert_eq!(got.iter().filter(|&&m| m == FSPLIT).count(), 1);
+        assert_eq!(got.iter().filter(|&&m| m == FFUSE).count(), 1);
+        assert_eq!(got.iter().filter(|&&m| m == TANCH).count(), 1);
+        // winding preserved: the six IFIX records survive
+        let w_expanded = expanded.iter().filter(|&&m| m == IFIX).count();
+        let w_nested = got.iter().filter(|&&m| m == IFIX).count();
+        assert_eq!(w_expanded, w_nested);
+        assert_eq!(w_nested, 6);
+    }
 
     #[test]
     fn runtime_storage_and_ticks_are_depth_invariant() {
