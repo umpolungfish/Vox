@@ -1,3 +1,12 @@
+I keep the phase membrane silent until closure
+
+I remove per-eight-observation progress reports so the baked membrane emits
+its winding, closure, frames, and timings only after the full computation
+finishes. The binary-target relation-verifier test passes, and the release
+build is warning-free. The requested 270-digit run emitted no partial output
+but was killed with exit 137 before completion, exposing the phase residue
+table's memory growth as the next bottleneck.
+
 I remove repeated work from the phase and closure hot paths
 
 I share the deterministic radix-prefix fold between the two exact closure

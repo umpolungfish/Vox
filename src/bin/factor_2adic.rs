@@ -103,11 +103,9 @@ fn run_baked_membrane() {
     let relation = loop {
         match partners.observe() {
             Ok(Some(relation)) => break relation,
-            Ok(None) => {
-                if partners.squarings % 8 == 0 {
-                    eprintln!("phase progress: observations={} registers={}", partners.squarings, partners.stored_residues());
-                }
-            }
+            // Keep the baked membrane collapsed until the complete winding,
+            // factor close, and register fold are ready to emit together.
+            Ok(None) => {}
             Err(error) => {
                 eprintln!("phase membrane failed: {error}");
                 std::process::exit(2);

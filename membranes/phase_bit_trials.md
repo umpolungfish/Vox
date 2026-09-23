@@ -126,3 +126,11 @@ factor-close timings varied from 6.89 s to 8.33 s across these runs, so the
 direct-bit exponent change has not yet demonstrated a separate wall-time
 gain. The full library suite passes all 196 tests, including a factor-close
 regression; the binary target's independent relation replay test also passes.
+
+The silent-output build was also tested on the user-supplied 270-digit input
+`233108530344407544527637656910680524145619812480305449042948611968495918245135782867888369318577116418213919268572658314913060672626911354027609793166341626693946596196427744273886601876896313468704059066746903123910748277606548649151920812699309766587514735456594993207`.
+It emitted no partial output, but the process was killed with exit 137 before
+closure; the captured output file was empty. The phase `BTreeMap` retains every
+full residue and its exponent, so this run exposes unbounded observation-state
+memory as the next bottleneck. No factorization or execution-time result is
+claimed for this input.
