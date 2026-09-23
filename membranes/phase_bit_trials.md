@@ -226,3 +226,50 @@ The qualifying input `10007000070049 = 10007 × 1000000007` was also baked with
 phase base 2 and radix 3. Its direct run remained silent and was interrupted
 before closure, so it produced no factor result or completed timing. It is
 recorded as an incomplete trial, not a successful factorization.
+
+## Overhead profile and larger dynamic registers
+
+These completed binaries embed only the IMASM numeral for `N`, use phase base
+2 and lift radix 3, and were invoked directly. The table reports medians of
+seven completed executions. `Through flush` includes writing the complete
+frame report, which the earlier `total-in-process` measurement excluded.
+
+| N digits | N | decoded factors | phase observations | phase winding | Shor close | prefix fold | output render | output write/flush | through flush |
+|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|
+| 14 | 39585639837697 | 12289 × 3221225473 | 31 | 12.735 μs | 5.134 μs | 7.207 μs | 8.194 μs | 19.152 μs | 67.426 μs |
+| 18 | 162129792744554497 | 786433 × 206158430209 | 38 | 14.897 μs | 5.722 μs | 8.583 μs | 10.063 μs | 20.618 μs | 74.581 μs |
+| 23 | 21250649179513694453761 | 3221225473 × 6597069766657 | 42 | 26.200 μs | 11.500 μs | 11.300 μs | 11.700 μs | 21.700 μs | 99.800 μs |
+| 27 | 580284393595165992175009793 | 3221225473 × 180143985094819841 | 59 | 32.383 μs | 10.335 μs | 14.075 μs | 11.123 μs | 19.587 μs | 105.024 μs |
+
+Each completed run returned FDE T with both closure supports true. The emitted
+factor-register words decoded to the listed factors. The 27-digit factors both
+passed deterministic 64-bit primality checks. Their product exceeds the u64
+range, while the membrane keeps the modulus, factors, and phase residues in
+dynamically sized registers.
+
+For the same 14-digit input, ten alternating invocations of the earlier and
+optimized binaries reduced median in-process time from 90.21 μs to 47.11 μs
+and output rendering from 34.07 μs to 8.18 μs. Captured process wall medians,
+including launch and output, were 685.75 μs and 655.60 μs. Direct frame writing
+removed the seven temporary frame trees and joined strings; a width-derived
+capacity reservation avoids repeated output-buffer growth. The binary now
+reports output-write/flush separately and reports total-to-flush.
+
+On the 18-digit input, replacing packed-byte residue keys with dynamic
+`BigUint` keys and one `HashMap` entry lookup reduced median phase-orbit time
+from 12.755 μs to 8.884 μs across ten alternating runs. The radix fold now
+streams each dynamic digit instead of materializing digit vectors. On the
+27-digit input, twelve interleaved executions measured these lift radices:
+
+| lift radix | prefix fold | through flush |
+|---:|---:|---:|
+| 3 | 14.736 μs | 112.290 μs |
+| 10 | 9.259 μs | 100.674 μs |
+| 16 | 7.740 μs | 101.704 μs |
+| 256 | 6.515 μs | 97.392 μs |
+| 4294967296 | 3.577 μs | 97.539 μs |
+
+The 32-bit radix gives the shortest measured fold; its full runtime is within
+0.15 μs of radix 256 in this sweep. All five radix binaries returned the same
+factor registers and true dual closure. The fold comparison keeps phase base
+and baked modulus fixed, so the change is isolated to the register digit width.

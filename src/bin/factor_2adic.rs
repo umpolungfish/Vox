@@ -31,13 +31,21 @@ fn fde_closure_value(prefix_first: Option<bool>, product_first: Option<bool>) ->
 }
 
 fn append_frames(output: &mut String, label: &str, tape: &[char]) {
-    for frame in vox::factor_2adic::frame_sweep(tape) {
-        let cells = frame.groups.iter().map(|group| group.iter().collect::<String>())
-            .collect::<Vec<_>>().join("|");
+    for window in 2..=8 {
+        let remainder = tape.len() % window;
+        let tail_len = if remainder == 0 { window } else { remainder };
         use core::fmt::Write;
-        writeln!(output, "frame {label} window={} tail={} bits={} groups={cells}",
-            frame.window, frame.tail_len, tape.len()).unwrap();
-        assert_eq!(frame.reconstruct(), tape);
+        write!(output, "frame {label} window={} tail={} bits={} groups=",
+            window, tail_len, tape.len()).unwrap();
+        let cells_start = output.len();
+        for (index, group) in tape.chunks(window).enumerate() {
+            if index != 0 { output.push('|'); }
+            output.extend(group.iter().copied());
+        }
+        output.push('\n');
+        // Keep the rendered frame exactly equal to the source tape when its
+        // separators are removed, without constructing a second frame tree.
+        debug_assert_eq!(output[cells_start..].chars().filter(|&mark| mark != '|').collect::<Vec<_>>(), tape);
     }
 }
 
@@ -90,6 +98,8 @@ fn run_baked_membrane() {
             std::process::exit(2);
         }
     };
+    let phase_init_elapsed = phase_started.elapsed();
+    let phase_orbit_started = std::time::Instant::now();
     let relation = loop {
         match partners.observe() {
             Ok(Some(relation)) => break relation,
@@ -102,6 +112,7 @@ fn run_baked_membrane() {
             }
         }
     };
+    let phase_orbit_elapsed = phase_orbit_started.elapsed();
     let phase_elapsed = phase_started.elapsed();
     let extract_started = std::time::Instant::now();
     let transported = match phase_word::execute(EXTRACT_WORD, &relation) {
@@ -145,7 +156,7 @@ fn run_baked_membrane() {
             .map(|(state, product)| vox::factor_2adic::FactorFixedPoint { p: state.p, q: state.q, product });
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
-        let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
+        let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
         let factors = if closure_value == 'T' {
             factors_at_meeting.and_then(|fixed|
                 vox::factor_2adic::terminal_pair_given_semiprime_promise(&tape, fixed))
@@ -154,17 +165,26 @@ fn run_baked_membrane() {
         };
         (factors, report)
     } else {
-        let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-close: {}\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
+        let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-close: {}\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
         (None, report)
     };
 
     let output_started = std::time::Instant::now();
-    let mut output = format!("membrane input: baked IMASM base and modulus\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: exact proper pair under semiprime promise\nbase = {base_word}\nlift radix = {radix_word}\nN = {word}\n");
+    let factor_bits = factors.as_ref().map_or(0, |meeting|
+        meeting.p.len().saturating_add(meeting.q.len()));
+    let rendered_bits = tape.len().saturating_add(factor_bits);
+    let output_capacity = 2048usize
+        .saturating_add(rendered_bits.saturating_mul(48))
+        .saturating_add(word.len())
+        .saturating_add(base_word.len())
+        .saturating_add(radix_word.len());
+    let mut output = String::with_capacity(output_capacity);
+    use core::fmt::Write;
+    writeln!(output, "membrane input: baked IMASM base and modulus\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: exact proper pair under semiprime promise\nbase = {base_word}\nlift radix = {radix_word}\nN = {word}").unwrap();
     append_frames(&mut output, "N", &tape);
     if let Some(meeting) = factors {
         let p_word = vox::morphism_factor::emit_numeral(&meeting.p);
         let q_word = vox::morphism_factor::emit_numeral(&meeting.q);
-        use core::fmt::Write;
         writeln!(output, "P = {p_word}\nQ = {q_word}").unwrap();
         append_frames(&mut output, "P", &meeting.p);
         append_frames(&mut output, "Q", &meeting.q);
@@ -173,9 +193,13 @@ fn run_baked_membrane() {
     }
     let render_elapsed = output_started.elapsed();
     let total_elapsed = run_started.elapsed();
-    print!("{output}");
-    let _ = std::io::Write::flush(&mut std::io::stdout());
-    eprintln!("{report}membrane timing: output-render={render_elapsed:?} total-in-process={total_elapsed:?}");
+    let output_write_started = std::time::Instant::now();
+    let mut stdout = std::io::stdout().lock();
+    std::io::Write::write_all(&mut stdout, output.as_bytes()).expect("write complete membrane report");
+    std::io::Write::flush(&mut stdout).expect("flush complete membrane report");
+    let output_write_elapsed = output_write_started.elapsed();
+    let total_to_flush = run_started.elapsed();
+    eprintln!("{report}membrane timing: output-render={render_elapsed:?} total-in-process={total_elapsed:?} output-write-flush={output_write_elapsed:?} total-to-flush={total_to_flush:?}");
 }
 
 /// Stable no-argument entry for direct execution from a lifted IMASM module.
