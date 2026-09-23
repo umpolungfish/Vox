@@ -1,0 +1,23 @@
+main(...) halted: no instruction at 0x0 after 21 steps
+  previous 12:
+  1a190: ⋈ push r:rbp
+  1a191: ⋈ push r:r15
+  1a193: ⋈ push r:r14
+  1a195: ⋈ push r:r13
+  1a197: ⋈ push r:r12
+  1a199: ⋈ push r:rbx
+  1a19a: ⊞ sub r:rsp i:0xe8
+  1a1a1: ⋈ mov r:rbx r:rsi
+  1a1a4: ⋈ movsxd r:rax r:edi
+  1a1a7: ⋈ mov m:rsp::1:0xa8:8 r:rax
+  1a1af: ⋈ mov m:rsp::1:0x10:8 i:0x0
+  1a1b8: ⊞ movaps r:xmm0 m:rip::1:-0x11fcf:16
+  1a1bf: ⊡ movups m:rsp::1:0x18:16 r:xmm0
+  1a1c4: ⊞ lea r:r14 m:rsp::1:0x10:8
+  1a1c9: ⋈ mov r:r15 m:rip::1:0x689a0:8
+  1a1d0: ⋈ mov r:r12 m:rip::1:0x689a1:8
+  1a1d7: ⊞ nop
+  1a1e0: ⋈ mov r:esi i:0x3
+  1a1e5: ⋈ mov r:rdi r:r14
+  1a1e8: ⊞ xor r:edx r:edx
+  1a1ea: ⊙ call r:r15d   [21 steps]

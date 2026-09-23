@@ -68,6 +68,8 @@ pub mod fixed_point_quantum_membrane;
 pub mod fixed_point_quantum_phase;
 pub mod fixed_point_quantum_relation;
 pub mod fixed_point_quantum_readout;
+pub mod factor_2adic; // 2-adic prefix inversion factorization
+
 // Legacy host-side phase-table factor membrane is intentionally not exported.
 // pub mod fixed_point_membrane;
 // pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)

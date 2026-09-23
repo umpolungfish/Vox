@@ -1,0 +1,69 @@
+# Phase winding and bit-register trials
+
+Each executable contains the modulus and base as IMASM numeral words. Runtime
+phase and factor arithmetic stays on dynamically sized tapes. The measured
+phase arm records dyadic residue observations; the close arm checks the result
+in both product-first and prefix-first order.
+
+| N (decimal digits) | N | factors | phase observations | phase | dual closure | repeated process timing |
+|---:|---:|---|---:|---:|---:|---:|
+| 2 | 15 | 3 × 5 | 3 | 25.523 μs | 6.404 μs | single run rounded to 0.00 s |
+| 21 | 592601653367919345407 | 257 × 2305843009213693951 | 65 | 264.225 μs | 7.202 μs | 100 runs in 0.10 s |
+| 41 | 43726284149340592555043637054982215171839 | 257 × 170141183460469231731687303715884105727 | 12 | 69.912 μs | 10.157 μs | single run rounded to 0.00 s |
+| 160 | 1764252998653566696750348505363918056838244872136829490214377109010684598133197605395497827649993820629165152027610580515540350915927177459831525270816569687807 | 257 × 6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151 | 265 | 4.273920 ms | 18.270 μs | 100 runs in 0.88 s |
+
+The 100-process `/bin/true` control took 0.07 s. The 21-digit membrane took
+0.10 s for 100 executions; the 160-digit membrane took 0.88 s. Each successful
+run reported `FDE closure: T` with both support checks true. The 160-digit
+executable therefore averaged 8.8 ms per process, including launch and frame
+output, and its internal phase plus closure timers totaled about 4.3 ms.
+
+The 10-digit case `1000036000099 = 1000003 × 1000033` did not close during the
+measured run. Its progress stream passed 142,784 dyadic observations before
+the run was manually stopped. This measures the phase-orbit cost for that
+input; it produced no factor output.
+
+The 15 case was also run through `vox run` on its emitted `.imasm` module. Vox
+reported `entry(...) exited(0)` after 405,525 VM steps; that VM run took 0.63 s.
+
+## Wider phase and closure ladder
+
+Each added case uses the baked modulus `N = 257 × (2^m − 1)` and base 2,
+with the listed Mersenne-prime exponent `m`. The phase count is the number of
+dyadic residue registers observed before a repeated phase closes. Every row
+reported FDE T with both closure arms true.
+
+| m | N decimal digits | phase observations | phase winding | dual closure |
+|---:|---:|---:|---:|---:|
+| 521 | 160 | 265 | 4.274 ms | 18.270 μs |
+| 607 | 186 | 308 | 6.014 ms | 20.526 μs |
+| 1279 | 388 | 644 | 25.581 ms | 52.696 μs |
+| 2203 | 666 | 739 | 55.318 ms | 70.360 μs |
+| 3217 | 971 | 809 | 85.969 ms | 70.458 μs |
+| 4423 | 1334 | 742 | 109.119 ms | 100.134 μs |
+| 9689 | 2920 | 4849 | 2.269 s | 265.551 μs |
+| 11213 | 3378 | 11217 | 6.708 s | 233.875 μs |
+| 19937 | 6005 | 9973 | 13.839 s | 415.745 μs |
+| 44497 | 13398 | 2786 | 14.181 s | 967.768 μs |
+
+The encoded binary outputs the factor registers as IMASM numeral words. The
+closures verify the exact product in both nesting orders. The observation count
+varies with the dyadic phase cycle, so increasing the modulus width does not
+monotonically increase that count.
+
+## Variable lift radix
+
+The build command accepts a phase base and a separate lift radix. The lift now
+stores radix digits, radix powers, prefixes, and remainders as dynamic IMASM
+numeral tapes. Each extension closes the running product modulo `radix^k`;
+it checks the seed product residue and then the generalized coefficient-digit
+equation. The binary XOR recurrence is not used for nonbinary radices. The
+existing 2-valued frame sweep remains a lossless view of the input tape.
+
+The contained membrane built with
+`./factor_2adic_membrane.sh 91 membranes/radix_lift_smoke 2 3` closed
+`91 = 7 × 13` with phase base 2 and lift radix 3. Running that binary reported
+FDE T, with both radix-prefix and product-first closure true. Its internal
+phase and dual-closure timings were 16.132 μs and 38.168 μs. A unit test also
+closes the same pair in radices 2, 3, 5, 10, 11, and `2^80 + 1`, then rejects
+an incorrect pair.

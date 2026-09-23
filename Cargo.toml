@@ -18,6 +18,10 @@ path = "src/bin/phase_baked.rs"
 name = "semiprime_probe"
 path = "src/bin/semiprime_probe.rs"
 
+[[bin]]
+name = "factor_2adic"
+path = "src/bin/factor_2adic.rs"
+
 [lib]
 name = "vox"
 path = "src/lib.rs"
@@ -314,3 +318,19 @@ path = "src/bin/cylinder_membrane.rs"
 [[bin]]
 name = "hyperstack_one"
 path = "src/bin/hyperstack_one.rs"
+
+[[bin]]
+name = "double_arev_membrane"
+path = "src/bin/double_arev_membrane.rs"
+
+[[bin]]
+name = "single_frame_membrane"
+path = "src/bin/single_frame_membrane.rs"
+
+[dependencies]
+num-bigint = "0.4"
+num-traits = "0.2"
+
+[[bin]]
+name = "factor_2adic_bigint"
+path = "src/bin/factor_2adic_bigint.rs"
