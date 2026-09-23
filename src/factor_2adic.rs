@@ -364,55 +364,63 @@ pub fn radix_digits(value: &[char], radix: &[char]) -> Result<Vec<Vec<char>>, &'
     if cmp(radix, &[ONE]) != core::cmp::Ordering::Greater {
         return Err("digit radix must be greater than one");
     }
-    let mut remaining = tape_to_biguint(value);
-    if remaining.is_zero() { return Ok(alloc::vec![alloc::vec![ZERO]]); }
+    let remaining = tape_to_biguint(value);
     let radix = tape_to_biguint(radix);
+    Ok(biguint_radix_digits(&remaining, &radix).iter().map(biguint_to_tape).collect())
+}
+
+fn biguint_radix_digits(value: &BigUint, radix: &BigUint) -> Vec<BigUint> {
+    let mut remaining = value.clone();
+    if remaining.is_zero() { return alloc::vec![BigUint::zero()]; }
     let mut digits = Vec::new();
     while !remaining.is_zero() {
-        let digit = &remaining % &radix;
-        remaining /= &radix;
-        digits.push(biguint_to_tape(&digit));
+        let digit = &remaining % radix;
+        remaining /= radix;
+        digits.push(digit);
     }
-    Ok(digits)
+    digits
 }
 
 /// Fold a known pair through every radix-prefix register. The returned state
 /// carries the inductive digit closure; callers choose when to perform exact
 /// product closure so both nesting orders can share this deterministic fold.
 pub fn radix_prefix_fold(n: &[char], p: &[char], q: &[char], radix: &[char]) -> Option<RadixPrefixMembrane> {
-    let (Ok(pd), Ok(qd)) = (radix_digits(p, radix), radix_digits(q, radix)) else { return None; };
-    let Ok(nd) = radix_digits(n, radix) else { return None; };
     let radix_big = tape_to_biguint(radix);
-    let pd: Vec<BigUint> = pd.iter().map(|digit| tape_to_biguint(digit)).collect();
-    let qd: Vec<BigUint> = qd.iter().map(|digit| tape_to_biguint(digit)).collect();
-    let nd: Vec<BigUint> = nd.iter().map(|digit| tape_to_biguint(digit)).collect();
-    let width = pd.len().max(qd.len());
+    if radix_big <= BigUint::one() { return None; }
+    let (mut p_remaining, mut q_remaining, mut n_remaining) =
+        (tape_to_biguint(p), tape_to_biguint(q), tape_to_biguint(n));
+    let n_big = n_remaining.clone();
     let mut p_value = BigUint::zero();
     let mut q_value = BigUint::zero();
     let mut place = BigUint::one();
     let mut product_quotient = BigUint::zero();
     let zero = BigUint::zero();
-    for index in 0..width {
-        let p_digit = pd.get(index).unwrap_or(&zero);
-        let q_digit = qd.get(index).unwrap_or(&zero);
-        let target = nd.get(index).unwrap_or(&zero);
-        if index == 0 {
-            if (p_digit * q_digit) % &radix_big != *target { return None; }
+    let mut width = 0;
+    while width == 0 || !p_remaining.is_zero() || !q_remaining.is_zero() {
+        let p_digit = &p_remaining % &radix_big;
+        let q_digit = &q_remaining % &radix_big;
+        let target = if n_remaining.is_zero() { zero.clone() } else { &n_remaining % &radix_big };
+        p_remaining /= &radix_big;
+        q_remaining /= &radix_big;
+        n_remaining /= &radix_big;
+        if width == 0 {
+            if (&p_digit * &q_digit) % &radix_big != target { return None; }
         } else {
             let product_digit = &product_quotient % &radix_big;
-            let required = (target + &radix_big - product_digit) % &radix_big;
-            let coefficient = (p_digit * (&q_value % &radix_big)
-                + q_digit * (&p_value % &radix_big)) % &radix_big;
+            let required = (&target + &radix_big - product_digit) % &radix_big;
+            let coefficient = (&p_digit * (&q_value % &radix_big)
+                + &q_digit * (&p_value % &radix_big)) % &radix_big;
             if coefficient != required { return None; }
         }
-        let cross_terms = p_digit * &q_value + q_digit * &p_value;
-        let diagonal = p_digit * q_digit * &place;
+        let cross_terms = &p_digit * &q_value + &q_digit * &p_value;
+        let diagonal = &p_digit * &q_digit * &place;
         product_quotient = (&product_quotient + cross_terms + diagonal) / &radix_big;
-        p_value += p_digit * &place;
-        q_value += q_digit * &place;
+        p_value += &p_digit * &place;
+        q_value += &q_digit * &place;
         place *= &radix_big;
+        width += 1;
     }
-    if &p_value * &q_value != tape_to_biguint(n) { return None; }
+    if &p_value * &q_value != n_big { return None; }
     Some(RadixPrefixMembrane {
         n: trim(n.to_vec()), radix: trim(radix.to_vec()),
         p: biguint_to_tape(&p_value), q: biguint_to_tape(&q_value), width,

@@ -1,6 +1,6 @@
 //! Sequential dyadic partner observations. No register enumeration or supplied
 //! order. A collision proves a return exponent, which may be a multiple of order.
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap};
 use num_bigint::BigUint;
 use num_traits::Zero;
 use vox::morphism_factor::{cmp, gcd, modulo, mul, one, sub};
@@ -43,10 +43,10 @@ impl ReturnRelation {
 pub struct Partners {
     n: BigUint,
     residue: BigUint,
-    // Store exact residues in packed LSB-first bytes and only the observation
-    // index. Storing each ever-growing exponent tape made total memory
-    // quadratic in the number of phase observations.
-    seen: HashMap<Vec<u8>, Option<usize>>,
+    // Store dynamic residues and only the observation index. Storing each
+    // ever-growing exponent tape made total memory quadratic in observations;
+    // serializing each residue to bytes added a second representation to hash.
+    seen: HashMap<BigUint, Option<usize>>,
     pub squarings: usize,
 }
 
@@ -88,7 +88,7 @@ impl Partners {
         let a_big = tape_to_biguint(&a);
         let mut seen = HashMap::new();
         // The initial state is 1 = a^0, distinguished from a^(2^i).
-        seen.insert(vec![1], None);
+        seen.insert(BigUint::from(1u8), None);
         let residue = a_big % &n_big;
         Ok(Self { n: n_big, residue, seen, squarings: 0 })
     }
@@ -96,8 +96,14 @@ impl Partners {
     /// One observation and one squaring. Caller chooses when to observe again;
     /// no fixed search ceiling is imposed on this resident state.
     pub fn observe(&mut self) -> Result<Option<ReturnRelation>, String> {
-        let key = self.residue.to_bytes_le();
-        let relation = self.seen.get(&key).map(|earlier_index| {
+        let earlier_index = match self.seen.entry(self.residue.clone()) {
+            Entry::Occupied(entry) => Some(*entry.get()),
+            Entry::Vacant(entry) => {
+                entry.insert(Some(self.squarings));
+                None
+            }
+        };
+        let relation = earlier_index.map(|earlier_index| {
             let later = power_of_two_exponent(self.squarings);
             let earlier = earlier_index.map(power_of_two_exponent).unwrap_or_else(|| vec![vox::vox::EVALT]);
             ReturnRelation {
@@ -113,7 +119,6 @@ impl Partners {
         // map. Replaying three full modular exponentiations here adds no new
         // evidence and dominates wide runs. Keep `ReturnRelation::verify` for
         // independent callers and tests, but do not repeat it on the hot path.
-        self.seen.entry(key).or_insert(Some(self.squarings));
         self.residue = (&self.residue * &self.residue) % &self.n;
         self.squarings += 1;
         Ok(relation)
