@@ -1,7 +1,8 @@
-I extend the baked membrane with a variable-radix register lift
+I test the baked radix-3 lift across widening semiprimes
 
-I bake the phase base and lift radix as separate IMASM numeral words. The
-prefix registers now close the running product modulo successive radix powers
-using dynamic numeral tapes, and each step checks the generalized digit
-equation. I verified radix 3 on 91 = 7 × 13 and tested radices through
-2^80 + 1, alongside the full library test suite.
+I run the phase-base-2, radix-3 membrane from 160 digits through 13,398
+digits. Every completed run returns FDE T. The inductive digit lift cuts the
+1,334-digit dual closure from 102.902 seconds to 178.401 milliseconds. The
+25,965-digit run passes 65,536 surfaced phase observations but is interrupted
+without a closure verdict. The latest workspace test attempt is blocked by a
+missing constructor in the separate quantum readout path.
