@@ -153,3 +153,22 @@ decomposes it as the banked extraction frame followed by the `⊡⋈⊙` latch, 
 retaining the earlier EXTRACT/FIX spelling. Both forms factor 8051 through the
 resident carrier. The baked phase binary applies this word between winding and
 factor close; the integrated 270-digit execution remains silent while running.
+
+## Nested factor meeting point
+
+The baked phase binary now passes the pair produced by phase winding through
+both orders of the same dynamic radix fold. In product-outer order, exact
+multiplication closes before the inner prefix fold. In prefix-outer order, each
+joint radix digit extends both factor registers and the inner product closes at
+that prefix. The binary emits the pair only when both terminal fixed points
+match. The fold consumes the phase-produced pair directly, so both nestings
+share one factor landing.
+
+The contained executable for `N = 5726623061` returned
+`43691 × 131071`, with both closure supports true. Its measured phase winding
+was 10.343 μs, banked EXTRACT 3.251 μs, Shor close 13.988 μs, product-outer
+prefix closure 51.519 μs, prefix-outer product closure 49.746 μs, and total
+in-process time 164.211 μs. The 143 control returned `11 × 13` with both
+supports true in 68.167 μs. Each executable buffered its complete report until
+the winding and both closures had finished, then was invoked directly after
+baking.
