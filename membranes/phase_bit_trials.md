@@ -273,3 +273,21 @@ The 32-bit radix gives the shortest measured fold; its full runtime is within
 0.15 μs of radix 256 in this sweep. All five radix binaries returned the same
 factor registers and true dual closure. The fold comparison keeps phase base
 and baked modulus fixed, so the change is isolated to the register digit width.
+
+## Beyond the 27-digit floor
+
+The next direct-run trial raises both factor widths substantially. The input
+was encoded as an IMASM numeral before compilation; only that `N` word, phase
+base 2, and lift radix `4294967296` were baked into the executable. The factor
+values below were decoded from the emitted `P` and `Q` register words after the
+run. Both are Proth primes, certified by the witnesses shown.
+
+| N digits | N | factors (digits) | Proth witnesses | phase observations | phase winding | Shor close | dual closure | output render | output write/flush | through flush |
+|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 256 | 4222978216202643879358776203723956984487864771371595739381318407303980253973317835720418236701436401727311635791396822723292392910122079788459348727875224286730683890750756540930477218788410269980206557306023861593174362539933039434147476890811995915288577 | 1983167906370745796855745924098313119485214048892843657853946385823217373708934037475567631319145854542773636075070074912769 (124) × 2129410325084785812156222093421888284239183673888627129730928317912029164394720478494700343887979195978796450018357943164652153208833 (133) | 11, 5 | 440 | 430.175 μs | 184.322 μs | T, both true | 65.584 μs | 80.089 μs | 946.024 μs |
+
+All timing columns are medians across seven direct executions. The product was
+checked against the baked decimal input, and the Proth tests were
+`11^((p−1)/2) ≡ −1 (mod p)` and `5^((q−1)/2) ≡ −1 (mod q)`. Both factors
+exceed the current minimum pair. The 32-bit radix run completed without build
+warnings and emitted its report only after closure.
