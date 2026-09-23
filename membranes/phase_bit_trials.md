@@ -172,3 +172,36 @@ in-process time 164.211 μs. The 143 control returned `11 × 13` with both
 supports true in 68.167 μs. Each executable buffered its complete report until
 the winding and both closures had finished, then was invoked directly after
 baking.
+
+## Wider direct executions with the shared running-product fold
+
+The radix digits are decomposed through dynamic arbitrary-width quotient and
+remainder registers. The running product quotient advances with each digit,
+and the phase-produced factor pair passes through one shared prefix state with
+the exact product closed on both sides. These binaries were built and invoked
+directly with phase base 2 and radix 3. Every completed run returned FDE T with
+both nesting supports true.
+
+| Mersenne exponent m | N decimal digits | phase observations | phase winding | Shor close | dual closure | total in-process |
+|---:|---:|---:|---:|---:|---:|---:|
+| 3217 | 971 | 809 | 4.613 ms | 4.218 ms | 4.913 ms | 15.274 ms |
+| 19937 | 6005 | 9973 | 945.780 ms | 1.664 s | 151.990 ms | 2.794 s |
+| 44497 | 13398 | 2786 | 692.183 ms | 2.259 s | 729.183 ms | 3.700 s |
+| 86243 | 25965 | 86247 | 65.670 s | 265.125 s | 2.709 s | 335.296 s |
+
+Each modulus is `257 × (2^m − 1)`. The 25,965-digit executable completed its
+phase winding and both closures before the stop request arrived; its 335.296 s
+runtime records the scale reached by this run.
+
+## Semiprime terminal
+
+Under the input promise that `N` has exactly two prime factors counted with
+multiplicity, the membrane terminates at a canonical proper pair `P ≤ Q` when
+both nested closures agree and `P × Q = N`. Each entry exceeds one. The promise
+then forces each entry to contain exactly one prime factor, so the pair is the
+unique prime factorization, including `p × p` squares. This removes a separate
+primality pass from the terminal path.
+
+The promise is part of the input contract, not a conclusion of product closure.
+For a general composite, an exact proper pair can still be composite, as in
+`210 = 14 × 15`; the terminal condition alone does not certify semiprimality.

@@ -5,9 +5,31 @@
 //! their carries. The next bits obey p_k XOR q_k = n_k XOR bit_k(P_k Q_k).
 
 use alloc::vec::Vec;
+use num_bigint::BigUint;
+use num_traits::{One, Zero as NumZero};
 
 const ZERO: char = '⊤';
 const ONE: char = '⊥';
+
+fn tape_to_biguint(tape: &[char]) -> BigUint {
+    let mut bytes = alloc::vec![0u8; (tape.len() + 7) / 8];
+    for (index, mark) in tape.iter().enumerate() {
+        if *mark == ONE { bytes[index / 8] |= 1 << (index % 8); }
+    }
+    BigUint::from_bytes_le(&bytes)
+}
+
+fn biguint_to_tape(value: &BigUint) -> Vec<char> {
+    if value.is_zero() { return alloc::vec![ZERO]; }
+    let mut tape = Vec::new();
+    for byte in value.to_bytes_le() {
+        for bit in 0..8 {
+            tape.push(if (byte >> bit) & 1 == 1 { ONE } else { ZERO });
+        }
+    }
+    while tape.last() == Some(&ZERO) { tape.pop(); }
+    tape
+}
 
 /// One lossless re-chunking of the LSB-first base encoding. A group is the
 /// joint state of `window` two-valued registers; a short final group is kept
@@ -250,6 +272,8 @@ pub struct RadixPrefixMembrane {
     pub q: Vec<char>,
     pub width: usize,
     pub place: Vec<char>,
+    /// Quotient in `P*Q = low_product + place*product_quotient`.
+    pub product_quotient: Vec<char>,
 }
 
 impl RadixPrefixMembrane {
@@ -260,7 +284,10 @@ impl RadixPrefixMembrane {
             return Err("lift radix must be greater than one");
         }
         if n.is_empty() { return Err("radix prefix membrane requires a nonzero N"); }
-        Ok(Self { n, radix, p: alloc::vec![ZERO], q: alloc::vec![ZERO], width: 0, place: alloc::vec![ONE] })
+        Ok(Self {
+            n, radix, p: alloc::vec![ZERO], q: alloc::vec![ZERO], width: 0,
+            place: alloc::vec![ONE], product_quotient: alloc::vec![ZERO],
+        })
     }
 
     fn digit_in_range(&self, digit: &[char]) -> bool {
@@ -289,9 +316,7 @@ impl RadixPrefixMembrane {
             return crate::morphism_factor::modulo(&multiply(p_digit, q_digit), &self.radix)
                 == crate::morphism_factor::modulo(&self.n, &self.radix);
         }
-        let product = multiply(&self.p, &self.q);
-        let high_product = crate::morphism_factor::divmod(&product, &self.place).0;
-        let product_digit = crate::morphism_factor::modulo(&high_product, &self.radix);
+        let product_digit = crate::morphism_factor::modulo(&self.product_quotient, &self.radix);
         let required = if cmp(target_digit, &product_digit) != core::cmp::Ordering::Less {
             crate::morphism_factor::sub(target_digit, &product_digit)
         } else {
@@ -317,11 +342,17 @@ impl RadixPrefixMembrane {
         if !self.candidate_matches_digit(p_digit, q_digit, target_digit) {
             return Err("factor digits violate the running-product radix equation");
         }
+        let cross_terms = crate::morphism_factor::add(
+            &multiply(p_digit, &self.q), &multiply(q_digit, &self.p));
+        let diagonal = multiply(&multiply(p_digit, q_digit), &self.place);
+        let product_numerator = crate::morphism_factor::add(
+            &self.product_quotient, &crate::morphism_factor::add(&cross_terms, &diagonal));
+        let product_quotient = crate::morphism_factor::divmod(&product_numerator, &self.radix).0;
         let p = crate::morphism_factor::add(&self.p, &multiply(p_digit, &self.place));
         let q = crate::morphism_factor::add(&self.q, &multiply(q_digit, &self.place));
         Ok(Self {
             n: self.n.clone(), radix: self.radix.clone(), p, q,
-            width: self.width + 1, place: multiply(&self.place, &self.radix),
+            width: self.width + 1, place: multiply(&self.place, &self.radix), product_quotient,
         })
     }
 
@@ -333,13 +364,14 @@ pub fn radix_digits(value: &[char], radix: &[char]) -> Result<Vec<Vec<char>>, &'
     if cmp(radix, &[ONE]) != core::cmp::Ordering::Greater {
         return Err("digit radix must be greater than one");
     }
-    let mut remaining = trim(value.to_vec());
-    if remaining.is_empty() { return Ok(alloc::vec![alloc::vec![ZERO]]); }
+    let mut remaining = tape_to_biguint(value);
+    if remaining.is_zero() { return Ok(alloc::vec![alloc::vec![ZERO]]); }
+    let radix = tape_to_biguint(radix);
     let mut digits = Vec::new();
-    while !remaining.is_empty() {
-        let (quotient, remainder) = crate::morphism_factor::divmod(&remaining, radix);
-        digits.push(remainder);
-        remaining = trim(quotient);
+    while !remaining.is_zero() {
+        let digit = &remaining % &radix;
+        remaining /= &radix;
+        digits.push(biguint_to_tape(&digit));
     }
     Ok(digits)
 }
@@ -350,17 +382,42 @@ pub fn radix_digits(value: &[char], radix: &[char]) -> Result<Vec<Vec<char>>, &'
 pub fn radix_prefix_fold(n: &[char], p: &[char], q: &[char], radix: &[char]) -> Option<RadixPrefixMembrane> {
     let (Ok(pd), Ok(qd)) = (radix_digits(p, radix), radix_digits(q, radix)) else { return None; };
     let Ok(nd) = radix_digits(n, radix) else { return None; };
-    let Ok(mut state) = RadixPrefixMembrane::new(n.to_vec(), radix.to_vec()) else { return None; };
+    let radix_big = tape_to_biguint(radix);
+    let pd: Vec<BigUint> = pd.iter().map(|digit| tape_to_biguint(digit)).collect();
+    let qd: Vec<BigUint> = qd.iter().map(|digit| tape_to_biguint(digit)).collect();
+    let nd: Vec<BigUint> = nd.iter().map(|digit| tape_to_biguint(digit)).collect();
     let width = pd.len().max(qd.len());
-    let zero = alloc::vec![ZERO];
+    let mut p_value = BigUint::zero();
+    let mut q_value = BigUint::zero();
+    let mut place = BigUint::one();
+    let mut product_quotient = BigUint::zero();
+    let zero = BigUint::zero();
     for index in 0..width {
         let p_digit = pd.get(index).unwrap_or(&zero);
         let q_digit = qd.get(index).unwrap_or(&zero);
-        let target_digit = nd.get(index).unwrap_or(&zero);
-        let Ok(next) = state.extend_for_digit(p_digit, q_digit, target_digit) else { return None; };
-        state = next;
+        let target = nd.get(index).unwrap_or(&zero);
+        if index == 0 {
+            if (p_digit * q_digit) % &radix_big != *target { return None; }
+        } else {
+            let product_digit = &product_quotient % &radix_big;
+            let required = (target + &radix_big - product_digit) % &radix_big;
+            let coefficient = (p_digit * (&q_value % &radix_big)
+                + q_digit * (&p_value % &radix_big)) % &radix_big;
+            if coefficient != required { return None; }
+        }
+        let cross_terms = p_digit * &q_value + q_digit * &p_value;
+        let diagonal = p_digit * q_digit * &place;
+        product_quotient = (&product_quotient + cross_terms + diagonal) / &radix_big;
+        p_value += p_digit * &place;
+        q_value += q_digit * &place;
+        place *= &radix_big;
     }
-    Some(state)
+    if &p_value * &q_value != tape_to_biguint(n) { return None; }
+    Some(RadixPrefixMembrane {
+        n: trim(n.to_vec()), radix: trim(radix.to_vec()),
+        p: biguint_to_tape(&p_value), q: biguint_to_tape(&q_value), width,
+        place: biguint_to_tape(&place), product_quotient: biguint_to_tape(&product_quotient),
+    })
 }
 
 /// Close a known pair through every radix-prefix register and the exact
@@ -379,6 +436,26 @@ pub struct FactorFixedPoint {
     pub product: Vec<char>,
 }
 
+/// Canonical proper pair at a semiprime terminal. The caller supplies the
+/// semiprime promise: exact proper closure then forces both entries to be the
+/// unique prime factors, including the repeated-prime square case.
+pub fn terminal_pair_given_semiprime_promise(
+    n: &[char], fixed: FactorFixedPoint,
+) -> Option<FactorFixedPoint> {
+    let n = trim(n.to_vec());
+    if fixed.product != n || multiply(&fixed.p, &fixed.q) != n
+        || cmp(&fixed.p, &[ONE]) != core::cmp::Ordering::Greater
+        || cmp(&fixed.q, &[ONE]) != core::cmp::Ordering::Greater {
+        return None;
+    }
+    let (p, q) = if cmp(&fixed.p, &fixed.q) == core::cmp::Ordering::Greater {
+        (fixed.q, fixed.p)
+    } else {
+        (fixed.p, fixed.q)
+    };
+    Some(FactorFixedPoint { p, q, product: n })
+}
+
 /// Outer multiplication shell containing the radix-prefix fold. The product
 /// register closes on N before the inner prefix membrane consumes P and Q.
 pub fn nest_product_over_prefix(
@@ -392,8 +469,9 @@ pub fn nest_product_over_prefix(
 }
 
 /// Outer comultiplicative prefix shell containing the live product register.
-/// Each radix digit extends P and Q, then the inner multiplication closes that
-/// prefix state before the next joint register opens.
+/// Each radix digit extends P and Q. Their exact product closes once, after the
+/// terminal prefix; intermediate products are monotone lower bounds and need
+/// no repeated full-width multiplication.
 pub fn nest_prefix_over_product(
     n: &[char], p: &[char], q: &[char], radix: &[char],
 ) -> Option<FactorFixedPoint> {
@@ -409,8 +487,6 @@ pub fn nest_prefix_over_product(
         let q_digit = qd.get(index).unwrap_or(&zero);
         let target = nd.get(index).unwrap_or(&zero);
         prefix = prefix.extend_for_digit(p_digit, q_digit, target).ok()?;
-        let product = multiply(&prefix.p, &prefix.q);
-        if cmp(&product, &n) == core::cmp::Ordering::Greater { return None; }
     }
     let product = multiply(&prefix.p, &prefix.q);
     if product != n || !prefix.is_fixed_point() { return None; }
@@ -422,9 +498,13 @@ pub fn nest_prefix_over_product(
 pub fn meet_factor_nestings(
     n: &[char], p: &[char], q: &[char], radix: &[char],
 ) -> Option<FactorFixedPoint> {
-    let product_outer = nest_product_over_prefix(n, p, q, radix)?;
-    let prefix_outer = nest_prefix_over_product(n, p, q, radix)?;
-    (product_outer == prefix_outer).then_some(prefix_outer)
+    let n = trim(n.to_vec());
+    let product_outer = multiply(p, q);
+    if product_outer != n { return None; }
+    let prefix = radix_prefix_fold(&n, p, q, radix)?;
+    let product_inner = multiply(&prefix.p, &prefix.q);
+    if product_inner != n || product_inner != product_outer { return None; }
+    Some(FactorFixedPoint { p: prefix.p, q: prefix.q, product: product_inner })
 }
 
 /// One state contains only the input and the two factor prefixes. Width is the
@@ -716,6 +796,36 @@ mod tests {
     }
 
     #[test]
+    fn semiprime_terminal_is_the_canonical_proper_meeting_pair() {
+        let radix = crate::morphism_factor::tape_u64(3);
+        let n = crate::morphism_factor::decimal_to_tape("143").unwrap();
+        let p = crate::morphism_factor::decimal_to_tape("13").unwrap();
+        let q = crate::morphism_factor::decimal_to_tape("11").unwrap();
+        let meeting = meet_factor_nestings(&n, &p, &q, &radix).unwrap();
+        let terminal = terminal_pair_given_semiprime_promise(&n, meeting).unwrap();
+        assert_eq!(crate::morphism_factor::dec_of(&terminal.p), "11");
+        assert_eq!(crate::morphism_factor::dec_of(&terminal.q), "13");
+        assert_eq!(terminal.product, n);
+
+        let square = crate::morphism_factor::decimal_to_tape("49").unwrap();
+        let seven = crate::morphism_factor::decimal_to_tape("7").unwrap();
+        let square_meeting = meet_factor_nestings(&square, &seven, &seven, &radix).unwrap();
+        let square_terminal = terminal_pair_given_semiprime_promise(&square, square_meeting).unwrap();
+        assert_eq!(crate::morphism_factor::dec_of(&square_terminal.p), "7");
+        assert_eq!(crate::morphism_factor::dec_of(&square_terminal.q), "7");
+    }
+
+    #[test]
+    fn semiprime_terminal_rejects_a_trivial_or_nonclosing_pair() {
+        let n = crate::morphism_factor::decimal_to_tape("143").unwrap();
+        let one = alloc::vec![ONE];
+        let fixed = FactorFixedPoint { p: one.clone(), q: n.clone(), product: n.clone() };
+        assert!(terminal_pair_given_semiprime_promise(&n, fixed).is_none());
+        let wrong = FactorFixedPoint { p: one.clone(), q: one, product: n.clone() };
+        assert!(terminal_pair_given_semiprime_promise(&n, wrong).is_none());
+    }
+
+    #[test]
     fn prefixes_scale_past_machine_word_width() {
         // 3 × (2^70 + 1), represented and multiplied only as bit tapes.
         let p = from_one_bits(&[0, 1]);
@@ -874,6 +984,9 @@ mod tests {
                 assert!(!state.candidate_matches_next_digit(&from_one_bits(&[0]), q_digit));
             }
             state = state.extend(p_digit, q_digit).unwrap();
+            let full_product = multiply(&state.p, &state.q);
+            let expected_quotient = crate::morphism_factor::divmod(&full_product, &state.place).0;
+            assert_eq!(state.product_quotient, expected_quotient);
         }
         assert!(state.is_fixed_point());
     }

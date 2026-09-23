@@ -1,11 +1,16 @@
-I nest the multiplicative and comultiplicative factor closures
+I give the semiprime membrane its exact terminal
 
-I carry the phase relation through the repaired banked EXTRACT word, then close
-the phase-produced factor pair through product-outer/prefix-inner and
-prefix-outer/product-inner compositions. I expose factors only where their
-terminal fixed points coincide, and buffer the complete report until both
-closures finish. I bake and run the 143 control and the 10-digit semiprime
-5726623061; the latter returns 43691 × 131071 in 164.211 μs in-process. The
-full library suite passes 199 tests, the binary suite passes five tests, and
-the release check is warning-free. I include both contained binaries and the
-updated timing record.
+I stop at the canonical proper pair when product-outer/prefix-inner and
+prefix-outer/product-inner closures meet on the baked modulus. Under the
+semiprime input promise, unique factorization makes that pair the prime pair,
+including equal factors for squares, without a separate primality pass. I state
+that the promise is required because exact product closure alone also accepts
+composite pairs such as 14 × 15 for 210.
+
+I keep the dynamic running-product quotient and arbitrary-width radix
+decomposition. Direct baked runs closed at 971, 6005, and 13398 digits in
+15.274 ms, 2.794 s, and 3.700 s. The 25965-digit run completed in 335.296 s,
+so I stopped further scale runs; no process remains active. The terminal-pair,
+factor-fold, and Shor-close tests pass, the five binary tests pass, and the
+release check has no warnings. I include the contained binaries and timing
+record.
