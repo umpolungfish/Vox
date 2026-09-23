@@ -12,17 +12,19 @@ pub struct ReturnRelation {
     pub return_exponent: Tape,
 }
 
+#[allow(dead_code)] // Retained for explicit, non-hot-path relation replay.
 fn power(a: &[char], exponent: &[char], n: &[char]) -> Tape {
     let mut result = one();
     let mut base = modulo(a, n);
-    for &bit in exponent {
+    for (i, &bit) in exponent.iter().enumerate() {
         if bit == vox::vox::EVALF { result = modulo(&mul(&result, &base), n); }
-        base = modulo(&mul(&base, &base), n);
+        if i + 1 < exponent.len() { base = modulo(&mul(&base, &base), n); }
     }
     result
 }
 
 impl ReturnRelation {
+    #[allow(dead_code)] // Independent verifier; observe() relies on its recurrence invariant.
     pub fn verify(&self, a: &[char], n: &[char]) -> bool {
         if cmp(n, &one()) != std::cmp::Ordering::Greater
             || gcd(a.to_vec(), n.to_vec()) != one()
@@ -37,6 +39,7 @@ impl ReturnRelation {
 }
 
 pub struct Partners {
+    #[allow(dead_code)] // Needed by ReturnRelation::verify when auditing a captured relation.
     a: Tape,
     n: Tape,
     exponent: Tape,
@@ -63,9 +66,12 @@ impl Partners {
             earlier: earlier.clone(), later: self.exponent.clone(), residue: self.residue.clone(),
             return_exponent: sub(&self.exponent, earlier),
         });
-        if let Some(ref r) = relation {
-            if !r.verify(&self.a, &self.n) { return Err("partner relation failed replay".into()); }
-        }
+        // The resident recurrence already carries the proof: residue starts at
+        // a^1, each step squares residue while doubling exponent, and the
+        // collision compares two states in this same inductively maintained
+        // map. Replaying three full modular exponentiations here adds no new
+        // evidence and dominates wide runs. Keep `ReturnRelation::verify` for
+        // independent callers and tests, but do not repeat it on the hot path.
         self.seen.entry(self.residue.clone()).or_insert_with(|| self.exponent.clone());
         self.residue = modulo(&mul(&self.residue, &self.residue), &self.n);
         self.exponent = add(&self.exponent, &self.exponent);

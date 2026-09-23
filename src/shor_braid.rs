@@ -28,17 +28,18 @@ fn eq(a: &[char], b: &[char]) -> bool {
 
 /// Tape exponentiation by square-and-multiply, exponent a tape (any size).
 fn pow_tape(base: &[char], e_in: &[char], n: &[char]) -> Vec<char> {
-    let two = tape_u64(2);
     let mut r = one();
     let mut b = modulo(base, n);
-    let mut e = trim(e_in.to_vec());
-    while !zero(&e) {
-        let (q, rem) = divmod(&e, &two);
-        if eq(&rem, &one()) {
+    let e = trim(e_in.to_vec());
+    for (i, &bit) in e.iter().enumerate() {
+        if bit == crate::vox::EVALF {
             r = modulo(&mul(&r, &b), n);
         }
-        b = modulo(&mul(&b, &b), n);
-        e = q;
+        // The final square cannot contribute to the result. Skipping it also
+        // avoids one full-width multiply/modulo pair for every exponentiation.
+        if i + 1 < e.len() {
+            b = modulo(&mul(&b, &b), n);
+        }
     }
     r
 }
@@ -197,5 +198,13 @@ mod tests {
         let n = decimal_to_tape("21").unwrap();
         let (word, _) = shor_braid(&a, &n).unwrap();
         assert_eq!(crate::winding_readout::winding_number(&word).unwrap(), 6);
+    }
+
+    #[test]
+    fn direct_lsb_exponent_scan_closes_a_semiprime() {
+        let a = decimal_to_tape("7").unwrap();
+        let n = decimal_to_tape("15").unwrap();
+        let (p, q) = factor_close_public(&a, &n, &decimal_to_tape("4").unwrap()).unwrap();
+        assert_eq!(crate::morphism_factor::mul(&p, &q), n);
     }
 }

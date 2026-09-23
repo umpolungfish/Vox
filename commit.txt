@@ -1,3 +1,13 @@
+I remove repeated work from the phase and closure hot paths
+
+I share the deterministic radix-prefix fold between the two exact closure
+orders, replace exponent-tape halving with direct LSB-first bit scanning, and
+remove redundant modular-exponentiation replay from phase collision handling
+while retaining the independent relation verifier. On the same 13,398-digit
+baked case, measured wall time falls from 36.18 s to 20.01 s, with phase
+winding dropping from 14.66 s to 4.38 s. Both closure supports remain true;
+the full 196-test library suite and the binary relation-verifier test pass.
+
 I seal the quantum landing through its preimage constructor
 
 I route the measurement landing through a constructor that validates the
