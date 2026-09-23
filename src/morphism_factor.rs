@@ -2075,6 +2075,20 @@ mod tests {
     }
 
     #[test]
+    fn extract_banks_both_deposits_across_its_internal_arev() {
+        let split = EXTRACT.iter().position(|&mark| mark == FSPLIT).unwrap();
+        let reversal = EXTRACT.iter().position(|&mark| mark == AREV).unwrap();
+        let fuse = EXTRACT.iter().position(|&mark| mark == FFUSE).unwrap();
+        assert!(split < reversal && reversal < fuse);
+        assert_eq!(EXTRACT.iter().filter(|&&mark| mark == FSPLIT).count(), 1);
+        assert_eq!(EXTRACT.iter().filter(|&&mark| mark == FFUSE).count(), 1);
+        for deposit in [EVALT, EVALF] {
+            let at = EXTRACT.iter().position(|&mark| mark == deposit).unwrap();
+            assert!(split < at && at < fuse, "{deposit} must remain inside EXTRACT's bank");
+        }
+    }
+
+    #[test]
     fn nested_p_minus_catches_a_far_large_smooth_predecessor_factor() {
         // p = 39916801 (11!+1, prime; p-1 = 11! is smooth), q = 1000000007 far
         // away. Frontier is dead on the gap, but the nested p-1 arm closes it.
