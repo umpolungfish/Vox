@@ -1,3 +1,12 @@
+I keep phase state dynamic and preserve the EXTRACT bank
+
+I replace per-observation exponent tapes with indices, use exact packed
+residues and dynamic-width modular registers for phase winding, and add a
+regression proving both EXTRACT deposits and AREV remain inside its single
+FSPLIT/FFUSE frame. The targeted tests pass with a warning-free release check.
+The supplied 270-digit phase run remained silent but did not collide during a
+multi-minute trial, so I record no factors or completion time.
+
 I keep the phase membrane silent until closure
 
 I remove per-eight-observation progress reports so the baked membrane emits

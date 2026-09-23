@@ -134,3 +134,13 @@ closure; the captured output file was empty. The phase `BTreeMap` retains every
 full residue and its exponent, so this run exposes unbounded observation-state
 memory as the next bottleneck. No factorization or execution-time result is
 claimed for this input.
+
+The original phase path was then kept intact while its observation register
+was made dynamic-width and its exact residue keys compact. Repeated modular
+squaring now runs in a dynamic integer register, converting back to the tape
+only at a collision; the EXTRACT operator also has a regression for keeping
+both deposits and AREV inside its single FSPLIT/FFUSE frame. These checks pass.
+The 270-digit run remained silent without a phase collision for several
+minutes and was manually stopped. No factors or completion time are claimed.
+The remaining cost is the orbit length of the repeated-squaring phase
+sequence, not the removed quadratic storage of exponent tapes.
