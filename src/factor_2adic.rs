@@ -369,6 +369,64 @@ pub fn radix_prefix_closes(n: &[char], p: &[char], q: &[char], radix: &[char]) -
     radix_prefix_fold(n, p, q, radix).is_some_and(|state| state.is_fixed_point())
 }
 
+/// Terminal factors carried by the meeting point of the two nested closure
+/// orders. `product` is the live multiplicative register; `p` and `q` are read
+/// from the terminal comultiplicative prefix state.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FactorFixedPoint {
+    pub p: Vec<char>,
+    pub q: Vec<char>,
+    pub product: Vec<char>,
+}
+
+/// Outer multiplication shell containing the radix-prefix fold. The product
+/// register closes on N before the inner prefix membrane consumes P and Q.
+pub fn nest_product_over_prefix(
+    n: &[char], p: &[char], q: &[char], radix: &[char],
+) -> Option<FactorFixedPoint> {
+    let product = multiply(p, q);
+    if product != trim(n.to_vec()) { return None; }
+    let prefix = radix_prefix_fold(n, p, q, radix)?;
+    if !prefix.is_fixed_point() { return None; }
+    Some(FactorFixedPoint { p: prefix.p, q: prefix.q, product })
+}
+
+/// Outer comultiplicative prefix shell containing the live product register.
+/// Each radix digit extends P and Q, then the inner multiplication closes that
+/// prefix state before the next joint register opens.
+pub fn nest_prefix_over_product(
+    n: &[char], p: &[char], q: &[char], radix: &[char],
+) -> Option<FactorFixedPoint> {
+    let n = trim(n.to_vec());
+    let radix = trim(radix.to_vec());
+    let pd = radix_digits(p, &radix).ok()?;
+    let qd = radix_digits(q, &radix).ok()?;
+    let nd = radix_digits(&n, &radix).ok()?;
+    let mut prefix = RadixPrefixMembrane::new(n.clone(), radix).ok()?;
+    let zero = alloc::vec![ZERO];
+    for index in 0..pd.len().max(qd.len()) {
+        let p_digit = pd.get(index).unwrap_or(&zero);
+        let q_digit = qd.get(index).unwrap_or(&zero);
+        let target = nd.get(index).unwrap_or(&zero);
+        prefix = prefix.extend_for_digit(p_digit, q_digit, target).ok()?;
+        let product = multiply(&prefix.p, &prefix.q);
+        if cmp(&product, &n) == core::cmp::Ordering::Greater { return None; }
+    }
+    let product = multiply(&prefix.p, &prefix.q);
+    if product != n || !prefix.is_fixed_point() { return None; }
+    Some(FactorFixedPoint { p: prefix.p, q: prefix.q, product })
+}
+
+/// Run both nestings and expose the factors only where their terminal fixed
+/// points coincide exactly.
+pub fn meet_factor_nestings(
+    n: &[char], p: &[char], q: &[char], radix: &[char],
+) -> Option<FactorFixedPoint> {
+    let product_outer = nest_product_over_prefix(n, p, q, radix)?;
+    let prefix_outer = nest_prefix_over_product(n, p, q, radix)?;
+    (product_outer == prefix_outer).then_some(prefix_outer)
+}
+
 /// One state contains only the input and the two factor prefixes. Width is the
 /// number of low bits currently fixed.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -569,6 +627,20 @@ pub fn factor_2adic_multiplication_outer(
     out
 }
 
+/// Generate the same terminal pair through both traversal nestings. The
+/// returned fixed point is the intersection of the comultiplicative-prefix
+/// outer circuit and the multiplication-shell outer circuit.
+pub fn factor_2adic_meeting_point(
+    n: &[char], max_solutions: Option<usize>,
+) -> Option<FactorFixedPoint> {
+    let forward = factor_2adic(n, max_solutions).into_iter().next()?;
+    let reverse = factor_2adic_multiplication_outer(n, max_solutions).into_iter().next()?;
+    if forward != reverse { return None; }
+    let product = multiply(&forward.0, &forward.1);
+    if product != trim(n.to_vec()) { return None; }
+    Some(FactorFixedPoint { p: forward.0, q: forward.1, product })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -632,6 +704,15 @@ mod tests {
         assert_eq!(factor_2adic_multiplication_outer(&n15, None), factor_2adic(&n15, None));
         assert_eq!(factor_2adic_multiplication_outer(&n105, None), factor_2adic(&n105, None));
         assert_eq!(factor_2adic_multiplication_outer(&n221, None), factor_2adic(&n221, None));
+    }
+
+    #[test]
+    fn factor_pair_is_the_meeting_point_of_both_generator_nestings() {
+        let n = crate::morphism_factor::decimal_to_tape("143").unwrap();
+        let meeting = factor_2adic_meeting_point(&n, Some(1)).unwrap();
+        assert_eq!(crate::morphism_factor::dec_of(&meeting.p), "11");
+        assert_eq!(crate::morphism_factor::dec_of(&meeting.q), "13");
+        assert_eq!(meeting.product, n);
     }
 
     #[test]
@@ -757,6 +838,21 @@ mod tests {
         let wrong_q = from_one_bits(&[0, 1, 3]); // 11
         assert!(!radix_prefix_closes(&n, &p, &wrong_q, &from_one_bits(&[0, 1])));
         assert!(RadixPrefixMembrane::new(n, alloc::vec![ONE]).is_err());
+    }
+
+    #[test]
+    fn multiplication_and_prefix_nestings_meet_at_the_factor_pair() {
+        let n = crate::morphism_factor::decimal_to_tape("143").unwrap();
+        let p = crate::morphism_factor::decimal_to_tape("11").unwrap();
+        let q = crate::morphism_factor::decimal_to_tape("13").unwrap();
+        let radix = crate::morphism_factor::tape_u64(3);
+        let product_outer = nest_product_over_prefix(&n, &p, &q, &radix).unwrap();
+        let prefix_outer = nest_prefix_over_product(&n, &p, &q, &radix).unwrap();
+        assert_eq!(product_outer, prefix_outer);
+        assert_eq!(product_outer.p, p);
+        assert_eq!(product_outer.q, q);
+        assert_eq!(product_outer.product, n);
+        assert_eq!(meet_factor_nestings(&n, &p, &q, &radix), Some(product_outer));
     }
 
     #[test]

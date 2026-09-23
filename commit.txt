@@ -1,8 +1,11 @@
-I carry the phase relation through the repaired EXTRACT frame
+I nest the multiplicative and comultiplicative factor closures
 
-I run ⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣ over the acquired phase relation before the factor
-close, and require all four deposits to survive with one restored and none
-exposed. The binary keeps the value baked in as IMASM numeral tapes and remains
-silent until the complete membrane finishes. The repaired-word register test,
-all five factor_2adic binary tests, and the release check pass without warnings.
-I bake and run the supplied 270-digit semiprime through this integrated word.
+I carry the phase relation through the repaired banked EXTRACT word, then close
+the phase-produced factor pair through product-outer/prefix-inner and
+prefix-outer/product-inner compositions. I expose factors only where their
+terminal fixed points coincide, and buffer the complete report until both
+closures finish. I bake and run the 143 control and the 10-digit semiprime
+5726623061; the latter returns 43691 × 131071 in 164.211 μs in-process. The
+full library suite passes 199 tests, the binary suite passes five tests, and
+the release check is warning-free. I include both contained binaries and the
+updated timing record.
