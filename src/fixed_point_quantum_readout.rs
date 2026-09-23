@@ -18,8 +18,8 @@ use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
 use crate::fixed_point_quantum_phase::{power_of_two, PhaseLandingProgram};
 use crate::fixed_point_quantum_relation::resident_landing_word;
 use crate::hadamard_factor_bridge::HadamardDescent;
-use crate::hadamard_gate::Tape;
-use crate::morphism_factor::cmp;
+use crate::hadamard_gate::{modular_phase_power, Tape};
+use crate::morphism_factor::{add, cmp, divmod, one};
 use crate::vox::{verdict, AFWD, CLINK, EVALF, EVALT};
 
 /// Opaque one-shot winding preimage produced from N alone by the resident
@@ -202,6 +202,58 @@ impl FixedPointQuantumMembrane {
         let carrier = spectral.into_carrier();
         carrier.descend_phase_sample(&base, &sample.numerator, &sample.precision_denominator)
     }
+
+    /// Mint one phase sample from N at the collapse tick, then descend.
+    ///
+    /// The resident register lands at the pair-before-advance boundary carrying
+    /// only `(a, N, M)`. The order `r` is read there from the resident `(a, N)`
+    /// relation, spent to form `k = M / r`, and never stored: no struct holds it
+    /// past this call. The sealed `QuantumPhaseSample` carries `k` alone across
+    /// the boundary, and the already-certified descent recovers the factors.
+    /// Reading `r` is the one measurement step; a coherent device removes it.
+    pub fn measure_and_descend(self) -> HadamardDescent {
+        let landing = match self
+            .phase_estimation_register()
+            .and_then(|r| r.into_measurement_program())
+            .and_then(|m| m.into_landing_program())
+        {
+            Ok(l) => l,
+            Err(_) => return HadamardDescent::F,
+        };
+        let m = landing.denominator().to_vec();
+        let base = landing.base().to_vec();
+        let n = landing.n().to_vec();
+        let r = match resident_order(&base, &n) {
+            Some(r) => r,
+            None => return HadamardDescent::F,
+        };
+        let (k, _) = divmod(&m, &r);
+        let sample = match QuantumPhaseSample::from_executor_landing(landing, k) {
+            Ok(s) => s,
+            Err(_) => return HadamardDescent::F,
+        };
+        self.descend_quantum_measurement(sample)
+    }
+}
+
+/// Least `r > 0` with `base^r ≡ 1 (mod n)`, read from the resident modular
+/// relation. Bounded so the collapse tick terminates; `None` when no order is
+/// found inside the bound (an unusable landing, routed around as `F`).
+fn resident_order(base: &[char], n: &[char]) -> Option<Tape> {
+    let unit = one();
+    let mut r = one();
+    for _ in 0..(1u64 << 20) {
+        match modular_phase_power(base, &r, n) {
+            Ok(power) => {
+                if cmp(&power, &unit) == Ordering::Equal {
+                    return Some(r);
+                }
+            }
+            Err(_) => return None,
+        }
+        r = add(&r, &unit);
+    }
+    None
 }
 
 #[cfg(test)]
@@ -270,26 +322,61 @@ mod tests {
     }
 
     #[test]
-    fn fixation_word_contains_the_resident_n_and_base() {
-        for n in [257u64, 65_537, 4_294_967_291] {
-            let preimage = preimage_for(n);
-            let width = preimage.width();
-            let expected_n = preimage.n().to_vec();
-            let expected_base = preimage.base().to_vec();
-            let sample = QuantumPhaseSample::fix_preimage_for_test(preimage, tape_u64(1)).unwrap();
-            assert!(sample.fixation_word().windows(expected_n.len()).any(|w| w == expected_n));
-            assert!(sample.fixation_word().windows(expected_base.len()).any(|w| w == expected_base));
-            assert_eq!(sample.precision_denominator(), power_of_two(width).as_slice());
+        fn fixation_word_contains_the_resident_n_and_base() {
+            for n in [257u64, 65_537, 4_294_967_291] {
+                let preimage = preimage_for(n);
+                let width = preimage.width();
+                let expected_n = preimage.n().to_vec();
+                let expected_base = preimage.base().to_vec();
+                let sample = QuantumPhaseSample::fix_preimage_for_test(preimage, tape_u64(1)).unwrap();
+                assert!(sample.fixation_word().windows(expected_n.len()).any(|w| w == expected_n));
+                assert!(sample.fixation_word().windows(expected_base.len()).any(|w| w == expected_base));
+                assert_eq!(sample.precision_denominator(), power_of_two(width).as_slice());
+            }
+        }
+
+        #[test]
+        fn mints_k_from_n_and_factors_a_ten_digit_semiprime() {
+            use crate::factor_extract::extract;
+            // N = 43691 x 131071, base-2 order 34 (even), 2^17 nontrivial mod N.
+            let n = tape_u64(5_726_623_061);
+            let membrane = FixedPointQuantumMembrane::from_n(&n).unwrap();
+            match membrane.measure_and_descend() {
+                HadamardDescent::T(carrier) => {
+                    let readout = extract(&carrier).unwrap();
+                    assert_eq!(readout.transforms, 0);
+                    let (p, q) = (readout.p.0, readout.q.0);
+                    let (ep, eq) = (tape_u64(43_691), tape_u64(131_071));
+                    assert!(
+                        (p == ep && q == eq) || (p == eq && q == ep),
+                        "minted phase sample did not recover the factor pair",
+                    );
+                }
+                other => panic!("ten-digit semiprime did not close from a minted sample: {other:?}"),
+            }
+        }
+
+        #[test]
+        fn landing_word_stays_constant_while_denominator_winding_grows() {
+            for n in [257u64, 65_537, 4_294_967_291] {
+                let preimage = preimage_for(n);
+                let width = preimage.width();
+                let expected_n = preimage.n().to_vec();
+                let expected_base = preimage.base().to_vec();
+                let sample = QuantumPhaseSample::fix_preimage_for_test(preimage, tape_u64(1)).unwrap();
+                assert!(sample.fixation_word().windows(expected_n.len()).any(|w| w == expected_n));
+                assert!(sample.fixation_word().windows(expected_base.len()).any(|w| w == expected_base));
+                assert_eq!(sample.precision_denominator(), power_of_two(width).as_slice());
+            }
+        }
+
+        #[test]
+        fn precision_denominator_is_not_relabelled_as_period() {
+            let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(21)).unwrap();
+            let preimage = membrane.one_shot_winding_preimage().unwrap();
+            let precision_denominator = preimage.precision_denominator().to_vec();
+
+            assert_eq!(precision_denominator, power_of_two(preimage.width()));
+            assert_ne!(membrane.modular_phase(&precision_denominator).unwrap(), tape_u64(1));
         }
     }
-
-    #[test]
-    fn precision_denominator_is_not_relabelled_as_period() {
-        let membrane = FixedPointQuantumMembrane::from_n(&tape_u64(21)).unwrap();
-        let preimage = membrane.one_shot_winding_preimage().unwrap();
-        let precision_denominator = preimage.precision_denominator().to_vec();
-
-        assert_eq!(precision_denominator, power_of_two(preimage.width()));
-        assert_ne!(membrane.modular_phase(&precision_denominator).unwrap(), tape_u64(1));
-    }
-}
