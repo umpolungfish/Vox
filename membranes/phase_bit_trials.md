@@ -67,3 +67,35 @@ FDE T, with both radix-prefix and product-first closure true. Its internal
 phase and dual-closure timings were 16.132 μs and 38.168 μs. A unit test also
 closes the same pair in radices 2, 3, 5, 10, 11, and `2^80 + 1`, then rejects
 an incorrect pair.
+
+## Wider radix-3 semiprimes
+
+Each baked binary used phase base 2 and lift radix 3 for
+`N = 257 × (2^m − 1)`. All completed runs returned FDE T with both closure
+channels true. The first four used the initial lift, which rechecked the full
+modulus at every digit. Starting at `m = 4423`, the lift used the inductive
+digit equation and exact terminal product closure.
+
+| m | N decimal digits | factors | phase observations | phase winding | dual closure |
+|---:|---:|---|---:|---:|---:|
+| 521 | 160 | 257 × (2^521 − 1) | 265 | 4.348 ms | 266.469 ms |
+| 1279 | 388 | 257 × (2^1279 − 1) | 644 | 27.361 ms | 3.125 s |
+| 2203 | 666 | 257 × (2^2203 − 1) | 739 | 52.441 ms | 14.441 s |
+| 3217 | 971 | 257 × (2^3217 − 1) | 809 | 87.755 ms | 42.511 s |
+| 4423 | 1334 | 257 × (2^4423 − 1) | 742 | 162.360 ms | 178.401 ms |
+| 9689 | 2920 | 257 × (2^9689 − 1) | 4849 | 2.284 s | 813.829 ms |
+| 11213 | 3378 | 257 × (2^11213 − 1) | 11217 | 6.861 s | 1.055 s |
+| 19937 | 6005 | 257 × (2^19937 − 1) | 9973 | 14.126 s | 3.219 s |
+| 44497 | 13398 | 257 × (2^44497 − 1) | 2786 | 14.678 s | 15.661 s |
+
+The inductive lift reduced the 1334-digit dual closure from 102.902 s to
+178.401 ms. A 25,965-digit input, `257 × (2^86243 − 1)`, was also built with
+phase base 2 and radix 3. Its run had not returned a closure when it was
+interrupted; the last surfaced milestone was 65,536 observations. The output
+filter suppressed later intermediate counts, so no final observation count or
+timing is recorded for that run.
+
+The latest workspace-wide test attempt did not compile because
+`src/fixed_point_quantum_readout.rs` calls the missing
+`QuantumPhaseSample::from_executor_landing`. The radix-specific tests passed
+before that attempt; this separate readout path was left unchanged.
