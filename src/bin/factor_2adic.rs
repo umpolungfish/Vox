@@ -10,17 +10,18 @@ use vox::morphism_factor::parse_numeral;
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
-fn verify_pair_by_lift(n: &[char], p: &[char], q: &[char], radix: &[char]) -> bool {
-    vox::factor_2adic::radix_prefix_closes(n, p, q, radix)
+fn verify_pair_by_lift(
+    n: &[char], p: &[char], q: &[char], radix: &[char],
+) -> Option<vox::factor_2adic::RadixPrefixMembrane> {
+    vox::factor_2adic::radix_prefix_fold(n, p, q, radix)
 }
 
 /// Reverse nesting of the same closure: the multiplicative shell closes first,
 /// then its factors are carried through the encoded prefix lift. Keeping this
 /// order separate from `verify_pair_by_lift` makes disagreement visible rather
 /// than silently treating one composition as the other.
-fn verify_pair_by_product_outer(n: &[char], p: &[char], q: &[char], radix: &[char]) -> bool {
-    if vox::morphism_factor::mul(p, q) != n { return false; }
-    vox::factor_2adic::radix_prefix_closes(n, p, q, radix)
+fn verify_pair_by_product_outer(n: &[char], p: &[char], q: &[char]) -> bool {
+    vox::morphism_factor::mul(p, q) == n
 }
 
 /// FDE value for the proposition that the candidate pair closes on N.
@@ -51,6 +52,7 @@ fn print_frames(label: &str, tape: &[char]) {
 }
 
 fn run_baked_membrane() {
+    let run_started = std::time::Instant::now();
     let (base_word, word) = match (BAKED_BASE_WORD, BAKED_MODULUS_WORD) {
         (Some(base), Some(modulus)) => (base, modulus),
         _ => {
@@ -114,27 +116,39 @@ fn run_baked_membrane() {
     };
     let phase_elapsed = phase_started.elapsed();
     let winding = relation.return_exponent.clone();
+    let factor_close_started = std::time::Instant::now();
     let factor_pair = vox::shor_braid::factor_close_public(&base, &tape, &winding);
+    let factor_close_elapsed = factor_close_started.elapsed();
     let factors = if let Ok((mut p, mut q)) = factor_pair {
         if vox::morphism_factor::cmp(&p, &q) == core::cmp::Ordering::Greater {
             core::mem::swap(&mut p, &mut q);
         }
         let closure_started = std::time::Instant::now();
-        let prefix_first = verify_pair_by_lift(&tape, &p, &q, &radix);
-        let product_first = verify_pair_by_product_outer(&tape, &p, &q, &radix);
+        let product_outer_started = std::time::Instant::now();
+        let product_first_exact = verify_pair_by_product_outer(&tape, &p, &q);
+        let product_outer_exact_elapsed = product_outer_started.elapsed();
+        let prefix_started = std::time::Instant::now();
+        let prefix_state = verify_pair_by_lift(&tape, &p, &q, &radix);
+        let prefix_elapsed = prefix_started.elapsed();
+        let terminal_started = std::time::Instant::now();
+        let prefix_first_terminal = prefix_state.as_ref().is_some_and(|state| state.is_fixed_point());
+        let prefix_terminal_elapsed = terminal_started.elapsed();
+        let prefix_first = prefix_state.is_some() && prefix_first_terminal;
+        let product_first = product_first_exact && prefix_state.is_some();
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
         eprintln!("phase winding: {} ({} dyadic observations, {} phase registers)", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
-        eprintln!("membrane timing: phase-winding={phase_elapsed:?} fde-dual-closure={closure_elapsed:?}");
+        eprintln!("membrane timing: phase-winding={phase_elapsed:?} factor-close={factor_close_elapsed:?} product-outer-exact={product_outer_exact_elapsed:?} shared-prefix-lift={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}");
         println!("FDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})");
         if closure_value == 'T' { Some((p, q)) } else { None }
     } else {
         eprintln!("phase winding: {} ({} dyadic observations, {} phase registers)", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
-        eprintln!("membrane timing: phase-winding={phase_elapsed:?} fde-dual-closure=not-run");
+        eprintln!("membrane timing: phase-winding={phase_elapsed:?} factor-close={factor_close_elapsed:?} fde-dual-closure=not-run");
         eprintln!("phase factor-close: {}", factor_pair.unwrap_err());
         None
     };
 
+    let output_started = std::time::Instant::now();
     println!("membrane input: baked IMASM base and modulus");
     println!("nesting: phase winding ⊃ factor close ⊃ encoded radix-register fold");
     println!("base = {base_word}");
@@ -151,6 +165,8 @@ fn run_baked_membrane() {
     } else {
         println!("phase winding did not close to a nontrivial factor pair for this baked base");
     }
+    let _ = std::io::Write::flush(&mut std::io::stdout());
+    eprintln!("membrane timing: output-render-flush={:?} total-in-process={:?}", output_started.elapsed(), run_started.elapsed());
 }
 
 /// Stable no-argument entry for direct execution from a lifted IMASM module.

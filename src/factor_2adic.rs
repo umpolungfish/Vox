@@ -344,22 +344,29 @@ pub fn radix_digits(value: &[char], radix: &[char]) -> Result<Vec<Vec<char>>, &'
     Ok(digits)
 }
 
-/// Close a known pair through every radix-prefix register, retaining exact
-/// product closure as the terminal fixed point.
-pub fn radix_prefix_closes(n: &[char], p: &[char], q: &[char], radix: &[char]) -> bool {
-    let (Ok(pd), Ok(qd)) = (radix_digits(p, radix), radix_digits(q, radix)) else { return false; };
-    let Ok(nd) = radix_digits(n, radix) else { return false; };
-    let Ok(mut state) = RadixPrefixMembrane::new(n.to_vec(), radix.to_vec()) else { return false; };
+/// Fold a known pair through every radix-prefix register. The returned state
+/// carries the inductive digit closure; callers choose when to perform exact
+/// product closure so both nesting orders can share this deterministic fold.
+pub fn radix_prefix_fold(n: &[char], p: &[char], q: &[char], radix: &[char]) -> Option<RadixPrefixMembrane> {
+    let (Ok(pd), Ok(qd)) = (radix_digits(p, radix), radix_digits(q, radix)) else { return None; };
+    let Ok(nd) = radix_digits(n, radix) else { return None; };
+    let Ok(mut state) = RadixPrefixMembrane::new(n.to_vec(), radix.to_vec()) else { return None; };
     let width = pd.len().max(qd.len());
     let zero = alloc::vec![ZERO];
     for index in 0..width {
         let p_digit = pd.get(index).unwrap_or(&zero);
         let q_digit = qd.get(index).unwrap_or(&zero);
         let target_digit = nd.get(index).unwrap_or(&zero);
-        let Ok(next) = state.extend_for_digit(p_digit, q_digit, target_digit) else { return false; };
+        let Ok(next) = state.extend_for_digit(p_digit, q_digit, target_digit) else { return None; };
         state = next;
     }
-    state.is_fixed_point()
+    Some(state)
+}
+
+/// Close a known pair through every radix-prefix register and the exact
+/// terminal product fixed point.
+pub fn radix_prefix_closes(n: &[char], p: &[char], q: &[char], radix: &[char]) -> bool {
+    radix_prefix_fold(n, p, q, radix).is_some_and(|state| state.is_fixed_point())
 }
 
 /// One state contains only the input and the two factor prefixes. Width is the
