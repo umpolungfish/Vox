@@ -18,11 +18,13 @@ const BRANCH: &[char] = &[VINIT, FSPLIT, EVALT, EVALF, FFUSE, TANCH];
 const SELECT: &[char] = &[VINIT, FSPLIT, IMSCRIB, FFUSE, TANCH];
 const CONTINUE: &[char] = &[VINIT, AFWD, CLINK, TANCH];
 const FIX: &[char] = &[VINIT, IMSCRIB, IFIX, TANCH];
-// The instant extract morphism: one evaluate frame carrying the involution
-// (AREV ≺) and hold (ENGAGR ⊞) between the truth and falsity ports. It folds
-// phase, arithmetic, select and continue into a single boundary, which is what
-// makes the extractor a one-frame factorizer.
+const FIX_BANKED: &[char] = &[VINIT, IFIX, CLINK, IMSCRIB, TANCH];
+// The repaired extract morphism banks its T/F/⊞ deposits and AREV within one
+// frame; the adjacent ⊡⋈⊙ tail is the paired fixed-point latch.
 const EXTRACT: &[char] = &[VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE, TANCH];
+const EXTRACT_BANKED: &[char] = &[
+    VINIT, FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE, TANCH,
+];
 // Pollard p-1: seed an accumulator (IMSCRIB), raise it through rising exponents
 // (ENGAGR), and take the gcd (CLINK) inside the frame. It catches a factor p
 // whenever p-1 is smooth, at any size and any gap, covering the slice the
@@ -902,7 +904,11 @@ const BRANCH_I: &[char] = &[FSPLIT, EVALT, EVALF, FFUSE];
 const SELECT_I: &[char] = &[FSPLIT, IMSCRIB, FFUSE];
 const CONTINUE_I: &[char] = &[AFWD, CLINK];
 const FIX_I: &[char] = &[IMSCRIB, IFIX];
+const FIX_BANKED_I: &[char] = &[IFIX, CLINK, IMSCRIB];
 const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
+const EXTRACT_BANKED_I: &[char] = &[
+    FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE,
+];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
@@ -919,8 +925,8 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
     else if operator == BRANCH { "BRANCH" }
     else if operator == SELECT { "SELECT" }
     else if operator == CONTINUE { "CONTINUE" }
-    else if operator == FIX { "FIX" }
-    else if operator == EXTRACT { "EXTRACT" }
+    else if operator == FIX || operator == FIX_BANKED { "FIX" }
+    else if operator == EXTRACT || operator == EXTRACT_BANKED { "EXTRACT" }
     else if operator == P_MINUS { "P_MINUS" }
     else if operator == ECM { "ECM" }
     else if operator == WITNESS { "WITNESS" }
@@ -946,10 +952,11 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
         return Err("operator word needs VINIT ⊢ and TANCH ⊣ interfaces".into());
     }
     let body = &c[1..c.len() - 1];
-    // Longest interior first so PHASE/ARITHMETIC win over BRANCH, and FIX (⊙⊡)
-    // wins over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 15] = [
+    // Longest interior first so complete phase motifs win over BRANCH, and the
+    // two FIX spellings win over a lone IMSCRIB carry.
+    let motifs: [(&[char], &[char]); 17] = [
         (UNBRAID_I, UNBRAID),
+        (EXTRACT_BANKED_I, EXTRACT_BANKED),
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
@@ -963,6 +970,7 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
         (BRANCH_I, BRANCH),
         (SELECT_I, SELECT),
         (CONTINUE_I, CONTINUE),
+        (FIX_BANKED_I, FIX_BANKED),
         (FIX_I, FIX),
     ];
     let mut tower: Vec<&'static [char]> = Vec::new();
@@ -1101,12 +1109,12 @@ fn require_factoring_complete(tower: &[&[char]]) -> Result<(), String> {
     let has = |op: &[char]| tower.iter().any(|t| *t == op);
     let mut missing = Vec::new();
     // EXTRACT, ECM and UNBRAID each fold advance, decide and continue into one boundary.
-    if !has(EXTRACT) && !has(ECM) && !has(UNBRAID) {
+    if !has(EXTRACT) && !has(EXTRACT_BANKED) && !has(ECM) && !has(UNBRAID) {
         if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
         if !has(SELECT) { missing.push("SELECT (decide)"); }
         if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
     }
-    if !has(FIX) { missing.push("FIX (latch)"); }
+    if !has(FIX) && !has(FIX_BANKED) { missing.push("FIX (latch)"); }
     if missing.is_empty() {
         Ok(())
     } else {
@@ -1328,7 +1336,7 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.y = two();
             state.divisor = one();
         }
-    } else if operator == EXTRACT {
+    } else if operator == EXTRACT || operator == EXTRACT_BANKED {
         // Instant extract: one frame forks three arms and fuses on the first to
         // close, the two-arm converge circuit plus trial.
         // Arm 1, the square frontier (Fermat): a walks up from ceil(sqrt N);
@@ -1557,7 +1565,7 @@ fn apply_morphism(operator: &[char], state: &mut State) {
                 }
             }
         }
-    } else if operator == FIX {
+    } else if operator == FIX || operator == FIX_BANKED {
         if let Some(value) = state.selected.take() {
             state.selected = Some(trim(value));
         }
@@ -2065,7 +2073,7 @@ mod tests {
         // its evaluate frame; that frame is the EXTRACT morphism, a one-frame
         // fold of advance, decide and continue. The word decomposes to
         // EXTRACT then FIX and factors on the carrier built from itself.
-        let w = "⊢⊙∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
+        let w = "⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣";
         let tower = construct_carrier(w).unwrap();
         let names: Vec<&str> = tower.iter().map(|t| morphism_name(t)).collect();
         assert_eq!(names, ["EXTRACT", "FIX"]);
@@ -2076,14 +2084,14 @@ mod tests {
 
     #[test]
     fn extract_banks_both_deposits_across_its_internal_arev() {
-        let split = EXTRACT.iter().position(|&mark| mark == FSPLIT).unwrap();
-        let reversal = EXTRACT.iter().position(|&mark| mark == AREV).unwrap();
-        let fuse = EXTRACT.iter().position(|&mark| mark == FFUSE).unwrap();
+        let split = EXTRACT_BANKED.iter().position(|&mark| mark == FSPLIT).unwrap();
+        let reversal = EXTRACT_BANKED.iter().position(|&mark| mark == AREV).unwrap();
+        let fuse = EXTRACT_BANKED.iter().position(|&mark| mark == FFUSE).unwrap();
         assert!(split < reversal && reversal < fuse);
-        assert_eq!(EXTRACT.iter().filter(|&&mark| mark == FSPLIT).count(), 1);
-        assert_eq!(EXTRACT.iter().filter(|&&mark| mark == FFUSE).count(), 1);
+        assert_eq!(EXTRACT_BANKED.iter().filter(|&&mark| mark == FSPLIT).count(), 1);
+        assert_eq!(EXTRACT_BANKED.iter().filter(|&&mark| mark == FFUSE).count(), 1);
         for deposit in [EVALT, EVALF] {
-            let at = EXTRACT.iter().position(|&mark| mark == deposit).unwrap();
+            let at = EXTRACT_BANKED.iter().position(|&mark| mark == deposit).unwrap();
             assert!(split < at && at < fuse, "{deposit} must remain inside EXTRACT's bank");
         }
     }

@@ -144,3 +144,10 @@ The 270-digit run remained silent without a phase collision for several
 minutes and was manually stopped. No factors or completion time are claimed.
 The remaining cost is the orbit length of the repeated-squaring phase
 sequence, not the removed quadratic storage of exponent tapes.
+
+The repaired one-frame EXTRACT word
+`⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣` decomposes as the banked extraction frame followed by
+the `⊡⋈⊙` latch. The recognizer preserves the single ∈…∋ frame around both
+deposits and AREV, and accepts the earlier EXTRACT/FIX spelling as well. Both
+forms factor 8051 through the same resident carrier. The targeted EXTRACT,
+banking, and nested p−1 tests pass.

@@ -1,6 +1,6 @@
 //! Sequential dyadic partner observations. No register enumeration or supplied
 //! order. A collision proves a return exponent, which may be a multiple of order.
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use vox::morphism_factor::{cmp, gcd, modulo, mul, one, sub};
@@ -46,7 +46,7 @@ pub struct Partners {
     // Store exact residues in packed LSB-first bytes and only the observation
     // index. Storing each ever-growing exponent tape made total memory
     // quadratic in the number of phase observations.
-    seen: BTreeMap<Vec<u8>, Option<usize>>,
+    seen: HashMap<Vec<u8>, Option<usize>>,
     pub squarings: usize,
 }
 
@@ -86,7 +86,7 @@ impl Partners {
         }
         let n_big = tape_to_biguint(&n);
         let a_big = tape_to_biguint(&a);
-        let mut seen = BTreeMap::new();
+        let mut seen = HashMap::new();
         // The initial state is 1 = a^0, distinguished from a^(2^i).
         seen.insert(vec![1], None);
         let residue = a_big % &n_big;
