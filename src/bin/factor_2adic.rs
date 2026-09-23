@@ -5,10 +5,13 @@
 //! radix-register fold in both product-first and prefix-first order.
 
 #[path = "../phase_partners.rs"] mod phase_partners;
+#[path = "../phase_word.rs"] mod phase_word;
 
 use vox::morphism_factor::parse_numeral;
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
+
+const EXTRACT_WORD: &str = "⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣";
 
 fn verify_pair_by_lift(
     n: &[char], p: &[char], q: &[char], radix: &[char],
@@ -113,6 +116,21 @@ fn run_baked_membrane() {
         }
     };
     let phase_elapsed = phase_started.elapsed();
+    let extract_started = std::time::Instant::now();
+    let transported = match phase_word::execute(EXTRACT_WORD, &relation) {
+        Ok(readout) if readout.surviving.len() == 4 && readout.restored == 1 && readout.exposed == 0 => readout,
+        Ok(readout) => {
+            eprintln!("EXTRACT frame did not restore its complete bank: surviving={} restored={} exposed={}",
+                readout.surviving.len(), readout.restored, readout.exposed);
+            std::process::exit(2);
+        }
+        Err(error) => {
+            eprintln!("EXTRACT frame failed: {error}");
+            std::process::exit(2);
+        }
+    };
+    let relation = transported.surviving[0].observation.clone();
+    let extract_elapsed = extract_started.elapsed();
     let winding = relation.return_exponent.clone();
     let factor_close_started = std::time::Instant::now();
     let factor_pair = vox::shor_braid::factor_close_public(&base, &tape, &winding);
@@ -136,19 +154,19 @@ fn run_baked_membrane() {
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
         eprintln!("phase winding: {} ({} dyadic observations, {} phase registers)", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
-        eprintln!("membrane timing: phase-winding={phase_elapsed:?} factor-close={factor_close_elapsed:?} product-outer-exact={product_outer_exact_elapsed:?} shared-prefix-lift={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}");
+        eprintln!("membrane timing: phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} factor-close={factor_close_elapsed:?} product-outer-exact={product_outer_exact_elapsed:?} shared-prefix-lift={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}");
         println!("FDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})");
         if closure_value == 'T' { Some((p, q)) } else { None }
     } else {
         eprintln!("phase winding: {} ({} dyadic observations, {} phase registers)", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
-        eprintln!("membrane timing: phase-winding={phase_elapsed:?} factor-close={factor_close_elapsed:?} fde-dual-closure=not-run");
+        eprintln!("membrane timing: phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} factor-close={factor_close_elapsed:?} fde-dual-closure=not-run");
         eprintln!("phase factor-close: {}", factor_pair.unwrap_err());
         None
     };
 
     let output_started = std::time::Instant::now();
     println!("membrane input: baked IMASM base and modulus");
-    println!("nesting: phase winding ⊃ factor close ⊃ encoded radix-register fold");
+    println!("nesting: phase winding ⊃ banked EXTRACT ⊃ factor close ⊃ encoded radix-register fold");
     println!("base = {base_word}");
     println!("lift radix = {radix_word}");
     println!("N = {word}");
@@ -179,6 +197,26 @@ fn main() {
         std::process::exit(2);
     }
     imasm_entry();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn repaired_extract_frame_restores_the_phase_relation_before_closure() {
+        let relation = phase_partners::ReturnRelation {
+            earlier: vec!['⊤'],
+            later: vec!['⊥'],
+            residue: vec!['⊤', '⊥'],
+            return_exponent: vec!['⊥'],
+        };
+        let readout = phase_word::execute(EXTRACT_WORD, &relation).unwrap();
+        assert_eq!(readout.surviving.len(), 4);
+        assert_eq!(readout.restored, 1);
+        assert_eq!(readout.exposed, 0);
+        assert!(readout.surviving.iter().all(|deposit| deposit.observation == relation));
+    }
 }
 
 /*

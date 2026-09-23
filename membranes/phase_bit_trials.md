@@ -146,8 +146,10 @@ The remaining cost is the orbit length of the repeated-squaring phase
 sequence, not the removed quadratic storage of exponent tapes.
 
 The repaired one-frame EXTRACT word
-`⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣` decomposes as the banked extraction frame followed by
-the `⊡⋈⊙` latch. The recognizer preserves the single ∈…∋ frame around both
-deposits and AREV, and accepts the earlier EXTRACT/FIX spelling as well. Both
-forms factor 8051 through the same resident carrier. The targeted EXTRACT,
-banking, and nested p−1 tests pass.
+`⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣` carries the discovered phase relation through its enclosing
+frame before factor closure. Its register readout retains all four deposits,
+restores the one cleared deposit at the fuse, and exposes none. The recognizer
+decomposes it as the banked extraction frame followed by the `⊡⋈⊙` latch, while
+retaining the earlier EXTRACT/FIX spelling. Both forms factor 8051 through the
+resident carrier. The baked phase binary applies this word between winding and
+factor close; the integrated 270-digit execution remains silent while running.
