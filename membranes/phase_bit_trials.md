@@ -205,3 +205,24 @@ primality pass from the terminal path.
 The promise is part of the input contract, not a conclusion of product closure.
 For a general composite, an exact proper pair can still be composite, as in
 `210 = 14 × 15`; the terminal condition alone does not certify semiprimality.
+
+## Minimum factor widths for new trials
+
+Every new semiprime trial uses one prime factor with at least five decimal
+digits and the other with at least ten decimal digits. Earlier rows are retained
+as historical measurements and do not qualify as new trials under this floor.
+The executable receives only the IMASM numeral for `N`; neither factor is a
+baked input.
+
+| N | decoded factors | phase observations | phase winding | Shor close | dual closure | total in-process |
+|---:|---|---:|---:|---:|---:|---:|
+| 39585639837697 | 12289 × 3221225473 | 31 | 30.168 μs | 10.837 μs | 34.171 μs | 163.339 μs |
+
+The radix-3 binary was invoked directly. Its factor-register numeral words
+decoded to the listed factors, and it reported FDE T with prefix-first and
+product-first closure both true. Both factors passed primality checks.
+
+The qualifying input `10007000070049 = 10007 × 1000000007` was also baked with
+phase base 2 and radix 3. Its direct run remained silent and was interrupted
+before closure, so it produced no factor result or completed timing. It is
+recorded as an incomplete trial, not a successful factorization.
