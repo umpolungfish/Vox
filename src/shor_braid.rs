@@ -21,6 +21,8 @@ use crate::morphism_factor::{cmp, divmod, gcd, modulo, mul, one, tape_u64, trim,
 use crate::vox::{AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT, ENGAGR};
 use alloc::string::String;
 use alloc::vec::Vec;
+use num_bigint::BigUint;
+use num_traits::{One, Zero};
 
 fn eq(a: &[char], b: &[char]) -> bool {
     cmp(a, b) == core::cmp::Ordering::Equal
@@ -70,25 +72,54 @@ fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
 /// The Shor closing step on tapes: order r -> factors via gcd(a^(r/2) -/+ 1, n).
 /// Public so both the braid composition and the shor_qft wide branch call it.
 pub fn factor_close_public(a: &[char], n: &[char], r: &[char]) -> Result<(Vec<char>, Vec<char>), String> {
-    use crate::morphism_factor::{add, sub};
-    if zero(r) || eq(r, &one()) { return Err("order is trivial (0 or 1) -- no close".into()); }
-    let two = tape_u64(2);
-    let (half, rem) = divmod(r, &two);
-    if eq(&rem, &one()) { return Err("order odd -- a^(r/2) undefined, retry with another base".into()); }
-    let h = pow_tape(a, &half, n);
-    let minus_one = sub(n, &one());
-    if eq(&h, &minus_one) { return Err("a^(r/2) = -1 (mod n) -- retry with another base".into()); }
-    let h_minus = trim(sub(&h, &one()));
-    let h_plus = trim(add(&h, &one()));
-    let f1 = gcd(h_minus, n.to_vec());
-    let f2 = gcd(h_plus, n.to_vec());
-    let mut tried: Vec<Vec<char>> = Vec::new();
-    tried.push(trim(f1));
-    tried.push(trim(f2));
-    for f in tried {
-        if !eq(&f, &one()) && cmp(&f, n) != core::cmp::Ordering::Equal {
-            let (q, rem0) = divmod(n, &f);
-            if zero(&rem0) { return Ok((f, q)); }
+    fn to_dynamic(tape: &[char]) -> BigUint {
+        let mut bytes = alloc::vec![0u8; (tape.len() + 7) / 8];
+        for (index, mark) in tape.iter().enumerate() {
+            if *mark == EVALF { bytes[index / 8] |= 1 << (index % 8); }
+        }
+        BigUint::from_bytes_le(&bytes)
+    }
+    fn to_tape(value: &BigUint) -> Vec<char> {
+        if value.is_zero() { return alloc::vec![EVALT]; }
+        let mut tape = Vec::new();
+        for byte in value.to_bytes_le() {
+            for bit in 0..8 {
+                tape.push(if (byte >> bit) & 1 == 1 { EVALF } else { EVALT });
+            }
+        }
+        while tape.last() == Some(&EVALT) { tape.pop(); }
+        tape
+    }
+    fn dynamic_gcd(mut x: BigUint, mut y: BigUint) -> BigUint {
+        while !y.is_zero() {
+            let remainder = &x % &y;
+            x = y;
+            y = remainder;
+        }
+        x
+    }
+
+    let a = to_dynamic(a);
+    let n = to_dynamic(n);
+    let r = to_dynamic(r);
+    if r.is_zero() || r.is_one() { return Err("order is trivial (0 or 1) -- no close".into()); }
+    if (&r % 2u8) != BigUint::zero() {
+        return Err("order odd -- a^(r/2) undefined, retry with another base".into());
+    }
+    let half = &r >> 1usize;
+    let h = a.modpow(&half, &n);
+    if h == &n - BigUint::one() {
+        return Err("a^(r/2) = -1 (mod n) -- retry with another base".into());
+    }
+    let h_minus = if h.is_zero() { BigUint::zero() } else { &h - BigUint::one() };
+    let h_plus = &h + BigUint::one();
+    for factor in [dynamic_gcd(h_minus, n.clone()), dynamic_gcd(h_plus, n.clone())] {
+        if !factor.is_one() && factor != n {
+            let remainder = &n % &factor;
+            if remainder.is_zero() {
+                let quotient = &n / &factor;
+                return Ok((to_tape(&factor), to_tape(&quotient)));
+            }
         }
     }
     Err("both closing gcds trivial for this base -- retry with another base".into())

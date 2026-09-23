@@ -128,24 +128,30 @@ fn run_baked_membrane() {
         }
         let closure_started = std::time::Instant::now();
         let product_outer_started = std::time::Instant::now();
-        let product_outer = vox::factor_2adic::nest_product_over_prefix(&tape, &p, &q, &radix);
+        let product_outer = vox::morphism_factor::mul(&p, &q);
+        let product_outer_exact = product_outer == tape;
         let product_outer_exact_elapsed = product_outer_started.elapsed();
         let prefix_started = std::time::Instant::now();
-        let prefix_outer = vox::factor_2adic::nest_prefix_over_product(&tape, &p, &q, &radix);
+        let prefix_state = vox::factor_2adic::radix_prefix_fold(&tape, &p, &q, &radix);
         let prefix_elapsed = prefix_started.elapsed();
         let terminal_started = std::time::Instant::now();
-        let prefix_first_terminal = prefix_outer.as_ref().is_some_and(|state| state.product == tape);
+        let product_inner = prefix_state.as_ref().map(|state| vox::morphism_factor::mul(&state.p, &state.q));
+        let prefix_first = product_inner.as_ref().is_some_and(|product| *product == tape);
         let prefix_terminal_elapsed = terminal_started.elapsed();
-        let prefix_first = prefix_first_terminal;
-        let product_first = product_outer.is_some();
-        let factors_at_meeting = product_outer
-            .zip(prefix_outer)
-            .filter(|(left, right)| left == right)
-            .map(|(_, meeting)| (meeting.p, meeting.q));
+        let product_first = product_outer_exact && prefix_state.is_some();
+        let factors_at_meeting = prefix_state
+            .zip(product_inner)
+            .filter(|(_, product)| product_outer_exact && *product == tape && *product == product_outer)
+            .map(|(state, product)| vox::factor_2adic::FactorFixedPoint { p: state.p, q: state.q, product });
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
         let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
-        let factors = if closure_value == 'T' { factors_at_meeting } else { None };
+        let factors = if closure_value == 'T' {
+            factors_at_meeting.and_then(|fixed|
+                vox::factor_2adic::terminal_pair_given_semiprime_promise(&tape, fixed))
+        } else {
+            None
+        };
         (factors, report)
     } else {
         let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-close: {}\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
@@ -153,15 +159,15 @@ fn run_baked_membrane() {
     };
 
     let output_started = std::time::Instant::now();
-    let mut output = format!("membrane input: baked IMASM base and modulus\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\nbase = {base_word}\nlift radix = {radix_word}\nN = {word}\n");
+    let mut output = format!("membrane input: baked IMASM base and modulus\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: exact proper pair under semiprime promise\nbase = {base_word}\nlift radix = {radix_word}\nN = {word}\n");
     append_frames(&mut output, "N", &tape);
-    if let Some((p, q)) = factors {
-        let p_word = vox::morphism_factor::emit_numeral(&p);
-        let q_word = vox::morphism_factor::emit_numeral(&q);
+    if let Some(meeting) = factors {
+        let p_word = vox::morphism_factor::emit_numeral(&meeting.p);
+        let q_word = vox::morphism_factor::emit_numeral(&meeting.q);
         use core::fmt::Write;
         writeln!(output, "P = {p_word}\nQ = {q_word}").unwrap();
-        append_frames(&mut output, "P", &p);
-        append_frames(&mut output, "Q", &q);
+        append_frames(&mut output, "P", &meeting.p);
+        append_frames(&mut output, "Q", &meeting.q);
     } else {
         output.push_str("phase winding did not close to a nontrivial factor pair for this baked base\n");
     }
