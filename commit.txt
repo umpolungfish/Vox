@@ -1,34 +1,7 @@
-I keep phase state dynamic and preserve the EXTRACT bank
+I integrate the repaired banked EXTRACT word
 
-I replace per-observation exponent tapes with indices, use exact packed
-residues and dynamic-width modular registers for phase winding, and add a
-regression proving both EXTRACT deposits and AREV remain inside its single
-FSPLIT/FFUSE frame. The targeted tests pass with a warning-free release check.
-The supplied 270-digit phase run remained silent but did not collide during a
-multi-minute trial, so I record no factors or completion time.
-
-I keep the phase membrane silent until closure
-
-I remove per-eight-observation progress reports so the baked membrane emits
-its winding, closure, frames, and timings only after the full computation
-finishes. The binary-target relation-verifier test passes, and the release
-build is warning-free. The requested 270-digit run emitted no partial output
-but was killed with exit 137 before completion, exposing the phase residue
-table's memory growth as the next bottleneck.
-
-I remove repeated work from the phase and closure hot paths
-
-I share the deterministic radix-prefix fold between the two exact closure
-orders, replace exponent-tape halving with direct LSB-first bit scanning, and
-remove redundant modular-exponentiation replay from phase collision handling
-while retaining the independent relation verifier. On the same 13,398-digit
-baked case, measured wall time falls from 36.18 s to 20.01 s, with phase
-winding dropping from 14.66 s to 4.38 s. Both closure supports remain true;
-the full 196-test library suite and the binary relation-verifier test pass.
-
-I seal the quantum landing through its preimage constructor
-
-I route the measurement landing through a constructor that validates the
-resident preimage before fixing the numerator. The 10-digit measurement test
-passes, and the full library suite passes all 195 tests. I also retain the
-radix-3 semiprime width ladder and its recorded closure timings.
+I recognize ⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣ as the one-frame EXTRACT followed by its
+⊡⋈⊙ latch, while retaining the previous EXTRACT/FIX spelling. The exact word
+factors 8051 through the resident carrier. The full library suite passes all
+197 tests, the phase-register tests pass, and the release check emits no
+warnings. I keep the dynamic-width phase trial silent through completion.
