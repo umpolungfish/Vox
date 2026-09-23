@@ -1,0 +1,3 @@
+no symbol 'imasm_entry' in membranes/factor_2adic_semiprime_1000036000099_imasm.imasm
+Command exited with non-zero status 1
+imasm_entry_elapsed=0.17

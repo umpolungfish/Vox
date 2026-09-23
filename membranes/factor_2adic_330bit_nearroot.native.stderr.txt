@@ -1,0 +1,3 @@
+factor route: shape: near-root, closed at frontier step 0
+membrane timing: tape-factorization=132.730892ms encoded-fold=15.44372ms
+native-wall=0.14 s

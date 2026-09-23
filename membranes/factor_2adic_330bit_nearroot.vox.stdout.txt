@@ -1,0 +1,7 @@
+membranes/factor_2adic_330bit_nearroot  elf  entry 0x244c40  1150117 byte(s) of code
+  10511 function(s), 236295 instruction(s)
+  claimed 84% of the image (976219 of 1150117 bytes)
+
+  10511 function(s) by descent, 16741 more by fallback sweep
+  covered 100% of the image (1150117 of 1150117 bytes)
+  verdicts  T 366   B 6073   N 20813   F 0  (F: 0 from descent, 0 from fallback sweep)

@@ -1,0 +1,3 @@
+factor route: probe: not near-root within the short frontier (factors far apart); verdict: HARD — hand to the membrane (rho fused with the sieve)
+membrane timing: tape-factorization=524.949211ms encoded-fold=61.142µs
+elapsed=0.52

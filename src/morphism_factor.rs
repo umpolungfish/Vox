@@ -269,51 +269,94 @@ fn l_mul(a: &[u64], b: &[u64]) -> Limbs {
     l_trim(out)
 }
 
-fn l_bits(a: &[u64]) -> usize {
-    let mut n = a.len();
-    while n > 1 && a[n - 1] == 0 {
-        n -= 1;
-    }
-    if a[n - 1] == 0 {
-        return 0;
-    }
-    (n - 1) * 64 + (64 - a[n - 1].leading_zeros() as usize)
-}
-
-fn l_bit(a: &[u64], i: usize) -> bool {
-    let (limb, off) = (i / 64, i % 64);
-    limb < a.len() && (a[limb] >> off) & 1 == 1
-}
-
-fn l_shl1(a: &[u64]) -> Limbs {
-    let mut out = Limbs::with_capacity(a.len() + 1);
-    let mut carry = 0u64;
-    for &x in a {
-        out.push((x << 1) | carry);
-        carry = x >> 63;
-    }
-    if carry != 0 {
-        out.push(carry);
-    }
-    l_trim(out)
-}
-
-// Long division by shift-and-subtract over limbs: one pass per bit of n.
+// Normalized limb division. The quotient is selected one whole limb at a time,
+// so modular powering does not pay a bit-serial scan for every remainder.
 fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     if l_is_zero(d) || l_cmp(n, d) == core::cmp::Ordering::Less {
         return (vec![0], l_trim(n.to_vec()));
     }
-    let nb = l_bits(n);
-    let mut q = vec![0u64; nb / 64 + 1];
-    let mut r: Limbs = vec![0];
-    for i in (0..nb).rev() {
-        r = l_shl1(&r);
-        if l_bit(n, i) {
-            r[0] |= 1;
+    let n = l_trim(n.to_vec());
+    let d = l_trim(d.to_vec());
+    if d.len() == 1 {
+        let divisor = d[0] as u128;
+        let mut q = vec![0u64; n.len()];
+        let mut rem = 0u128;
+        for i in (0..n.len()).rev() {
+            let dividend = (rem << 64) | n[i] as u128;
+            q[i] = (dividend / divisor) as u64;
+            rem = dividend % divisor;
         }
-        if l_cmp(&r, d) != core::cmp::Ordering::Less {
-            r = l_sub(&r, d);
-            q[i / 64] |= 1u64 << (i % 64);
+        return (l_trim(q), vec![rem as u64]);
+    }
+
+    let shift = d[d.len() - 1].leading_zeros();
+    let mut v = vec![0u64; d.len()];
+    let mut carry = 0u64;
+    for (i, &limb) in d.iter().enumerate() {
+        v[i] = (limb << shift) | carry;
+        carry = if shift == 0 { 0 } else { limb >> (64 - shift) };
+    }
+
+    let mut u = vec![0u64; n.len() + 1];
+    carry = 0;
+    for (i, &limb) in n.iter().enumerate() {
+        u[i] = (limb << shift) | carry;
+        carry = if shift == 0 { 0 } else { limb >> (64 - shift) };
+    }
+    u[n.len()] = carry;
+
+    let divisor_len = v.len();
+    let top = v[divisor_len - 1] as u128;
+    let m = n.len() - divisor_len;
+    let mut q = vec![0u64; m + 1];
+    for j in (0..=m).rev() {
+        let numerator = ((u[j + divisor_len] as u128) << 64)
+            | u[j + divisor_len - 1] as u128;
+        let mut qhat = numerator / top;
+        let mut rhat = numerator % top;
+        if qhat >= (1u128 << 64) {
+            qhat = (1u128 << 64) - 1;
+            rhat = numerator - qhat * top;
+        }
+        while rhat < (1u128 << 64)
+            && qhat * v[divisor_len - 2] as u128
+                > (rhat << 64) + u[j + divisor_len - 2] as u128
+        {
+            qhat -= 1;
+            rhat += top;
+        }
+
+        let mut borrow = 0u128;
+        for i in 0..divisor_len {
+            let product = qhat * v[i] as u128 + borrow;
+            let low = product as u64;
+            borrow = product >> 64;
+            let old = u[j + i];
+            u[j + i] = old.wrapping_sub(low);
+            if old < low { borrow += 1; }
+        }
+        let old_high = u[j + divisor_len];
+        let underflow = (old_high as u128) < borrow;
+        u[j + divisor_len] = old_high.wrapping_sub(borrow as u64);
+        if underflow {
+            qhat -= 1;
+            let mut add_carry = 0u128;
+            for i in 0..divisor_len {
+                let sum = u[j + i] as u128 + v[i] as u128 + add_carry;
+                u[j + i] = sum as u64;
+                add_carry = sum >> 64;
+            }
+            u[j + divisor_len] = u[j + divisor_len].wrapping_add(add_carry as u64);
+        }
+        q[j] = qhat as u64;
+    }
+
+    let mut r = vec![0u64; divisor_len];
+    if shift == 0 {
+        r.copy_from_slice(&u[..divisor_len]);
+    } else {
+        for i in 0..divisor_len {
+            r[i] = (u[i] >> shift) | (u[i + 1] << (64 - shift));
         }
     }
     (l_trim(q), l_trim(r))
@@ -1654,6 +1697,23 @@ pub fn dec_of(t: &[char]) -> String {
 /// A None with "prime" is a certified prime; a None with "HARD" is the
 /// random-equal-size-far-apart shape that wants the sub-exponential tier.
 pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, String) {
+    scout_factor_with_primality(n_in, true)
+}
+
+/// Fast route for a baked semiprime input. The caller supplies the semiprime
+/// shape, so the scout proceeds directly to its factor frontier instead of
+/// spending a modular witness pass proving the input composite.
+pub fn scout_semiprime(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, String) {
+    scout_factor_with_primality(n_in, false)
+}
+
+/// Scout a composite already rejected by the caller's primality frame.
+/// Keeping the witness pass at the membrane boundary avoids running the same
+/// modular exponentiation twice on every composite input.
+fn scout_factor_with_primality(
+    n_in: &[char],
+    test_primality: bool,
+) -> (Option<(Tape, Tape, &'static str)>, String) {
     use core::cmp::Ordering::{Equal, Greater, Less};
     let n = trim(n_in.to_vec());
     let mut log = String::new();
@@ -1666,25 +1726,9 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
         return (Some((two(), q, "even")), "shape: even (2-part)\n".into());
     }
     // prime
-    if miller_rabin(&n) {
+    if test_primality && miller_rabin(&n) {
         return (None, "shape: prime (witness, no factor to find)\n".into());
     }
-    // perfect power
-    let bits = n.len();
-    // High exponents are a preparation-only probe.  Walking every exponent
-    // before MPQS made a separated semiprime pay one full root search per bit.
-    // The decisive sieve arm owns the wide case; retain the cheap low-exponent
-    // perfect-power closures here.
-    let mut b = 2usize;
-    while b <= bits.min(16) {
-        let r = iroot(&n, b);
-        if cmp(&r, &one()) == Greater && cmp(&ipow(&r, b), &n) == Equal {
-            let q = divmod(&n, &r).0;
-            return (Some((r.clone(), q, "perfect-power")), format!("shape: perfect power, base {}\n", dec_of(&r)));
-        }
-        b += 1;
-    }
-
     // short frontier first: closes at once iff the factors sit near the root, so
     // a near-root N never pays the width-heavy rho below.
     {
@@ -1712,6 +1756,21 @@ pub fn scout_factor(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, Strin
             i += 1;
         }
     }
+
+    // Perfect-power splitting is the fallback after the semiprime frontier.
+    // Testing every exponent first repeats expensive root searches on the
+    // balanced semiprimes the fast route is designed to close immediately.
+    let bits = n.len();
+    let mut b = 2usize;
+    while b <= bits.min(16) {
+        let r = iroot(&n, b);
+        if cmp(&r, &one()) == Greater && cmp(&ipow(&r, b), &n) == Equal {
+            let q = divmod(&n, &r).0;
+            return (Some((r.clone(), q, "perfect-power")), format!("shape: perfect power, base {}\n", dec_of(&r)));
+        }
+        b += 1;
+    }
+
     log.push_str("probe: not near-root within the short frontier (factors far apart)\n");
     // No standalone rho here: rho is fused into the sieve (the membrane), where it
     // races the polynomials and the first arm to close wins. The scout's job ends
@@ -1748,7 +1807,7 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
             factors.push(c);
             continue;
         }
-        let (res, l) = scout_factor(&c);
+        let (res, l) = scout_factor_with_primality(&c, false);
         log.push_str(&l);
         match res {
             Some((p, q, _shape)) => {
@@ -1814,6 +1873,28 @@ pub fn repl_scout(n_in: &[char]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn normalized_limb_division_closes_quotient_and_remainder() {
+        let numerators = [
+            vec![u64::MAX, 0, 1],
+            vec![0x1234_5678_9abc_def0, u64::MAX, 0x8000_0000_0000_0001],
+            vec![u64::MAX, u64::MAX, u64::MAX, 0x7fff_ffff_ffff_ffff],
+        ];
+        let divisors = [
+            vec![3],
+            vec![0xffff_ffff_ffff_ffc5],
+            vec![0x8000_0000_0000_0001, 0x4000_0000_0000_0000],
+            vec![0xffff_ffff_ffff_fffb, 0x7fff_ffff_ffff_ffff],
+        ];
+        for n in &numerators {
+            for d in &divisors {
+                let (q, r) = l_divmod(n, d);
+                assert_eq!(l_add(&l_mul(&q, d), &r), l_trim(n.clone()));
+                assert_eq!(l_cmp(&r, d), core::cmp::Ordering::Less);
+            }
+        }
+    }
 
     #[test]
     fn smart_factor_gives_full_multiset() {

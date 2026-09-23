@@ -93,6 +93,9 @@ pub fn emit(raw: &[u8]) -> String {
     out.push(format!("; {} module ({} {})", INDIRECT, l.format, l.arch));
     out.push(format!("; entry 0x{:x}", l.entry));
     out.push(format!("; bits {}", bits));
+    if l.phdr != 0 && l.phent != 0 && l.phnum != 0 {
+        out.push(format!("; phdr 0x{:x} {} {}", l.phdr, l.phent, l.phnum));
+    }
     // The symbol table travels with the module, so a saved `.imasm` file is
     // self-contained: `vox run <symbol> <file>.imasm` resolves the name from
     // the file itself, with no second read of the original binary.

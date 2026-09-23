@@ -1,15 +1,7 @@
-Bake the two-ring winding membrane from the auto-designed word
+I extend the baked membrane with a variable-radix register lift
 
-The auto-designer gave the word for the two rings whose relative rotation is the
-order: ⊢∈≻⋈⊤≺⊥⋈⊙⊞∋⊡⊣, the orbit ring against the unit ring, the gates building
-the ring rather than precomputed cells. ring_membrane realizes it as a baked
-binary with the base and modulus compiled in and no runtime input. The fork
-opens two arms, the ≻⋈⊤ arm steps multiply-by-a to grow the orbit ring, the
-≺⊥⋈⊙ arm holds the unit ring, ⊞ holds them as the interlocked paradox, ∋ fuses
-to the relative rotation, and ⊡ fixes the winding. The step count where the
-orbit arm returns to the unit is the order, and it closes the factors.
-
-Baked and run: 15 reads rotation 4 and closes 3 x 5, 91 reads 12 and closes
-7 x 13, 143 reads 60 and closes 11 x 13. baked_case.py carries a ring mode.
-The relative rotation is still walked to closure; reading it below the walk is
-the concentration, the next rung on this membrane.
+I bake the phase base and lift radix as separate IMASM numeral words. The
+prefix registers now close the running product modulo successive radix powers
+using dynamic numeral tapes, and each step checks the generalized digit
+equation. I verified radix 3 on 91 = 7 × 13 and tested radices through
+2^80 + 1, alongside the full library test suite.

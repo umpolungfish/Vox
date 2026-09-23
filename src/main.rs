@@ -1108,6 +1108,13 @@ fn main() {
                     Some(a) => a,
                     None => { eprintln!("no symbol '{}' in {}", sym, file); std::process::exit(1); }
                 };
+                if let Err(e) = m.initialize_relocations() {
+                    match e {
+                        imasm_vm::Stop::SysExit(c) => println!("{}(...) called exit({}) during relocation setup   [{} steps]", sym, c, m.steps),
+                        imasm_vm::Stop::Halt(e) => println!("{}(...) halted during relocation setup: {}   [{} steps]", sym, e, m.steps),
+                    }
+                    std::process::exit(0);
+                }
                 match m.call(addr, &argv_ints, 50_000_000) {
                     Ok(r) => println!("{}({}) = {}   [{} steps in the twelve]", sym, argv_ints.iter().map(|a|a.to_string()).collect::<Vec<_>>().join(", "), r, m.steps),
                     Err(imasm_vm::Stop::SysExit(c)) => println!("{}(...) called exit({})   [{} steps in the twelve]", sym, c, m.steps),

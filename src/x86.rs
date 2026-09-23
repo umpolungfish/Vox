@@ -172,6 +172,10 @@ mod membrane_decode_tests {
     fn packed_membrane_instructions_keep_their_boundaries() {
         for (bytes, name) in [
             (&[0x66,0x0f,0x6d,0xdd][..], "punpckhqdq"),
+            (&[0x66,0x0f,0x60,0xc9][..], "punpcklbw"),
+            (&[0x66,0x0f,0x61,0xc9][..], "punpcklwd"),
+            (&[0x66,0x0f,0x64,0xc2][..], "pcmpgtb"),
+            (&[0xf2,0x0f,0x70,0xc0,0xd4][..], "pshuflw"),
             (&[0x66,0x0f,0xd6,0x44,0x0a,0x08][..], "movq"),
             (&[0x66,0x0f,0x14,0xd2][..], "unpcklpd"),
             (&[0x66,0x0f,0x15,0xc1][..], "unpckhpd"),
@@ -182,6 +186,18 @@ mod membrane_decode_tests {
             let instruction = decode(bytes, 0).unwrap();
             assert_eq!(instruction.len, bytes.len(), "{name}");
             assert_eq!(instruction.mnemonic, name);
+        }
+    }
+
+    #[test]
+    fn prefetch_hints_are_consumed_as_non_stateful_nops() {
+        for bytes in [
+            &[0x0f, 0x18, 0x4e, 0x40][..],
+            &[0x0f, 0x18, 0x8e, 0x40, 0x10, 0x00, 0x00][..],
+        ] {
+            let instruction = decode(bytes, 0).unwrap();
+            assert_eq!(instruction.len, bytes.len());
+            assert_eq!(instruction.mnemonic, "nop");
         }
     }
 }
@@ -334,6 +350,9 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
     match op2 {
         0x05 => ins!(addr,c,"syscall",vec![],false,None),
         0x0B => ins!(addr,c,"ud2",vec![],false,None),
+        // PREFETCHh has no architectural effect on the guest state. Consume
+        // its ModRM/SIB/displacement so linear lifting stays synchronized.
+        0x18 => { let (_rm,_)=modrm(c,rex,1,1)?; ins!(addr,c,"nop",vec![],false,None) }
         0x1E => { let m=c.u8()?; ins!(addr,c,if m==0xFA{"endbr64"}else{"nop"},vec![],false,None) }
         0x1F => { let (_rm,_)=modrm(c,rex,osz,osz)?; ins!(addr,c,"nop",vec![],false,None) }
         0x40..=0x4F => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,format!("cmov{}",CC[(op2-0x40) as usize]),vec![rop(r,osz,rex.p),rm],false,None) }
@@ -357,6 +376,7 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         // SSE2 byte/word/dword compare and the byte-mask move — the core of
         // glibc's string routines. pmovmskb's destination is a GPR.
         0x74 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpeqb",vec![rop(r,16,rex.p),rm],false,None) }
+        0x64 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpgtb",vec![rop(r,16,rex.p),rm],false,None) }
         0x75 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpeqw",vec![rop(r,16,rex.p),rm],false,None) }
         0x76 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpeqd",vec![rop(r,16,rex.p),rm],false,None) }
         0xDA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pminub",vec![rop(r,16,rex.p),rm],false,None) }
@@ -422,6 +442,11 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x2E => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"ucomisd"}else{"ucomiss"},vec![rop(r,16,rex.p),rm],false,None) }
         0x2F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"comisd"}else{"comiss"},vec![rop(r,16,rex.p),rm],false,None) }
         0x6E => { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; ins!(addr,c,if rex.w{"movq"}else{"movd"},vec![rop(r,16,rex.p),rm],false,None) }
+        0x60|0x61|0x68|0x69|0x6A => {
+            let (rm,r)=modrm(c,rex,16,16)?;
+            let mn=match op2 { 0x60=>"punpcklbw",0x61=>"punpcklwd",0x68=>"punpckhbw",0x69=>"punpckhwd",_=>"punpckhdq" };
+            ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None)
+        }
         0x6F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if f3{"movdqu"}else{"movdqa"},vec![rop(r,16,rex.p),rm],false,None) }
         0x7E => { if f3 { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,"movq",vec![rop(r,16,rex.p),rm],false,None) }
                   else { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; let wm=rm.is_mem(); ins!(addr,c,if rex.w{"movq"}else{"movd"},vec![rm,rop(r,16,rex.p)],wm,None) } }
@@ -439,7 +464,8 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xF4 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmuludq",vec![rop(r,16,rex.p),rm],false,None) }
         0x38 => { let op3=c.u8()?; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if op3==0x40{"pmulld"}else{"pshufb"},vec![rop(r,16,rex.p),rm],false,None) }
         0xC4 if o66 => { let (rm,r)=modrm(c,rex,4,2)?; let im=c.imm(1,false)?; ins!(addr,c,"pinsrw",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
-        0x70 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?; ins!(addr,c,"pshufd",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
+        0x70 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
+            ins!(addr,c,if f2{"pshuflw"}else if f3{"pshufhw"}else{"pshufd"},vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         0x66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpgtd",vec![rop(r,16,rex.p),rm],false,None) }
         0x73 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
                   ins!(addr,c,match g&7 {2=>"psrlq",3=>"psrldq",6=>"psllq",7=>"pslldq",_=>"psrlq"},vec![rm,Op::Imm(im)],false,None) }

@@ -73,6 +73,9 @@ pub struct Machine {
     addrs: Vec<u64>,
     next_of: BTreeMap<u64, u64>,
     pub entry: u64,
+    phdr: u64,
+    phent: u64,
+    phnum: u64,
     reg: BTreeMap<String, u128>,
     mem: BTreeMap<u64, u8>,
     flags: (u128, u128, u8),
@@ -116,7 +119,7 @@ pub struct Machine {
 impl Machine {
     pub fn new(module: &str) -> Machine {
         let mut m = Machine {
-            code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0,
+            code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0, phdr: 0, phent: 0, phnum: 0,
             reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
@@ -138,6 +141,12 @@ impl Machine {
                 let t = rest.trim();
                 if let Some(e) = t.strip_prefix("entry ") {
                     if let Ok(v) = u64::from_str_radix(e.trim().trim_start_matches("0x"), 16) { self.entry = v; }
+                } else if let Some(s) = t.strip_prefix("phdr ") {
+                    let mut it=s.split_whitespace();
+                    if let (Some(a),Some(b),Some(c))=(it.next(),it.next(),it.next()) {
+                        self.phdr=u64::from_str_radix(a.trim_start_matches("0x"),16).unwrap_or(0);
+                        self.phent=b.parse().unwrap_or(0); self.phnum=c.parse().unwrap_or(0);
+                    }
                 } else if let Some(b) = t.strip_prefix("bits ") {
                     if let Ok(v) = b.trim().parse::<u8>() { self.bits = v; }
                 } else if let Some(s) = t.strip_prefix("irel ") {
@@ -405,6 +414,18 @@ impl Machine {
             12 => { // brk(addr): 0 reads the current break, else sets it
                 if a0 != 0 { self.brk_cur = a0 as u64; }
                 self.set_reg("rax", self.brk_cur as u128);
+            }
+            63 => { // uname(struct utsname): six 65-byte NUL-padded fields
+                let fields = ["Linux", "vox", "6.8.0", "#1 SMP", "x86_64", "localdomain"];
+                let base = a0 as u64;
+                for (i, field) in fields.iter().enumerate() {
+                    let at = base + (i * 65) as u64;
+                    for (j, byte) in field.as_bytes().iter().enumerate() {
+                        self.store(at + j as u64, *byte as u128, 1);
+                    }
+                    self.store(at + field.len() as u64, 0, 1);
+                }
+                self.set_reg("rax", 0);
             }
             158 => { // arch_prctl(code, addr): install the thread-local base
                 match sign(a0, 8) {
@@ -791,12 +812,29 @@ impl Machine {
                 let mut o=0u128; for k in 0..4 { let s=((sel>>(2*k))&3) as usize; o |= l[s] << (32*k); }
                 self.write(&dst, o);
             }
-            "punpcklqdq" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; self.write(&dst, (a&mask(8))|((b&mask(8))<<64)); }
-            "punpckhqdq" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; self.write(&dst, (a>>64)|(b & !mask(8))); }
-            "punpckldq" => {
+            "pshuflw"|"pshufhw" => {
+                let a=self.read(&f[1],16).0; let sel=parse_imm(&f[2][2..]) as u128;
+                let base=if op=="pshufhw" {4} else {0}; let mut o=a;
+                for k in 0..4u32 {
+                    let to=(base+k)*16; let from=(base+((sel>>(2*k))&3) as u32)*16;
+                    o=(o & !(mask(2)<<to)) | (((a>>from)&mask(2))<<to);
+                }
+                self.write(&dst,o);
+            }
+            "punpcklbw"|"punpcklwd"|"punpckldq"|"punpcklqdq"
+            |"punpckhbw"|"punpckhwd"|"punpckhdq"|"punpckhqdq" => {
                 let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
-                let x=[a&mask(4),(a>>32)&mask(4)]; let y=[b&mask(4),(b>>32)&mask(4)];
-                self.write(&dst, x[0] | (y[0]<<32) | (x[1]<<64) | (y[1]<<96));
+                let lane=match op { "punpcklbw"|"punpckhbw"=>1, "punpcklwd"|"punpckhwd"=>2,
+                    "punpckldq"|"punpckhdq"=>4, _=>8 };
+                let high=op.starts_with("punpckh");
+                let lanes=16/lane; let start=if high {lanes/2} else {0};
+                let mut result=0u128;
+                for k in 0..lanes/2 {
+                    let shift=(start+k)*lane*8; let out=2*k*lane*8;
+                    result|=((a>>shift)&mask(lane))<<out;
+                    result|=((b>>shift)&mask(lane))<<(out+lane*8);
+                }
+                self.write(&dst,result);
             }
             "pmuludq" => {
                 let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
@@ -822,6 +860,14 @@ impl Machine {
                     let x=((a>>sh)&0xffff_ffff) as u32 as i32;
                     let y=((b>>sh)&0xffff_ffff) as u32 as i32;
                     if x > y { o |= 0xffff_ffffu128 << sh; }
+                }
+                self.write(&dst,o);
+            }
+            "pcmpgtb" => {
+                let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0; let mut o=0u128;
+                for k in 0..16u32 {
+                    let sh=k*8; let x=((a>>sh)&0xff) as u8 as i8; let y=((b>>sh)&0xff) as u8 as i8;
+                    if x>y { o|=0xffu128<<sh; }
                 }
                 self.write(&dst,o);
             }
@@ -1119,18 +1165,9 @@ impl Machine {
         Ok(sign(self.get_reg("eax"), 4) as i64)
     }
 
-    /// Run the whole file as a real process from its own entry point: a real
-    /// argv/envp/auxv stack underneath it, real syscalls in front of it, no
-    /// assumption that it ever returns — it ends by calling exit, same as any
-    /// process does. `call()` next to this is a narrower, older contract for
-    /// naming one function and getting one value back; this is "run it."
-    pub fn run_process(&mut self, argv: &[String], envp: &[String], limit: u64) -> Result<(), Stop> {
-        // Wire the IRELATIVE slots first: run each resolver and store the full
-        // 64-bit pointer it returns in rax. Done before the argv stack is laid
-        // down, on a scratch stack, so a later PLT jump through the slot lands on
-        // the real implementation instead of a zero.
-        // RELATIVE first: they populate .init_array pointers and GOT slots the
-        // resolvers below may themselves read.
+    /// Apply relocations carried by a module before entering one of its
+    /// functions directly. Process runs use the same preparation before argv.
+    pub fn initialize_relocations(&mut self) -> Result<(), Stop> {
         let rela = core::mem::take(&mut self.relative);
         for (slot, value) in &rela { self.store(*slot, *value as u128, 8); }
         self.relative = rela;
@@ -1140,12 +1177,25 @@ impl Machine {
         for (slot, resolver) in &relocs {
             self.set_reg("rsp", 0x7FFF_0000u128);
             self.push_val(sentinel as u128);
-            if self.run_loop(*resolver, Some(sentinel), 5_000_000).is_ok() {
-                let p = self.get_reg("rax");
-                self.store(*slot, p, 8);
-            }
+            self.run_loop(*resolver, Some(sentinel), 5_000_000)
+                .map_err(|e| match e {
+                    Stop::Halt(reason) => Stop::Halt(format!("IRELATIVE resolver 0x{:x} for slot 0x{:x} failed: {}", resolver, slot, reason)),
+                    Stop::SysExit(code) => Stop::Halt(format!("IRELATIVE resolver 0x{:x} for slot 0x{:x} exited({})", resolver, slot, code)),
+                })?;
+            let pointer = self.get_reg("rax");
+            self.store(*slot, pointer, 8);
         }
         self.irelative = relocs;
+        Ok(())
+    }
+
+    /// Run the whole file as a real process from its own entry point: a real
+    /// argv/envp/auxv stack underneath it, real syscalls in front of it, no
+    /// assumption that it ever returns — it ends by calling exit, same as any
+    /// process does. `call()` next to this is a narrower, older contract for
+    /// naming one function and getting one value back; this is "run it."
+    pub fn run_process(&mut self, argv: &[String], envp: &[String], limit: u64) -> Result<(), Stop> {
+        self.initialize_relocations()?;
 
         let mut sp = self.get_reg("rsp") as u64;
         let mut argv_ptrs = Vec::new();
@@ -1170,7 +1220,11 @@ impl Machine {
         words.push(argv.len() as u64);
         words.extend(&argv_ptrs); words.push(0);
         words.extend(&envp_ptrs); words.push(0);
+        if self.phdr != 0 { words.push(3); words.push(self.phdr); } // AT_PHDR
+        if self.phent != 0 { words.push(4); words.push(self.phent); } // AT_PHENT
+        if self.phnum != 0 { words.push(5); words.push(self.phnum); } // AT_PHNUM
         words.push(6); words.push(4096);   // AT_PAGESZ
+        words.push(9); words.push(self.entry); // AT_ENTRY
         words.push(0); words.push(0);      // AT_NULL
         let table_addr = (sp - words.len() as u64 * 8) & !0xF;
         for (k, w) in words.iter().enumerate() {
@@ -1189,7 +1243,8 @@ fn is_simd(op: &str) -> bool {
     matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
-        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
+        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
+        |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
         |"xorps"|"andps"|"orps"|"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
 }
 

@@ -1,0 +1,31 @@
+phase winding: 4 (3 dyadic observations, 3 phase registers)
+membrane timing: phase-winding=25.523µs fde-dual-closure=6.404µs
+FDE closure: T (prefix-first=true, product-first=true)
+membrane input: baked IMASM base and modulus
+nesting: phase winding ⊃ factor close ⊃ encoded bit-register fold
+base = ⊢≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+N = ⊢≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋⊙⊡⊣
+frame N window=2 tail=2 bits=4 groups=⊥⊥|⊥⊥
+frame N window=3 tail=1 bits=4 groups=⊥⊥⊥|⊥
+frame N window=4 tail=4 bits=4 groups=⊥⊥⊥⊥
+frame N window=5 tail=4 bits=4 groups=⊥⊥⊥⊥
+frame N window=6 tail=4 bits=4 groups=⊥⊥⊥⊥
+frame N window=7 tail=4 bits=4 groups=⊥⊥⊥⊥
+frame N window=8 tail=4 bits=4 groups=⊥⊥⊥⊥
+P = ⊢≻⋈∈⊥∋≻⋈∈⊥∋⊙⊡⊣
+Q = ⊢≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣
+frame P window=2 tail=2 bits=2 groups=⊥⊥
+frame P window=3 tail=2 bits=2 groups=⊥⊥
+frame P window=4 tail=2 bits=2 groups=⊥⊥
+frame P window=5 tail=2 bits=2 groups=⊥⊥
+frame P window=6 tail=2 bits=2 groups=⊥⊥
+frame P window=7 tail=2 bits=2 groups=⊥⊥
+frame P window=8 tail=2 bits=2 groups=⊥⊥
+frame Q window=2 tail=1 bits=3 groups=⊥⊤|⊥
+frame Q window=3 tail=3 bits=3 groups=⊥⊤⊥
+frame Q window=4 tail=3 bits=3 groups=⊥⊤⊥
+frame Q window=5 tail=3 bits=3 groups=⊥⊤⊥
+frame Q window=6 tail=3 bits=3 groups=⊥⊤⊥
+frame Q window=7 tail=3 bits=3 groups=⊥⊤⊥
+frame Q window=8 tail=3 bits=3 groups=⊥⊤⊥
+wall=0.00 user=0.00 sys=0.00
