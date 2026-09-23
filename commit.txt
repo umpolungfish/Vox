@@ -1,7 +1,8 @@
-I integrate the repaired banked EXTRACT word
+I carry the phase relation through the repaired EXTRACT frame
 
-I recognize ⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣ as the one-frame EXTRACT followed by its
-⊡⋈⊙ latch, while retaining the previous EXTRACT/FIX spelling. The exact word
-factors 8051 through the resident carrier. The full library suite passes all
-197 tests, the phase-register tests pass, and the release check emits no
-warnings. I keep the dynamic-width phase trial silent through completion.
+I run ⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣ over the acquired phase relation before the factor
+close, and require all four deposits to survive with one restored and none
+exposed. The binary keeps the value baked in as IMASM numeral tapes and remains
+silent until the complete membrane finishes. The repaired-word register test,
+all five factor_2adic binary tests, and the release check pass without warnings.
+I bake and run the supplied 270-digit semiprime through this integrated word.
