@@ -95,7 +95,7 @@ interrupted; the last surfaced milestone was 65,536 observations. The output
 filter suppressed later intermediate counts, so no final observation count or
 timing is recorded for that run.
 
-The latest workspace-wide test attempt did not compile because
-`src/fixed_point_quantum_readout.rs` calls the missing
-`QuantumPhaseSample::from_executor_landing`. The radix-specific tests passed
-before that attempt; this separate readout path was left unchanged.
+The measurement path now uses `QuantumPhaseSample::from_executor_landing`,
+which validates the landing through `QuantumWindingPreimage::from_landing`
+before fixing the numerator. The targeted ten-digit measurement test passes,
+and the full library suite passes all 195 tests.

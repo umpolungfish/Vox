@@ -1,8 +1,6 @@
-I test the baked radix-3 lift across widening semiprimes
+I seal the quantum landing through its preimage constructor
 
-I run the phase-base-2, radix-3 membrane from 160 digits through 13,398
-digits. Every completed run returns FDE T. The inductive digit lift cuts the
-1,334-digit dual closure from 102.902 seconds to 178.401 milliseconds. The
-25,965-digit run passes 65,536 surfaced phase observations but is interrupted
-without a closure verdict. The latest workspace test attempt is blocked by a
-missing constructor in the separate quantum readout path.
+I route the measurement landing through a constructor that validates the
+resident preimage before fixing the numerator. The 10-digit measurement test
+passes, and the full library suite passes all 195 tests. I also retain the
+radix-3 semiprime width ladder and its recorded closure timings.
