@@ -114,6 +114,18 @@ impl QuantumPhaseSample {
         Self::from_executor_preimage(preimage, numerator)
     }
 
+    /// Fix a measured numerator to a landing only after the landing has passed
+    /// the resident preimage checks. This is the measurement executor's
+    /// landing-to-sample constructor; callers cannot attach a numerator to an
+    /// unchecked landing or bypass the opaque preimage boundary.
+    fn from_executor_landing(
+        landing: PhaseLandingProgram,
+        numerator: Tape,
+    ) -> Result<Self, &'static str> {
+        let preimage = QuantumWindingPreimage::from_landing(landing)?;
+        Self::from_executor_preimage(preimage, numerator)
+    }
+
     /// Private fixation seam reserved for the measurement executor. The opaque
     /// preimage is consumed, so a result can only be attached to the exact
     /// resident `(a,N,M)` object whose pair was formed before advance.
