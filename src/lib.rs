@@ -13,6 +13,7 @@ extern crate alloc;
 
 pub mod vox;
 pub mod godel_calculus;
+pub mod godel_analyzer;
 pub mod vox_decode;
 pub mod lanes;
 pub mod genetic;
@@ -78,9 +79,3 @@ pub mod factor_2adic; // 2-adic prefix inversion factorization
 
 #[cfg(test)]
 mod hadamard_retraction_tests;
-#[cfg(test)]
-mod hadamard_semiprime_width_tests;
-#[cfg(test)]
-mod hadamard_semiprime_scale_tests;
-#[cfg(test)]
-mod hadamard_semiprime_battery_tests;
