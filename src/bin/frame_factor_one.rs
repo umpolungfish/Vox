@@ -52,46 +52,38 @@ type Tape = Vec<char>;
 
 struct EvaluationFrame {
     width: usize,
-    symbols: Vec<(String, usize)>,
+    word: String,
+    bit_count: usize,
 }
 
-fn shift_to_frame(source: &[char], width: usize) -> EvaluationFrame {
+fn shift_evaluation_frame(source: &[char], width: usize) -> EvaluationFrame {
     EvaluationFrame {
         width,
-        symbols: source
-            .chunks(width)
-            .map(|group| (morphism_factor::emit_numeral(group), group.len()))
-            .collect(),
+        word: morphism_factor::emit_numeral(source),
+        bit_count: source.len(),
     }
 }
 
-fn return_from_frame(frame: &EvaluationFrame) -> Result<Tape, String> {
-    frame
-        .symbols
-        .iter()
-        .try_fold(Vec::new(), |mut returned, (symbol, width)| {
-            let mut group = parse_numeral(symbol)?;
-            group.resize(*width, vox::vox::EVALT);
-            returned.extend(group);
-            Ok(returned)
-        })
+fn shifted_support(frame: &EvaluationFrame) -> Result<Tape, String> {
+    let support = parse_numeral(&frame.word)?;
+    if support.len() != frame.bit_count {
+        return Err("evaluation frame changed its encoded support length".into());
+    }
+    Ok(support)
 }
 
 fn frame_support(frame: &EvaluationFrame) -> Result<Vec<Tape>, String> {
-    frame
-        .symbols
-        .iter()
-        .map(|(symbol, width)| {
-            let mut group = parse_numeral(symbol)?;
-            group.resize(*width, vox::vox::EVALT);
-            Ok(group)
-        })
-        .collect()
+    let support = shifted_support(frame)?;
+    Ok(support.chunks(frame.width).map(<[char]>::to_vec).collect())
+}
+
+fn return_from_frame(frame: &EvaluationFrame) -> Result<Tape, String> {
+    frame_support(frame).map(|groups| groups.into_iter().flatten().collect())
 }
 
 fn factor_in_frame(frame: &EvaluationFrame) -> Result<Vec<EvaluationFrame>, String> {
     let support_frames = frame_support(frame)?;
-    let (left, right) = vox::factor_2adic::factor_2adic_frames(&support_frames, Some(1))
+    let (left, right) = vox::factor_2adic::factor_2adic_semiprime_frames(&support_frames, Some(1))
         .into_iter()
         .next()
         .ok_or_else(|| "support-frame inverse convolution did not close".to_string())?;
@@ -101,7 +93,7 @@ fn factor_in_frame(frame: &EvaluationFrame) -> Result<Vec<EvaluationFrame>, Stri
     }
     Ok([left, right]
         .iter()
-        .map(|factor| shift_to_frame(factor, frame.width))
+        .map(|factor| shift_evaluation_frame(factor, frame.width))
         .collect())
 }
 
@@ -110,7 +102,7 @@ fn factor_baked_value() -> Result<String, String> {
         return Err("baked frame width must be at least 2".into());
     }
     let source = parse_numeral(BAKED_N_WORD)?;
-    let source_frame = shift_to_frame(&source, BAKED_WIDTH);
+    let source_frame = shift_evaluation_frame(&source, BAKED_WIDTH);
     let framed_source = return_from_frame(&source_frame)?;
     if framed_source != source {
         return Err("source frame failed its exact return check".into());
@@ -170,7 +162,7 @@ mod tests {
         let source = numeral("15241578750190521");
         for width in (2..=8).chain([17, 65, 257]) {
             assert_eq!(
-                return_from_frame(&shift_to_frame(&source, width)).unwrap(),
+                return_from_frame(&shift_evaluation_frame(&source, width)).unwrap(),
                 source
             );
         }
@@ -180,7 +172,7 @@ mod tests {
     fn returned_factors_transport_back_and_close_in_source_frame() {
         let source = numeral("100160063");
         for width in (2..=8).chain([65, 257]) {
-            let source_frame = shift_to_frame(&source, width);
+            let source_frame = shift_evaluation_frame(&source, width);
             let factor_frames = factor_in_frame(&source_frame).unwrap();
             let returned = factor_frames
                 .iter()
@@ -203,7 +195,7 @@ mod tests {
     #[test]
     fn frame_solver_consumes_support_groups_and_closes_the_encoded_product() {
         let source = numeral("100160063");
-        let frame = shift_to_frame(&source, 8);
+        let frame = shift_evaluation_frame(&source, 8);
         let support_frames = frame_support(&frame).unwrap();
         assert_eq!(
             vox::factor_2adic::factor_2adic_frames(&support_frames, Some(1)),
@@ -219,5 +211,20 @@ mod tests {
             &numeral("10008"),
             &numeral("10009"),
         ));
+    }
+
+    #[test]
+    fn semiprime_sieve_preserves_factors_equal_to_its_prime_registers() {
+        for (n, p, q) in [("15", "3", "5"), ("49", "7", "7")] {
+            let source = numeral(n);
+            for width in 2..=8 {
+                let frames = frame_support(&shift_evaluation_frame(&source, width)).unwrap();
+                assert_eq!(
+                    vox::factor_2adic::factor_2adic_semiprime_frames(&frames, Some(1)),
+                    vec![(numeral(p), numeral(q))],
+                    "N={n}, width={width}"
+                );
+            }
+        }
     }
 }
