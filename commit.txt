@@ -1,1 +1,1 @@
-I factor the full baked IMASM numeral through an arbitrary-width Gödel evaluation frame, transport both factors back to the source frame, and verify exact product closure. I include the compiled membrane and its build command, with warnings denied and a timed semiprime execution.
+I unbraid the baked support inside evaluation frames with the running-product register, return both factor words through the same frames, and close their product on N. I include the compiled membrane and verify the route with warnings-denied tests and an asymmetric semiprime execution.
