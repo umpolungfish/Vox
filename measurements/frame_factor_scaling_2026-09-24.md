@@ -13,7 +13,7 @@ Each executable was rebuilt from `frame_factor_build.sh <N> <frame-width>` with 
 | 23 | 14 × 61 | 23074570993201435367657 | 10007 × 2305843009213693951 | 8 | 0.110 s | `frame_factor_8cdbe764c7516ab99526` |
 | 24 | 17 × 61 | 230591218450397036181853 | 100003 × 2305843009213693951 | 8 | 0.792 s | `frame_factor_3f74d4c490d3785468f5` |
 | 31 | 14 × 89 | 6194032986564400205457768044777 | 10007 × 618970019642690137449562111 | 8 | 0.164 s | `frame_factor_811624a191ec7e89ce52` |
-| 43 | 14 × 127 | 1702602822888915601938994848284852246010089 | 10007 × 170141183460469231731687303715884105727 | 8 | 0.287 s | `frame_factor_212df6193784cbada649` |
+| 43 | 14 × 127 | 1702602822888915601938994848284852246010089 | 10007 × 170141183460469231731687303715884105727 | 8 | 0.262 s | `frame_factor_212df6193784cbada649` |
 | 43 | 14 × 127 | 1702602822888915601938994848284852246010089 | 10007 × 170141183460469231731687303715884105727 | 2 | 0.280 s | `frame_factor_94687891bcd06f2be301` |
 | 44 | 17 × 127 | 17014628769597304580863925433499558225017181 | 100003 × 170141183460469231731687303715884105727 | 8 | 2.175 s | `frame_factor_56b7099d5f0ffd6ac7c5` |
 | 45 | 20 × 127 | 170141693884019613139382498777795253379317181 | 1000003 × 170141183460469231731687303715884105727 | 8 | 21.373 s | `frame_factor_a2015a1f1c2016c55e4e` |
@@ -23,7 +23,7 @@ Each executable was rebuilt from `frame_factor_build.sh <N> <frame-width>` with 
 
 The route closes on inputs up to 43 decimal digits when the smaller factor is 14 bits. The 14-bit by 30-bit semiprime runs in 43 ms, below the 50 ms reference. Increasing the larger factor from 30 to 127 bits raised runtime from 43 ms to 287 ms. The smaller-factor width is the sharper cost driver in this set: at 24 bits, the 17-digit input took 29.859 s. Balanced 17-bit and 20-bit factors took 148 ms and 1.622 s respectively.
 
-The wider 127-bit-factor sweep closes at 44, 45, and 46 decimal digits, with shorter-factor widths 17, 20, and 24 bits. Direct executable times rise from 2.175 s to 21.373 s to 233.063 s. The current frame extractor branches over both values of each unresolved shorter-factor bit; its “frame shift” re-emits the unchanged numeral and only regroups the support. These results therefore record exact closure of the current implementation and expose that its width-dependent search does not meet a sub-second target.
+The wider 127-bit-factor sweep closes at 44, 45, and 46 decimal digits, with shorter-factor widths 17, 20, and 24 bits. Direct executable times rise from 2.175 s to 21.373 s to 233.063 s. Frame multiplication now returns each group product at the sum of its source-group origins and normalizes the accumulated carries. The shorter-factor extraction still branches over both values of each unresolved bit, so that search remains the dominant width-dependent cost and does not meet a sub-second target.
 
 The inverse-convolution route reads each target cell from the active evaluation frame. It fixes the odd anchor `p₀=q₀=1`, shifts a candidate `pₖ` into the current support position, cancels `bitₖ(PQ) XOR pₖ` against the source cell to recover `qₖ`, then advances the carry-normalized product tape. Frame widths 2–8 are tested as lossless regroupings of the same source word. The semiprime specialization rejects shorter-factor candidates divisible by 3, 5, or 7 when the longer support still has at least eight unresolved cells; the corresponding negative residue reads are also applied at the terminal complementary factor.
 

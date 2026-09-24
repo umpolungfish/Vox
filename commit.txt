@@ -1,1 +1,1 @@
-I test the baked frame unbraider on 44–46 digit semiprimes with 127-bit factors. The binaries close exactly, and their 2.175–233.063 second runtimes expose the unresolved-bit branch search and the unchanged-word frame regrouping that must be rewired.
+I transport each cross-width frame-group product to the sum of its source addresses and normalize carries in the source frame. I verify that map for every width pair from two through eight and in the baked membrane, then record wider semiprime closures and the remaining shorter-factor branch cost.
