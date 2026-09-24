@@ -81,7 +81,7 @@ fn run_baked_membrane() {
         }
     };
     let radix = match parse_numeral(radix_word) {
-        Ok(radix) if vox::morphism_factor::cmp(&radix, &['⊤', '⊥']) == core::cmp::Ordering::Greater => radix,
+        Ok(radix) if vox::morphism_factor::cmp(&radix, &['⊥']) == core::cmp::Ordering::Greater => radix,
         _ => {
             eprintln!("baked lift radix must be a numeral greater than one");
             std::process::exit(2);
