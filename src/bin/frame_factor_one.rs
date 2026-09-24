@@ -151,26 +151,13 @@ fn main() {
 mod tests {
     use super::*;
 
-    fn numeral(value: u64) -> Tape {
-        let mut bits = Vec::new();
-        let mut remaining = value;
-        while remaining != 0 {
-            bits.push(if remaining & 1 == 1 {
-                vox::vox::EVALF
-            } else {
-                vox::vox::EVALT
-            });
-            remaining >>= 1;
-        }
-        if bits.is_empty() {
-            bits.push(vox::vox::EVALT);
-        }
-        bits
+    fn numeral(value: &str) -> Tape {
+        morphism_factor::decimal_to_tape(value).expect("decimal test numeral")
     }
 
     #[test]
     fn frame_shift_returns_whole_value_at_every_resolution() {
-        let source = numeral(152_415_787_501_905_21);
+        let source = numeral("15241578750190521");
         for width in (2..=8).chain([17, 65, 257]) {
             assert_eq!(
                 return_from_frame(&shift_to_frame(&source, width)).unwrap(),
@@ -181,7 +168,7 @@ mod tests {
 
     #[test]
     fn returned_factors_transport_back_and_close_in_source_frame() {
-        let source = numeral(100_160_063);
+        let source = numeral("100160063");
         for width in (2..=8).chain([65, 257]) {
             let source_frame = shift_to_frame(&source, width);
             let factor_frames = factor_in_frame(&source_frame).unwrap();
