@@ -1,1 +1,1 @@
-I prune frame-prefix branches with factor-length ceilings and compare IMASM tapes without cloning. The baked 10007000070049 membrane now returns 10007 × 1000000007 and closes in repeated 37–40 ms executions. I verify the binary with Vox and warnings-denied tests.
+I test the baked frame membrane on balanced and asymmetric semiprimes through 43 decimal digits, retain each encoded-input executable, and record exact closures and direct wall times. I note the smaller-factor width wall and exclude a mistyped non-semiprime fixture.
