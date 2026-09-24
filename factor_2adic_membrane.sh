@@ -46,6 +46,7 @@ if [[ -z "$N_WORD" || -z "$BASE_WORD" || -z "$RADIX_WORD" ]]; then
   echo "vox numeral returned an empty word" >&2
   exit 2
 fi
+./target/release/vox coprime "$BASE" "$N" >/dev/null
 FINGERPRINT="$(printf '%s\n%s\n%s' "$N_WORD" "$BASE_WORD" "$RADIX_WORD" | sha256sum | cut -d' ' -f1)"
 OUTPUT="${2:-membranes/factor_2adic_${FINGERPRINT}}"
 if [[ -e "$OUTPUT" ]]; then
@@ -57,7 +58,7 @@ fi
 # attached to this membrane when another N is baked later.
 BUILD_DIR="target/factor_2adic_membranes/${FINGERPRINT}"
 mkdir -p "$BUILD_DIR"
-printf '%s\n%s\n%s\n' "$N_WORD" "$BASE_WORD" "$RADIX_WORD" > "$BUILD_DIR/baked_inputs.txt"
+printf '%s\n%s\n%s\nunit\n' "$N_WORD" "$BASE_WORD" "$RADIX_WORD" > "$BUILD_DIR/baked_inputs.txt"
 VOX_BAKED_INPUT_FILE="$BUILD_DIR/baked_inputs.txt" \
 RUSTFLAGS="-C target-feature=+crt-static -C relocation-model=static" \
 cargo build --release --bin factor_2adic --target x86_64-unknown-linux-gnu --target-dir "$BUILD_DIR"

@@ -35,17 +35,17 @@ fn append_frames(output: &mut String, label: &str, tape: &[char]) {
         let remainder = tape.len() % window;
         let tail_len = if remainder == 0 { window } else { remainder };
         use core::fmt::Write;
-        write!(output, "frame {label} window={} tail={} bits={} groups=",
+        let token_width = usize::from(window > 4) + 1;
+        write!(output, "frame {label} window={} tail={} bits={} groups-hex=",
             window, tail_len, tape.len()).unwrap();
-        let cells_start = output.len();
-        for (index, group) in tape.chunks(window).enumerate() {
-            if index != 0 { output.push('|'); }
-            output.extend(group.iter().copied());
+        for group in tape.chunks(window) {
+            let mut state = 0u8;
+            for (index, &mark) in group.iter().enumerate() {
+                if mark == vox::vox::EVALF { state |= 1 << index; }
+            }
+            write!(output, "{state:0token_width$x}").unwrap();
         }
         output.push('\n');
-        // Keep the rendered frame exactly equal to the source tape when its
-        // separators are removed, without constructing a second frame tree.
-        debug_assert_eq!(output[cells_start..].chars().filter(|&mark| mark != '|').collect::<Vec<_>>(), tape);
     }
 }
 
@@ -91,7 +91,12 @@ fn run_baked_membrane() {
     // The phase partner relation supplies the winding. No shape scout,
     // divisor walk, rho, sieve, or factor-candidate scan is on this path.
     let phase_started = std::time::Instant::now();
-    let mut partners = match phase_partners::Partners::new(base.clone(), tape.clone()) {
+    let partner_open = if BAKED_BASE_IS_UNIT {
+        phase_partners::Partners::new_from_validated_bake(base.clone(), tape.clone())
+    } else {
+        phase_partners::Partners::new(base.clone(), tape.clone())
+    };
+    let mut partners = match partner_open {
         Ok(partners) => partners,
         Err(error) => {
             eprintln!("phase membrane could not open: {error}");
@@ -131,7 +136,11 @@ fn run_baked_membrane() {
     let extract_elapsed = extract_started.elapsed();
     let winding = relation.return_exponent.clone();
     let factor_close_started = std::time::Instant::now();
-    let factor_pair = vox::shor_braid::factor_close_public(&base, &tape, &winding);
+    let factor_pair = if let Some((current_half, earlier_half)) = relation.half_residues.as_ref() {
+        vox::shor_braid::factor_close_from_phase_halves(&tape, current_half, earlier_half)
+    } else {
+        vox::shor_braid::factor_close_public(&base, &tape, &winding)
+    };
     let factor_close_elapsed = factor_close_started.elapsed();
     let (factors, report) = if let Ok((mut p, mut q)) = factor_pair {
         if vox::morphism_factor::cmp(&p, &q) == core::cmp::Ordering::Greater {
@@ -156,7 +165,7 @@ fn run_baked_membrane() {
             .map(|(state, product)| vox::factor_2adic::FactorFixedPoint { p: state.p, q: state.q, product });
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
-        let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues());
+        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})\n", winding.len(), partners.squarings, partners.stored_residues());
         let factors = if closure_value == 'T' {
             factors_at_meeting.and_then(|fixed|
                 vox::factor_2adic::terminal_pair_given_semiprime_promise(&tape, fixed))
@@ -165,7 +174,7 @@ fn run_baked_membrane() {
         };
         (factors, report)
     } else {
-        let report = format!("phase winding: {} ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-close: {}\n", vox::morphism_factor::dec_of(&winding), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
+        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-close: {}\n", winding.len(), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
         (None, report)
     };
 
@@ -173,14 +182,10 @@ fn run_baked_membrane() {
     let factor_bits = factors.as_ref().map_or(0, |meeting|
         meeting.p.len().saturating_add(meeting.q.len()));
     let rendered_bits = tape.len().saturating_add(factor_bits);
-    let output_capacity = 2048usize
-        .saturating_add(rendered_bits.saturating_mul(48))
-        .saturating_add(word.len())
-        .saturating_add(base_word.len())
-        .saturating_add(radix_word.len());
+    let output_capacity = 2048usize.saturating_add(rendered_bits.saturating_mul(20));
     let mut output = String::with_capacity(output_capacity);
     use core::fmt::Write;
-    writeln!(output, "membrane input: baked IMASM base and modulus\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: exact proper pair under semiprime promise\nbase = {base_word}\nlift radix = {radix_word}\nN = {word}").unwrap();
+    writeln!(output, "membrane input: baked IMASM numeral registers\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: exact proper pair under semiprime promise\nbase register bits={}\nlift radix register bits={}\nN register bits={}", base.len(), radix.len(), tape.len()).unwrap();
     append_frames(&mut output, "N", &tape);
     if let Some(meeting) = factors {
         let p_word = vox::morphism_factor::emit_numeral(&meeting.p);
@@ -227,12 +232,44 @@ mod tests {
             later: vec!['⊥'],
             residue: vec!['⊤', '⊥'],
             return_exponent: vec!['⊥'],
+            half_residues: None,
         };
         let readout = phase_word::execute(EXTRACT_WORD, &relation).unwrap();
         assert_eq!(readout.surviving.len(), 4);
         assert_eq!(readout.restored, 1);
         assert_eq!(readout.exposed, 0);
         assert!(readout.surviving.iter().all(|deposit| deposit.observation == relation));
+    }
+
+    #[test]
+    fn compact_frame_alphabets_reconstruct_the_complete_source_tape() {
+        let source = vec!['⊥', '⊤', '⊥', '⊥', '⊤', '⊥', '⊤', '⊤', '⊥', '⊥', '⊥'];
+        let mut output = String::new();
+        append_frames(&mut output, "N", &source);
+        for line in output.lines() {
+            let mut fields = line.split_whitespace();
+            assert_eq!(fields.next(), Some("frame"));
+            assert_eq!(fields.next(), Some("N"));
+            let window = fields.next().unwrap().strip_prefix("window=").unwrap().parse::<usize>().unwrap();
+            let tail = fields.next().unwrap().strip_prefix("tail=").unwrap().parse::<usize>().unwrap();
+            let bits = fields.next().unwrap().strip_prefix("bits=").unwrap().parse::<usize>().unwrap();
+            let encoded = fields.next().unwrap().strip_prefix("groups-hex=").unwrap();
+            let token_width = usize::from(window > 4) + 1;
+            let mut reconstructed = Vec::with_capacity(bits);
+            for (group_index, token) in encoded.as_bytes().chunks(token_width).enumerate() {
+                let token = core::str::from_utf8(token).unwrap();
+                let state = u8::from_str_radix(token, 16).unwrap();
+                let group_bits = if group_index + 1 == (bits + window - 1) / window {
+                    tail
+                } else {
+                    window
+                };
+                for index in 0..group_bits {
+                    reconstructed.push(if (state >> index) & 1 == 1 { '⊥' } else { '⊤' });
+                }
+            }
+            assert_eq!(reconstructed, source);
+        }
     }
 }
 

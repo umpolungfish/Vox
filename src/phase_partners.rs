@@ -12,6 +12,9 @@ pub struct ReturnRelation {
     pub later: Tape,
     pub residue: Tape,
     pub return_exponent: Tape,
+    /// Adjacent dyadic residues whose quotient is a^(return_exponent / 2).
+    /// Absent when the return exponent is odd or has no positive half-step.
+    pub half_residues: Option<(Tape, Tape)>,
 }
 
 #[allow(dead_code)] // Retained for explicit, non-hot-path relation replay.
@@ -46,8 +49,14 @@ pub struct Partners {
     // Store dynamic residues and only the observation index. Storing each
     // ever-growing exponent tape made total memory quadratic in observations;
     // serializing each residue to bytes added a second representation to hash.
-    seen: HashMap<BigUint, Option<usize>>,
+    seen: HashMap<BigUint, SeenResidue>,
     pub squarings: usize,
+    previous_residue: Option<BigUint>,
+}
+
+struct SeenResidue {
+    index: Option<usize>,
+    half_residue: Option<BigUint>,
 }
 
 fn tape_to_biguint(tape: &[char]) -> BigUint {
@@ -58,6 +67,15 @@ fn tape_to_biguint(tape: &[char]) -> BigUint {
         }
     }
     BigUint::from_bytes_le(&packed)
+}
+
+fn biguint_gcd(mut left: BigUint, mut right: BigUint) -> BigUint {
+    while !right.is_zero() {
+        let remainder = &left % &right;
+        left = right;
+        right = remainder;
+    }
+    left
 }
 
 fn biguint_to_tape(value: &BigUint) -> Tape {
@@ -81,44 +99,70 @@ fn power_of_two_exponent(index: usize) -> Tape {
 
 impl Partners {
     pub fn new(a: Tape, n: Tape) -> Result<Self, String> {
-        if cmp(&n, &one()) != std::cmp::Ordering::Greater || gcd(a.clone(), n.clone()) != one() {
+        Self::new_inner(a, n, true)
+    }
+
+    /// Runtime entry for a phase base whose unit property was checked while
+    /// its IMASM numeral was baked into the contained binary.
+    pub fn new_from_validated_bake(a: Tape, n: Tape) -> Result<Self, String> {
+        Self::new_inner(a, n, false)
+    }
+
+    fn new_inner(a: Tape, n: Tape, check_unit: bool) -> Result<Self, String> {
+        if cmp(&n, &one()) != std::cmp::Ordering::Greater {
             return Err("partners require N > 1 and a coprime base".into());
         }
         let n_big = tape_to_biguint(&n);
         let a_big = tape_to_biguint(&a);
+        if check_unit && biguint_gcd(a_big.clone(), n_big.clone()) != BigUint::from(1u8) {
+            return Err("partners require N > 1 and a coprime base".into());
+        }
         let mut seen = HashMap::new();
         // The initial state is 1 = a^0, distinguished from a^(2^i).
-        seen.insert(BigUint::from(1u8), None);
+        seen.insert(BigUint::from(1u8), SeenResidue { index: None, half_residue: None });
         let residue = a_big % &n_big;
-        Ok(Self { n: n_big, residue, seen, squarings: 0 })
+        Ok(Self { n: n_big, residue, seen, squarings: 0, previous_residue: None })
     }
 
     /// One observation and one squaring. Caller chooses when to observe again;
     /// no fixed search ceiling is imposed on this resident state.
     pub fn observe(&mut self) -> Result<Option<ReturnRelation>, String> {
-        let earlier_index = match self.seen.entry(self.residue.clone()) {
-            Entry::Occupied(entry) => Some(*entry.get()),
+        let relation = match self.seen.entry(self.residue.clone()) {
+            Entry::Occupied(entry) => {
+                let seen = entry.get();
+                let later = power_of_two_exponent(self.squarings);
+                let earlier = seen.index.map(power_of_two_exponent).unwrap_or_else(|| vec![vox::vox::EVALT]);
+                let half_residues = self.previous_residue.as_ref().and_then(|current_half| {
+                    let earlier_half = match seen.index {
+                        None => Some(BigUint::from(1u8)),
+                        Some(index) if index > 0 => seen.half_residue.clone(),
+                        _ => None,
+                    }?;
+                    Some((biguint_to_tape(current_half), biguint_to_tape(&earlier_half)))
+                });
+                Some(ReturnRelation {
+                    earlier: earlier.clone(),
+                    later: later.clone(),
+                    residue: biguint_to_tape(&self.residue),
+                    return_exponent: sub(&later, &earlier),
+                    half_residues,
+                })
+            }
             Entry::Vacant(entry) => {
-                entry.insert(Some(self.squarings));
+                entry.insert(SeenResidue {
+                    index: Some(self.squarings),
+                    half_residue: self.previous_residue.clone(),
+                });
                 None
             }
         };
-        let relation = earlier_index.map(|earlier_index| {
-            let later = power_of_two_exponent(self.squarings);
-            let earlier = earlier_index.map(power_of_two_exponent).unwrap_or_else(|| vec![vox::vox::EVALT]);
-            ReturnRelation {
-                earlier: earlier.clone(),
-                later: later.clone(),
-                residue: biguint_to_tape(&self.residue),
-                return_exponent: sub(&later, &earlier),
-            }
-        });
         // The resident recurrence already carries the proof: residue starts at
         // a^1, each step squares residue while doubling exponent, and the
         // collision compares two states in this same inductively maintained
         // map. Replaying three full modular exponentiations here adds no new
         // evidence and dominates wide runs. Keep `ReturnRelation::verify` for
         // independent callers and tests, but do not repeat it on the hot path.
+        self.previous_residue = Some(self.residue.clone());
         self.residue = (&self.residue * &self.residue) % &self.n;
         self.squarings += 1;
         Ok(relation)
@@ -155,5 +199,39 @@ mod tests {
             assert!(!bad.verify(&t(2), &t(n)));
         }
         assert!(Partners::new(t(3),t(15)).is_err());
+    }
+
+    #[test]
+    fn collision_carries_the_two_half_step_residues() {
+        let mut partners = Partners::new(t(2), t(15)).unwrap();
+        let relation = loop {
+            if let Some(relation) = partners.observe().unwrap() { break relation; }
+        };
+        assert_eq!(relation.return_exponent, t(4));
+        let (current_half, earlier_half) = relation.half_residues.unwrap();
+        assert_eq!(vox::morphism_factor::dec_of(&current_half), "4");
+        assert_eq!(vox::morphism_factor::dec_of(&earlier_half), "1");
+    }
+
+    #[test]
+    fn wide_partner_map_preserves_the_expected_collision_and_both_closures() {
+        let shift = BigUint::from(1u8) << 3300usize;
+        let p = BigUint::from(7161u16) * &shift + BigUint::from(1u8);
+        let q = BigUint::from(9135u16) * &shift + BigUint::from(1u8);
+        let n = biguint_to_tape(&(&p * &q));
+        let base = t(2);
+        let mut partners = Partners::new(base.clone(), n.clone()).unwrap();
+        let relation = (0..5000).find_map(|_| partners.observe().unwrap());
+        let relation = relation.expect("wide phase collision closes within the measured orbit");
+        assert_eq!(partners.squarings, 3720);
+        assert!(relation.verify(&base, &n));
+        let (p, q) = vox::shor_braid::factor_close_from_phase_halves(
+            &n, &relation.half_residues.as_ref().unwrap().0,
+            &relation.half_residues.as_ref().unwrap().1,
+        ).unwrap();
+        assert_eq!(vox::morphism_factor::mul(&p, &q), n);
+        assert!(vox::factor_2adic::radix_prefix_closes(
+            &n, &p, &q, &vox::morphism_factor::tape_u64(4_294_967_296),
+        ));
     }
 }

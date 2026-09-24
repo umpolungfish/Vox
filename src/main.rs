@@ -27,6 +27,7 @@ fn usage() {
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
+    eprintln!("  vox coprime <base> <N>   validate that a phase base is a unit modulo N");
     eprintln!("  vox extract-factor <factor-carrier-word>    passive ≡c extraction from an already factor-bearing trace");
     eprintln!("  vox construct-carrier <operator-word>        decompose a word into its factoring-morphism tower");
     eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
@@ -1242,6 +1243,22 @@ fn main() {
             match args.get(1).and_then(|a| ::vox::morphism_factor::decimal_to_tape(a)) {
                 Some(v) => { print!("{}", ::vox::perfect_membrane::operculum_demo(&v, n)); 0 }
                 None => { eprintln!("vox operculum <decimal> [depth]   load a value through the membrane's one lid"); 1 }
+            }
+        }
+        Some("coprime") => {
+            let parse = |value: &str| {
+                if value.starts_with('⊢') {
+                    ::vox::morphism_factor::parse_numeral(value).ok()
+                } else {
+                    ::vox::morphism_factor::decimal_to_tape(value)
+                }
+            };
+            match (args.get(1).and_then(|value| parse(value)), args.get(2).and_then(|value| parse(value))) {
+                (Some(base), Some(modulus)) if ::vox::morphism_factor::gcd(base.clone(), modulus.clone()) == ::vox::morphism_factor::tape_u64(1) => {
+                    println!("coprime"); 0
+                }
+                (Some(_), Some(_)) => { eprintln!("phase base is not coprime to N"); 2 }
+                _ => { eprintln!("vox coprime <base> <N>   validate a phase base before baking"); 2 }
             }
         }
         Some("numeral") => {
