@@ -1,16 +1,16 @@
 //! Executable arithmetic readings for the twelve-glyph IMASM alphabet.
 //!
 //! This module treats the glyph calculus as one coherent, information-preserving
-//! code.  It does not assign independent ad-hoc meanings to glyphs: the readers
+//! code. It does not assign independent ad-hoc meanings to glyphs: the readers
 //! below are the two structural numeral families exhibited by the equations that
 //! define this layer.
 //!
-//! Family 1 is a repeated-cell little-endian binary word.  In each
+//! Family 1 is a repeated-cell little-endian binary word. In each
 //! `≻⋈∈x∋` cell, `⊥` is bit 1 and `⊤` is bit 0; the leftmost cell is 2^0.
 //!
 //! Family 2 is the commuting edit square around the base word of value 2:
 //! inserting `⊥` in the unit slot is +1 and inserting `⊞` in the branch slot is
-//! +2.  The fused word is the common value 8 = 3+5 = 2*4.
+//! +2. The fused word is the common value 8 = 3+5 = 2*4.
 
 use alloc::format;
 use alloc::string::{String, ToString};
@@ -165,7 +165,7 @@ fn decode_cell(chars: &[char]) -> Result<Option<Reading>, DecodeError> {
         return Ok(None);
     }
     let n = chars.len();
-    if chars[n - 3..] != [IMSCRIB, IFIX, TANCH] {
+    if chars[n - 3] != IMSCRIB || chars[n - 2] != IFIX || chars[n - 1] != TANCH {
         return Ok(None);
     }
     let body_len = n - 4;
@@ -240,7 +240,9 @@ fn decode_affine(chars: &[char]) -> Option<Reading> {
         return None;
     }
 
-    let value = 2 + u128::from(unit) + 2 * u128::from(branch);
+    let unit_value = if unit { 1u128 } else { 0u128 };
+    let branch_value = if branch { 1u128 } else { 0u128 };
+    let value = 2u128 + unit_value + 2u128 * branch_value;
     Some(Reading {
         value,
         family: Family::AffineEdit,
@@ -253,7 +255,7 @@ fn decode_fusion(chars: &[char]) -> Option<Reading> {
         VINIT, FSPLIT, AFWD, CLINK, EVALF, AREV, CLINK, FFUSE, IMSCRIB, IFIX,
         TANCH,
     ];
-    if chars == pattern {
+    if chars == pattern.as_slice() {
         Some(Reading {
             value: 8,
             family: Family::ProductFusion,
@@ -279,7 +281,7 @@ pub fn decode(word: &str) -> Result<Reading, DecodeError> {
     Err(DecodeError::Unrecognized)
 }
 
-/// Canonical repeated-cell binary encoding.  Zero is represented by one `⊤`
+/// Canonical repeated-cell binary encoding. Zero is represented by one `⊤`
 /// cell, so every encoded numeral has at least one payload cell.
 pub fn encode_cell_binary(mut value: u128) -> String {
     let mut out = String::new();
