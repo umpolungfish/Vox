@@ -52,20 +52,20 @@ type Tape = Vec<char>;
 
 struct EvaluationFrame {
     width: usize,
-    word: String,
+    groups: Vec<Tape>,
     bit_count: usize,
 }
 
 fn shift_evaluation_frame(source: &[char], width: usize) -> EvaluationFrame {
     EvaluationFrame {
         width,
-        word: morphism_factor::emit_numeral(source),
+        groups: source.chunks(width).map(<[char]>::to_vec).collect(),
         bit_count: source.len(),
     }
 }
 
 fn shifted_support(frame: &EvaluationFrame) -> Result<Tape, String> {
-    let support = parse_numeral(&frame.word)?;
+    let support = frame.groups.iter().flatten().copied().collect::<Tape>();
     if support.len() != frame.bit_count {
         return Err("evaluation frame changed its encoded support length".into());
     }
@@ -73,8 +73,8 @@ fn shifted_support(frame: &EvaluationFrame) -> Result<Tape, String> {
 }
 
 fn frame_support(frame: &EvaluationFrame) -> Result<Vec<Tape>, String> {
-    let support = shifted_support(frame)?;
-    Ok(support.chunks(frame.width).map(<[char]>::to_vec).collect())
+    shifted_support(frame)?;
+    Ok(frame.groups.clone())
 }
 
 fn return_from_frame(frame: &EvaluationFrame) -> Result<Tape, String> {
@@ -88,13 +88,19 @@ fn factor_in_frame(frame: &EvaluationFrame) -> Result<Vec<EvaluationFrame>, Stri
         .next()
         .ok_or_else(|| "support-frame inverse convolution did not close".to_string())?;
     let shifted_source = return_from_frame(frame)?;
-    if mul(&left, &right) != shifted_source {
+    let left_frame = shift_evaluation_frame(&left, frame.width);
+    let right_frame = shift_evaluation_frame(&right, frame.width);
+    let shifted_product = vox::factor_2adic::multiply_shifted_frames(
+        &frame_support(&left_frame)?,
+        left_frame.width,
+        &frame_support(&right_frame)?,
+        right_frame.width,
+    )
+    .ok_or_else(|| "factor frame product could not be transported".to_string())?;
+    if shifted_product != shifted_source {
         return Err("inverse-convolution registers do not close on the source frame".into());
     }
-    Ok([left, right]
-        .iter()
-        .map(|factor| shift_evaluation_frame(factor, frame.width))
-        .collect())
+    Ok(vec![left_frame, right_frame])
 }
 
 fn factor_baked_value() -> Result<String, String> {
@@ -118,6 +124,23 @@ fn factor_baked_value() -> Result<String, String> {
         .fold(vec![vox::vox::EVALF], |acc, factor| mul(&acc, factor));
     if product != source {
         return Err("returned factors do not close on the baked source numeral".into());
+    }
+    for width in 2..=8 {
+        let left = shift_evaluation_frame(&returned_factors[0], width);
+        let right = shift_evaluation_frame(&returned_factors[1], width);
+        let transported = vox::factor_2adic::multiply_shifted_frames(
+            &frame_support(&left)?,
+            left.width,
+            &frame_support(&right)?,
+            right.width,
+        )
+        .ok_or_else(|| format!("factor product did not transport through width-{width}"))?;
+        let source_frame = shift_evaluation_frame(&source, width);
+        if transported != return_from_frame(&source_frame)? {
+            return Err(format!(
+                "factor product did not close in width-{width} frame"
+            ));
+        }
     }
 
     let factor_words = returned_factors

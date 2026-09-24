@@ -354,6 +354,44 @@ fn add_shifted_assign(accumulator: &mut Vec<char>, term: &[char], places: usize)
     *accumulator = trim(core::mem::take(accumulator));
 }
 
+/// Multiply two evaluation-frame streams by transporting each local product
+/// to the sum of its source bit addresses. A group at `(width, index)` begins
+/// at `width * index`; therefore the product of groups `i` and `j` returns at
+/// `left_width * i + right_width * j`. `add_shifted_assign` performs the
+/// carry-normalized accumulation in the original support frame.
+pub fn multiply_shifted_frames(
+    left_frames: &[Vec<char>],
+    left_width: usize,
+    right_frames: &[Vec<char>],
+    right_width: usize,
+) -> Option<Vec<char>> {
+    if left_width == 0
+        || right_width == 0
+        || left_frames.is_empty()
+        || right_frames.is_empty()
+        || left_frames
+            .iter()
+            .any(|group| group.is_empty() || group.len() > left_width)
+        || right_frames
+            .iter()
+            .any(|group| group.is_empty() || group.len() > right_width)
+    {
+        return None;
+    }
+
+    let mut product = alloc::vec![ZERO];
+    for (left_index, left) in left_frames.iter().enumerate() {
+        for (right_index, right) in right_frames.iter().enumerate() {
+            let left_offset = left_index.checked_mul(left_width)?;
+            let right_offset = right_index.checked_mul(right_width)?;
+            let product_offset = left_offset.checked_add(right_offset)?;
+            let local_product = multiply(left, right);
+            add_shifted_assign(&mut product, &local_product, product_offset);
+        }
+    }
+    Some(trim(product))
+}
+
 fn extend_product_registers(
     p: &[char],
     q: &[char],
@@ -1441,6 +1479,31 @@ mod tests {
             assert_eq!(state.q, q, "frame width {}", frame.window);
             assert_eq!(trim(q_recovered), q, "frame width {}", frame.window);
             assert_eq!(state.product, n, "frame width {}", frame.window);
+        }
+    }
+
+    #[test]
+    fn cross_width_frame_products_return_at_summed_source_addresses() {
+        let p = crate::morphism_factor::decimal_to_tape("10007").unwrap();
+        let q = crate::morphism_factor::decimal_to_tape("1000000007").unwrap();
+        let expected = multiply(&p, &q);
+
+        for left_width in 2..=8 {
+            let left_frames = p
+                .chunks(left_width)
+                .map(<[char]>::to_vec)
+                .collect::<Vec<_>>();
+            for right_width in 2..=8 {
+                let right_frames = q
+                    .chunks(right_width)
+                    .map(<[char]>::to_vec)
+                    .collect::<Vec<_>>();
+                assert_eq!(
+                    multiply_shifted_frames(&left_frames, left_width, &right_frames, right_width,),
+                    Some(expected.clone()),
+                    "left width {left_width}, right width {right_width}"
+                );
+            }
         }
     }
 
