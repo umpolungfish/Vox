@@ -222,3 +222,119 @@ path = "src/bin/router_g_cli.rs"
 [[bin]]
 name = "judge_router_g_cli"
 path = "src/bin/judge_router_g_cli.rs"
+
+[[bin]]
+name = "router_marks_cli"
+path = "src/bin/router_marks_cli.rs"
+
+[[bin]]
+name = "router_word_cli"
+path = "src/bin/router_word_cli.rs"
+
+[[bin]]
+name = "self_repair_word_cli"
+path = "src/bin/self_repair_word_cli.rs"
+
+[[bin]]
+name = "trace_word_cli"
+path = "src/bin/trace_word_cli.rs"
+
+[[bin]]
+name = "trace_reentry_cli"
+path = "src/bin/trace_reentry_cli.rs"
+
+[[bin]]
+name = "rewrite_word_cli"
+path = "src/bin/rewrite_word_cli.rs"
+
+[[bin]]
+name = "trace_algebra_cli"
+path = "src/bin/trace_algebra_cli.rs"
+
+[[bin]]
+name = "tape_delete_cli"
+path = "src/bin/tape_delete_cli.rs"
+
+[[bin]]
+name = "tape_fuse_cli"
+path = "src/bin/tape_fuse_cli.rs"
+
+[[bin]]
+name = "tape_algebra_words_cli"
+path = "src/bin/tape_algebra_words_cli.rs"
+
+[[bin]]
+name = "tape_factor_cli"
+path = "src/bin/tape_factor_cli.rs"
+
+[[bin]]
+name = "terminal_fixpoint_cli"
+path = "src/bin/terminal_fixpoint_cli.rs"
+
+[[bin]]
+name = "transform_verdict_cli"
+path = "src/bin/transform_verdict_cli.rs"
+
+[[bin]]
+name = "reduce_resident_cli"
+path = "src/bin/reduce_resident_cli.rs"
+
+[[bin]]
+name = "confluence_cli"
+path = "src/bin/confluence_cli.rs"
+
+[[bin]]
+name = "cluster_factor_cli"
+path = "src/bin/cluster_factor_cli.rs"
+
+[[bin]]
+name = "history_reduce_cli"
+path = "src/bin/history_reduce_cli.rs"
+
+[[bin]]
+name = "frame_work_cli"
+path = "src/bin/frame_work_cli.rs"
+
+[[bin]]
+name = "tower_words_cli"
+path = "src/bin/tower_words_cli.rs"
+
+[[bin]]
+name = "winding_membrane"
+path = "src/bin/winding_membrane.rs"
+
+[[bin]]
+name = "ring_membrane"
+path = "src/bin/ring_membrane.rs"
+
+[[bin]]
+name = "base_mod_membrane"
+path = "src/bin/base_mod_membrane.rs"
+
+[[bin]]
+name = "reduce_delete_membrane"
+path = "src/bin/reduce_delete_membrane.rs"
+
+[[bin]]
+name = "cylinder_membrane"
+path = "src/bin/cylinder_membrane.rs"
+
+[[bin]]
+name = "hyperstack_one"
+path = "src/bin/hyperstack_one.rs"
+
+[[bin]]
+name = "double_arev_membrane"
+path = "src/bin/double_arev_membrane.rs"
+
+[[bin]]
+name = "single_frame_membrane"
+path = "src/bin/single_frame_membrane.rs"
+
+[dependencies]
+num-bigint = "0.4"
+num-traits = "0.2"
+
+[[bin]]
+name = "factor_2adic_bigint"
+path = "src/bin/factor_2adic_bigint.rs"
