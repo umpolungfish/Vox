@@ -1,1 +1,1 @@
-I unbraid the baked support inside evaluation frames with the running-product register, return both factor words through the same frames, and close their product on N. I include the compiled membrane and verify the route with warnings-denied tests and an asymmetric semiprime execution.
+I prune frame-prefix branches with factor-length ceilings and compare IMASM tapes without cloning. The baked 10007000070049 membrane now returns 10007 × 1000000007 and closes in repeated 37–40 ms executions. I verify the binary with Vox and warnings-denied tests.
