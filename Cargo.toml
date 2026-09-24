@@ -72,6 +72,10 @@ name = "factor_one"
 path = "src/bin/factor_one.rs"
 
 [[bin]]
+name = "frame_factor_one"
+path = "src/bin/frame_factor_one.rs"
+
+[[bin]]
 name = "factorization_31_batch"
 path = "src/bin/factorization_31_batch.rs"
 
