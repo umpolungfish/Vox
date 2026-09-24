@@ -22,6 +22,10 @@ path = "src/bin/semiprime_probe.rs"
 name = "factor_2adic"
 path = "src/bin/factor_2adic.rs"
 
+[[bin]]
+name = "godel"
+path = "src/bin/godel.rs"
+
 [lib]
 name = "vox"
 path = "src/lib.rs"
