@@ -291,3 +291,94 @@ checked against the baked decimal input, and the Proth tests were
 `11^((p−1)/2) ≡ −1 (mod p)` and `5^((q−1)/2) ≡ −1 (mod q)`. Both factors
 exceed the current minimum pair. The 32-bit radix run completed without build
 warnings and emitted its report only after closure.
+
+## Continued widening: phase-half close and overhead walls
+
+These are direct executions of separately compiled, contained binaries. The
+builder receives decimal `N`, a phase-base value, and radix `4294967296`; it
+converts those values to IMASM numeral words before compiling. The executable
+contains IMASM numeral words for the modulus, phase base, and radix; no factor
+value is baked in. The factor expressions in the audit column below describe
+the generated test semiprimes; they were not passed to the builder. For each completed case I
+decoded the emitted `P` and `Q` numeral registers, checked that they equal the
+test primes, and checked `P × Q = N` and FDE `T` with both closure supports.
+
+| N digits | Executable | Test-input construction (audit only) | Decoded factors | Phase base seed / prewind | Observations | Direct median | Through flush | Result |
+|---:|---|---|---|---|---:|---:|---:|---:|
+| 7,627 | `phase_7628d_pre3_r32` | `(405×2^12556+1)(405×2^12763+1)` | 3,783 × 3,845 digits | 3 / N-derived half-width offset | 248 | 44.627 ms | 45.471 ms | T |
+| 8,817 | `phase_8817d_tailwind42_r32` | `(15435×2^16502+1)(405×2^12763+1)` | 4,972 × 3,845 digits | 42 / `9·bits/16` | 110 | 38.706 ms | 31.885 ms | T |
+| 10,020 | `phase_10020d_tailwind34_r32` | `(1463×2^20501+1)(405×2^12763+1)` | 6,175 × 3,845 digits | 34 / `123·bits/200` | 86 | 41.207 ms | 32.189 ms | T |
+| 11,147 | `phase_11147d_tailwind21_r32` | `(1463×2^20501+1)(15435×2^16502+1)` | 6,175 × 4,972 digits | 21 / `9·bits/16 − bits/100` | 134 | 47.582 ms* | 48.323 ms | T |
+| 13,317 | `phase_13317d_threshold31_r32` | `(1463×2^23713+1)(1463×2^20501+1)` | 7,142 × 6,175 digits | 31 / threshold `t=23705` | 92 | 49.310 ms | 47.167 ms | T |
+| 16,179 | `phase_16179d_c2_t29900_r32` | `(2873×2^30009+1)(1463×2^23713+1)` | 9,038 × 7,142 digits | 2 / `t=29900` | 1,045 | 362.467 ms | 359.910 ms | T |
+| 19,673 | `phase_19673d_compatible5_r32` | `(1463×2^41617+1)(1463×2^23713+1)` | 12,532 × 7,142 digits | 5 / threshold `t=41614` | 34 | 46.246 ms | 44.268 ms | T |
+
+The direct medians use seven runs except the 11,147-digit row, which uses nine.
+For direct timing, stdout was captured for the 7,627-, 8,817-, and
+10,020-digit rows and redirected to `/dev/null` for the remaining rows. The
+through-flush column is the membrane's own timer through `write_all` and
+`flush`. The 16,179-digit factor registers were decoded from the emitted
+output and match the two generated primes exactly. The reported prime
+certificates are Proth witnesses: 7 for cofactor 405, 17 for cofactor 15435,
+3 for cofactors 1463 and 2873.
+
+The wider trials exposed and repaired these overheads:
+
+* On the 1,483-digit control, Shor close recomputed a modular half-power even
+  though winding already held the adjacent half-step residues. Passing those
+  residues directly into the close reduced that close from about 27.6 ms to
+  0.77 ms.
+* On the 2,416-digit case, rendering the winding register as a decimal integer
+  was the hidden ~16-second cost. Reporting its dynamic bit length instead
+  reduced the run from 22.177 s to 5.979 s without changing the register.
+* At 4,938 digits, a repeated runtime gcd only revalidated that the baked
+  phase base was a unit. `vox coprime` now checks the original decimal inputs
+  before baking, and the binary records the validated-unit marker alongside
+  the encoded words. This moved the check out of the run while preserving the
+  generic validation path for binaries built without that marker.
+* At 7,627 digits, Euclidean gcd over large `BigUint`s took 40.9 ms in Shor
+  close. Replacing that hot path with `num-integer`'s binary gcd reduced the
+  close to about 3.2 ms; the same input then ran in 44.6 ms directly.
+* At 8,817 digits, prewinding beyond `N`'s full bit length removed the long
+  transient but also removed the even component needed by Shor close, giving
+  an odd-return rejection. Keeping a short residual 2-adic transient and
+  selecting seed 42 yielded 110 observations and a 38.7 ms direct median.
+* At 10,020 digits, seed 42 took 213 observations and 62.5 ms. Surveying
+  phase-only seeds found seed 34 with 86 observations and a 41.2 ms median.
+* At 11,147 digits, seed 42 had a 767-observation orbit. Seed 21 reduced it to
+  134 observations; nine direct runs with stdout redirected had a 47.6 ms
+  median, and the membrane timer measured 48.3 ms through flush.
+* At 13,317 digits, a prewind that was too deep again made the return odd.
+  Sweeping the prewind against the phase collision and half-residue close
+  found the `t=23705` boundary, preserving one 2-adic step. That produced 92
+  observations and a 49.3 ms direct median.
+* At 16,179 digits, the mixed odd cofactors raised the best tested phase cycle
+  to 360 steps (468 observations including its transient); seed 2 completed
+  the compiled membrane in 362.5 ms with both closure supports true. This is
+  the mixed-cofactor wall. Pairing primes with the same cofactor 1463 reduced
+  the phase return to 34 observations at 19,673 digits. The new Proth prime
+  was found after 14,168 parallel candidate checks in 635 s; the serial scan
+  through exponent 30,000 and the fixed-1463 scan through 60,000 found no
+  earlier matching prime.
+* At 19,673 digits, the compatible-cofactor run initially measured 69.0 ms:
+  Shor close took 21.7 ms and the nested radix fold 18.0 ms. `radix_prefix_fold`
+  now recognizes a power-of-two radix and uses dynamic bit masks/shifts for
+  digit extraction, carry updates, and the second nesting; dual closure fell
+  to 1.79 ms. Frame groups are now emitted as fixed-width hexadecimal joint
+  states (one nibble for windows 2–4, one byte for windows 5–8), with the
+  actual tail width retained. The new renderer test reconstructs every source
+  bit at every window. Finally, the report stopped printing the full encoded
+  base and modulus a second time; their baked IMASM words remain in the binary
+  and the seven lossless frames carry the complete N stream. Output shrank to
+  635,516 bytes and direct median fell to 46.246 ms; both closure supports
+  remain true.
+
+The next widening constraint is supplying another prime whose odd cofactor
+has a phase period compatible with 1463. The fixed-cofactor scan through
+60,000 produced no match. A broader follow-up candidate family was built from
+odd cofactors dividing `2^90−1`, which keeps the same 90-step phase-period
+bound; that screening pass did not yield a completed result in this run.
+
+No compiler warnings appeared in the release builds or test runs. `cargo fmt
+--all -- --check` currently fails on broad formatting differences throughout
+the repository; I left those unrelated files untouched.

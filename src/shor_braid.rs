@@ -22,6 +22,7 @@ use crate::vox::{AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, 
 use alloc::string::String;
 use alloc::vec::Vec;
 use num_bigint::BigUint;
+use num_integer::Integer;
 use num_traits::{One, Zero};
 
 fn eq(a: &[char], b: &[char]) -> bool {
@@ -90,13 +91,8 @@ pub fn factor_close_public(a: &[char], n: &[char], r: &[char]) -> Result<(Vec<ch
         while tape.last() == Some(&EVALT) { tape.pop(); }
         tape
     }
-    fn dynamic_gcd(mut x: BigUint, mut y: BigUint) -> BigUint {
-        while !y.is_zero() {
-            let remainder = &x % &y;
-            x = y;
-            y = remainder;
-        }
-        x
+    fn dynamic_gcd(x: BigUint, y: BigUint) -> BigUint {
+        x.gcd(&y)
     }
 
     let a = to_dynamic(a);
@@ -113,16 +109,76 @@ pub fn factor_close_public(a: &[char], n: &[char], r: &[char]) -> Result<(Vec<ch
     }
     let h_minus = if h.is_zero() { BigUint::zero() } else { &h - BigUint::one() };
     let h_plus = &h + BigUint::one();
-    for factor in [dynamic_gcd(h_minus, n.clone()), dynamic_gcd(h_plus, n.clone())] {
-        if !factor.is_one() && factor != n {
-            let remainder = &n % &factor;
-            if remainder.is_zero() {
-                let quotient = &n / &factor;
-                return Ok((to_tape(&factor), to_tape(&quotient)));
-            }
+    let factor = dynamic_gcd(h_minus, n.clone());
+    if !factor.is_one() && factor != n {
+        let quotient = &n / &factor;
+        if &quotient * &factor == n {
+            return Ok((to_tape(&factor), to_tape(&quotient)));
+        }
+    }
+    let factor = dynamic_gcd(h_plus, n.clone());
+    if !factor.is_one() && factor != n {
+        let quotient = &n / &factor;
+        if &quotient * &factor == n {
+            return Ok((to_tape(&factor), to_tape(&quotient)));
         }
     }
     Err("both closing gcds trivial for this base -- retry with another base".into())
+}
+
+/// Close from the two dyadic half-step residues already carried by the phase
+/// winding. If `x = a^(2^(j-1))` and `y = a^(2^(i-1))`, then
+/// `x/y = a^((2^j-2^i)/2)`. Since `y` is a unit modulo N, the closing gcds are
+/// exactly `gcd(x-y,N)` and `gcd(x+y,N)`, avoiding a second modular
+/// exponentiation after phase winding.
+pub fn factor_close_from_phase_halves(
+    n: &[char], current_half: &[char], earlier_half: &[char],
+) -> Result<(Vec<char>, Vec<char>), String> {
+    fn to_dynamic(tape: &[char]) -> BigUint {
+        let mut bytes = alloc::vec![0u8; (tape.len() + 7) / 8];
+        for (index, mark) in tape.iter().enumerate() {
+            if *mark == EVALF { bytes[index / 8] |= 1 << (index % 8); }
+        }
+        BigUint::from_bytes_le(&bytes)
+    }
+    fn to_tape(value: &BigUint) -> Vec<char> {
+        if value.is_zero() { return alloc::vec![EVALT]; }
+        let mut tape = Vec::new();
+        for byte in value.to_bytes_le() {
+            for bit in 0..8 {
+                tape.push(if (byte >> bit) & 1 == 1 { EVALF } else { EVALT });
+            }
+        }
+        while tape.last() == Some(&EVALT) { tape.pop(); }
+        tape
+    }
+    fn dynamic_gcd(x: BigUint, y: BigUint) -> BigUint {
+        x.gcd(&y)
+    }
+
+    let n = to_dynamic(n);
+    let x = to_dynamic(current_half) % &n;
+    let y = to_dynamic(earlier_half) % &n;
+    if n <= BigUint::one() || x.is_zero() || y.is_zero() {
+        return Err("phase half-step residues are invalid for this modulus".into());
+    }
+    let difference = if x >= y { &x - &y } else { &n - (&y - &x) };
+    let sum = (&x + &y) % &n;
+    let factor = dynamic_gcd(difference, n.clone());
+    if !factor.is_one() && factor != n {
+        let quotient = &n / &factor;
+        if &quotient * &factor == n {
+            return Ok((to_tape(&factor), to_tape(&quotient)));
+        }
+    }
+    let factor = dynamic_gcd(sum, n.clone());
+    if !factor.is_one() && factor != n {
+        let quotient = &n / &factor;
+        if &quotient * &factor == n {
+            return Ok((to_tape(&factor), to_tape(&quotient)));
+        }
+    }
+    Err("phase half-step gcds are trivial for this base -- retry with another base".into())
 }
 
 /// Emit the Shor braid word for base a mod N. Returns the word and the
@@ -237,5 +293,17 @@ mod tests {
         let n = decimal_to_tape("15").unwrap();
         let (p, q) = factor_close_public(&a, &n, &decimal_to_tape("4").unwrap()).unwrap();
         assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+    }
+
+    #[test]
+    fn phase_half_step_gcds_match_the_winding_close() {
+        let n = decimal_to_tape("15").unwrap();
+        let (p, q) = factor_close_from_phase_halves(
+            &n, &decimal_to_tape("4").unwrap(), &decimal_to_tape("1").unwrap(),
+        ).unwrap();
+        assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+        assert!(factor_close_from_phase_halves(
+            &n, &decimal_to_tape("14").unwrap(), &decimal_to_tape("1").unwrap(),
+        ).is_err());
     }
 }

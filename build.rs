@@ -11,13 +11,15 @@ fn main() {
         fs::read_to_string(path).expect("read build-time IMASM input file")
     });
     let lines: Vec<_> = file.as_deref().map(|s| s.lines().collect()).unwrap_or_default();
-    if file.is_some() { assert!((1..=3).contains(&lines.len()), "expected modulus, optional base, optional width"); }
+    if file.is_some() { assert!((1..=4).contains(&lines.len()), "expected modulus, optional base, optional width, optional validated-unit marker"); }
     let mut source = String::new();
     for (i, (key, name)) in keys.iter().zip(names).enumerate() {
         println!("cargo:rerun-if-env-changed={key}");
         let value = if file.is_some() { lines.get(i).map(|s| s.to_string()) } else { env::var(key).ok() };
         source.push_str(&format!("#[allow(dead_code)]\nconst {name}: Option<&str> = {:?};\n", value.as_deref()));
     }
+    let base_is_unit = lines.get(3).is_some_and(|marker| *marker == "unit");
+    source.push_str(&format!("#[allow(dead_code)]\nconst BAKED_BASE_IS_UNIT: bool = {base_is_unit};\n"));
     let factor_word = env::var("VOX_FACTOR_N_FILE").ok().map(|path| {
         println!("cargo:rerun-if-changed={path}");
         fs::read_to_string(path).expect("read baked IMASM factor numeral")

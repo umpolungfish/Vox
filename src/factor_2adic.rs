@@ -373,6 +373,15 @@ fn biguint_radix_digits(value: &BigUint, radix: &BigUint) -> Vec<BigUint> {
     let mut remaining = value.clone();
     if remaining.is_zero() { return alloc::vec![BigUint::zero()]; }
     let mut digits = Vec::new();
+    if radix.count_ones() == 1 {
+        let shift = radix.trailing_zeros().expect("power-of-two radix has a trailing bit") as usize;
+        let mask = (BigUint::one() << shift) - BigUint::one();
+        while !remaining.is_zero() {
+            digits.push(&remaining & &mask);
+            remaining >>= shift;
+        }
+        return digits;
+    }
     while !remaining.is_zero() {
         let digit = &remaining % radix;
         remaining /= radix;
@@ -387,6 +396,9 @@ fn biguint_radix_digits(value: &BigUint, radix: &BigUint) -> Vec<BigUint> {
 pub fn radix_prefix_fold(n: &[char], p: &[char], q: &[char], radix: &[char]) -> Option<RadixPrefixMembrane> {
     let radix_big = tape_to_biguint(radix);
     if radix_big <= BigUint::one() { return None; }
+    let shift = (radix_big.count_ones() == 1)
+        .then(|| radix_big.trailing_zeros().expect("power-of-two radix has a trailing bit") as usize);
+    let mask = shift.map(|bits| (BigUint::one() << bits) - BigUint::one());
     let (mut p_remaining, mut q_remaining, mut n_remaining) =
         (tape_to_biguint(p), tape_to_biguint(q), tape_to_biguint(n));
     let n_big = n_remaining.clone();
@@ -397,27 +409,58 @@ pub fn radix_prefix_fold(n: &[char], p: &[char], q: &[char], radix: &[char]) -> 
     let zero = BigUint::zero();
     let mut width = 0;
     while width == 0 || !p_remaining.is_zero() || !q_remaining.is_zero() {
-        let p_digit = &p_remaining % &radix_big;
-        let q_digit = &q_remaining % &radix_big;
-        let target = if n_remaining.is_zero() { zero.clone() } else { &n_remaining % &radix_big };
-        p_remaining /= &radix_big;
-        q_remaining /= &radix_big;
-        n_remaining /= &radix_big;
-        if width == 0 {
-            if (&p_digit * &q_digit) % &radix_big != target { return None; }
+        let (p_digit, q_digit, target) = if let (Some(bits), Some(mask)) = (shift, mask.as_ref()) {
+            let p_digit = &p_remaining & mask;
+            let q_digit = &q_remaining & mask;
+            let target = &n_remaining & mask;
+            p_remaining >>= bits;
+            q_remaining >>= bits;
+            n_remaining >>= bits;
+            (p_digit, q_digit, target)
         } else {
-            let product_digit = &product_quotient % &radix_big;
-            let required = (&target + &radix_big - product_digit) % &radix_big;
-            let coefficient = (&p_digit * (&q_value % &radix_big)
-                + &q_digit * (&p_value % &radix_big)) % &radix_big;
+            let p_digit = &p_remaining % &radix_big;
+            let q_digit = &q_remaining % &radix_big;
+            let target = if n_remaining.is_zero() { zero.clone() } else { &n_remaining % &radix_big };
+            p_remaining /= &radix_big;
+            q_remaining /= &radix_big;
+            n_remaining /= &radix_big;
+            (p_digit, q_digit, target)
+        };
+        if width == 0 {
+            let seed_product = &p_digit * &q_digit;
+            let seed_residue = mask.as_ref().map_or_else(
+                || &seed_product % &radix_big,
+                |mask| &seed_product & mask,
+            );
+            if seed_residue != target { return None; }
+        } else {
+            let product_digit = if let Some(mask) = mask.as_ref() {
+                &product_quotient & mask
+            } else {
+                &product_quotient % &radix_big
+            };
+            let required = if target >= product_digit {
+                &target - &product_digit
+            } else {
+                &radix_big - (&product_digit - &target)
+            };
+            let coefficient = if let Some(mask) = mask.as_ref() {
+                let p_low = &p_value & mask;
+                let q_low = &q_value & mask;
+                (&p_digit * q_low + &q_digit * p_low) & mask
+            } else {
+                (&p_digit * (&q_value % &radix_big)
+                    + &q_digit * (&p_value % &radix_big)) % &radix_big
+            };
             if coefficient != required { return None; }
         }
         let cross_terms = &p_digit * &q_value + &q_digit * &p_value;
         let diagonal = &p_digit * &q_digit * &place;
-        product_quotient = (&product_quotient + cross_terms + diagonal) / &radix_big;
+        let numerator = &product_quotient + cross_terms + diagonal;
+        product_quotient = if let Some(bits) = shift { numerator >> bits } else { numerator / &radix_big };
         p_value += &p_digit * &place;
         q_value += &q_digit * &place;
-        place *= &radix_big;
+        if let Some(bits) = shift { place <<= bits; } else { place *= &radix_big; }
         width += 1;
     }
     if &p_value * &q_value != n_big { return None; }

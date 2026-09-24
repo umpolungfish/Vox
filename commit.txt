@@ -1,3 +1,3 @@
-I stress-test the phase membrane beyond the new factor floor
+I push the phase membrane to a 19,673-digit semiprime
 
-I bake only the encoded 256-digit semiprime, run its contained binary directly, and verify the returned factor-register numerals and dual closure. I record seven-run phase and output timing medians for 124- and 133-digit Proth primes, retain the executable, and update the measured trial record.
+I carry the encoded-N-only phase route through wider Proth semiprimes, record and repair the phase, gcd, radix-fold, and output walls, and add a compact reversible frame alphabet plus a power-of-two radix fast path. I retain the compiled trial binaries, verify the decoded factors and both closure supports, and record direct timings through the new 19,673-digit result.
