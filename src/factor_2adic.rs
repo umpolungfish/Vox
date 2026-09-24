@@ -252,13 +252,59 @@ pub fn factor_2adic_n(
     out
 }
 
-fn product_bit(a: &[char], b: &[char], index: usize) -> u8 {
-    bit(&multiply(a, b), index)
-}
-
 fn product_matches_prefix(a: &[char], b: &[char], n: &[char], width: usize) -> bool {
     let product = multiply(a, b);
     (0..width).all(|i| bit(&product, i) == bit(n, i))
+}
+
+fn add_shifted_assign(accumulator: &mut Vec<char>, term: &[char], places: usize) {
+    let needed = places.saturating_add(term.len()).saturating_add(1);
+    if accumulator.len() < needed {
+        accumulator.resize(needed, ZERO);
+    }
+    let mut carry = 0u8;
+    for (index, &digit) in term.iter().enumerate() {
+        let position = places + index;
+        let sum = bit(accumulator, position) + u8::from(digit == ONE) + carry;
+        accumulator[position] = if sum & 1 == 1 { ONE } else { ZERO };
+        carry = sum >> 1;
+    }
+    let mut position = places + term.len();
+    while carry != 0 {
+        if position == accumulator.len() {
+            accumulator.push(ZERO);
+        }
+        let sum = bit(accumulator, position) + carry;
+        accumulator[position] = if sum & 1 == 1 { ONE } else { ZERO };
+        carry = sum >> 1;
+        position += 1;
+    }
+    *accumulator = trim(core::mem::take(accumulator));
+}
+
+fn extend_product_registers(
+    p: &[char],
+    q: &[char],
+    product: &[char],
+    width: usize,
+    p_bit: u8,
+    q_bit: u8,
+) -> (Vec<char>, Vec<char>, Vec<char>) {
+    let mut next_product = product.to_vec();
+    if p_bit != 0 {
+        add_shifted_assign(&mut next_product, q, width);
+    }
+    if q_bit != 0 {
+        add_shifted_assign(&mut next_product, p, width);
+    }
+    if p_bit != 0 && q_bit != 0 {
+        add_shifted_assign(&mut next_product, &[ONE], width * 2);
+    }
+    let mut next_p = p.to_vec();
+    let mut next_q = q.to_vec();
+    set_bit(&mut next_p, width, p_bit);
+    set_bit(&mut next_q, width, q_bit);
+    (trim(next_p), trim(next_q), trim(next_product))
 }
 
 /// A prefix lift whose modulus grows in an arbitrary baked radix. Numerals
@@ -565,6 +611,8 @@ pub struct PrefixMembrane {
     pub n: Vec<char>,
     pub p: Vec<char>,
     pub q: Vec<char>,
+    /// The normalized convolution product of the current factor prefixes.
+    pub product: Vec<char>,
     pub width: usize,
 }
 
@@ -575,7 +623,15 @@ impl PrefixMembrane {
         if n.len() < 2 || bit(&n, 0) != 1 {
             return Err("the prefix membrane requires an encoded odd N > 1");
         }
-        let state = Self { n, p: alloc::vec![ONE], q: alloc::vec![ONE], width: 1 };
+        let p = alloc::vec![ONE];
+        let q = alloc::vec![ONE];
+        let state = Self {
+            n,
+            p: p.clone(),
+            q: q.clone(),
+            product: multiply(&p, &q),
+            width: 1,
+        };
         if !product_matches_prefix(&state.p, &state.q, &state.n, 1) {
             return Err("the one-bit seed does not close on N");
         }
@@ -584,7 +640,7 @@ impl PrefixMembrane {
 
     /// b_k = bit_k(P_k Q_k), read from the running product.
     pub fn resolved_product_bit(&self) -> u8 {
-        product_bit(&self.p, &self.q, self.width)
+        bit(&self.product, self.width)
     }
 
     /// Required parity of the two next factor bits.
@@ -600,22 +656,33 @@ impl PrefixMembrane {
 
     /// The membrane closes when its running product is exactly the baked N.
     pub fn is_fixed_point(&self) -> bool {
-        multiply(&self.p, &self.q) == self.n
+        self.product == self.n
     }
 
     /// Apply one admissible factor-bit pair and verify the next prefix closure.
     pub fn extend(&self, p_bit: u8, q_bit: u8) -> Result<Self, &'static str> {
+        if p_bit > 1 || q_bit > 1 {
+            return Err("factor bits must be binary");
+        }
         if (p_bit ^ q_bit) != self.next_xor() {
             return Err("factor-bit pair does not satisfy the running-product law");
         }
-        let mut p = self.p.clone();
-        let mut q = self.q.clone();
-        set_bit(&mut p, self.width, p_bit);
-        set_bit(&mut q, self.width, q_bit);
-        let next = Self { n: self.n.clone(), p: trim(p), q: trim(q), width: self.width + 1 };
-        if !product_matches_prefix(&next.p, &next.q, &next.n, next.width) {
-            return Err("extended prefixes do not close modulo the new width");
-        }
+        let (p, q, product) = extend_product_registers(
+            &self.p,
+            &self.q,
+            &self.product,
+            self.width,
+            p_bit,
+            q_bit,
+        );
+        let next = Self {
+            n: self.n.clone(),
+            p,
+            q,
+            product,
+            width: self.width + 1,
+        };
+        debug_assert!((0..next.width).all(|index| bit(&next.product, index) == bit(&next.n, index)));
         Ok(next)
     }
 
@@ -628,20 +695,16 @@ impl PrefixMembrane {
         if p_bits.iter().chain(q_bits).any(|&value| value > 1) {
             return Err("factor-register blocks contain only binary digits");
         }
-        let mut p = self.p.clone();
-        let mut q = self.q.clone();
+        let mut next = self.clone();
         for (offset, (&p_bit, &q_bit)) in p_bits.iter().zip(q_bits).enumerate() {
-            set_bit(&mut p, self.width + offset, p_bit);
-            set_bit(&mut q, self.width + offset, q_bit);
-        }
-        let next = Self {
-            n: self.n.clone(),
-            p: trim(p),
-            q: trim(q),
-            width: self.width + p_bits.len(),
-        };
-        if !product_matches_prefix(&next.p, &next.q, &next.n, next.width) {
-            return Err("extended factor blocks do not close modulo the new width");
+            if let Ok(extended) = next.extend(p_bit, q_bit) {
+                next = extended;
+            } else {
+                return Err("extended factor blocks do not close modulo the new width");
+            }
+            if next.width != self.width + offset + 1 {
+                return Err("factor block width did not advance monotonically");
+            }
         }
         Ok(next)
     }
@@ -656,13 +719,13 @@ pub fn factor_2adic(n: &[char], max_solutions: Option<usize>) -> Vec<(Vec<char>,
     let width_limit = n.len();
     let mut out = Vec::new();
 
+    let factor_bound = crate::morphism_factor::isqrt(&n);
     let Ok(seed) = PrefixMembrane::new(n.clone()) else { return out; };
     let mut stack = alloc::vec![seed];
     while let Some(state) = stack.pop() {
         if max_solutions.is_some_and(|cap| out.len() >= cap) { break; }
 
-        let product = multiply(&state.p, &state.q);
-        match cmp(&product, &state.n) {
+        match cmp(&state.product, &state.n) {
             core::cmp::Ordering::Equal => {
                 if state.p.len() > 1 && state.q.len() > 1 {
                     let (p, q) = if cmp(&state.p, &state.q) == core::cmp::Ordering::Greater {
@@ -680,7 +743,7 @@ pub fn factor_2adic(n: &[char], max_solutions: Option<usize>) -> Vec<(Vec<char>,
         // The returned pair is ordered small-first. Once P_k exceeds sqrt(N),
         // this branch cannot close in that orientation. The swapped dyadic
         // branch remains in the same circuit.
-        if cmp(&multiply(&state.p, &state.p), &state.n) == core::cmp::Ordering::Greater {
+        if cmp(&state.p, &factor_bound) == core::cmp::Ordering::Greater {
             continue;
         }
 
@@ -703,6 +766,220 @@ pub fn factor_2adic(n: &[char], max_solutions: Option<usize>) -> Vec<(Vec<char>,
     out
 }
 
+/// Unbraid an imscribed product while its source bits remain grouped in
+/// evaluation frames. Each completed frame is committed as one joint prefix
+/// transition, with the product convolution and carry checked at that frame
+/// boundary. `groups` are LSB-first bit tapes and retain their full group width,
+/// including trailing zero bits.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct FramePrefix {
+    p: Vec<char>,
+    q: Vec<char>,
+    product: Vec<char>,
+    width: usize,
+}
+
+impl FramePrefix {
+    fn seed(n: &[char]) -> Option<Self> {
+        if n.len() < 2 || bit(n, 0) == 0 {
+            return None;
+        }
+        Some(Self {
+            p: alloc::vec![ONE],
+            q: alloc::vec![ONE],
+            product: alloc::vec![ONE],
+            width: 1,
+        })
+    }
+
+    fn extend(&self, n: &[char], p_bit: u8, q_bit: u8) -> Option<Self> {
+        let required = bit(n, self.width) ^ bit(&self.product, self.width);
+        if (p_bit ^ q_bit) != required {
+            return None;
+        }
+        let (p, q, product) = extend_product_registers(
+            &self.p,
+            &self.q,
+            &self.product,
+            self.width,
+            p_bit,
+            q_bit,
+        );
+        let next = Self { p, q, product, width: self.width + 1 };
+        debug_assert!((0..next.width).all(|index| bit(&next.product, index) == bit(n, index)));
+        Some(next)
+    }
+
+    fn next_pairs(&self, n: &[char]) -> [(u8, u8); 2] {
+        let parity = bit(n, self.width) ^ bit(&self.product, self.width);
+        [(0, parity), (1, 1 ^ parity)]
+    }
+}
+
+pub fn factor_2adic_frames(
+    groups: &[Vec<char>],
+    max_solutions: Option<usize>,
+) -> Vec<(Vec<char>, Vec<char>)> {
+    fn visit_frame(
+        base: &FramePrefix,
+        current: &FramePrefix,
+        n: &[char],
+        groups: &[Vec<char>],
+        frame_index: usize,
+        offset: usize,
+        factor_bound: &[char],
+        p_block: &mut Vec<u8>,
+        q_block: &mut Vec<u8>,
+        out: &mut Vec<(Vec<char>, Vec<char>)>,
+        max_solutions: Option<usize>,
+    ) {
+        if max_solutions.is_some_and(|cap| out.len() >= cap) {
+            return;
+        }
+        if frame_index == groups.len() {
+            if current.product == n
+                && current.p.len() > 1
+                && current.q.len() > 1
+            {
+                let (p, q) = if cmp(&current.p, &current.q) == core::cmp::Ordering::Greater {
+                    (current.q.clone(), current.p.clone())
+                } else {
+                    (current.p.clone(), current.q.clone())
+                };
+                out.push((p, q));
+            }
+            return;
+        }
+
+        let group = &groups[frame_index];
+        if offset == group.len() {
+            let frame_width_closed = current.width == base.width + p_block.len()
+                && p_block.len() == q_block.len()
+                && (0..current.width)
+                    .all(|index| bit(&current.product, index) == bit(n, index));
+            if frame_width_closed {
+                visit_frame(
+                    current,
+                    current,
+                    n,
+                    groups,
+                    frame_index + 1,
+                    0,
+                    factor_bound,
+                    &mut Vec::new(),
+                    &mut Vec::new(),
+                    out,
+                    max_solutions,
+                );
+            }
+            return;
+        }
+
+        let target_bit = u8::from(group[offset] == ONE);
+        let pairs = current.next_pairs(n);
+        let preferred = u8::from(current.p.len() == 1);
+        for p_bit in [preferred, 1 - preferred] {
+            let Some((_, q_bit)) = pairs.iter().find(|(candidate, _)| *candidate == p_bit) else {
+                continue;
+            };
+            let Some(next) = current.extend(n, p_bit, *q_bit) else { continue; };
+            if bit(n, next.width - 1) != target_bit {
+                continue;
+            }
+            if cmp(&next.product, n) == core::cmp::Ordering::Greater
+                || cmp(&next.p, factor_bound) == core::cmp::Ordering::Greater
+            {
+                continue;
+            }
+            p_block.push(p_bit);
+            q_block.push(*q_bit);
+            visit_frame(
+                base,
+                &next,
+                n,
+                groups,
+                frame_index,
+                offset + 1,
+                factor_bound,
+                p_block,
+                q_block,
+                out,
+                max_solutions,
+            );
+            p_block.pop();
+            q_block.pop();
+            if max_solutions.is_some_and(|cap| out.len() >= cap) {
+                return;
+            }
+        }
+    }
+
+    if groups.is_empty() || max_solutions == Some(0) || groups.iter().any(Vec::is_empty) {
+        return Vec::new();
+    }
+    let n = trim(groups.iter().flatten().copied().collect());
+    if n.len() < 2 || bit(&n, 0) == 0 {
+        return Vec::new();
+    }
+    let factor_bound = crate::morphism_factor::isqrt(&n);
+    let Some(seed) = FramePrefix::seed(&n) else { return Vec::new(); };
+    let mut out = Vec::new();
+    visit_frame(
+        &seed,
+        &seed,
+        &n,
+        groups,
+        0,
+        1,
+        &factor_bound,
+        &mut Vec::new(),
+        &mut Vec::new(),
+        &mut out,
+        max_solutions,
+    );
+    out.sort_unstable_by(|a, b| cmp(&a.0, &b.0).then_with(|| cmp(&a.1, &b.1)));
+    out.dedup();
+    out
+}
+
+/// Carry a phase-derived pair back through the supplied support frames. Every
+/// frame block advances the same P/Q prefix registers and checks the exact
+/// convolution product before the pair is accepted.
+pub fn factor_pair_closes_in_frames(
+    groups: &[Vec<char>],
+    p: &[char],
+    q: &[char],
+) -> bool {
+    if groups.is_empty() || groups.iter().any(Vec::is_empty) {
+        return false;
+    }
+    let n = trim(groups.iter().flatten().copied().collect());
+    let Ok(mut state) = PrefixMembrane::new(n.clone()) else {
+        return false;
+    };
+    let mut position = 1usize;
+    for (frame_index, group) in groups.iter().enumerate() {
+        let start = usize::from(frame_index == 0);
+        if start == group.len() {
+            continue;
+        }
+        let p_block: Vec<u8> = (start..group.len()).map(|offset| bit(p, position + offset - start)).collect();
+        let q_block: Vec<u8> = (start..group.len()).map(|offset| bit(q, position + offset - start)).collect();
+        let Ok(next) = state.extend_block(&p_block, &q_block) else {
+            return false;
+        };
+        for (offset, &target) in group.iter().enumerate().skip(start) {
+            let index = position + offset - start;
+            if bit(&next.n, index) != u8::from(target == ONE) {
+                return false;
+            }
+        }
+        state = next;
+        position += group.len() - start;
+    }
+    state.is_fixed_point() && state.p == trim(p.to_vec()) && state.q == trim(q.to_vec())
+}
+
 /// Reverse nesting: the multiplication membrane owns the traversal state and
 /// delegates each admissible bit extension to the comultiplicative prefix
 /// membrane. `product` is resident alongside that prefix state and updated at
@@ -718,8 +995,9 @@ pub fn factor_2adic_multiplication_outer(
 
     let n = trim(n.to_vec());
     if n.len() < 2 || bit(&n, 0) == 0 || max_solutions == Some(0) { return Vec::new(); }
+    let factor_bound = crate::morphism_factor::isqrt(&n);
     let Ok(seed) = PrefixMembrane::new(n.clone()) else { return Vec::new(); };
-    let mut stack = alloc::vec![ProductShell { product: multiply(&seed.p, &seed.q), prefix: seed }];
+    let mut stack = alloc::vec![ProductShell { product: seed.product.clone(), prefix: seed }];
     let mut out = Vec::new();
 
     while let Some(shell) = stack.pop() {
@@ -739,7 +1017,7 @@ pub fn factor_2adic_multiplication_outer(
             core::cmp::Ordering::Less => {}
         }
         if shell.prefix.width >= n.len()
-            || cmp(&multiply(&shell.prefix.p, &shell.prefix.p), &n) == core::cmp::Ordering::Greater {
+            || cmp(&shell.prefix.p, &factor_bound) == core::cmp::Ordering::Greater {
             continue;
         }
 
@@ -748,7 +1026,7 @@ pub fn factor_2adic_multiplication_outer(
         for p_bit in [1 - preferred, preferred] {
             let q_bit = candidates.iter().find(|(candidate_p, _)| *candidate_p == p_bit).unwrap().1;
             if let Ok(prefix) = shell.prefix.extend(p_bit, q_bit) {
-                let product = multiply(&prefix.p, &prefix.q);
+                let product = prefix.product.clone();
                 stack.push(ProductShell { prefix, product });
             }
         }
@@ -797,6 +1075,25 @@ mod tests {
         assert_eq!((closed.p.clone(), closed.q.clone()),
             (from_one_bits(&[0, 1]), from_one_bits(&[0, 2])));
         assert!(closed.is_fixed_point());
+    }
+
+    #[test]
+    fn running_product_register_matches_full_convolution_at_each_lift() {
+        let p = crate::morphism_factor::decimal_to_tape("10007").unwrap();
+        let q = crate::morphism_factor::decimal_to_tape("1000000007").unwrap();
+        let n = multiply(&p, &q);
+        let mut state = PrefixMembrane::new(n.clone()).unwrap();
+        for width in 1..core::cmp::max(p.len(), q.len()) {
+            let p_bit = bit(&p, width);
+            let q_bit = bit(&q, width);
+            state = state.extend(p_bit, q_bit).unwrap();
+            assert_eq!(state.product, multiply(&state.p, &state.q));
+            assert!((0..state.width).all(|index| {
+                bit(&state.product, index) == bit(&state.n, index)
+            }));
+        }
+        assert!(state.is_fixed_point());
+        assert_eq!((state.p, state.q), (p, q));
     }
 
     #[test]

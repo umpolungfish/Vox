@@ -1,12 +1,12 @@
-//! Baked full-value factorization through a Gödel evaluation frame.
+//! Baked support-domain unbraiding through a Gödel evaluation frame.
 //!
 //! The decimal input is imscribed before compilation. Its LSB-first IMASM
-//! numeral is divided into width-sized joint states, then the whole numeral is
-//! reconstructed in that frame before the Vox factor membrane runs. Each
-//! returned factor is framed in the same way and transported back to the
-//! source numeral. The product check closes in the source frame.
+//! support is divided into width-sized joint states. The bit-register lift
+//! performs inverse convolution and carry closure while traversing those
+//! groups. Returned factor supports are then transported back through the same
+//! frames, where their product closes on the baked source.
 
-use vox::morphism_factor::{self, dec_of, divmod, factor, mul, parse_numeral};
+use vox::morphism_factor::{self, dec_of, mul, parse_numeral};
 
 const BAKED_N_WORD: &str = match option_env!("FRAME_FACTOR_N_WORD") {
     Some(word) => word,
@@ -77,19 +77,29 @@ fn return_from_frame(frame: &EvaluationFrame) -> Result<Tape, String> {
         })
 }
 
+fn frame_support(frame: &EvaluationFrame) -> Result<Vec<Tape>, String> {
+    frame
+        .symbols
+        .iter()
+        .map(|(symbol, width)| {
+            let mut group = parse_numeral(symbol)?;
+            group.resize(*width, vox::vox::EVALT);
+            Ok(group)
+        })
+        .collect()
+}
+
 fn factor_in_frame(frame: &EvaluationFrame) -> Result<Vec<EvaluationFrame>, String> {
+    let support_frames = frame_support(frame)?;
+    let (left, right) = vox::factor_2adic::factor_2adic_frames(&support_frames, Some(1))
+        .into_iter()
+        .next()
+        .ok_or_else(|| "support-frame inverse convolution did not close".to_string())?;
     let shifted_source = return_from_frame(frame)?;
-    let source_word = morphism_factor::emit_numeral(&shifted_source);
-    let divisor_word = factor(&source_word)?;
-    let divisor = parse_numeral(&divisor_word)?;
-    let (quotient, remainder) = divmod(&shifted_source, &divisor);
-    if remainder.iter().any(|bit| *bit == vox::vox::EVALF)
-        || divisor == shifted_source
-        || quotient == vec![vox::vox::EVALT]
-    {
-        return Err("the factor membrane did not return a nontrivial exact split".into());
+    if mul(&left, &right) != shifted_source {
+        return Err("inverse-convolution registers do not close on the source frame".into());
     }
-    Ok([divisor, quotient]
+    Ok([left, right]
         .iter()
         .map(|factor| shift_to_frame(factor, frame.width))
         .collect())
@@ -188,5 +198,26 @@ mod tests {
                 ["10007", "10009"]
             );
         }
+    }
+
+    #[test]
+    fn frame_solver_consumes_support_groups_and_closes_the_encoded_product() {
+        let source = numeral("100160063");
+        let frame = shift_to_frame(&source, 8);
+        let support_frames = frame_support(&frame).unwrap();
+        assert_eq!(
+            vox::factor_2adic::factor_2adic_frames(&support_frames, Some(1)),
+            vec![(numeral("10007"), numeral("10009"))]
+        );
+        assert!(vox::factor_2adic::factor_pair_closes_in_frames(
+            &support_frames,
+            &numeral("10007"),
+            &numeral("10009"),
+        ));
+        assert!(!vox::factor_2adic::factor_pair_closes_in_frames(
+            &support_frames,
+            &numeral("10008"),
+            &numeral("10009"),
+        ));
     }
 }
