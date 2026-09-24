@@ -181,6 +181,75 @@ pub fn factor_close_from_phase_halves(
     Err("phase half-step gcds are trivial for this base -- retry with another base".into())
 }
 
+/// Open the two factor registers together from the complementary phase
+/// closures. For a semiprime return with opposite half-step signs,
+/// `gcd(x-y,N)` and `gcd(x+y,N)` are the two factor-register seeds. Their
+/// product is the first μ-closure; the radix fold then extends both registers
+/// in lockstep and the reverse nesting closes their common terminal state.
+pub fn phase_factor_register_seeds(
+    n: &[char], current_half: &[char], earlier_half: &[char],
+) -> Result<(Vec<char>, Vec<char>), String> {
+    fn to_dynamic(tape: &[char]) -> BigUint {
+        let mut bytes = alloc::vec![0u8; (tape.len() + 7) / 8];
+        for (index, mark) in tape.iter().enumerate() {
+            if *mark == EVALF { bytes[index / 8] |= 1 << (index % 8); }
+        }
+        BigUint::from_bytes_le(&bytes)
+    }
+    fn to_tape(value: &BigUint) -> Vec<char> {
+        if value.is_zero() { return alloc::vec![EVALT]; }
+        let mut tape = Vec::new();
+        for byte in value.to_bytes_le() {
+            for bit in 0..8 {
+                tape.push(if (byte >> bit) & 1 == 1 { EVALF } else { EVALT });
+            }
+        }
+        while tape.last() == Some(&EVALT) { tape.pop(); }
+        tape
+    }
+
+    let n = to_dynamic(n);
+    let x = to_dynamic(current_half);
+    let y = to_dynamic(earlier_half);
+    if n <= BigUint::one() || x.is_zero() || y.is_zero()
+        || x >= n || y >= n || x.gcd(&n) != BigUint::one()
+        || y.gcd(&n) != BigUint::one() {
+        return Err("phase half-step registers must be nonzero units below N".into());
+    }
+
+    let difference = if x >= y { &x - &y } else { &n - (&y - &x) };
+    let sum = (&x + &y) % &n;
+    let mut minus_register = (difference, n.clone());
+    let mut plus_register = (sum, n.clone());
+    let mut p = None;
+    let mut q = None;
+    while p.is_none() || q.is_none() {
+        if p.is_none() {
+            let remainder = &minus_register.0 % &minus_register.1;
+            if remainder.is_zero() {
+                p = Some(minus_register.1.clone());
+            } else {
+                minus_register = (minus_register.1.clone(), remainder);
+            }
+        }
+        if q.is_none() {
+            let remainder = &plus_register.0 % &plus_register.1;
+            if remainder.is_zero() {
+                q = Some(plus_register.1.clone());
+            } else {
+                plus_register = (plus_register.1.clone(), remainder);
+            }
+        }
+    }
+    let p = p.expect("the difference register reaches Euclidean closure");
+    let q = q.expect("the sum register reaches Euclidean closure");
+    if p.is_one() || q.is_one() || p == n || q == n || &p * &q != n {
+        return Err("complementary phase closures did not seed both factor registers".into());
+    }
+    if p <= q { Ok((to_tape(&p), to_tape(&q))) }
+    else { Ok((to_tape(&q), to_tape(&p))) }
+}
+
 /// Emit the Shor braid word for base a mod N. Returns the word and the
 /// level count used. Level count is O(log r); word length is O(log r).
 pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> {
@@ -304,6 +373,21 @@ mod tests {
         assert_eq!(crate::morphism_factor::mul(&p, &q), n);
         assert!(factor_close_from_phase_halves(
             &n, &decimal_to_tape("14").unwrap(), &decimal_to_tape("1").unwrap(),
+        ).is_err());
+    }
+
+    #[test]
+    fn complementary_phase_closures_seed_both_factor_registers() {
+        let n = decimal_to_tape("15").unwrap();
+        let (p, q) = phase_factor_register_seeds(
+            &n, &decimal_to_tape("4").unwrap(), &decimal_to_tape("1").unwrap(),
+        ).unwrap();
+        assert_eq!(crate::morphism_factor::dec_of(&p), "3");
+        assert_eq!(crate::morphism_factor::dec_of(&q), "5");
+        assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+        assert!(phase_factor_register_seeds(
+            &decimal_to_tape("15").unwrap(),
+            &decimal_to_tape("1").unwrap(), &decimal_to_tape("1").unwrap(),
         ).is_err());
     }
 }

@@ -1,3 +1,3 @@
-I push the phase membrane to a 19,673-digit semiprime
+I join phase closures into dual factor registers
 
-I carry the encoded-N-only phase route through wider Proth semiprimes, record and repair the phase, gcd, radix-fold, and output walls, and add a compact reversible frame alphabet plus a power-of-two radix fast path. I retain the compiled trial binaries, verify the decoded factors and both closure supports, and record direct timings through the new 19,673-digit result.
+I seed the two factor registers from the complementary phase half-step closures, advance both Euclidean arms to their shared product boundary, and run the multiplicative-first and radix-prefix-first nestings in the baked membrane. I verify their common fixed point on a wide phase case and retain the compiled binary.

@@ -216,22 +216,33 @@ mod tests {
     #[test]
     fn wide_partner_map_preserves_the_expected_collision_and_both_closures() {
         let shift = BigUint::from(1u8) << 3300usize;
-        let p = BigUint::from(7161u16) * &shift + BigUint::from(1u8);
-        let q = BigUint::from(9135u16) * &shift + BigUint::from(1u8);
-        let n = biguint_to_tape(&(&p * &q));
+        let expected_p = BigUint::from(7161u16) * &shift + BigUint::from(1u8);
+        let expected_q = BigUint::from(9135u16) * &shift + BigUint::from(1u8);
+        let n = biguint_to_tape(&(&expected_p * &expected_q));
         let base = t(2);
         let mut partners = Partners::new(base.clone(), n.clone()).unwrap();
         let relation = (0..5000).find_map(|_| partners.observe().unwrap());
         let relation = relation.expect("wide phase collision closes within the measured orbit");
         assert_eq!(partners.squarings, 3720);
         assert!(relation.verify(&base, &n));
-        let (p, q) = vox::shor_braid::factor_close_from_phase_halves(
+        let (p, q) = vox::shor_braid::phase_factor_register_seeds(
             &n, &relation.half_residues.as_ref().unwrap().0,
             &relation.half_residues.as_ref().unwrap().1,
         ).unwrap();
+        let (small, large) = if expected_p <= expected_q {
+            (&expected_p, &expected_q)
+        } else {
+            (&expected_q, &expected_p)
+        };
+        assert_eq!(p, biguint_to_tape(small));
+        assert_eq!(q, biguint_to_tape(large));
         assert_eq!(vox::morphism_factor::mul(&p, &q), n);
+        let radix = vox::morphism_factor::tape_u64(4_294_967_296);
+        let product_outer = vox::factor_2adic::nest_product_over_prefix(&n, &p, &q, &radix).unwrap();
+        let prefix_outer = vox::factor_2adic::nest_prefix_over_product(&n, &p, &q, &radix).unwrap();
+        assert_eq!(product_outer, prefix_outer);
         assert!(vox::factor_2adic::radix_prefix_closes(
-            &n, &p, &q, &vox::morphism_factor::tape_u64(4_294_967_296),
+            &n, &p, &q, &radix,
         ));
     }
 }

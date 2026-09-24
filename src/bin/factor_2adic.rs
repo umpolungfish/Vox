@@ -137,7 +137,7 @@ fn run_baked_membrane() {
     let winding = relation.return_exponent.clone();
     let factor_close_started = std::time::Instant::now();
     let factor_pair = if let Some((current_half, earlier_half)) = relation.half_residues.as_ref() {
-        vox::shor_braid::factor_close_from_phase_halves(&tape, current_half, earlier_half)
+        vox::shor_braid::phase_factor_register_seeds(&tape, current_half, earlier_half)
     } else {
         vox::shor_braid::factor_close_public(&base, &tape, &winding)
     };
@@ -148,24 +148,20 @@ fn run_baked_membrane() {
         }
         let closure_started = std::time::Instant::now();
         let product_outer_started = std::time::Instant::now();
-        let product_outer = vox::morphism_factor::mul(&p, &q);
-        let product_outer_exact = product_outer == tape;
+        let product_outer = vox::factor_2adic::nest_product_over_prefix(&tape, &p, &q, &radix);
         let product_outer_exact_elapsed = product_outer_started.elapsed();
         let prefix_started = std::time::Instant::now();
-        let prefix_state = vox::factor_2adic::radix_prefix_fold(&tape, &p, &q, &radix);
+        let prefix_outer = vox::factor_2adic::nest_prefix_over_product(&tape, &p, &q, &radix);
         let prefix_elapsed = prefix_started.elapsed();
-        let terminal_started = std::time::Instant::now();
-        let product_inner = prefix_state.as_ref().map(|state| vox::morphism_factor::mul(&state.p, &state.q));
-        let prefix_first = product_inner.as_ref().is_some_and(|product| *product == tape);
-        let prefix_terminal_elapsed = terminal_started.elapsed();
-        let product_first = product_outer_exact && prefix_state.is_some();
-        let factors_at_meeting = prefix_state
-            .zip(product_inner)
-            .filter(|(_, product)| product_outer_exact && *product == tape && *product == product_outer)
-            .map(|(state, product)| vox::factor_2adic::FactorFixedPoint { p: state.p, q: state.q, product });
+        let prefix_first = product_outer.is_some();
+        let product_first = prefix_outer.is_some();
+        let factors_at_meeting = product_outer
+            .zip(prefix_outer)
+            .filter(|(product_first, prefix_first)| product_first == prefix_first)
+            .map(|(product_first, _)| product_first);
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
-        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} prefix-terminal-exact={prefix_terminal_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (prefix-first={prefix_first}, product-first={product_first})\n", winding.len(), partners.squarings, partners.stored_residues());
+        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (product-outer-prefix={prefix_first}, prefix-outer-product={product_first})\n", winding.len(), partners.squarings, partners.stored_residues());
         let factors = if closure_value == 'T' {
             factors_at_meeting.and_then(|fixed|
                 vox::factor_2adic::terminal_pair_given_semiprime_promise(&tape, fixed))
@@ -174,7 +170,7 @@ fn run_baked_membrane() {
         };
         (factors, report)
     } else {
-        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} shor-close={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-close: {}\n", winding.len(), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
+        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-register seed: {}\n", winding.len(), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
         (None, report)
     };
 
