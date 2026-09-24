@@ -17,6 +17,61 @@ pub struct ReturnRelation {
     pub half_residues: Option<(Tape, Tape)>,
 }
 
+/// The one coefficient object behind the codec, frame sweep, and modular
+/// support reads. `bits_le[i]` is the coefficient of X^i, so evaluating this
+/// polynomial at 2 reconstructs the baked integer exactly.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SupportPolynomial {
+    bits_le: Vec<bool>,
+}
+
+/// A factor target is a zero of the same support polynomial modulo a proper
+/// divisor of its value. The phase register is retained as the witness point.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SupportClosure {
+    pub phase_index: usize,
+    pub phase_register: Tape,
+    pub polynomial_residue: Tape,
+    pub p: Tape,
+    pub q: Tape,
+}
+
+impl SupportPolynomial {
+    fn from_tape(n: &[char]) -> Self {
+        Self { bits_le: n.iter().map(|&mark| mark == vox::vox::EVALF).collect() }
+    }
+
+    /// Horner-evaluate the one support polynomial through a width-bit frame.
+    /// Every width is an equivalent regrouping of the same coefficient stream.
+    fn evaluate_frame(&self, x: &BigUint, modulus: &BigUint, width: usize) -> BigUint {
+        debug_assert!((2..=8).contains(&width));
+        let mut powers = Vec::with_capacity(width);
+        powers.push(BigUint::from(1u8));
+        for index in 1..width {
+            powers.push((&powers[index - 1] * x) % modulus);
+        }
+        let frame_base = (&powers[width - 1] * x) % modulus;
+        let mut value = BigUint::from(0u8);
+        for group in self.bits_le.chunks(width).rev() {
+            let mut symbol = BigUint::from(0u8);
+            for (position, bit) in group.iter().enumerate() {
+                if *bit { symbol += &powers[position]; }
+            }
+            value = (value * &frame_base + symbol) % modulus;
+        }
+        value
+    }
+
+    fn target(&self, x: &BigUint, n: &BigUint, width: usize) -> Option<(BigUint, BigUint, BigUint)> {
+        let residue = self.evaluate_frame(x, n, width);
+        let factor = biguint_gcd(residue.clone(), n.clone());
+        if factor <= BigUint::from(1u8) || factor >= *n { return None; }
+        let cofactor = n / &factor;
+        if &cofactor * &factor != *n { return None; }
+        Some((residue, factor, cofactor))
+    }
+}
+
 #[allow(dead_code)] // Retained for explicit, non-hot-path relation replay.
 fn power(a: &[char], exponent: &[char], n: &[char]) -> Tape {
     let mut result = one();
@@ -46,6 +101,7 @@ impl ReturnRelation {
 pub struct Partners {
     n: BigUint,
     residue: BigUint,
+    support: SupportPolynomial,
     // Store dynamic residues and only the observation index. Storing each
     // ever-growing exponent tape made total memory quadratic in observations;
     // serializing each residue to bytes added a second representation to hash.
@@ -121,7 +177,31 @@ impl Partners {
         // The initial state is 1 = a^0, distinguished from a^(2^i).
         seen.insert(BigUint::from(1u8), SeenResidue { index: None, half_residue: None });
         let residue = a_big % &n_big;
-        Ok(Self { n: n_big, residue, seen, squarings: 0, previous_residue: None })
+        let support = SupportPolynomial::from_tape(&n);
+        Ok(Self { n: n_big, residue, support, seen, squarings: 0, previous_residue: None })
+    }
+
+    /// Test the current phase register against the shared support object.
+    /// A proper gcd is an exact factor witness; the semiprime membrane still
+    /// requires both nested arithmetic closures before emitting it.
+    pub fn support_target(&self) -> Option<SupportClosure> {
+        // Probe the complete initial frame sweep, then one register per doubled
+        // phase scale. The full-return lane remains active between probes.
+        let index = self.squarings;
+        if index == 0 || (index > 8 && !index.is_power_of_two()) { return None; }
+        let (polynomial_residue, p, q) = self.support.target(&self.residue, &self.n, 8)?;
+        // The seven frame widths are faces of one polynomial, not independent
+        // tests. Recheck their common value only when a factor target closes.
+        if (2..=7).any(|width| self.support.evaluate_frame(&self.residue, &self.n, width) != polynomial_residue) {
+            return None;
+        }
+        Some(SupportClosure {
+            phase_index: self.squarings,
+            phase_register: biguint_to_tape(&self.residue),
+            polynomial_residue: biguint_to_tape(&polynomial_residue),
+            p: biguint_to_tape(&p),
+            q: biguint_to_tape(&q),
+        })
     }
 
     /// One observation and one squaring. Caller chooses when to observe again;
@@ -182,6 +262,41 @@ mod tests {
             let tape = vox::morphism_factor::decimal_to_tape(word).unwrap();
             assert_eq!(biguint_to_tape(&tape_to_biguint(&tape)), tape);
         }
+    }
+
+    #[test]
+    fn all_frame_widths_are_faces_of_one_support_polynomial() {
+        for (n, x) in [(15u64, 4u64), (21, 4), (35, 16), (8051, 37)] {
+            let n_big = BigUint::from(n);
+            let x_big = BigUint::from(x);
+            let support = SupportPolynomial::from_tape(&t(n));
+            let direct = support.bits_le.iter().enumerate().fold(
+                BigUint::from(0u8),
+                |sum, (index, bit)| {
+                    if *bit {
+                        (sum + x_big.modpow(&BigUint::from(index), &n_big)) % &n_big
+                    } else {
+                        sum
+                    }
+                },
+            );
+            for width in 2..=8 {
+                assert_eq!(support.evaluate_frame(&x_big, &n_big, width), direct,
+                    "N={n}, x={x}, frame width={width}");
+            }
+        }
+    }
+
+    #[test]
+    fn support_polynomial_zero_targets_a_proper_factor_without_a_full_collision() {
+        let mut partners = Partners::new(t(2), t(15)).unwrap();
+        assert!(partners.support_target().is_none()); // F_15(2)=15, trivial gcd
+        partners.observe().unwrap();
+        let target = partners.support_target().expect("F_15(4) shares factor 5");
+        assert_eq!(target.phase_index, 1);
+        assert_eq!(vox::morphism_factor::dec_of(&target.p), "5");
+        assert_eq!(vox::morphism_factor::dec_of(&target.q), "3");
+        assert_eq!(vox::morphism_factor::mul(&target.p, &target.q), t(15));
     }
 
     #[test]
