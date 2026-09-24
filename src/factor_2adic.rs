@@ -969,6 +969,7 @@ pub fn factor_2adic(n: &[char], max_solutions: Option<usize>) -> Vec<(Vec<char>,
 struct FramePrefix {
     p: Vec<char>,
     q: Vec<char>,
+    /// Carry-normalized convolution of the current factor supports.
     product: Vec<char>,
     width: usize,
 }
@@ -986,11 +987,13 @@ impl FramePrefix {
         })
     }
 
-    fn extend(&self, n: &[char], p_bit: u8, q_bit: u8) -> Option<Self> {
-        let required = bit(n, self.width) ^ bit(&self.product, self.width);
-        if (p_bit ^ q_bit) != required {
-            return None;
-        }
+    /// Shift a candidate support cell into the active frame and cancel its
+    /// known convolution contribution against this frame's source cell. The
+    /// product register is already carry-normalized; since p₀=1, the residual
+    /// uniquely determines the complementary q cell.
+    fn extend_candidate(&self, target: u8, p_bit: u8) -> Option<(Self, u8)> {
+        let cancelled = bit(&self.product, self.width) ^ p_bit;
+        let q_bit = target ^ cancelled;
         let (p, q, product) =
             extend_product_registers(&self.p, &self.q, &self.product, self.width, p_bit, q_bit);
         let next = Self {
@@ -999,19 +1002,42 @@ impl FramePrefix {
             product,
             width: self.width + 1,
         };
-        debug_assert!((0..next.width).all(|index| bit(&next.product, index) == bit(n, index)));
-        Some(next)
-    }
-
-    fn next_pairs(&self, n: &[char]) -> [(u8, u8); 2] {
-        let parity = bit(n, self.width) ^ bit(&self.product, self.width);
-        [(0, parity), (1, 1 ^ parity)]
+        Some((next, q_bit))
     }
 }
 
 pub fn factor_2adic_frames(
     groups: &[Vec<char>],
     max_solutions: Option<usize>,
+) -> Vec<(Vec<char>, Vec<char>)> {
+    factor_2adic_frames_inner(groups, max_solutions, &[])
+}
+
+/// Semiprime specialization of the frame unbraider. Once the shorter support
+/// is complete, negative residue reads discard candidates divisible by a
+/// small prime before the complementary frame continues.
+pub fn factor_2adic_semiprime_frames(
+    groups: &[Vec<char>],
+    max_solutions: Option<usize>,
+) -> Vec<(Vec<char>, Vec<char>)> {
+    let sieve_primes = ["3", "5", "7"]
+        .iter()
+        .map(|prime| crate::morphism_factor::decimal_to_tape(prime).expect("small prime tape"))
+        .collect::<Vec<_>>();
+    factor_2adic_frames_inner(groups, max_solutions, &sieve_primes)
+}
+
+fn passes_small_prime_sieve(value: &[char], sieve_primes: &[Vec<char>]) -> bool {
+    sieve_primes.iter().all(|prime| {
+        cmp(value, prime) == core::cmp::Ordering::Equal
+            || !crate::morphism_factor::zero(&crate::morphism_factor::modulo(value, prime))
+    })
+}
+
+fn factor_2adic_frames_inner(
+    groups: &[Vec<char>],
+    max_solutions: Option<usize>,
+    sieve_primes: &[Vec<char>],
 ) -> Vec<(Vec<char>, Vec<char>)> {
     fn visit_frame(
         base: &FramePrefix,
@@ -1024,6 +1050,7 @@ pub fn factor_2adic_frames(
         offset: usize,
         p_bound: &[char],
         q_bound: &[char],
+        sieve_primes: &[Vec<char>],
         p_block: &mut Vec<u8>,
         q_block: &mut Vec<u8>,
         out: &mut Vec<(Vec<char>, Vec<char>)>,
@@ -1033,7 +1060,11 @@ pub fn factor_2adic_frames(
             return;
         }
         if frame_index == groups.len() {
-            if current.product == n && current.p.len() == p_bits && current.q.len() == q_bits {
+            if current.product == n
+                && current.p.len() == p_bits
+                && current.q.len() == q_bits
+                && passes_small_prime_sieve(&current.q, sieve_primes)
+            {
                 let (p, q) = if cmp(&current.p, &current.q) == core::cmp::Ordering::Greater {
                     (current.q.clone(), current.p.clone())
                 } else {
@@ -1046,10 +1077,17 @@ pub fn factor_2adic_frames(
 
         let group = &groups[frame_index];
         if offset == group.len() {
+            let seeded_cell = usize::from(frame_index == 0);
             let frame_width_closed = current.width == base.width + p_block.len()
                 && p_block.len() == q_block.len()
-                && (base.width..current.width)
-                    .all(|index| bit(&current.product, index) == bit(n, index));
+                && group
+                    .iter()
+                    .enumerate()
+                    .skip(seeded_cell)
+                    .all(|(offset, source_cell)| {
+                        let index = base.width + offset - seeded_cell;
+                        bit(&current.product, index) == u8::from(*source_cell == ONE)
+                    });
             if frame_width_closed {
                 visit_frame(
                     current,
@@ -1062,6 +1100,7 @@ pub fn factor_2adic_frames(
                     0,
                     p_bound,
                     q_bound,
+                    sieve_primes,
                     &mut Vec::new(),
                     &mut Vec::new(),
                     out,
@@ -1072,24 +1111,20 @@ pub fn factor_2adic_frames(
         }
 
         let target_bit = u8::from(group[offset] == ONE);
-        let pairs = current.next_pairs(n);
         let preferred = u8::from(current.p.len() == 1);
         for p_bit in [preferred, 1 - preferred] {
-            let Some((_, q_bit)) = pairs.iter().find(|(candidate, _)| *candidate == p_bit) else {
+            let Some((next, q_bit)) = current.extend_candidate(target_bit, p_bit) else {
                 continue;
             };
             let bit_index = current.width;
             if (bit_index + 1 == p_bits && p_bit != 1)
                 || (bit_index + 1 > p_bits && p_bit != 0)
-                || (bit_index + 1 == q_bits && *q_bit != 1)
-                || (bit_index + 1 > q_bits && *q_bit != 0)
+                || (bit_index + 1 == q_bits && q_bit != 1)
+                || (bit_index + 1 > q_bits && q_bit != 0)
             {
                 continue;
             }
-            let Some(next) = current.extend(n, p_bit, *q_bit) else {
-                continue;
-            };
-            if bit(n, next.width - 1) != target_bit {
+            if bit_index + 1 == p_bits && !passes_small_prime_sieve(&next.p, sieve_primes) {
                 continue;
             }
             if cmp(&next.product, n) == core::cmp::Ordering::Greater
@@ -1099,7 +1134,7 @@ pub fn factor_2adic_frames(
                 continue;
             }
             p_block.push(p_bit);
-            q_block.push(*q_bit);
+            q_block.push(q_bit);
             visit_frame(
                 base,
                 &next,
@@ -1111,6 +1146,7 @@ pub fn factor_2adic_frames(
                 offset + 1,
                 p_bound,
                 q_bound,
+                sieve_primes,
                 p_block,
                 q_block,
                 out,
@@ -1154,6 +1190,11 @@ pub fn factor_2adic_frames(
         // than sqrt(N) for asymmetric semiprimes.
         let p_bound = shift_right(&n, q_bits - 1);
         let q_bound = shift_right(&n, p_bits - 1);
+        let active_sieve = if q_bits.saturating_sub(p_bits) >= 8 {
+            sieve_primes
+        } else {
+            &[]
+        };
         visit_frame(
             &seed,
             &seed,
@@ -1165,6 +1206,7 @@ pub fn factor_2adic_frames(
             1,
             &p_bound,
             &q_bound,
+            active_sieve,
             &mut Vec::new(),
             &mut Vec::new(),
             &mut out,
@@ -1366,6 +1408,40 @@ mod tests {
         }
         assert!(state.is_fixed_point());
         assert_eq!((state.p, state.q), (p, q));
+    }
+
+    #[test]
+    fn shifted_support_frames_cancel_convolution_and_transport_carry_normalization() {
+        let p = crate::morphism_factor::decimal_to_tape("10007").unwrap();
+        let q = crate::morphism_factor::decimal_to_tape("1000000007").unwrap();
+        let n = multiply(&p, &q);
+        let frames = frame_sweep(&n);
+        for frame in &frames {
+            let mut state = FramePrefix::seed(&n).unwrap();
+            let mut q_recovered = alloc::vec![ONE];
+
+            for group in &frame.groups {
+                for &source_cell in group.iter().skip(usize::from(state.width == 1)) {
+                    let index = state.width;
+                    let p_bit = bit(&p, index);
+                    let (next, q_bit) = state
+                        .extend_candidate(u8::from(source_cell == ONE), p_bit)
+                        .expect("candidate frame cell cancels against the source");
+                    assert_eq!(q_bit, bit(&q, index), "frame width {}", frame.window);
+
+                    set_bit(&mut q_recovered, index, q_bit);
+                    assert_eq!(next.product, multiply(&next.p, &next.q));
+                    assert!((0..next.width)
+                        .all(|position| bit(&next.product, position) == bit(&n, position)));
+                    state = next;
+                }
+            }
+
+            assert_eq!(state.p, p, "frame width {}", frame.window);
+            assert_eq!(state.q, q, "frame width {}", frame.window);
+            assert_eq!(trim(q_recovered), q, "frame width {}", frame.window);
+            assert_eq!(state.product, n, "frame width {}", frame.window);
+        }
     }
 
     #[test]
