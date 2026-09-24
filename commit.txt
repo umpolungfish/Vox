@@ -1,1 +1,1 @@
-I recover the complementary factor support from the active IMASM evaluation frame. I carry the odd anchor, convolution cancellation, and normalized product through every width from two to eight, add the semiprime negative-residue filter, rebuild the contained binaries, and record their direct closures and timings.
+I test the baked frame unbraider on 44–46 digit semiprimes with 127-bit factors. The binaries close exactly, and their 2.175–233.063 second runtimes expose the unresolved-bit branch search and the unchanged-word frame regrouping that must be rewired.
