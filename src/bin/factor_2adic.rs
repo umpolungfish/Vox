@@ -13,6 +13,12 @@ include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 const EXTRACT_WORD: &str = "⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣";
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum PhaseEvidence {
+    Support(phase_partners::SupportClosure),
+    Return(phase_partners::ReturnRelation),
+}
+
 /// FDE value for the proposition that the candidate pair closes on N.
 /// Prefix-first and product-first are independent support channels: agreement
 /// yields T/F, disagreement is retained as B, and an unevaluated pair is N.
@@ -88,8 +94,9 @@ fn run_baked_membrane() {
         }
     };
 
-    // The phase partner relation supplies the winding. No shape scout,
-    // divisor walk, rho, sieve, or factor-candidate scan is on this path.
+    // Phase and support are observations of one baked numeral object. At each
+    // phase point, evaluate its support polynomial; a proper gcd is an exact
+    // factor target. A full phase return remains the second closure route.
     let phase_started = std::time::Instant::now();
     let partner_open = if BAKED_BASE_IS_UNIT {
         phase_partners::Partners::new_from_validated_bake(base.clone(), tape.clone())
@@ -105,9 +112,12 @@ fn run_baked_membrane() {
     };
     let phase_init_elapsed = phase_started.elapsed();
     let phase_orbit_started = std::time::Instant::now();
-    let relation = loop {
+    let evidence = loop {
+        if let Some(target) = partners.support_target() {
+            break PhaseEvidence::Support(target);
+        }
         match partners.observe() {
-            Ok(Some(relation)) => break relation,
+            Ok(Some(relation)) => break PhaseEvidence::Return(relation),
             // Keep the baked membrane collapsed until the complete winding,
             // factor close, and register fold are ready to emit together.
             Ok(None) => {}
@@ -120,7 +130,7 @@ fn run_baked_membrane() {
     let phase_orbit_elapsed = phase_orbit_started.elapsed();
     let phase_elapsed = phase_started.elapsed();
     let extract_started = std::time::Instant::now();
-    let transported = match phase_word::execute(EXTRACT_WORD, &relation) {
+    let transported = match phase_word::execute(EXTRACT_WORD, &evidence) {
         Ok(readout) if readout.surviving.len() == 4 && readout.restored == 1 && readout.exposed == 0 => readout,
         Ok(readout) => {
             eprintln!("EXTRACT frame did not restore its complete bank: surviving={} restored={} exposed={}",
@@ -132,14 +142,29 @@ fn run_baked_membrane() {
             std::process::exit(2);
         }
     };
-    let relation = transported.surviving[0].observation.clone();
     let extract_elapsed = extract_started.elapsed();
-    let winding = relation.return_exponent.clone();
+    let evidence = transported.surviving[0].observation.clone();
+    let winding_bits = match &evidence {
+        PhaseEvidence::Support(target) => target.phase_index + 1,
+        PhaseEvidence::Return(relation) => relation.return_exponent.len(),
+    };
+    let evidence_label = match &evidence {
+        PhaseEvidence::Support(target) => format!(
+            "support-polynomial target at phase index {} (residue bits={}, evaluation bits={})",
+            target.phase_index, target.phase_register.len(), target.polynomial_residue.len(),
+        ),
+        PhaseEvidence::Return(_) => "full phase-return collision".to_string(),
+    };
     let factor_close_started = std::time::Instant::now();
-    let factor_pair = if let Some((current_half, earlier_half)) = relation.half_residues.as_ref() {
-        vox::shor_braid::phase_factor_register_seeds(&tape, current_half, earlier_half)
-    } else {
-        vox::shor_braid::factor_close_public(&base, &tape, &winding)
+    let factor_pair = match &evidence {
+        PhaseEvidence::Support(target) => Ok((target.p.clone(), target.q.clone())),
+        PhaseEvidence::Return(relation) => {
+            if let Some((current_half, earlier_half)) = relation.half_residues.as_ref() {
+                vox::shor_braid::phase_factor_register_seeds(&tape, current_half, earlier_half)
+            } else {
+                vox::shor_braid::factor_close_public(&base, &tape, &relation.return_exponent)
+            }
+        }
     };
     let factor_close_elapsed = factor_close_started.elapsed();
     let (factors, report) = if let Ok((mut p, mut q)) = factor_pair {
@@ -161,7 +186,7 @@ fn run_baked_membrane() {
             .map(|(product_first, _)| product_first);
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
-        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (product-outer-prefix={prefix_first}, prefix-outer-product={product_first})\n", winding.len(), partners.squarings, partners.stored_residues());
+        let report = format!("factor target: {evidence_label}\nphase winding register: {winding_bits} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (product-outer-prefix={prefix_first}, prefix-outer-product={product_first})\n", partners.squarings, partners.stored_residues());
         let factors = if closure_value == 'T' {
             factors_at_meeting.and_then(|fixed|
                 vox::factor_2adic::terminal_pair_given_semiprime_promise(&tape, fixed))
@@ -170,7 +195,7 @@ fn run_baked_membrane() {
         };
         (factors, report)
     } else {
-        let report = format!("phase winding register: {} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-register seed: {}\n", winding.len(), partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
+        let report = format!("factor target: {evidence_label}\nphase winding register: {winding_bits} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-register seed: {}\n", partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
         (None, report)
     };
 
