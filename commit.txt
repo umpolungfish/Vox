@@ -1,1 +1,1 @@
-I compose the phase, arithmetic, branching, selection, continuation, fixation, and unbraiding morphisms as one IMASM carrier. I run the carrier on native numeral tapes and record exact closure on the 90-bit asymmetric semiprime.
+I check the co-creative frame equations against the SIXTEEN_3 carrier. I preserve the complete numeral tape, prove that punctum counts lose positional information, and prove the return law for factor pairs under reversible transport of multiplication.
