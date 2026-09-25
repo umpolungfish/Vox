@@ -1703,6 +1703,11 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         if state.selected.is_none() {
             apply_morphism(EML_FRAME, state);
         }
+        if state.selected.is_none() {
+            apply_morphism(EML_EXP_MINUS_LOG, state);
+            apply_morphism(EML_EXP_DIV_LOG, state);
+            apply_morphism(EML_REVERSE_NEGATIVE, state);
+        }
         if state.selected.is_none() && state.eml_phase_done && state.bridge_count < 12 {
             apply_morphism(STRUCTURAL_BRIDGE, state);
         }
