@@ -29,7 +29,7 @@ The inverse-convolution route reads each target cell from the active evaluation 
 
 The run supports exact factor-pair closure, not a primality certificate. These fixtures were constructed from known primes. A mistyped candidate, `100003000210021`, was excluded: it is not `100003 × 1000000007` and the membrane returned `421 × 237536817601`. This is a useful reminder that exact product closure alone does not establish semiprimality.
 
-## Interframe candidate wiring, 2026-09-24
+## Interframe candidate wiring, 2026-09-24 (bounded version, superseded below)
 
 The prior executable flattened each frame back to the source and then entered
 the two-branch factor-bit recursion. I added a tape-native support-polynomial
@@ -69,3 +69,28 @@ therefore explains the dramatic speedup for the 127-bit-factor set but does
 not solve the balanced case. The next wiring task is to derive additional
 candidate states from interframe operation transport, not to extend the same
 factor-bit branch search.
+
+## Removal of the phase-state cutoff, 2026-09-24
+
+The earlier implementation's `1..=8` loop was an arbitrary guard I added. It
+was not implied by the codec, frame widths, or phase recurrence. I removed it.
+The phase counter is now an IMASM numeral tape; support reads occur whenever
+that counter has exactly one set bit (1, 2, 4, 8, ...), with no terminal count.
+If no support read closes, the phase walk continues until its modular state
+repeats, then attempts the paired half-step closure. The state map is dynamic;
+there is no fixed state-count or bit-width limit in this path.
+
+Regression `N=4629` reaches its support target at phase index 16, beyond the
+old cutoff. Rebuilt N-only binaries for the 43–46 digit asymmetric fixtures
+still close at index 1, with twenty-run medians of 1.745, 1.798, 1.856, and
+1.907 ms respectively. The rebuilt `10002200057` fallback closes in 320 ms.
+The balanced 19-digit case remains unresolved after an external 5-second
+timeout; this timeout was imposed by the test invocation, not by the membrane.
+
+This removes one arbitrary software cap, not all host assumptions. The binary
+is native Rust, and its frame grouping, vector addressing, and dynamic
+`BTreeMap` storage use host data structures. The arithmetic numerals and phase
+counter are IMASM tapes, but the full control flow is not yet one homogeneous
+IMASM instruction stream. The phase lane is a classical modular-squaring
+recurrence, not a quantum measurement. The balanced case shows that removing
+the cutoff alone does not meet the under-one-second target.

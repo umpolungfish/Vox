@@ -1,1 +1,1 @@
-I wire a tape-native phase/support read into the baked frame membrane, validate its candidate across frame widths and exact convolution closure, and record the wide fast closures plus the balanced RSA miss that still reaches the prefix fallback.
+I remove the arbitrary eight-state phase cutoff, keep the phase counter and modular arithmetic on IMASM tapes, close the phase lane on repeated state, and record the index-16 regression plus the balanced RSA run that remains beyond the time target.
