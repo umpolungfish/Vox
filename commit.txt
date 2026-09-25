@@ -1,1 +1,1 @@
-I check the explicit Block 2 words and their three arithmetic and count identities in Lean. I preserve the passing examples and prove that their count projections need the original word to transport further operations.
+I implement coefficient-frame addition and convolution with carry-normalized return, and prove their numeral correspondence in Lean. I verify the supplied whole-word examples and carry-producing compositions with warnings denied. This implements forward frame arithmetic, not factor extraction.

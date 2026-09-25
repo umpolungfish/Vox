@@ -101,4 +101,93 @@ theorem count_frame_requires_word :
   change shift 2 = 1 at ht
   omega
 
+/- Full-word evaluation frame. Each coefficient retains its original binary
+   position. Addition and convolution may produce coefficients larger than one;
+   their carries are normalized only on return to the numeral word. -/
+def coefficientValue : List Nat → Nat
+  | [] => 0
+  | head :: tail => head + 2 * coefficientValue tail
+
+def enterFrame (word : List Bool) : List Nat :=
+  word.map fun bit => if bit then 1 else 0
+
+def addFrame : List Nat → List Nat → List Nat
+  | [], right => right
+  | left, [] => left
+  | a :: left, b :: right => (a + b) :: addFrame left right
+
+def multiplyFrame : List Nat → List Nat → List Nat
+  | [], _ => []
+  | a :: left, right =>
+    addFrame (right.map (a * ·)) (0 :: multiplyFrame left right)
+
+def emitBits (n : Nat) : List Bool :=
+  if n = 0 then [] else (n % 2 == 1) :: emitBits (n / 2)
+termination_by n
+
+def returnFrame (frame : List Nat) : List Bool := emitBits (coefficientValue frame)
+
+theorem enterFrame_value (word : List Bool) :
+    coefficientValue (enterFrame word) = numeral word := by
+  induction word with
+  | nil => rfl
+  | cons bit rest ih =>
+    change (if bit then 1 else 0) + 2 * coefficientValue (enterFrame rest) =
+      (if bit then 1 else 0) + 2 * numeral rest
+    rw [ih]
+
+theorem addFrame_value (left right : List Nat) :
+    coefficientValue (addFrame left right) =
+      coefficientValue left + coefficientValue right := by
+  induction left generalizing right with
+  | nil => simp [addFrame, coefficientValue]
+  | cons a rest ih =>
+    cases right with
+    | nil => simp [addFrame, coefficientValue]
+    | cons b tail => simp [addFrame, coefficientValue, ih]; omega
+
+theorem scaleFrame_value (a : Nat) (word : List Nat) :
+    coefficientValue (word.map (a * ·)) = a * coefficientValue word := by
+  induction word with
+  | nil => simp [coefficientValue]
+  | cons b rest ih => simp [coefficientValue, ih]; ring
+
+theorem multiplyFrame_value (left right : List Nat) :
+    coefficientValue (multiplyFrame left right) =
+      coefficientValue left * coefficientValue right := by
+  induction left with
+  | nil => simp [multiplyFrame, coefficientValue]
+  | cons a rest ih =>
+    simp [multiplyFrame, addFrame_value, scaleFrame_value, coefficientValue, ih]
+    ring
+
+theorem emitBits_value (n : Nat) : numeral (emitBits n) = n := by
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+    rw [emitBits]
+    split_ifs with hn
+    · simp [numeral, hn]
+    · have smaller : n / 2 < n := by omega
+      simp only [numeral, ih (n / 2) smaller, beq_iff_eq]
+      have remainder := Nat.mod_lt n (by decide : 0 < 2)
+      split_ifs <;> omega
+
+theorem multiplication_returns (left right : List Bool) :
+    numeral (returnFrame (multiplyFrame (enterFrame left) (enterFrame right))) =
+      numeral left * numeral right := by
+  simp [returnFrame, emitBits_value, multiplyFrame_value, enterFrame_value]
+
+-- Whole-word operations commute for the supplied examples and for the
+-- carry-producing composition P+T=Q that the isolated count projection lost.
+example : returnFrame (addFrame (enterFrame blockP) (enterFrame blockQ)) = blockR := by
+  simp [returnFrame, blockP, blockQ, blockR, enterFrame, addFrame, coefficientValue, emitBits]
+example : returnFrame (addFrame (enterFrame blockP) (enterFrame blockT)) = blockQ := by
+  simp [returnFrame, blockP, blockT, blockQ, enterFrame, addFrame, coefficientValue, emitBits]
+example : returnFrame (multiplyFrame (enterFrame blockP) (enterFrame blockQ)) = blockS := by
+  simp [returnFrame, blockP, blockQ, blockS, enterFrame, multiplyFrame, addFrame,
+    coefficientValue, emitBits]
+example : returnFrame (multiplyFrame (enterFrame [true, true])
+    (enterFrame [true, true])) = [true, false, false, true] := by
+  simp [returnFrame, enterFrame, multiplyFrame, addFrame, coefficientValue, emitBits]
+
 end CoCreativeFrameCheck
