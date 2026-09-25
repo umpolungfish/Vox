@@ -1,8 +1,8 @@
-//! Run the complete EML-first factoring carrier over one baked IMASM numeral.
+//! Run the nested phase/EML factoring carrier over one baked IMASM numeral.
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
-const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+const EML_NINE: &str = "⊢∈≻⊤⊥≻≺∈⊤⊥⊞≺⊙∋⊡∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋∈⊙≻⊤≺⊥⋈∋⊙⊡⊣";
 
 fn main() {
     let (Some(source), Some(phase_base)) = (BAKED_MODULUS_WORD, BAKED_BASE_WORD) else {
