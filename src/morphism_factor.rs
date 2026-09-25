@@ -1272,8 +1272,8 @@ fn require_factoring_complete(tower: &[&[char]]) -> Result<(), String> {
     let mut missing = Vec::new();
     // EXTRACT, ECM and UNBRAID each fold advance, decide and continue into one boundary.
     if !has(EXTRACT) && !has(EXTRACT_BANKED) && !has(ECM) && !has(UNBRAID) {
-        if !has(PHASE) && !has(ARITHMETIC) {
-            missing.push("PHASE or ARITHMETIC (advance)");
+        if !has(ARITHMETIC) {
+            missing.push("ARITHMETIC (remainder and gcd readout)");
         }
         if !has(SELECT) {
             missing.push("SELECT (decide)");
@@ -2228,6 +2228,8 @@ mod tests {
     fn constructor_recognizes_kernel_eml_frame_and_composes_factor_arm() {
         const EML: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡⊣";
         const NESTED: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
+        const EML_PHASE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
+        const EML_FULL: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
 
         let eml = construct_carrier(EML).unwrap();
         assert_eq!(
@@ -2245,6 +2247,39 @@ mod tests {
         );
         let factor = factor_with(NESTED, &numeral(8051)).unwrap();
         assert!(factor == numeral(83) || factor == numeral(97));
+
+        let err = factor_with(EML_PHASE, &numeral(8051)).unwrap_err();
+        assert!(err.contains("ARITHMETIC (remainder and gcd readout)"));
+
+        let factors = construct_carrier(EML_FULL).unwrap();
+        assert_eq!(
+            factors
+                .iter()
+                .map(|op| morphism_name(op))
+                .collect::<Vec<_>>(),
+            [
+                "EML_FRAME",
+                "PHASE",
+                "ARITHMETIC",
+                "BRANCH",
+                "SELECT",
+                "CONTINUE",
+                "FIX"
+            ]
+        );
+        let factor = factor_with(EML_FULL, &numeral(8051)).unwrap();
+        assert!(factor == numeral(83) || factor == numeral(97));
+
+        let source_word = numeral(12_289 * 1_000_000_007);
+        let source = parse_numeral(&source_word).unwrap();
+        let factor_word = factor_with(EML_FULL, &source_word).unwrap();
+        let factor = parse_numeral(&factor_word).unwrap();
+        let p = parse_numeral(&numeral(12_289)).unwrap();
+        let q = parse_numeral(&numeral(1_000_000_007)).unwrap();
+        assert!(factor == p || factor == q);
+        let (cofactor, remainder) = divmod(&source, &factor);
+        assert!(zero(&remainder));
+        assert_eq!(mul(&factor, &cofactor), source);
     }
 
     #[test]
@@ -2323,6 +2358,7 @@ mod tests {
         let w = "⊢∈⊤⊥∋∈⊙∋⊙⊡⊣";
         let err = factor_with(w, &numeral(8051)).unwrap_err();
         assert!(err.contains("missing"));
+        assert!(err.contains("ARITHMETIC (remainder and gcd readout)"));
         assert!(err.contains("CONTINUE"));
     }
 
