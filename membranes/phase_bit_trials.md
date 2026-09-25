@@ -185,6 +185,18 @@ The composed EML, phase, arithmetic, branch, select, continue, and latch carrier
 returned the factor word for `12289 × 1000000007`. The IMASM product readout
 confirmed the returned factor and cofactor multiply back to the baked source.
 
+Direct `vox factor-with` runs used the carrier word above and numeral words
+prepared by `vox numeral` before timing. Twenty process-level wall samples per
+input, including Vox startup and carrier construction, gave:
+
+| IMASM numeral value | Factors | Median | Range |
+|---:|---:|---:|---:|
+| 8051 | 83 × 97 | 1.016 ms | 0.926–1.338 ms |
+| 12289000086023 | 12289 × 1000000007 | 1.125 ms | 1.079–1.288 ms |
+
+The 14-digit factor word and cofactor were verified against their baked product:
+`p*q == N: true`.
+
 ## Wider direct executions with the shared running-product fold
 
 The radix digits are decomposed through dynamic arbitrary-width quotient and

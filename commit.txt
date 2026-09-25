@@ -1,1 +1,1 @@
-I require the arithmetic readout in every non-fused phase carrier, compose the EML frame with the complete factor tower, and record the 14-digit closure. I verify the returned factor by exact IMASM multiplication and run the full library suite with warnings denied.
+I time the EML carrier through the Vox CLI on 8051 and a 14-digit semiprime, record twenty-run ranges with baked IMASM inputs, and verify the returned 14-digit factors close to the source.
