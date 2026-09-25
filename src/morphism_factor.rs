@@ -39,6 +39,11 @@ const PHASE_EML: &[char] = &[
     VINIT, FSPLIT, AFWD, EVALT, EVALF, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE,
     IFIX, FFUSE, TANCH,
 ];
+// Generic structural bridge: the repaired kernel word closes to N and
+// transports a banked negative phase read into the next phase-base frame.
+const STRUCTURAL_BRIDGE: &[char] = &[
+    VINIT, FFUSE, FSPLIT, EVALF, IMSCRIB, AFWD, CLINK, '⊞', EVALT, AREV, IFIX, TANCH,
+];
 // Pollard p-1: seed an accumulator (IMSCRIB), raise it through rising exponents
 // (ENGAGR), and take the gcd (CLINK) inside the frame. It catches a factor p
 // whenever p-1 is smooth, at any size and any gap, covering the slice the
@@ -1043,6 +1048,7 @@ struct State {
     unbraid_started: bool,
     unbraid_done: bool,
     carrier_closed: bool,
+    bridge_done: bool,
 }
 
 fn advance_eml_phase(state: &mut State) {
@@ -1135,6 +1141,9 @@ const PHASE_EML_I: &[char] = &[
     FSPLIT, AFWD, EVALT, EVALF, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX,
     FFUSE,
 ];
+const STRUCTURAL_BRIDGE_I: &[char] = &[
+    FFUSE, FSPLIT, EVALF, IMSCRIB, AFWD, CLINK, '⊞', EVALT, AREV, IFIX,
+];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
@@ -1164,6 +1173,8 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
         "EML_FRAME"
     } else if operator == PHASE_EML {
         "PHASE_EML"
+    } else if operator == STRUCTURAL_BRIDGE {
+        "STRUCTURAL_BRIDGE"
     } else if operator == P_MINUS {
         "P_MINUS"
     } else if operator == ECM {
@@ -1201,9 +1212,10 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so complete phase motifs win over BRANCH, and the
     // two FIX spellings win over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 19] = [
+    let motifs: [(&[char], &[char]); 20] = [
         (UNBRAID_I, UNBRAID),
         (PHASE_EML_I, PHASE_EML),
+        (STRUCTURAL_BRIDGE_I, STRUCTURAL_BRIDGE),
         (EML_FRAME_I, EML_FRAME),
         (EXTRACT_BANKED_I, EXTRACT_BANKED),
         (EXTRACT_I, EXTRACT),
@@ -1620,6 +1632,7 @@ pub fn run_carrier_rounds_with_phase_base(
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
+        bridge_done: false,
     };
     let mut r = 0u64;
     loop {
@@ -1646,6 +1659,16 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         if state.selected.is_none() {
             apply_morphism(EML_FRAME, state);
         }
+        if state.selected.is_none() && state.eml_phase_done && !state.bridge_done {
+            apply_morphism(STRUCTURAL_BRIDGE, state);
+        }
+    } else if operator == STRUCTURAL_BRIDGE {
+        // The bridge word closes to N by design. Its computational action is
+        // to carry the banked negative support into one new phase-base frame.
+        state.bridge_done = true;
+        state.phase_base = add(&state.phase_base, &one());
+        state.eml_partners = None;
+        state.eml_phase_done = false;
     } else if operator == EML_FRAME {
         // One EML firing advances one phase observation for each bit in both
         // factor registers before the deeper carrier arms execute. The sweep
@@ -2013,6 +2036,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
+        bridge_done: false,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     loop {
@@ -2527,6 +2551,14 @@ mod tests {
     }
 
     #[test]
+    fn repaired_structural_bridge_is_a_closure_marker() {
+        let bridge = "⊢∋∈⊥⊙≻⋈⊞⊤≺⊡⊣";
+        let carrier = construct_carrier(bridge).unwrap();
+        assert_eq!(carrier, vec![STRUCTURAL_BRIDGE]);
+        assert_eq!(morphism_name(carrier[0]), "STRUCTURAL_BRIDGE");
+    }
+
+    #[test]
     fn phase_base_is_a_baked_imasm_input_not_a_source_literal() {
         const EML_NINE: &str =
             "⊢∈≻⊤⊥≻≺∈⊤⊥⊞≺⊙∋⊡∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋∈⊙≻⊤≺⊥⋈∋⊙⊡⊣";
@@ -2899,6 +2931,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
+        bridge_done: false,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     for _ in 0..max_steps {
