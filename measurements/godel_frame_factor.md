@@ -1,5 +1,20 @@
 # Interframe support unbraiding through a Gödel evaluation frame
 
+The executable specification in `co_creative_frame_check.lean` now includes
+cell-local carry normalization and signed contribution cancellation. Given an
+odd candidate word, `complementWord` reads the residual parity, cancels that
+candidate's contribution when the next complementary bit is set, and shifts
+the even residual with its signed carry. It returns a complementary word and
+the remaining residual after consuming the source width. It does not choose
+the candidate. These operations are currently Lean definitions; the compiled
+IMASM extractor does not yet execute them.
+
+Kernel checks establish the value identities for normalization, cancellation,
+and even-residual shifting. Concrete inverse checks include exact products,
+a nonzero terminal residual for a nondivisor, and word widths crossing 64,
+128, and 256 bits. Those are complementary-word unit tests, not RSA factoring
+results or evidence of N-only candidate selection.
+
 `./frame_factor_build.sh <decimal-N> [frame-width]` compiles a contained binary
 with the source value imscribed as an IMASM numeral and the frame width baked
 into it. The executable takes no arguments. Its evaluation frame regroups the

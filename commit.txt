@@ -1,1 +1,1 @@
-I implement coefficient-frame addition and convolution with carry-normalized return, and prove their numeral correspondence in Lean. I verify the supplied whole-word examples and carry-producing compositions with warnings denied. This implements forward frame arithmetic, not factor extraction.
+I implement local carry return and signed complementary-word cancellation in the frame specification. I prove their value identities and test exact products, residual rejection, and wider words with warnings denied. Candidate selection and IMASM execution remain unimplemented.

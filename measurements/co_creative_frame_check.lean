@@ -125,7 +125,13 @@ def emitBits (n : Nat) : List Bool :=
   if n = 0 then [] else (n % 2 == 1) :: emitBits (n / 2)
 termination_by n
 
-def returnFrame (frame : List Nat) : List Bool := emitBits (coefficientValue frame)
+-- Return is a local carry sweep, without decoding the entire frame to Nat.
+def normalizeFrame : List Nat → Nat → List Bool
+  | [], carry => emitBits carry
+  | digit :: rest, carry =>
+    ((digit + carry) % 2 == 1) :: normalizeFrame rest ((digit + carry) / 2)
+
+def returnFrame (frame : List Nat) : List Bool := normalizeFrame frame 0
 
 theorem enterFrame_value (word : List Bool) :
     coefficientValue (enterFrame word) = numeral word := by
@@ -172,22 +178,112 @@ theorem emitBits_value (n : Nat) : numeral (emitBits n) = n := by
       have remainder := Nat.mod_lt n (by decide : 0 < 2)
       split_ifs <;> omega
 
+theorem normalizeFrame_value (frame : List Nat) (carry : Nat) :
+    numeral (normalizeFrame frame carry) = coefficientValue frame + carry := by
+  induction frame generalizing carry with
+  | nil => simp [normalizeFrame, coefficientValue, emitBits_value]
+  | cons digit rest ih =>
+    simp only [normalizeFrame, numeral, ih, coefficientValue, beq_iff_eq]
+    have remainder := Nat.mod_lt (digit + carry) (by decide : 0 < 2)
+    split_ifs <;> omega
+
 theorem multiplication_returns (left right : List Bool) :
     numeral (returnFrame (multiplyFrame (enterFrame left) (enterFrame right))) =
       numeral left * numeral right := by
-  simp [returnFrame, emitBits_value, multiplyFrame_value, enterFrame_value]
+  simp [returnFrame, normalizeFrame_value, multiplyFrame_value, enterFrame_value]
 
 -- Whole-word operations commute for the supplied examples and for the
 -- carry-producing composition P+T=Q that the isolated count projection lost.
 example : returnFrame (addFrame (enterFrame blockP) (enterFrame blockQ)) = blockR := by
-  simp [returnFrame, blockP, blockQ, blockR, enterFrame, addFrame, coefficientValue, emitBits]
+  simp [returnFrame, normalizeFrame, blockP, blockQ, blockR, enterFrame, addFrame, emitBits]
 example : returnFrame (addFrame (enterFrame blockP) (enterFrame blockT)) = blockQ := by
-  simp [returnFrame, blockP, blockT, blockQ, enterFrame, addFrame, coefficientValue, emitBits]
+  simp [returnFrame, normalizeFrame, blockP, blockT, blockQ, enterFrame, addFrame, emitBits]
 example : returnFrame (multiplyFrame (enterFrame blockP) (enterFrame blockQ)) = blockS := by
-  simp [returnFrame, blockP, blockQ, blockS, enterFrame, multiplyFrame, addFrame,
-    coefficientValue, emitBits]
+  simp [returnFrame, normalizeFrame, blockP, blockQ, blockS, enterFrame, multiplyFrame,
+    addFrame, emitBits]
 example : returnFrame (multiplyFrame (enterFrame [true, true])
     (enterFrame [true, true])) = [true, false, false, true] := by
-  simp [returnFrame, enterFrame, multiplyFrame, addFrame, coefficientValue, emitBits]
+  simp [returnFrame, normalizeFrame, enterFrame, multiplyFrame, addFrame, emitBits]
+
+-- Signed coefficients retain borrows during cancellation. The divisor is an
+-- anchored candidate word; this operation does not select that candidate.
+def signedValue : List Int → Int
+  | [] => 0
+  | digit :: rest => digit + 2 * signedValue rest
+
+def cancelContribution : List Int → List Int → List Int
+  | [], right => right.map (- ·)
+  | left, [] => left
+  | a :: left, b :: right => (a - b) :: cancelContribution left right
+
+def carryInto (carry : Int) : List Int → List Int
+  | [] => [carry]
+  | digit :: rest => (digit + carry) :: rest
+
+def shiftResidual : List Int → List Int
+  | [] => []
+  | digit :: rest => carryInto (digit / 2) rest
+
+def signedFrame (word : List Bool) : List Int :=
+  word.map fun bit => if bit then 1 else 0
+
+-- One output cell per source cell. At an odd anchor the next complementary
+-- cell is uniquely the parity of the residual's lowest coefficient.
+def recoverComplement (divisor : List Int) : List Bool → List Int → List Bool × List Int
+  | [], residual => ([], residual)
+  | _ :: sourceRest, residual =>
+    let bit := residual.headD 0 % 2 == 1
+    let cancelled := if bit then cancelContribution residual divisor else residual
+    let next := recoverComplement divisor sourceRest (shiftResidual cancelled)
+    (bit :: next.1, next.2)
+
+def complementWord (candidate source : List Bool) : List Bool × List Int :=
+  recoverComplement (signedFrame candidate) source (signedFrame source)
+
+theorem cancelContribution_value (left right : List Int) :
+    signedValue (cancelContribution left right) = signedValue left - signedValue right := by
+  induction left generalizing right with
+  | nil =>
+    induction right with
+    | nil => rfl
+    | cons digit rest ih =>
+      simp [cancelContribution, signedValue] at ih ⊢
+      omega
+  | cons digit rest ih =>
+    cases right with
+    | nil => simp [cancelContribution, signedValue]
+    | cons other tail => simp [cancelContribution, signedValue, ih]; ring
+
+theorem carryInto_value (carry : Int) (frame : List Int) :
+    signedValue (carryInto carry frame) = signedValue frame + carry := by
+  cases frame <;> simp [carryInto, signedValue]
+  omega
+
+theorem shiftResidual_value (frame : List Int) (even : frame.headD 0 % 2 = 0) :
+    2 * signedValue (shiftResidual frame) = signedValue frame := by
+  cases frame with
+  | nil => simp [shiftResidual, signedValue]
+  | cons digit rest =>
+    simp only [List.headD_cons] at even
+    simp only [shiftResidual, carryInto_value, signedValue]
+    omega
+
+-- These tests supply the candidate explicitly. They exercise inverse
+-- cancellation, including borrows; they are not N-only factoring tests.
+example : complementWord [true, true] [true, false, true, false, true] =
+    ([true, true, true, false, false], [0]) := by decide
+example : complementWord [true, true] [true, false, false, true] =
+    ([true, true, false, false], [0]) := by decide
+example : complementWord [true, true] [true, false, true, true] =
+    ([true, true, true, true], [-2]) := by decide
+
+-- Width is supplied by the word itself. Exercise the same cancellation beyond
+-- machine-word boundaries without any decimal conversion in the operation.
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+example : ∀ width ∈ ([65, 129, 257] : List Nat),
+    complementWord [true, true]
+      ([true, true] ++ List.replicate (width - 2) false ++ [true, true]) =
+    ([true] ++ List.replicate (width - 1) false ++ [true, false], [0]) := by decide
 
 end CoCreativeFrameCheck
