@@ -2230,6 +2230,7 @@ mod tests {
         const NESTED: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
         const EML_PHASE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
         const EML_FULL: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
+        const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
 
         let eml = construct_carrier(EML).unwrap();
         assert_eq!(
@@ -2280,6 +2281,37 @@ mod tests {
         let (cofactor, remainder) = divmod(&source, &factor);
         assert!(zero(&remainder));
         assert_eq!(mul(&factor, &cofactor), source);
+
+        let wide_p = 3_221_225_473u64;
+        let wide_q = 180_143_985_094_819_841u64;
+        let wide_source = decimal_to_tape("580284393595165992175009793").unwrap();
+        let wide_word = emit_numeral(&wide_source);
+        assert_eq!(
+            construct_carrier(EML_NINE)
+                .unwrap()
+                .iter()
+                .map(|op| morphism_name(op))
+                .collect::<Vec<_>>(),
+            [
+                "EML_FRAME",
+                "WITNESS",
+                "POWER",
+                "EXTRACT",
+                "SQUFOF",
+                "P_MINUS",
+                "P_PLUS",
+                "LEHMAN",
+                "ECM",
+                "FIX"
+            ]
+        );
+        let wide_factor = parse_numeral(&factor_with(EML_NINE, &wide_word).unwrap()).unwrap();
+        let wide_left = parse_numeral(&numeral(wide_p)).unwrap();
+        let wide_right = parse_numeral(&numeral(wide_q)).unwrap();
+        assert!(wide_factor == wide_left || wide_factor == wide_right);
+        let (wide_cofactor, wide_remainder) = divmod(&wide_source, &wide_factor);
+        assert!(zero(&wide_remainder));
+        assert_eq!(mul(&wide_factor, &wide_cofactor), wide_source);
     }
 
     #[test]
