@@ -1,1 +1,1 @@
-I rerun the RSA-100, RSA-110, and RSA-120 baked carriers under one-minute walls, record their silent timeouts, and retain the closure regression proving an exhausted nested arm exits the outer carrier.
+I sweep the baked carrier through increasing structured semiprimes, bracket the RSA contrast, and retain the generated contained binaries and timing record.
