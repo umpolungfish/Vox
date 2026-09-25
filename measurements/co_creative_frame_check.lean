@@ -1,4 +1,5 @@
 import Imscribing.Paraconsistent.SixteenThreeTrilattice
+import Mathlib.Tactic
 
 /- Executable obligations for the supplied co-creative frame overview.
    Count coordinates are readouts; the original ordered tape is retained. -/
@@ -49,5 +50,19 @@ theorem factor_pair_returns {Frame : Type} (e : Nat ≃ Frame)
     (n : Nat) (u v : Frame) (closed : frameMul e u v = e n) :
     e.symm u * e.symm v = n := by
   exact e.injective closed
+
+-- The supplied commuting square has A = D1 + 1, B = D2 + 1,
+-- D2 = D1 + 2, and A+B = D1*D2. Its arithmetic valuation is unique.
+theorem supplied_square_value (x : Nat)
+    (closure : (x + 1) + (x + 2 + 1) = x * (x + 2)) :
+    x = 2 ∧ x * (x + 2) = 8 := by
+  have square : x * x = 4 := by nlinarith
+  have hx : x = 2 := by nlinarith
+  subst x
+  decide
+
+-- Factoring the product frame of that same example returns its two
+-- specified predecessor valuations in the source frame.
+example : (2 + 1) + (4 + 1) = 2 * 4 := by decide
 
 end CoCreativeFrameCheck
