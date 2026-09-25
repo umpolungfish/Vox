@@ -4,6 +4,7 @@
 //! tapes. At width k, bit_k(P_k Q_k) contains the resolved lower diagonals and
 //! their carries. The next bits obey p_k XOR q_k = n_k XOR bit_k(P_k Q_k).
 
+use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use num_bigint::BigUint;
 use num_traits::{One, Zero as NumZero};
@@ -1096,17 +1097,32 @@ fn evaluate_support_frame(
     Some(value)
 }
 
-/// Probe the encoded support at the first eight dyadic phase-register states.
+fn phase_index_is_single_set_bit(index: &[char]) -> bool {
+    let mut found = false;
+    for mark in index {
+        if *mark == ONE {
+            if found {
+                return false;
+            }
+            found = true;
+        }
+    }
+    found
+}
+
+/// Read the encoded support at every distinct dyadic phase-register state.
 /// A proper gcd is accepted only after all frame widths return the same
-/// support-polynomial residue. `None` means this bounded structural read did
-/// not expose a factor; the caller may continue with another membrane arm.
+/// support-polynomial residue. If no support target closes, the phase lane
+/// terminates only when its resident modular state repeats; paired half-step
+/// registers then attempt the phase closure.
 ///
-/// All numeral arithmetic remains on LSB-first IMASM tapes. The only host
-/// sized values are frame positions and the diagnostic phase index.
+/// Numerals and the phase counter remain LSB-first IMASM tapes. There is no
+/// phase-count cutoff. Host-sized indices are used only to address frame
+/// storage.
 pub fn factor_2adic_phase_support_frames(
     groups: &[Vec<char>],
-) -> Option<(Vec<char>, Vec<char>, usize)> {
-    use crate::morphism_factor::{cmp, divmod, gcd, modulo, mul, one, zero};
+) -> Option<(Vec<char>, Vec<char>, Vec<char>)> {
+    use crate::morphism_factor::{add, cmp, divmod, gcd, modulo, mul, one, sub, zero};
 
     if groups.is_empty() || groups.iter().any(Vec::is_empty) {
         return None;
@@ -1118,27 +1134,64 @@ pub fn factor_2adic_phase_support_frames(
     }
     let base = alloc::vec![ZERO, ONE]; // IMASM numeral 2, LSB first.
     let mut phase = modulo(&base, &n);
-    for phase_index in 1..=8 {
-        phase = modulo(&mul(&phase, &phase), &n);
-        let residue = evaluate_support_frame(&source, 8, &phase, &n)?;
-        let factor = gcd(residue, n.clone());
-        if cmp(&factor, &one()) == core::cmp::Ordering::Greater
-            && cmp(&factor, &n) == core::cmp::Ordering::Less
-        {
-            let canonical = evaluate_support_frame(&source, 8, &phase, &n)?;
-            for width in 2..=7 {
-                let frame_residue = evaluate_support_frame(&source, width, &phase, &n)?;
-                if cmp(&canonical, &frame_residue) != core::cmp::Ordering::Equal {
-                    return None;
+    let mut phase_index = sub(&one(), &one());
+    let mut previous: Option<Vec<char>> = None;
+    let mut seen: BTreeMap<Vec<char>, Option<Vec<char>>> = BTreeMap::new();
+    seen.insert(one(), None);
+
+    loop {
+        if phase_index_is_single_set_bit(&phase_index) {
+            let residue = evaluate_support_frame(&source, 8, &phase, &n)?;
+            let factor = gcd(residue, n.clone());
+            if cmp(&factor, &one()) == core::cmp::Ordering::Greater
+                && cmp(&factor, &n) == core::cmp::Ordering::Less
+            {
+                let canonical = evaluate_support_frame(&source, 8, &phase, &n)?;
+                for width in 2..=7 {
+                    let frame_residue = evaluate_support_frame(&source, width, &phase, &n)?;
+                    if cmp(&canonical, &frame_residue) != core::cmp::Ordering::Equal {
+                        return None;
+                    }
+                }
+                let (cofactor, remainder) = divmod(&n, &factor);
+                if zero(&remainder) {
+                    return Some((factor, cofactor, phase_index));
                 }
             }
-            let (cofactor, remainder) = divmod(&n, &factor);
-            if zero(&remainder) {
-                return Some((factor, cofactor, phase_index));
-            }
         }
+
+        if let Some(earlier_half) = seen.get(&phase) {
+            let current_half = previous.unwrap_or_else(one);
+            let earlier_half = earlier_half.clone().unwrap_or_else(one);
+            let difference = if cmp(&current_half, &earlier_half) == core::cmp::Ordering::Less {
+                sub(&earlier_half, &current_half)
+            } else {
+                sub(&current_half, &earlier_half)
+            };
+            let sum = modulo(&add(&current_half, &earlier_half), &n);
+            let left = gcd(difference, n.clone());
+            let right = gcd(sum, n.clone());
+            if cmp(&left, &one()) == core::cmp::Ordering::Greater
+                && cmp(&left, &n) == core::cmp::Ordering::Less
+                && cmp(&right, &one()) == core::cmp::Ordering::Greater
+                && cmp(&right, &n) == core::cmp::Ordering::Less
+                && cmp(&mul(&left, &right), &n) == core::cmp::Ordering::Equal
+            {
+                let (p, q) = if cmp(&left, &right) == core::cmp::Ordering::Greater {
+                    (right, left)
+                } else {
+                    (left, right)
+                };
+                return Some((p, q, phase_index));
+            }
+            return None;
+        }
+
+        seen.insert(phase.clone(), previous.clone());
+        previous = Some(phase.clone());
+        phase = modulo(&mul(&phase, &phase), &n);
+        phase_index = add(&phase_index, &one());
     }
-    None
 }
 
 fn passes_small_prime_sieve(value: &[char], sieve_primes: &[Vec<char>]) -> bool {
@@ -1488,16 +1541,18 @@ mod tests {
         let n = from_one_bits(&[0, 1, 2, 3]); // N=15
         let frames: Vec<Vec<char>> = n.chunks(8).map(<[char]>::to_vec).collect();
         let (p, q, phase_index) = factor_2adic_phase_support_frames(&frames).unwrap();
-        assert_eq!(phase_index, 1);
+        assert_eq!(crate::morphism_factor::dec_of(&phase_index), "1");
         assert_eq!(crate::morphism_factor::mul(&p, &q), n);
         assert!(factor_pair_closes_in_frames(&frames, &p, &q));
     }
 
     #[test]
-    fn support_frame_phase_probe_reports_a_clean_miss_for_balanced_rsa_fixture() {
-        let n = crate::morphism_factor::decimal_to_tape("1000000016000000063").unwrap();
+    fn support_frame_phase_walk_continues_past_the_old_eight_state_cutoff() {
+        let n = crate::morphism_factor::decimal_to_tape("4629").unwrap();
         let frames: Vec<Vec<char>> = n.chunks(8).map(<[char]>::to_vec).collect();
-        assert!(factor_2adic_phase_support_frames(&frames).is_none());
+        let (p, q, phase_index) = factor_2adic_phase_support_frames(&frames).unwrap();
+        assert_eq!(crate::morphism_factor::dec_of(&phase_index), "16");
+        assert_eq!(crate::morphism_factor::mul(&p, &q), n);
     }
 
     #[test]
