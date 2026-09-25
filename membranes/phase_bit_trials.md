@@ -192,15 +192,18 @@ The 14-, 23-, and 27-digit runs returned factors from their baked IMASM
 numerals. Vox multiplication verified each factor/cofactor pair against its
 source.
 
-Each timing is the median of seven direct `vox factor-with` processes. The
+The earlier full nine-arm-only carrier took about 31.7 ms, 164 ms, and 565 ms
+on these inputs. The integrated phase-first membrane measures about 31.8 ms,
+1.33 ms, and 3.40 ms respectively. Each timing is the median of ten direct
+`vox factor-with` processes. The
 numeral words were prepared before timing; samples include Vox startup and the
 full EML plus nine-arm carrier execution.
 
 | N digits | IMASM numeral value | Factors | Median | Range |
 |---:|---:|---:|---:|---:|
-| 14 | 12289000086023 | 12289 × 1000000007 | 31.740 ms | 31.589–63.818 ms |
-| 23 | 21250649179513694453761 | 3221225473 × 6597069766657 | 1.318 ms | 1.289–3.368 ms |
-| 27 | 580284393595165992175009793 | 3221225473 × 180143985094819841 | 3.424 ms | 1.363–3.551 ms |
+| 14 | 12289000086023 | 12289 × 1000000007 | 31.771 ms | 31.692–31.888 ms |
+| 23 | 21250649179513694453761 | 3221225473 × 6597069766657 | 1.331 ms | 1.293–1.441 ms |
+| 27 | 580284393595165992175009793 | 3221225473 × 180143985094819841 | 3.396 ms | 1.281–3.440 ms |
 
 ## Wider direct executions with the shared running-product fold
 
