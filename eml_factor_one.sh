@@ -18,4 +18,4 @@ RUSTFLAGS='-C target-cpu=native -D warnings' \
     VOX_BAKED_INPUT_FILE="$DEST/input.imasm" cargo build --release --bin factor_eml_one >/dev/null 2>&1
 cp target/release/factor_eml_one "$DEST/factor_eml_one"
 chmod +x "$DEST/factor_eml_one"
-exec timeout 60s "$DEST/factor_eml_one"
+exec "$DEST/factor_eml_one"

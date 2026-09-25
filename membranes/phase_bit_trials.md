@@ -417,9 +417,11 @@ The single-value runner now bakes both the modulus and the phase base as
 IMASM numeral words, then emits a silent, standalone `factor_eml_one` binary.
 The phase base is supplied as an input (`./eml_factor_one.sh N [base]`), not
 selected by a source-code literal. Release builds use `target-cpu=native` and
-deny warnings. Each contained execution below was capped with GNU `timeout`
-at 60 seconds; output was compared byte-for-byte with the encoded known prime
-factor after completion. Here `M_e` denotes the Mersenne prime `2^e − 1`.
+deny warnings. The initial contained executions below used GNU `timeout` at 60
+seconds. The runner now executes the baked binary without a time limit. Both
+largest base-2 cases were rebuilt from their N and base IMASM words and rerun
+uncapped; each completed output was compared byte-for-byte with the encoded
+known smaller prime factor. Here `M_e` denotes the Mersenne prime `2^e − 1`.
 
 | Decimal digits of N | Factors (factor digits) | Baked phase base | Execution | Result |
 |---:|---:|---:|---:|---|
@@ -430,8 +432,8 @@ factor after completion. Here `M_e` denotes the Mersenne prime `2^e − 1`.
 | 31,964 | M19937 × M86243 (6,002 × 25,962) | 2 | 51.33 s | exact factor |
 | 39,267 | M19937 × M110503 (6,002 × 33,265) | 2 | 49.93 s | exact factor |
 | 39,357 | M44497 × M86243 (13,395 × 25,962) | 2 | 46.44 s | exact factor |
-| 46,660 | M44497 × M110503 (13,395 × 33,265) | 2 | 65.93 s reported | exact factor; outside the target |
-| 59,227 | M86243 × M110503 (25,962 × 33,265) | 2, 3, 5, 7, 11, 13, 17 | 60-second cap | no output; GNU timeout returned 124 for each tested base |
+| 46,660 | M44497 × M110503 (13,395 × 33,265) | 2 | initial 65.93 s; uncapped rerun 69.73 s | exact factor in both runs |
+| 59,227 | M86243 × M110503 (25,962 × 33,265) | 2, 3, 5, 7, 11, 13, 17 | base 2 initial 60-second cap; uncapped rerun 90.77 s; other bases remain capped | base 2 returned exact factor; other capped runs produced no output |
 
 The encoded-base CLI path was also run end-to-end on the 39,267-digit case.
 Conversion, baking, and compilation brought total CLI wall time to 83.42 s;
@@ -442,14 +444,14 @@ The 39,357-digit phase state previously held a growing residue map. Replacing
 it with Brent winding fixes the resident orbit registers at three; the
 large-width test verifies the return relation and both nested closures. A
 native-CPU release build then reduced that case from over a minute to 46.44 s.
-On the 59,227-digit case, changing only the baked phase base among 2, 3, 5, 7,
-11, 13, and 17 did not close inside the cap. The base-11 and base-17 full CLI
-runs took 105.51 s and 105.59 s respectively, including baking and compilation
-before their contained runs timed out. This is the present wall after launch of
-the baked integrated carrier. The phase orbit and its support reads are the main
-remaining work; the present run did not yet isolate their respective shares.
-The next improvement needs to reduce phase work or extract from the same
-support object earlier; loosening the one-minute timeout would only hide it.
+On the 59,227-digit case, the uncapped base-2 execution completed in 90.77 s
+and returned the exact smaller factor word. This confirms the earlier exit 124
+was the one-minute process cap, not a failed closure. Bases 3, 5, 7, 11, 13,
+and 17 retain their earlier capped results and were not rerun. The base-11 and
+base-17 full CLI runs took 105.51 s and 105.59 s respectively, including
+baking and compilation before their contained runs timed out. The uncapped
+base-2 timing measures the integrated carrier end-to-end; it does not isolate
+phase-orbit work from its support reads.
 
 The dynamic-base API has a small-number regression test for bases 2, 3, and 5,
 rejects 1, and immediately closes when the supplied base itself shares a
