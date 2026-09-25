@@ -173,6 +173,18 @@ supports true in 68.167 μs. Each executable buffered its complete report until
 the winding and both closures had finished, then was invoked directly after
 baking.
 
+## EML frame carrier
+
+The kernel-grounded EML operator word is recognized as `EML_FRAME` by
+`construct-carrier` and composes ahead of factor morphisms. A phase-bearing
+carrier also needs `ARITHMETIC`, which supplies the remainder and gcd readout;
+`PHASE` alone advances the phase registers. The constructor now rejects a
+phase/select/continue/latch tower with that readout missing.
+
+The composed EML, phase, arithmetic, branch, select, continue, and latch carrier
+returned the factor word for `12289 × 1000000007`. The IMASM product readout
+confirmed the returned factor and cofactor multiply back to the baked source.
+
 ## Wider direct executions with the shared running-product fold
 
 The radix digits are decomposed through dynamic arbitrary-width quotient and

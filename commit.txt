@@ -1,1 +1,1 @@
-I recognize EML's evaluation-frame morphism in the carrier constructor and compose it with the existing factoring arm and fixed-point latch. I verify the EML-only decomposition, the nested 8051 factor route, and the full library suite with warnings denied.
+I require the arithmetic readout in every non-fused phase carrier, compose the EML frame with the complete factor tower, and record the 14-digit closure. I verify the returned factor by exact IMASM multiplication and run the full library suite with warnings denied.
