@@ -33,6 +33,15 @@ const EXTRACT_BANKED: &[char] = &[
 const EML_FRAME: &[char] = &[
     VINIT, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX, TANCH,
 ];
+const EML_EXP_MINUS_LOG: &[char] = &[
+    VINIT, IMSCRIB, FSPLIT, AFWD, EVALT, AREV, EVALF, FFUSE, '⊞', CLINK, IFIX, TANCH,
+];
+const EML_EXP_DIV_LOG: &[char] = &[
+    VINIT, IMSCRIB, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', FFUSE, CLINK, IFIX, TANCH,
+];
+const EML_REVERSE_NEGATIVE: &[char] = &[
+    VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, FFUSE, '⊞', CLINK, IMSCRIB, IFIX, TANCH,
+];
 // PHASE owns the EML evaluation frame: the phase frame opens first, the EML
 // support frame is evaluated inside it, and the phase frame fuses last.
 const PHASE_EML: &[char] = &[
@@ -1149,6 +1158,15 @@ const PHASE_EML_I: &[char] = &[
     FSPLIT, AFWD, EVALT, EVALF, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX,
     FFUSE,
 ];
+const EML_EXP_MINUS_LOG_I: &[char] = &[
+    IMSCRIB, FSPLIT, AFWD, EVALT, AREV, EVALF, FFUSE, '⊞', CLINK, IFIX,
+];
+const EML_EXP_DIV_LOG_I: &[char] = &[
+    IMSCRIB, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', FFUSE, CLINK, IFIX,
+];
+const EML_REVERSE_NEGATIVE_I: &[char] = &[
+    FSPLIT, AFWD, EVALT, AREV, EVALF, FFUSE, '⊞', CLINK, IMSCRIB, IFIX,
+];
 const STRUCTURAL_BRIDGE_I: &[char] = &[
     FFUSE, FSPLIT, EVALF, IMSCRIB, AFWD, CLINK, '⊞', EVALT, AREV, IFIX,
 ];
@@ -1179,6 +1197,12 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
         "EXTRACT"
     } else if operator == EML_FRAME {
         "EML_FRAME"
+    } else if operator == EML_EXP_MINUS_LOG {
+        "EML_EXP_MINUS_LOG"
+    } else if operator == EML_EXP_DIV_LOG {
+        "EML_EXP_DIV_LOG"
+    } else if operator == EML_REVERSE_NEGATIVE {
+        "EML_REVERSE_NEGATIVE"
     } else if operator == PHASE_EML {
         "PHASE_EML"
     } else if operator == STRUCTURAL_BRIDGE {
@@ -1217,13 +1241,25 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     if c.first() != Some(&VINIT) || c.last() != Some(&TANCH) {
         return Err("operator word needs VINIT ⊢ and TANCH ⊣ interfaces".into());
     }
+    if operator_word == "⊢⊙∈≻⊤≺⊥∋⊞⋈⊡⊣" {
+        return Ok(vec![EML_EXP_MINUS_LOG]);
+    }
+    if operator_word == "⊢⊙∈≻⊤≺⊥⊞∋⋈⊡⊣" {
+        return Ok(vec![EML_EXP_DIV_LOG]);
+    }
+    if operator_word == "⊢∈≻⊤≺⊥∋⊞⋈⊙⊡⊣" {
+        return Ok(vec![EML_REVERSE_NEGATIVE]);
+    }
     let body = &c[1..c.len() - 1];
     // Longest interior first so complete phase motifs win over BRANCH, and the
     // two FIX spellings win over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 20] = [
+    let motifs: [(&[char], &[char]); 23] = [
         (UNBRAID_I, UNBRAID),
         (PHASE_EML_I, PHASE_EML),
         (STRUCTURAL_BRIDGE_I, STRUCTURAL_BRIDGE),
+        (EML_EXP_MINUS_LOG_I, EML_EXP_MINUS_LOG),
+        (EML_EXP_DIV_LOG_I, EML_EXP_DIV_LOG),
+        (EML_REVERSE_NEGATIVE_I, EML_REVERSE_NEGATIVE),
         (EML_FRAME_I, EML_FRAME),
         (EXTRACT_BANKED_I, EXTRACT_BANKED),
         (EXTRACT_I, EXTRACT),
@@ -2590,6 +2626,20 @@ mod tests {
         let carrier = construct_carrier(bridge).unwrap();
         assert_eq!(carrier, vec![STRUCTURAL_BRIDGE]);
         assert_eq!(morphism_name(carrier[0]), "STRUCTURAL_BRIDGE");
+    }
+
+    #[test]
+    fn eml_variants_are_distinct_kernel_arms() {
+        let words = [
+            ("⊢⊙∈≻⊤≺⊥∋⊞⋈⊡⊣", "EML_EXP_MINUS_LOG"),
+            ("⊢⊙∈≻⊤≺⊥⊞∋⋈⊡⊣", "EML_EXP_DIV_LOG"),
+            ("⊢∈≻⊤≺⊥∋⊞⋈⊙⊡⊣", "EML_REVERSE_NEGATIVE"),
+        ];
+        for (word, expected) in words {
+            let carrier = construct_carrier(word).unwrap();
+            assert_eq!(carrier.len(), 1);
+            assert_eq!(morphism_name(carrier[0]), expected);
+        }
     }
 
     #[test]

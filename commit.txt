@@ -1,1 +1,1 @@
-I test the widened structural bridge sweep against RSA-100, confirm the same timeout, and retain the rebuilt contained binary as the measurement artifact.
+I add the three supplied EML operator words as distinct kernel-recognized membrane arms and verify their dispatch.
