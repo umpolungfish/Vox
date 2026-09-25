@@ -94,3 +94,33 @@ counter are IMASM tapes, but the full control flow is not yet one homogeneous
 IMASM instruction stream. The phase lane is a classical modular-squaring
 recurrence, not a quantum measurement. The balanced case shows that removing
 the cutoff alone does not meet the under-one-second target.
+
+## Full-state phase reads and bounded-storage cycle closure, 2026-09-24
+
+I removed the remaining sparse checkpoint rule: the support polynomial is now
+read at every phase register, not just phase indices 1, 2, 4, 8, ... . I also
+replaced the stored-orbit map with Brent cycle detection. The phase counter,
+cycle power, and cycle length remain dynamically sized IMASM tapes; the cycle
+detector retains a constant number of tapes rather than one entry per phase.
+
+To remove repeated tape fold/unfold and modular reductions from the hot read,
+the frame polynomial evaluator now uses fused multiply-add modular reduction.
+Its single-limb fast path has a dynamic multi-limb fallback, and the generic
+path folds the support, phase, and modulus once and keeps the frame powers and
+accumulator in dynamically sized limbs until the readout boundary. The fixed
+frame sweep remains widths 2–8 as specified by the analyzer; it is not a phase
+count limit.
+
+| N | Width | Result | Phase index | Direct binary time |
+|---:|---:|---|---:|---:|
+| 1000000016000000063 | 8 | 1000000007 × 1000000009; exact product closure | 325692 | 0.58 s |
+| 580284393595165992175009793 | 8 | no completion/readout | not emitted | stopped by explicit 60 s timeout |
+
+The 19-digit balanced case now reaches its late support target under the
+one-second reference without skipping phase states or retaining the orbit.
+The wider 90-bit fixture did not close within the requested one-minute runtime
+limit. This is evidence that the old eight-state cutoff and orbit-sized map
+were unnecessary implementation constraints, but removing them does not
+establish width-independent sub-second closure. The binary still has native
+Rust control flow and is still a deterministic single-base phase walk; it is
+not a pure IMASM instruction stream or a physical quantum execution.

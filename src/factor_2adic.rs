@@ -4,7 +4,6 @@
 //! tapes. At width k, bit_k(P_k Q_k) contains the resolved lower diagonals and
 //! their carries. The next bits obey p_k XOR q_k = n_k XOR bit_k(P_k Q_k).
 
-use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use num_bigint::BigUint;
 use num_traits::{One, Zero as NumZero};
@@ -1072,57 +1071,28 @@ fn evaluate_support_frame(
     x: &[char],
     modulus: &[char],
 ) -> Option<Vec<char>> {
-    use crate::morphism_factor::{add, modulo, mul, one};
-
     if width == 0 || support.is_empty() {
         return None;
     }
-    let groups: Vec<Vec<char>> = support.chunks(width).map(<[char]>::to_vec).collect();
-    let mut powers = Vec::with_capacity(width + 1);
-    powers.push(one());
-    for _ in 1..=width {
-        powers.push(modulo(&mul(powers.last()?, x), modulus));
-    }
-    let frame_base = powers.get(width)?.clone();
-    let mut value = vec![ZERO];
-    for group in groups.iter().rev() {
-        let mut symbol = vec![ZERO];
-        for (position, mark) in group.iter().enumerate() {
-            if *mark == ONE {
-                symbol = add(&symbol, &powers[position]);
-            }
-        }
-        value = modulo(&add(&mul(&value, &frame_base), &symbol), modulus);
-    }
-    Some(value)
-}
-
-fn phase_index_is_single_set_bit(index: &[char]) -> bool {
-    let mut found = false;
-    for mark in index {
-        if *mark == ONE {
-            if found {
-                return false;
-            }
-            found = true;
-        }
-    }
-    found
+    Some(crate::morphism_factor::eval_binary_support_frame(
+        support, x, modulus, width,
+    ))
 }
 
 /// Read the encoded support at every distinct dyadic phase-register state.
 /// A proper gcd is accepted only after all frame widths return the same
 /// support-polynomial residue. If no support target closes, the phase lane
 /// terminates only when its resident modular state repeats; paired half-step
-/// registers then attempt the phase closure.
+/// registers then attempt the phase closure. Brent's cycle detector retains
+/// only a constant number of dynamic IMASM tapes instead of the full orbit.
 ///
 /// Numerals and the phase counter remain LSB-first IMASM tapes. There is no
-/// phase-count cutoff. Host-sized indices are used only to address frame
+/// phase-count cutoff or sparse phase-index selector. Host-sized indices are used only to address frame
 /// storage.
 pub fn factor_2adic_phase_support_frames(
     groups: &[Vec<char>],
 ) -> Option<(Vec<char>, Vec<char>, Vec<char>)> {
-    use crate::morphism_factor::{add, cmp, divmod, gcd, modulo, mul, one, sub, zero};
+    use crate::morphism_factor::{add, cmp, divmod, gcd, modulo, mul, mul_mod, one, sub, zero};
 
     if groups.is_empty() || groups.iter().any(Vec::is_empty) {
         return None;
@@ -1133,36 +1103,40 @@ pub fn factor_2adic_phase_support_frames(
         return None;
     }
     let base = alloc::vec![ZERO, ONE]; // IMASM numeral 2, LSB first.
+    let one_tape = one();
+    let zero_tape = sub(&one_tape, &one_tape);
     let mut phase = modulo(&base, &n);
-    let mut phase_index = sub(&one(), &one());
+    let mut phase_index = zero_tape.clone();
     let mut previous: Option<Vec<char>> = None;
-    let mut seen: BTreeMap<Vec<char>, Option<Vec<char>>> = BTreeMap::new();
-    seen.insert(one(), None);
+    let mut tortoise = phase.clone();
+    let mut tortoise_previous: Option<Vec<char>> = None;
+    let mut orbit_power = one_tape.clone();
+    let mut orbit_length = zero_tape.clone();
 
     loop {
-        if phase_index_is_single_set_bit(&phase_index) {
-            let residue = evaluate_support_frame(&source, 8, &phase, &n)?;
-            let factor = gcd(residue, n.clone());
-            if cmp(&factor, &one()) == core::cmp::Ordering::Greater
-                && cmp(&factor, &n) == core::cmp::Ordering::Less
-            {
-                let canonical = evaluate_support_frame(&source, 8, &phase, &n)?;
-                for width in 2..=7 {
-                    let frame_residue = evaluate_support_frame(&source, width, &phase, &n)?;
-                    if cmp(&canonical, &frame_residue) != core::cmp::Ordering::Equal {
-                        return None;
-                    }
+        let residue = evaluate_support_frame(&source, 8, &phase, &n)?;
+        let factor = gcd(residue, n.clone());
+        if cmp(&factor, &one()) == core::cmp::Ordering::Greater
+            && cmp(&factor, &n) == core::cmp::Ordering::Less
+        {
+            let canonical = evaluate_support_frame(&source, 8, &phase, &n)?;
+            for width in 2..=7 {
+                let frame_residue = evaluate_support_frame(&source, width, &phase, &n)?;
+                if cmp(&canonical, &frame_residue) != core::cmp::Ordering::Equal {
+                    return None;
                 }
-                let (cofactor, remainder) = divmod(&n, &factor);
-                if zero(&remainder) {
-                    return Some((factor, cofactor, phase_index));
-                }
+            }
+            let (cofactor, remainder) = divmod(&n, &factor);
+            if zero(&remainder) {
+                return Some((factor, cofactor, phase_index));
             }
         }
 
-        if let Some(earlier_half) = seen.get(&phase) {
-            let current_half = previous.unwrap_or_else(one);
-            let earlier_half = earlier_half.clone().unwrap_or_else(one);
+        if !zero(&phase_index) && phase == tortoise {
+            let current_half = previous.unwrap_or_else(|| one_tape.clone());
+            let earlier_half = tortoise_previous
+                .clone()
+                .unwrap_or_else(|| one_tape.clone());
             let difference = if cmp(&current_half, &earlier_half) == core::cmp::Ordering::Less {
                 sub(&earlier_half, &current_half)
             } else {
@@ -1187,10 +1161,16 @@ pub fn factor_2adic_phase_support_frames(
             return None;
         }
 
-        seen.insert(phase.clone(), previous.clone());
+        if cmp(&orbit_length, &orbit_power) != core::cmp::Ordering::Less {
+            tortoise = phase.clone();
+            tortoise_previous = previous.clone();
+            orbit_power = add(&orbit_power, &orbit_power);
+            orbit_length = zero_tape.clone();
+        }
         previous = Some(phase.clone());
-        phase = modulo(&mul(&phase, &phase), &n);
-        phase_index = add(&phase_index, &one());
+        phase = mul_mod(&phase, &phase, &n);
+        phase_index = add(&phase_index, &one_tape);
+        orbit_length = add(&orbit_length, &one_tape);
     }
 }
 
@@ -1553,6 +1533,33 @@ mod tests {
         let (p, q, phase_index) = factor_2adic_phase_support_frames(&frames).unwrap();
         assert_eq!(crate::morphism_factor::dec_of(&phase_index), "16");
         assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+    }
+
+    #[test]
+    fn support_phase_cycle_closes_without_storing_the_orbit() {
+        let n = crate::morphism_factor::decimal_to_tape("17").unwrap();
+        let frames: Vec<Vec<char>> = n.chunks(8).map(<[char]>::to_vec).collect();
+        assert!(factor_2adic_phase_support_frames(&frames).is_none());
+    }
+
+    #[test]
+    fn support_polynomial_is_invariant_across_fast_and_dynamic_frame_reads() {
+        for numeral in [
+            "1000000016000000063",
+            "1180591620717411303449", // wider than one folded limb
+        ] {
+            let n = crate::morphism_factor::decimal_to_tape(numeral).unwrap();
+            let phase = crate::morphism_factor::decimal_to_tape("37").unwrap();
+            let mut expected = None;
+            for width in 2..=8 {
+                let value = evaluate_support_frame(&n, width, &phase, &n).unwrap();
+                if let Some(expected) = &expected {
+                    assert_eq!(&value, expected, "width {width} for N={numeral}");
+                } else {
+                    expected = Some(value);
+                }
+            }
+        }
     }
 
     #[test]
