@@ -205,6 +205,12 @@ retains the dynamic phase index and resident support residue, so an absent
 target remains available to later frame and base selection instead of being
 collapsed into `phase_done`.
 
+The repaired bridge word `⊢∋∈⊥⊙≻⋈⊞⊤≺⊡⊣` is now recognized as
+`STRUCTURAL_BRIDGE`. Its terminal `N` register is a transport state, not a
+factor claim. After a completed negative phase read it advances the baked
+phase base by one, reopens the phase partner frame, and leaves the negative
+bank intact.
+
 The 14-, 23-, and 27-digit runs returned factors from their baked IMASM
 numerals. Vox multiplication verified each factor/cofactor pair against its
 source.
