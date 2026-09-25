@@ -1048,7 +1048,7 @@ struct State {
     unbraid_started: bool,
     unbraid_done: bool,
     carrier_closed: bool,
-    bridge_done: bool,
+    bridge_count: usize,
 }
 
 fn advance_eml_phase(state: &mut State) {
@@ -1061,6 +1061,7 @@ fn advance_eml_phase(state: &mut State) {
         state.eml_phase_done = state.eml_partners.is_none();
     }
     let candidate = if let Some(partners) = state.eml_partners.as_mut() {
+        let probe_index = partners.squarings;
         let support_probe = partners.support_probe();
         let negative_snapshot = if support_probe {
             Some(partners.negative_support_snapshot())
@@ -1095,6 +1096,13 @@ fn advance_eml_phase(state: &mut State) {
                 Ok(None) => {
                     if let Some(snapshot) = negative_snapshot {
                         state.negative_support.push(snapshot);
+                    }
+                    // The initial eight support apertures are a complete
+                    // negative frame read. Do not wait for a random RSA
+                    // orbit collision before handing that information to the
+                    // structural bridge.
+                    if probe_index == 8 {
+                        state.eml_phase_done = true;
                     }
                     None
                 }
@@ -1632,7 +1640,7 @@ pub fn run_carrier_rounds_with_phase_base(
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
-        bridge_done: false,
+        bridge_count: 0,
     };
     let mut r = 0u64;
     loop {
@@ -1659,13 +1667,33 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         if state.selected.is_none() {
             apply_morphism(EML_FRAME, state);
         }
-        if state.selected.is_none() && state.eml_phase_done && !state.bridge_done {
+        if state.selected.is_none() && state.eml_phase_done && state.bridge_count < 12 {
             apply_morphism(STRUCTURAL_BRIDGE, state);
         }
     } else if operator == STRUCTURAL_BRIDGE {
         // The bridge word closes to N by design. Its computational action is
         // to carry the banked negative support into one new phase-base frame.
-        state.bridge_done = true;
+        // Pairwise differences are the comultiplicative read: a residue
+        // collision modulo either hidden factor yields a proper gcd without
+        // enumerating candidate divisors.
+        for left in 0..state.negative_support.len() {
+            for right in (left + 1)..state.negative_support.len() {
+                let g = gcd(
+                    abs_diff(
+                        &state.negative_support[left].1,
+                        &state.negative_support[right].1,
+                    ),
+                    state.n.clone(),
+                );
+                if cmp(&g, &one()) == core::cmp::Ordering::Greater
+                    && cmp(&g, &state.n) == core::cmp::Ordering::Less
+                {
+                    state.selected = Some(trim(g));
+                    return;
+                }
+            }
+        }
+        state.bridge_count += 1;
         state.phase_base = add(&state.phase_base, &one());
         state.eml_partners = None;
         state.eml_phase_done = false;
@@ -1726,20 +1754,26 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         // closes a balanced semiprime in steps set by the gap, not by sqrt(p),
         // so it gets past the rho ceiling for factors near the root.
         {
-            let asq = mul(&state.a, &state.a);
-            if cmp(&asq, &state.n) != core::cmp::Ordering::Less {
-                let delta = sub(&asq, &state.n);
-                let b = isqrt(&delta);
-                if cmp(&mul(&b, &b), &delta) == core::cmp::Ordering::Equal {
-                    let p = sub(&state.a, &b);
-                    if cmp(&p, &one()) == core::cmp::Ordering::Greater
-                        && cmp(&p, &state.n) == core::cmp::Ordering::Less
-                    {
-                        state.selected = Some(trim(p));
+            // Once the complete negative phase aperture is banked, the
+            // modulus has already failed the short near-root support read.
+            // Preserve the arm, but stop paying its full-width square-root
+            // cost on every round; the multiplicative arms remain live.
+            if state.negative_support.len() < 8 {
+                let asq = mul(&state.a, &state.a);
+                if cmp(&asq, &state.n) != core::cmp::Ordering::Less {
+                    let delta = sub(&asq, &state.n);
+                    let b = isqrt(&delta);
+                    if cmp(&mul(&b, &b), &delta) == core::cmp::Ordering::Equal {
+                        let p = sub(&state.a, &b);
+                        if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                            && cmp(&p, &state.n) == core::cmp::Ordering::Less
+                        {
+                            state.selected = Some(trim(p));
+                        }
                     }
                 }
+                state.a = add(&state.a, &one());
             }
-            state.a = add(&state.a, &one());
         }
         if state.selected.is_some() {
             return;
@@ -2036,7 +2070,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
-        bridge_done: false,
+        bridge_count: 0,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     loop {
@@ -2931,7 +2965,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
-        bridge_done: false,
+        bridge_count: 0,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     for _ in 0..max_steps {
