@@ -431,7 +431,7 @@ factor after completion. Here `M_e` denotes the Mersenne prime `2^e − 1`.
 | 39,267 | M19937 × M110503 (6,002 × 33,265) | 2 | 49.93 s | exact factor |
 | 39,357 | M44497 × M86243 (13,395 × 25,962) | 2 | 46.44 s | exact factor |
 | 46,660 | M44497 × M110503 (13,395 × 33,265) | 2 | 65.93 s reported | exact factor; outside the target |
-| 59,227 | M86243 × M110503 (25,962 × 33,265) | 2, 3, 5, 7 | 60-second cap | no output; GNU timeout returned 124 for each tested base |
+| 59,227 | M86243 × M110503 (25,962 × 33,265) | 2, 3, 5, 7, 11, 13 | 60-second cap | no output; GNU timeout returned 124 for each tested base |
 
 The encoded-base CLI path was also run end-to-end on the 39,267-digit case.
 Conversion, baking, and compilation brought total CLI wall time to 83.42 s;
@@ -442,8 +442,10 @@ The 39,357-digit phase state previously held a growing residue map. Replacing
 it with Brent winding fixes the resident orbit registers at three; the
 large-width test verifies the return relation and both nested closures. A
 native-CPU release build then reduced that case from over a minute to 46.44 s.
-On the 59,227-digit case, changing only the baked phase base among 2, 3, 5, and
-7 did not close inside the cap. This is the present wall after launch of the
+On the 59,227-digit case, changing only the baked phase base among 2, 3, 5, 7,
+11, and 13 did not close inside the cap. The base-11 full CLI run took 105.51 s
+including baking and compilation before its contained run timed out. This is
+the present wall after launch of the
 baked integrated carrier. The phase orbit and its support reads are the main
 remaining work; the present run did not yet isolate their respective shares.
 The next improvement needs to reduce phase work or extract from the same

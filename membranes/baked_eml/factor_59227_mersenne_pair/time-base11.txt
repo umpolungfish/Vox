@@ -1,0 +1,2 @@
+Command exited with non-zero status 124
+wall=105.51 user=118.08 sys=2.19
