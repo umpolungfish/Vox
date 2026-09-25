@@ -29,7 +29,7 @@ fn usage() {
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
     eprintln!("  vox coprime <base> <N>   validate that a phase base is a unit modulo N");
     eprintln!("  vox extract-factor <factor-carrier-word>    passive ≡c extraction from an already factor-bearing trace");
-    eprintln!("  vox construct-carrier <operator-word>        decompose a word into its factoring-morphism tower");
+    eprintln!("  vox construct-carrier <operator-word>        decompose factoring morphisms and EML frame transport");
     eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
     eprintln!("  vox factor-operator resolve|full <N>         the CL9NK moat resolver over folded tapes");
     eprintln!("  vox scout <N>                                read the shape of N and hand the factor");
@@ -1307,7 +1307,7 @@ fn main() {
             println!("{}", ::vox::factor_operator::repl_factor_operator(&rest)); 0
         }
         Some("construct-carrier") => {
-            if args.len() != 2 { eprintln!("vox construct-carrier <operator-word>   decompose a word into its factoring-morphism tower"); 1 }
+            if args.len() != 2 { eprintln!("vox construct-carrier <operator-word>   decompose factoring morphisms and EML frame transport"); 1 }
             else { match ::vox::morphism_factor::construct_carrier(&args[1]) {
                 Ok(tower) => {
                     let names: Vec<&str> = tower.iter().map(|t| ::vox::morphism_factor::morphism_name(t)).collect();

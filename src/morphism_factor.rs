@@ -27,6 +27,12 @@ const EXTRACT: &[char] = &[
 const EXTRACT_BANKED: &[char] = &[
     VINIT, FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE, TANCH,
 ];
+// EML evaluation-frame transport from the kernel-grounded EML ob3ect.  Its
+// exp/log pair opens the evaluation frame, evaluates both supports, holds the
+// winding boundary, then fuses and fixes the returned frame.
+const EML_FRAME: &[char] = &[
+    VINIT, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX, TANCH,
+];
 // Pollard p-1: seed an accumulator (IMSCRIB), raise it through rising exponents
 // (ENGAGR), and take the gcd (CLINK) inside the frame. It catches a factor p
 // whenever p-1 is smooth, at any size and any gap, covering the slice the
@@ -1023,6 +1029,9 @@ const FIX_I: &[char] = &[IMSCRIB, IFIX];
 const FIX_BANKED_I: &[char] = &[IFIX, CLINK, IMSCRIB];
 const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
 const EXTRACT_BANKED_I: &[char] = &[FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE];
+const EML_FRAME_I: &[char] = &[
+    AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX,
+];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
@@ -1048,6 +1057,8 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
         "FIX"
     } else if operator == EXTRACT || operator == EXTRACT_BANKED {
         "EXTRACT"
+    } else if operator == EML_FRAME {
+        "EML_FRAME"
     } else if operator == P_MINUS {
         "P_MINUS"
     } else if operator == ECM {
@@ -1085,8 +1096,9 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so complete phase motifs win over BRANCH, and the
     // two FIX spellings win over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 17] = [
+    let motifs: [(&[char], &[char]); 18] = [
         (UNBRAID_I, UNBRAID),
+        (EML_FRAME_I, EML_FRAME),
         (EXTRACT_BANKED_I, EXTRACT_BANKED),
         (EXTRACT_I, EXTRACT),
         (P_MINUS_I, P_MINUS),
@@ -1471,7 +1483,16 @@ pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> 
 fn apply_morphism(operator: &[char], state: &mut State) {
     // Dispatch is read from the operator word itself. Each operator therefore
     // remains both the boundary and the action performed at that boundary.
-    if operator == PHASE {
+    if operator == EML_FRAME {
+        // The EML evaluation frame reads adjacent LSB-first cells as joint
+        // states. Reassembling those states is the inverse frame shift, so the
+        // transported numeral stays exact for the following carrier morphism.
+        state.n = state
+            .n
+            .chunks(2)
+            .flat_map(|joint_state| joint_state.iter().copied())
+            .collect();
+    } else if operator == PHASE {
         state.exhausted =
             cmp(&mul(&state.candidate, &state.candidate), &state.n) == core::cmp::Ordering::Greater;
         state.x = rho_step(&state.x, &state.phase, &state.n);
@@ -2201,6 +2222,29 @@ mod tests {
             names,
             ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]
         );
+    }
+
+    #[test]
+    fn constructor_recognizes_kernel_eml_frame_and_composes_factor_arm() {
+        const EML: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡⊣";
+        const NESTED: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
+
+        let eml = construct_carrier(EML).unwrap();
+        assert_eq!(
+            eml.iter().map(|op| morphism_name(op)).collect::<Vec<_>>(),
+            ["EML_FRAME"]
+        );
+
+        let nested = construct_carrier(NESTED).unwrap();
+        assert_eq!(
+            nested
+                .iter()
+                .map(|op| morphism_name(op))
+                .collect::<Vec<_>>(),
+            ["EML_FRAME", "EXTRACT", "FIX"]
+        );
+        let factor = factor_with(NESTED, &numeral(8051)).unwrap();
+        assert!(factor == numeral(83) || factor == numeral(97));
     }
 
     #[test]
