@@ -1,1 +1,1 @@
-I connect phase-difference selection to complementary-word recovery and carry both words through the kernel SIXTEEN_3 registers. I prove pair and paired-stream reversal and check the phase-to-pair return with warnings denied.
+I recognize EML's evaluation-frame morphism in the carrier constructor and compose it with the existing factoring arm and fixed-point latch. I verify the EML-only decomposition, the nested 8051 factor route, and the full library suite with warnings denied.
