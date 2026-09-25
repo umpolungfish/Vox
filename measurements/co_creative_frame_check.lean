@@ -65,4 +65,40 @@ theorem supplied_square_value (x : Nat)
 -- specified predecessor valuations in the source frame.
 example : (2 + 1) + (4 + 1) = 2 * 4 := by decide
 
+-- Block 2, copied as LSB-first cells: false = top, true = bottom.
+def blockP : List Bool := [false, false, true]
+def blockQ : List Bool := [true, false, false, true]
+def blockR : List Bool := [true, false, true, true]
+def blockS : List Bool := [false, false, true, false, false, true]
+def blockT : List Bool := [true, false, true]
+
+example : (numeral blockP, numeral blockQ, numeral blockR,
+    numeral blockS, numeral blockT) = (4, 9, 13, 36, 5) := by decide
+example : numeral blockP + numeral blockQ = numeral blockR := by decide
+example : numeral blockP * numeral blockQ = numeral blockS := by decide
+example : numeral blockQ - numeral blockP = numeral blockT := by decide
+
+-- The three displayed count readings hold on the supplied examples.
+example : (counts blockP).1 + (counts blockQ).1 = (counts blockR).1 := by decide
+example : (counts blockP).2 * (counts blockQ).2 = (counts blockS).2 := by decide
+example : (counts blockQ).1 - (counts blockP).1 = (counts blockT).2 := by decide
+
+-- Composing the supplied operands tests the proposed general additive square.
+-- The numeral path closes, but the count projection does not preserve addition.
+theorem block_composition_count_mismatch :
+    numeral blockP + numeral blockT = numeral blockQ ∧
+    (counts blockP).1 + (counts blockT).1 ≠ (counts blockQ).1 := by decide
+
+-- Q and T have the same bottom count and different top counts. A scalar
+-- bottom-to-top arrow therefore needs the retained word as additional input.
+theorem count_frame_requires_word :
+    ¬ ∃ shift : Nat → Nat, ∀ word : List Bool,
+      shift (counts word).1 = (counts word).2 := by
+  rintro ⟨shift, rule⟩
+  have hq := rule blockQ
+  have ht := rule blockT
+  change shift 2 = 2 at hq
+  change shift 2 = 1 at ht
+  omega
+
 end CoCreativeFrameCheck
