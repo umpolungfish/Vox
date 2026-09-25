@@ -1,1 +1,1 @@
-I bank negative support probes as dynamic phase-index and residue tapes, preserve them across phase completion, and verify the full warnings-denied suite.
+I test the banked negative-support carrier against the full warnings-denied suite and a fresh RSA-100 baked run.
