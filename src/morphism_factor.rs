@@ -988,6 +988,7 @@ fn ecm_curve(n: &[char], seed: u64, k: &[char]) -> Option<Tape> {
 
 struct State {
     n: Tape,
+    phase_base: Tape,
     candidate: Tape,
     remainder: Tape,
     x: Tape,
@@ -1023,7 +1024,8 @@ fn advance_eml_phase(state: &mut State) {
         return;
     }
     if state.eml_partners.is_none() {
-        state.eml_partners = crate::phase_partners::Partners::new(two(), state.n.clone()).ok();
+        state.eml_partners =
+            crate::phase_partners::Partners::new(state.phase_base.clone(), state.n.clone()).ok();
         state.eml_phase_done = state.eml_partners.is_none();
     }
     let candidate = if let Some(partners) = state.eml_partners.as_mut() {
@@ -1045,7 +1047,7 @@ fn advance_eml_phase(state: &mut State) {
                         })
                         .or_else(|| {
                             crate::shor_braid::factor_close_public(
-                                &two(),
+                                &state.phase_base,
                                 &state.n,
                                 &relation.return_exponent,
                             )
@@ -1452,6 +1454,16 @@ pub fn audit_execution_projection(
 /// proves reconciliation, factoring completeness, and byte-equality of the
 /// executable work before the morphism-level executor is allowed to run.
 pub fn factor_object(object: &FactorObject<'_>, n_word: &str) -> Result<String, String> {
+    factor_object_with_phase_base(object, n_word, &two())
+}
+
+/// Factor a numeral using a phase base supplied as an encoded IMASM numeral.
+/// The base is a membrane input, not a source-level constant.
+pub fn factor_object_with_phase_base(
+    object: &FactorObject<'_>,
+    n_word: &str,
+    phase_base: &[char],
+) -> Result<String, String> {
     let tower = audit_factor_object(object)?;
 
     let n = parse_numeral(n_word)?;
@@ -1462,8 +1474,20 @@ pub fn factor_object(object: &FactorObject<'_>, n_word: &str) -> Result<String, 
     if zero(&even) {
         return Ok(emit_numeral(&two()));
     }
+    if cmp(phase_base, &one()) != core::cmp::Ordering::Greater {
+        return Err("phase base must be greater than one".into());
+    }
+    let base_gcd = gcd(phase_base.to_vec(), n.clone());
+    if cmp(&base_gcd, &one()) == core::cmp::Ordering::Greater
+        && cmp(&base_gcd, &n) == core::cmp::Ordering::Less
+    {
+        return Ok(emit_numeral(&base_gcd));
+    }
+    if base_gcd != one() {
+        return Err("phase base must be coprime to N or expose a proper factor".into());
+    }
     let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
-    match run_carrier_rounds(&tower_refs, &n, u64::MAX) {
+    match run_carrier_rounds_with_phase_base(&tower_refs, &n, phase_base, u64::MAX) {
         Some(f) => Ok(emit_numeral(&f)),
         None => Err("carrier exhausted its round budget without latching".into()),
     }
@@ -1476,6 +1500,16 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
     factor_object(&FactorObject::identity(operator_word), n_word)
 }
 
+/// Single-word factoring surface with a dynamically baked IMASM phase base.
+pub fn factor_with_phase_base(
+    operator_word: &str,
+    n_word: &str,
+    phase_base_word: &str,
+) -> Result<String, String> {
+    let phase_base = parse_numeral(phase_base_word)?;
+    factor_object_with_phase_base(&FactorObject::identity(operator_word), n_word, &phase_base)
+}
+
 /// Run a carrier tower on a tape for at most `max_rounds` rounds, returning the
 /// factor as soon as an arm latches, or None when the budget is spent. The
 /// bounded form is what lets the HARD branch nest the whole nine-arm carrier
@@ -1484,6 +1518,17 @@ pub fn factor_with(operator_word: &str, n_word: &str) -> Result<String, String> 
 /// the deepest fallback, run only after this returns None. `u64::MAX` is the
 /// unbounded run factor_with wants.
 pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> Option<Tape> {
+    run_carrier_rounds_with_phase_base(tower, n_in, &two(), max_rounds)
+}
+
+/// Bounded carrier execution with a dynamic phase base already parsed from its
+/// IMASM numeral. All non-phase morphisms remain unchanged.
+pub fn run_carrier_rounds_with_phase_base(
+    tower: &[&[char]],
+    n_in: &[char],
+    phase_base: &[char],
+    max_rounds: u64,
+) -> Option<Tape> {
     let n = trim(n_in.to_vec());
     if cmp(&n, &two()) == core::cmp::Ordering::Less {
         return None;
@@ -1498,6 +1543,7 @@ pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> 
     }
     let mut state = State {
         n,
+        phase_base: trim(phase_base.to_vec()),
         candidate: add(&two(), &one()),
         remainder: vec![EVALT],
         x: two(),
@@ -1876,6 +1922,7 @@ pub fn factor(word: &str) -> Result<String, String> {
     }
     let mut state = State {
         n,
+        phase_base: two(),
         candidate: add(&two(), &one()),
         remainder: vec![EVALT],
         x: two(),
@@ -2393,6 +2440,20 @@ mod tests {
     }
 
     #[test]
+    fn phase_base_is_a_baked_imasm_input_not_a_source_literal() {
+        const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+        for base in [2, 3, 5] {
+            let factor = factor_with_phase_base(EML_NINE, &numeral(8051), &numeral(base)).unwrap();
+            assert!(factor == numeral(83) || factor == numeral(97));
+        }
+        assert_eq!(
+            factor_with_phase_base(EML_NINE, &numeral(8051), &numeral(83)).unwrap(),
+            numeral(83)
+        );
+        assert!(factor_with_phase_base(EML_NINE, &numeral(8051), &numeral(1)).is_err());
+    }
+
+    #[test]
     fn factor_object_identity_is_the_legacy_diagonal() {
         let object = FactorObject::identity(FULL);
         assert!(audit_reconciliation(&object).is_ok());
@@ -2720,6 +2781,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
     }
     let mut state = State {
         n,
+        phase_base: two(),
         candidate: add(&two(), &one()),
         remainder: vec![EVALT],
         x: two(),

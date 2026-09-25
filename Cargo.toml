@@ -23,6 +23,10 @@ name = "factor_2adic"
 path = "src/bin/factor_2adic.rs"
 
 [[bin]]
+name = "factor_eml_one"
+path = "src/bin/factor_eml_one.rs"
+
+[[bin]]
 name = "godel"
 path = "src/bin/godel.rs"
 
