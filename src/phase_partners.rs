@@ -259,6 +259,23 @@ impl Partners {
         })
     }
 
+    /// Whether the current resident register is one of the support apertures
+    /// that is actually read by `support_target`.
+    pub fn support_probe(&self) -> bool {
+        let index = self.squarings;
+        index != 0 && (index <= 8 || index.is_power_of_two())
+    }
+
+    /// Preserve a negative support read as dynamic tape data. The phase index
+    /// and resident register are the certificate; no host-width residue is
+    /// retained.
+    pub fn negative_support_snapshot(&self) -> (Tape, Tape) {
+        (
+            biguint_to_tape(&BigUint::from(self.squarings)),
+            biguint_to_tape(&self.residue),
+        )
+    }
+
     /// One observation and one squaring. Caller chooses when to observe again;
     /// no fixed search ceiling is imposed on this resident state.
     pub fn observe(&mut self) -> Result<Option<ReturnRelation>, String> {
