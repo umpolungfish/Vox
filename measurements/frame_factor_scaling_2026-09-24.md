@@ -144,3 +144,25 @@ not enter the factor operation. `vox construct-carrier` reads the seven motifs;
 The carrier word carries the operation ordering, and each numeral remains an
 IMASM tape across the call. These runs verify the composed PHASE-to-UNBRAID
 route on the listed inputs.
+
+## Corrected phase-return wiring
+
+The earlier 90-bit timeout was from the support-polynomial candidate route.
+For this fixture, the phase-return branch closes directly: retain the complete
+dyadic winding relation, bank and restore it through EXTRACT, derive both
+factor-register seeds from the relation's two half-step residues, then require
+both nested product/prefix closures to agree before emitting the pair. The
+compiled input contains only the IMASM numeral for N, phase base 2, and lift
+radix 4294967296; the two factors are not build inputs.
+
+| N | Width | Extracted factors | Phase observations | Winding | Dual closure | Total to flush |
+|---:|---:|---|---:|---:|---:|---:|
+| 580284393595165992175009793 | 89 | 3221225473 × 180143985094819841 | 59 | 115.789 µs | T; both directions true | 195.974 µs |
+
+The standalone native executable completed and emitted the two IMASM numeral
+tapes; their decoded values multiply exactly to N. `vox <binary>` audited the
+complete 1,163,141-byte image with zero F verdicts. The equivalent
+`vox run <binary>.imasm` instruction-by-instruction emulator did not complete
+within 60 seconds, so that emulator timing is not conflated with direct native
+execution. This result confirms the corrected route on this 89-bit instance;
+it does not establish a width-independent runtime bound.
