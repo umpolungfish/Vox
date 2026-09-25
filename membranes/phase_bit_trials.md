@@ -181,21 +181,20 @@ carrier also needs `ARITHMETIC`, which supplies the remainder and gcd readout;
 `PHASE` alone advances the phase registers. The constructor now rejects a
 phase/select/continue/latch tower with that readout missing.
 
-The composed EML, phase, arithmetic, branch, select, continue, and latch carrier
-returned the factor word for `12289 × 1000000007`. The IMASM product readout
-confirmed the returned factor and cofactor multiply back to the baked source.
+The EML frame now encloses the complete nine-arm carrier:
+`EML_FRAME → WITNESS → POWER → EXTRACT → SQUFOF → P_MINUS → P_PLUS → LEHMAN → ECM → FIX`.
+The 14-, 23-, and 27-digit runs returned a factor from the baked IMASM numeral;
+Vox multiplication verified each factor/cofactor pair against its source.
 
-Direct `vox factor-with` runs used the carrier word above and numeral words
-prepared by `vox numeral` before timing. Twenty process-level wall samples per
-input, including Vox startup and carrier construction, gave:
+Each timing is the median of seven direct `vox factor-with` processes. The
+numeral words were prepared before timing; samples include Vox startup and the
+full EML plus nine-arm carrier execution.
 
-| IMASM numeral value | Factors | Median | Range |
-|---:|---:|---:|---:|
-| 8051 | 83 × 97 | 1.016 ms | 0.926–1.338 ms |
-| 12289000086023 | 12289 × 1000000007 | 1.125 ms | 1.079–1.288 ms |
-
-The 14-digit factor word and cofactor were verified against their baked product:
-`p*q == N: true`.
+| N digits | IMASM numeral value | Factors | Median | Range |
+|---:|---:|---:|---:|---:|
+| 14 | 12289000086023 | 12289 × 1000000007 | 31.707 ms | 31.606–31.821 ms |
+| 23 | 21250649179513694453761 | 3221225473 × 6597069766657 | 163.913 ms | 163.696–164.075 ms |
+| 27 | 580284393595165992175009793 | 3221225473 × 180143985094819841 | 564.963 ms | 564.540–614.852 ms |
 
 ## Wider direct executions with the shared running-product fold
 

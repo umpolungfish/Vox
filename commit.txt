@@ -1,1 +1,1 @@
-I time the EML carrier through the Vox CLI on 8051 and a 14-digit semiprime, record twenty-run ranges with baked IMASM inputs, and verify the returned 14-digit factors close to the source.
+I nest the EML frame around the full nine-arm factoring carrier, verify the returned pairs through 27 digits, and record seven-run Vox CLI timing ranges with baked IMASM numeral inputs.
