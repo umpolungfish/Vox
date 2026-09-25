@@ -1,0 +1,3 @@
+RSA-120 nested EML battery run reached the one-minute wall timeout without a
+factor word or carrier-closure output. The baked binary remained silent until
+termination.
