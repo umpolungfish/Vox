@@ -1,0 +1,3 @@
+RSA-100 nested EML battery run was started with the current baked carrier and
+stopped manually before closure. No factor word or timing result was emitted.
+The zero-byte factor.imasm and time.txt files are retained as the run record.

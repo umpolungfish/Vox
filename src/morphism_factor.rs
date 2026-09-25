@@ -33,6 +33,12 @@ const EXTRACT_BANKED: &[char] = &[
 const EML_FRAME: &[char] = &[
     VINIT, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX, TANCH,
 ];
+// PHASE owns the EML evaluation frame: the phase frame opens first, the EML
+// support frame is evaluated inside it, and the phase frame fuses last.
+const PHASE_EML: &[char] = &[
+    VINIT, FSPLIT, AFWD, EVALT, EVALF, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE,
+    IFIX, FFUSE, TANCH,
+];
 // Pollard p-1: seed an accumulator (IMSCRIB), raise it through rising exponents
 // (ENGAGR), and take the gcd (CLINK) inside the frame. It catches a factor p
 // whenever p-1 is smooth, at any size and any gap, covering the slice the
@@ -745,6 +751,21 @@ pub fn miller_rabin(n: &[char]) -> bool {
     true
 }
 
+/// Structural congruence support for the prime lane.
+///
+/// For every prime p > 3, 12 divides p^2 - 1. This is a support read rather
+/// than a primality decision: composite values such as 25 can satisfy the
+/// congruence and remain in the falsity lane for the Miller-Rabin witness.
+pub fn prime12_support(n: &[char]) -> bool {
+    let n = trim(n.to_vec());
+    if cmp(&n, &tape_u64(3)) != core::cmp::Ordering::Greater {
+        return false;
+    }
+    let square = mul(&n, &n);
+    let predecessor = sub(&square, &one());
+    zero(&modulo(&predecessor, &tape_u64(12)))
+}
+
 /// Integer power base^b over numeral tapes, b a small usize.
 fn ipow(base: &[char], b: usize) -> Tape {
     let mut r = one();
@@ -1005,6 +1026,7 @@ struct State {
     pp_base: Tape,
     lehman_k: Tape,
     witness_done: bool,
+    prime12_support: Option<bool>,
     power_done: bool,
     squfof_done: bool,
     round: Tape,
@@ -1091,6 +1113,10 @@ const EXTRACT_BANKED_I: &[char] = &[FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, E
 const EML_FRAME_I: &[char] = &[
     AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX,
 ];
+const PHASE_EML_I: &[char] = &[
+    FSPLIT, AFWD, EVALT, EVALF, AFWD, AREV, FSPLIT, EVALT, EVALF, '⊞', AREV, IMSCRIB, FFUSE, IFIX,
+    FFUSE,
+];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
@@ -1118,6 +1144,8 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
         "EXTRACT"
     } else if operator == EML_FRAME {
         "EML_FRAME"
+    } else if operator == PHASE_EML {
+        "PHASE_EML"
     } else if operator == P_MINUS {
         "P_MINUS"
     } else if operator == ECM {
@@ -1155,8 +1183,9 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so complete phase motifs win over BRANCH, and the
     // two FIX spellings win over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 18] = [
+    let motifs: [(&[char], &[char]); 19] = [
         (UNBRAID_I, UNBRAID),
+        (PHASE_EML_I, PHASE_EML),
         (EML_FRAME_I, EML_FRAME),
         (EXTRACT_BANKED_I, EXTRACT_BANKED),
         (EXTRACT_I, EXTRACT),
@@ -1560,6 +1589,7 @@ pub fn run_carrier_rounds_with_phase_base(
         pp_base: tape_u64(3),
         lehman_k: one(),
         witness_done: false,
+        prime12_support: None,
         power_done: false,
         squfof_done: false,
         round: vec![EVALT],
@@ -1588,7 +1618,12 @@ pub fn run_carrier_rounds_with_phase_base(
 fn apply_morphism(operator: &[char], state: &mut State) {
     // Dispatch is read from the operator word itself. Each operator therefore
     // remains both the boundary and the action performed at that boundary.
-    if operator == EML_FRAME {
+    if operator == PHASE_EML {
+        apply_morphism(PHASE, state);
+        if state.selected.is_none() {
+            apply_morphism(EML_FRAME, state);
+        }
+    } else if operator == EML_FRAME {
         // One EML firing advances one phase observation for each bit in both
         // factor registers before the deeper carrier arms execute. The sweep
         // width is derived from the encoded source and has no fixed cap.
@@ -1718,6 +1753,9 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         // One strong probable-prime test, first thing. If N is prime, select it
         // at once so the trial arm never walks to sqrt(N). One-shot: the verdict
         // on a fixed N never changes.
+        if state.prime12_support.is_none() {
+            state.prime12_support = Some(prime12_support(&state.n));
+        }
         if !state.witness_done {
             state.witness_done = true;
             if miller_rabin(&state.n) {
@@ -1807,11 +1845,10 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.unbraid_stack.push((vec![EVALF], vec![EVALF]));
         }
         let Some((p, q)) = state.unbraid_stack.pop() else {
-            // Search space exhausted at this split with no match: this split
-            // fails, not the tower -- signal completion without a factor.
+            // This bit-width split failed. Leave the outer nested carrier
+            // active so its remaining methods can continue on the same N.
             state.unbraid_done = true;
             state.exhausted = true;
-            state.selected = Some(trim(state.n.clone()));
             return;
         };
         let p_bits = state.unbraid_p_bits;
@@ -1939,6 +1976,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         pp_base: tape_u64(3),
         lehman_k: one(),
         witness_done: false,
+        prime12_support: None,
         power_done: false,
         squfof_done: false,
         round: vec![EVALT],
@@ -2331,6 +2369,19 @@ mod tests {
         assert!(f == numeral(p) || f == numeral(q));
     }
 
+    #[test]
+    fn prime12_read_is_information_support_not_a_primality_test() {
+        for p in [5u64, 7, 11, 13, 17, 19] {
+            let n = tape_u64(p);
+            assert!(prime12_support(&n));
+            assert!(miller_rabin(&n));
+        }
+        let composite = tape_u64(25);
+        assert!(prime12_support(&composite));
+        assert!(!miller_rabin(&composite));
+        assert!(!prime12_support(&tape_u64(3)));
+    }
+
     // A single operator word whose interior is the six motif interiors in
     // canonical order. The carrier constructor recovers the full tower.
     const FULL: &str = "⊢∈≻⊤⊥∋∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
@@ -2351,7 +2402,8 @@ mod tests {
         const NESTED: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
         const EML_PHASE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
         const EML_FULL: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
-        const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+        const EML_NINE: &str =
+            "⊢∈≻⊤⊥≻≺∈⊤⊥⊞≺⊙∋⊡∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋∈⊙≻⊤≺⊥⋈∋⊙⊡⊣";
 
         let eml = construct_carrier(EML).unwrap();
         assert_eq!(
@@ -2419,8 +2471,7 @@ mod tests {
                 .map(|op| morphism_name(op))
                 .collect::<Vec<_>>(),
             [
-                "EML_FRAME",
-                "PHASE",
+                "PHASE_EML",
                 "WITNESS",
                 "POWER",
                 "EXTRACT",
@@ -2429,6 +2480,7 @@ mod tests {
                 "P_PLUS",
                 "LEHMAN",
                 "ECM",
+                "UNBRAID",
                 "FIX"
             ]
         );
@@ -2441,7 +2493,8 @@ mod tests {
 
     #[test]
     fn phase_base_is_a_baked_imasm_input_not_a_source_literal() {
-        const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+        const EML_NINE: &str =
+            "⊢∈≻⊤⊥≻≺∈⊤⊥⊞≺⊙∋⊡∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋∈⊙≻⊤≺⊥⋈∋⊙⊡⊣";
         for base in [2, 3, 5] {
             let factor = factor_with_phase_base(EML_NINE, &numeral(8051), &numeral(base)).unwrap();
             assert!(factor == numeral(83) || factor == numeral(97));
@@ -2798,6 +2851,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         pp_base: tape_u64(3),
         lehman_k: one(),
         witness_done: false,
+        prime12_support: None,
         power_done: false,
         squfof_done: false,
         round: vec![EVALT],

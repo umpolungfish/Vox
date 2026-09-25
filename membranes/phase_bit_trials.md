@@ -181,12 +181,24 @@ carrier also needs `ARITHMETIC`, which supplies the remainder and gcd readout;
 `PHASE` alone advances the phase registers. The constructor now rejects a
 phase/select/continue/latch tower with that readout missing.
 
-The EML frame now carries phase winding ahead of the complete nine-arm carrier:
-`EML_FRAME → PHASE → WITNESS → POWER → EXTRACT → SQUFOF → P_MINUS → P_PLUS → LEHMAN → ECM → FIX`.
-Each EML firing advances the shared support polynomial by two source-widths of
-dyadic observations. A phase target or return must close through both
-product-outer/prefix-inner and prefix-outer/product-inner folds before it
-selects; otherwise the full factoring tower advances on the same state.
+The initial carrier serialized `EML_FRAME` and `PHASE` as sibling frames; the
+measurements below belong to that ordering. The current carrier nests the EML
+support frame inside the phase frame, then carries the tested factoring arms in
+the recursive fallback: `PHASE_EML(EML_FRAME) → WITNESS → POWER → EXTRACT →
+SQUFOF → P_MINUS → P_PLUS → LEHMAN → ECM → UNBRAID → FIX`. The unbraid arm is
+the deepest fallback and a failed bit-width split returns control to the
+remaining carrier rather than selecting `N`. Each EML firing advances the
+shared support polynomial by two source-widths of dyadic observations. A phase
+target or return must close through both product-outer/prefix-inner and
+prefix-outer/product-inner folds before it selects; otherwise the recursive
+carrier continues on the same state.
+
+The nested `WITNESS` operation also records a `prime12_support` read in the
+information lane. For a candidate `p > 3`, the dynamic tape check reads
+`(p*p - 1) mod 12 = 0`. This is support, not a primality decision: `25`
+carries the congruence while Miller-Rabin places it in the falsity lane. The
+two reads coexist paraconsistently, and the fixed modulus 12 names the
+twelve-primitive structural frame without limiting operand width.
 
 The 14-, 23-, and 27-digit runs returned factors from their baked IMASM
 numerals. Vox multiplication verified each factor/cofactor pair against its
