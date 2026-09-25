@@ -38,7 +38,7 @@ if [[ ! "$RADIX" =~ ^[0-9]+$ ]]; then
   exit 2
 fi
 
-cargo build --release --bin vox >/dev/null
+RUSTFLAGS='-D warnings' cargo build --release --bin vox >/dev/null
 N_WORD="$(./target/release/vox numeral "$N")"
 BASE_WORD="$(./target/release/vox numeral "$BASE")"
 RADIX_WORD="$(./target/release/vox numeral "$RADIX")"
@@ -60,10 +60,11 @@ BUILD_DIR="target/factor_2adic_membranes/${FINGERPRINT}"
 mkdir -p "$BUILD_DIR"
 printf '%s\n%s\n%s\nunit\n' "$N_WORD" "$BASE_WORD" "$RADIX_WORD" > "$BUILD_DIR/baked_inputs.txt"
 VOX_BAKED_INPUT_FILE="$BUILD_DIR/baked_inputs.txt" \
-RUSTFLAGS="-C target-feature=+crt-static -C relocation-model=static" \
+RUSTFLAGS="-D warnings -C target-feature=+crt-static -C relocation-model=static" \
 cargo build --release --bin factor_2adic --target x86_64-unknown-linux-gnu --target-dir "$BUILD_DIR"
 
 mkdir -p "$(dirname "$OUTPUT")"
 cp "$BUILD_DIR/x86_64-unknown-linux-gnu/release/factor_2adic" "$OUTPUT"
 chmod +x "$OUTPUT"
+./target/release/vox imasm "$OUTPUT" >/dev/null 2>&1
 printf '%s\n' "$OUTPUT"
