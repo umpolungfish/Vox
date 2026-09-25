@@ -411,6 +411,49 @@ has a phase period compatible with 1463. The fixed-cofactor scan through
 odd cofactors dividing `2^90−1`, which keeps the same 90-step phase-period
 bound; that screening pass did not yield a completed result in this run.
 
+## EML-first contained binary widening
+
+The single-value runner now bakes both the modulus and the phase base as
+IMASM numeral words, then emits a silent, standalone `factor_eml_one` binary.
+The phase base is supplied as an input (`./eml_factor_one.sh N [base]`), not
+selected by a source-code literal. Release builds use `target-cpu=native` and
+deny warnings. Each contained execution below was capped with GNU `timeout`
+at 60 seconds; output was compared byte-for-byte with the encoded known prime
+factor after completion. Here `M_e` denotes the Mersenne prime `2^e − 1`.
+
+| Decimal digits of N | Factors (factor digits) | Baked phase base | Execution | Result |
+|---:|---:|---:|---:|---|
+| 4,249 | M4423 × M9689 (1,332 × 2,917) | 2 | 0.792 s | exact factor |
+| 6,293 | M9689 × M11213 (2,917 × 3,376) | 2 | 1.405 s | exact factor |
+| 12,535 | M19937 × M21701 (6,002 × 6,533) | 2 | 5.059 s | exact factor |
+| 20,382 | M23209 × M44497 (6,987 × 13,395) | 2 | 16.477 s | exact factor |
+| 31,964 | M19937 × M86243 (6,002 × 25,962) | 2 | 51.33 s | exact factor |
+| 39,267 | M19937 × M110503 (6,002 × 33,265) | 2 | 49.93 s | exact factor |
+| 39,357 | M44497 × M86243 (13,395 × 25,962) | 2 | 46.44 s | exact factor |
+| 46,660 | M44497 × M110503 (13,395 × 33,265) | 2 | 65.93 s reported | exact factor; outside the target |
+| 59,227 | M86243 × M110503 (25,962 × 33,265) | 2, 3, 5, 7 | 60-second cap | no output; GNU timeout returned 124 for each tested base |
+
+The encoded-base CLI path was also run end-to-end on the 39,267-digit case.
+Conversion, baking, and compilation brought total CLI wall time to 83.42 s;
+the silent contained execution completed within its internal one-minute cap,
+and its output matched `M19937` byte-for-byte.
+
+The 39,357-digit phase state previously held a growing residue map. Replacing
+it with Brent winding fixes the resident orbit registers at three; the
+large-width test verifies the return relation and both nested closures. A
+native-CPU release build then reduced that case from over a minute to 46.44 s.
+On the 59,227-digit case, changing only the baked phase base among 2, 3, 5, and
+7 did not close inside the cap. This is the present wall after launch of the
+baked integrated carrier. The phase orbit and its support reads are the main
+remaining work; the present run did not yet isolate their respective shares.
+The next improvement needs to reduce phase work or extract from the same
+support object earlier; loosening the one-minute timeout would only hide it.
+
+The dynamic-base API has a small-number regression test for bases 2, 3, and 5,
+rejects 1, and immediately closes when the supplied base itself shares a
+proper divisor with N. The CLI wrapper's output remains silent until the
+factor word is complete.
+
 No compiler warnings appeared in the release builds or test runs. `cargo fmt
 --all -- --check` currently fails on broad formatting differences throughout
 the repository; I left those unrelated files untouched.

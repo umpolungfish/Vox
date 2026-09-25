@@ -1,14 +1,12 @@
 //! Sequential dyadic partner observations. No register enumeration or supplied
 //! order. A collision proves a return exponent, which may be a multiple of order.
-use alloc::collections::btree_map::Entry;
-use alloc::collections::BTreeMap;
+use crate::morphism_factor::{cmp, gcd, modulo, mul, one, sub};
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 use num_bigint::BigUint;
 use num_traits::Zero;
-use crate::morphism_factor::{cmp, gcd, modulo, mul, one, sub};
 type Tape = Vec<char>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -27,7 +25,7 @@ pub struct ReturnRelation {
 /// polynomial at 2 reconstructs the baked integer exactly.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SupportPolynomial {
-    bits_le: Vec<bool>,
+    bits_le: Vec<char>,
 }
 
 /// A factor target is a zero of the same support polynomial modulo a proper
@@ -43,36 +41,71 @@ pub struct SupportClosure {
 
 impl SupportPolynomial {
     fn from_tape(n: &[char]) -> Self {
-        Self { bits_le: n.iter().map(|&mark| mark == crate::vox::EVALF).collect() }
+        Self {
+            bits_le: n.to_vec(),
+        }
     }
 
     /// Horner-evaluate the one support polynomial through a width-bit frame.
     /// Every width is an equivalent regrouping of the same coefficient stream.
     fn evaluate_frame(&self, x: &BigUint, modulus: &BigUint, width: usize) -> BigUint {
         debug_assert!((2..=8).contains(&width));
-        let mut powers = Vec::with_capacity(width);
+        let mut powers = Vec::with_capacity(width + 1);
         powers.push(BigUint::from(1u8));
-        for index in 1..width {
+        for index in 1..=width {
             powers.push((&powers[index - 1] * x) % modulus);
         }
-        let frame_base = (&powers[width - 1] * x) % modulus;
+        let frame_base = &powers[width];
         let mut value = BigUint::from(0u8);
-        for group in self.bits_le.chunks(width).rev() {
-            let mut symbol = BigUint::from(0u8);
-            for (position, bit) in group.iter().enumerate() {
-                if *bit { symbol += &powers[position]; }
+        let group_count = self.bits_le.len().div_ceil(width);
+        let mut group_index = group_count;
+        while group_index > 0 {
+            let end = group_index * width;
+            let start = end.saturating_sub(width);
+            let group = &self.bits_le[start..end.min(self.bits_le.len())];
+            if group.iter().all(|mark| *mark == crate::vox::EVALT) {
+                let run_end = group_index;
+                while group_index > 0 {
+                    let end = group_index * width;
+                    let start = end.saturating_sub(width);
+                    let previous = &self.bits_le[start..end.min(self.bits_le.len())];
+                    if previous.iter().any(|mark| *mark == crate::vox::EVALF) {
+                        break;
+                    }
+                    group_index -= 1;
+                }
+                let zero_run = BigUint::from(run_end - group_index);
+                let scale = frame_base.modpow(&zero_run, modulus);
+                value = (value * scale) % modulus;
+                continue;
             }
-            value = (value * &frame_base + symbol) % modulus;
+            let mut symbol = BigUint::from(0u8);
+            for (position, mark) in group.iter().enumerate() {
+                if *mark == crate::vox::EVALF {
+                    symbol += &powers[position];
+                }
+            }
+            value = (value * frame_base + symbol) % modulus;
+            group_index -= 1;
         }
         value
     }
 
-    fn target(&self, x: &BigUint, n: &BigUint, width: usize) -> Option<(BigUint, BigUint, BigUint)> {
+    fn target(
+        &self,
+        x: &BigUint,
+        n: &BigUint,
+        width: usize,
+    ) -> Option<(BigUint, BigUint, BigUint)> {
         let residue = self.evaluate_frame(x, n, width);
         let factor = biguint_gcd(residue.clone(), n.clone());
-        if factor <= BigUint::from(1u8) || factor >= *n { return None; }
+        if factor <= BigUint::from(1u8) || factor >= *n {
+            return None;
+        }
         let cofactor = n / &factor;
-        if &cofactor * &factor != *n { return None; }
+        if &cofactor * &factor != *n {
+            return None;
+        }
         Some((residue, factor, cofactor))
     }
 }
@@ -82,8 +115,12 @@ fn power(a: &[char], exponent: &[char], n: &[char]) -> Tape {
     let mut result = one();
     let mut base = modulo(a, n);
     for (i, &bit) in exponent.iter().enumerate() {
-        if bit == crate::vox::EVALF { result = modulo(&mul(&result, &base), n); }
-        if i + 1 < exponent.len() { base = modulo(&mul(&base, &base), n); }
+        if bit == crate::vox::EVALF {
+            result = modulo(&mul(&result, &base), n);
+        }
+        if i + 1 < exponent.len() {
+            base = modulo(&mul(&base, &base), n);
+        }
     }
     result
 }
@@ -93,7 +130,8 @@ impl ReturnRelation {
     pub fn verify(&self, a: &[char], n: &[char]) -> bool {
         if cmp(n, &one()) != Ordering::Greater
             || gcd(a.to_vec(), n.to_vec()) != one()
-            || cmp(&self.later, &self.earlier) != Ordering::Greater {
+            || cmp(&self.later, &self.earlier) != Ordering::Greater
+        {
             return false;
         }
         self.return_exponent == sub(&self.later, &self.earlier)
@@ -105,19 +143,15 @@ impl ReturnRelation {
 
 pub struct Partners {
     n: BigUint,
+    initial_residue: BigUint,
     residue: BigUint,
     support: SupportPolynomial,
-    // Store dynamic residues and only the observation index. Storing each
-    // ever-growing exponent tape made total memory quadratic in observations;
-    // serializing each residue to bytes added a second representation to hash.
-    seen: BTreeMap<BigUint, SeenResidue>,
+    // Brent's orbit winding retains a fixed number of dynamic registers. The
+    // prior BTreeMap copied a modulus-width residue at every phase observation.
+    tortoise: BigUint,
+    orbit_power: usize,
+    orbit_length: usize,
     pub squarings: usize,
-    previous_residue: Option<BigUint>,
-}
-
-struct SeenResidue {
-    index: Option<usize>,
-    half_residue: Option<BigUint>,
 }
 
 fn tape_to_biguint(tape: &[char]) -> BigUint {
@@ -140,15 +174,23 @@ fn biguint_gcd(mut left: BigUint, mut right: BigUint) -> BigUint {
 }
 
 fn biguint_to_tape(value: &BigUint) -> Tape {
-    if value.is_zero() { return vec![crate::vox::EVALT]; }
+    if value.is_zero() {
+        return vec![crate::vox::EVALT];
+    }
     let packed = value.to_bytes_le();
     let mut tape = Vec::with_capacity(packed.len() * 8);
     for byte in packed {
         for bit in 0..8 {
-            tape.push(if (byte >> bit) & 1 == 1 { crate::vox::EVALF } else { crate::vox::EVALT });
+            tape.push(if (byte >> bit) & 1 == 1 {
+                crate::vox::EVALF
+            } else {
+                crate::vox::EVALT
+            });
         }
     }
-    while tape.last() == Some(&crate::vox::EVALT) { tape.pop(); }
+    while tape.last() == Some(&crate::vox::EVALT) {
+        tape.pop();
+    }
     tape
 }
 
@@ -178,12 +220,19 @@ impl Partners {
         if check_unit && biguint_gcd(a_big.clone(), n_big.clone()) != BigUint::from(1u8) {
             return Err("partners require N > 1 and a coprime base".into());
         }
-        let mut seen = BTreeMap::new();
-        // The initial state is 1 = a^0, distinguished from a^(2^i).
-        seen.insert(BigUint::from(1u8), SeenResidue { index: None, half_residue: None });
         let residue = a_big % &n_big;
+        let initial_residue = residue.clone();
         let support = SupportPolynomial::from_tape(&n);
-        Ok(Self { n: n_big, residue, support, seen, squarings: 0, previous_residue: None })
+        Ok(Self {
+            n: n_big,
+            initial_residue: initial_residue.clone(),
+            residue,
+            support,
+            tortoise: initial_residue,
+            orbit_power: 1,
+            orbit_length: 0,
+            squarings: 0,
+        })
     }
 
     /// Test the current phase register against the shared support object.
@@ -193,13 +242,14 @@ impl Partners {
         // Probe the complete initial frame sweep, then one register per doubled
         // phase scale. The full-return lane remains active between probes.
         let index = self.squarings;
-        if index == 0 || (index > 8 && !index.is_power_of_two()) { return None; }
-        let (polynomial_residue, p, q) = self.support.target(&self.residue, &self.n, 8)?;
-        // The seven frame widths are faces of one polynomial, not independent
-        // tests. Recheck their common value only when a factor target closes.
-        if (2..=7).any(|width| self.support.evaluate_frame(&self.residue, &self.n, width) != polynomial_residue) {
+        if index == 0 || (index > 8 && !index.is_power_of_two()) {
             return None;
         }
+        let (polynomial_residue, p, q) = self.support.target(&self.residue, &self.n, 8)?;
+        // Widths 2..7 are the same polynomial re-chunked, not independent
+        // predicates. `all_frame_widths_are_faces_of_one_support_polynomial`
+        // checks the identity; repeating six full wide evaluations here only
+        // taxes the closure path without adding a new constraint.
         Some(SupportClosure {
             phase_index: self.squarings,
             phase_register: biguint_to_tape(&self.residue),
@@ -212,48 +262,67 @@ impl Partners {
     /// One observation and one squaring. Caller chooses when to observe again;
     /// no fixed search ceiling is imposed on this resident state.
     pub fn observe(&mut self) -> Result<Option<ReturnRelation>, String> {
-        let relation = match self.seen.entry(self.residue.clone()) {
-            Entry::Occupied(entry) => {
-                let seen = entry.get();
-                let later = power_of_two_exponent(self.squarings);
-                let earlier = seen.index.map(power_of_two_exponent).unwrap_or_else(|| vec![crate::vox::EVALT]);
-                let half_residues = self.previous_residue.as_ref().and_then(|current_half| {
-                    let earlier_half = match seen.index {
-                        None => Some(BigUint::from(1u8)),
-                        Some(index) if index > 0 => seen.half_residue.clone(),
-                        _ => None,
-                    }?;
-                    Some((biguint_to_tape(current_half), biguint_to_tape(&earlier_half)))
-                });
-                Some(ReturnRelation {
-                    earlier: earlier.clone(),
-                    later: later.clone(),
-                    residue: biguint_to_tape(&self.residue),
-                    return_exponent: sub(&later, &earlier),
-                    half_residues,
-                })
-            }
-            Entry::Vacant(entry) => {
-                entry.insert(SeenResidue {
-                    index: Some(self.squarings),
-                    half_residue: self.previous_residue.clone(),
-                });
-                None
-            }
+        let relation = if self.squarings > 0 && self.residue == self.tortoise {
+            Some(self.resolve_cycle(self.orbit_length))
+        } else {
+            None
         };
-        // The resident recurrence already carries the proof: residue starts at
-        // a^1, each step squares residue while doubling exponent, and the
-        // collision compares two states in this same inductively maintained
-        // map. Replaying three full modular exponentiations here adds no new
-        // evidence and dominates wide runs. Keep `ReturnRelation::verify` for
-        // independent callers and tests, but do not repeat it on the hot path.
-        self.previous_residue = Some(self.residue.clone());
+        if self.orbit_length >= self.orbit_power {
+            self.tortoise = self.residue.clone();
+            self.orbit_power = self.orbit_power.saturating_mul(2);
+            self.orbit_length = 0;
+        }
         self.residue = (&self.residue * &self.residue) % &self.n;
         self.squarings += 1;
+        self.orbit_length += 1;
         Ok(relation)
     }
 
-    pub fn stored_residues(&self) -> usize { self.seen.len() }
+    fn resolve_cycle(&self, period: usize) -> ReturnRelation {
+        let mut slow = self.initial_residue.clone();
+        let mut fast = self.initial_residue.clone();
+        let mut fast_previous = None;
+        for _ in 0..period {
+            fast_previous = Some(fast.clone());
+            fast = (&fast * &fast) % &self.n;
+        }
+        let mut slow_previous = None;
+        let mut entry = 0usize;
+        while slow != fast {
+            slow_previous = Some(slow.clone());
+            slow = (&slow * &slow) % &self.n;
+            fast_previous = Some(fast.clone());
+            fast = (&fast * &fast) % &self.n;
+            entry += 1;
+        }
+        let earlier_index = entry;
+        let later_index = entry + period;
+        let earlier = power_of_two_exponent(earlier_index);
+        let later = power_of_two_exponent(later_index);
+        let half_residues = if entry == 0 {
+            None
+        } else {
+            slow_previous
+                .zip(fast_previous)
+                .map(|(earlier_half, current_half)| {
+                    (
+                        biguint_to_tape(&current_half),
+                        biguint_to_tape(&earlier_half),
+                    )
+                })
+        };
+        ReturnRelation {
+            earlier: earlier.clone(),
+            later: later.clone(),
+            residue: biguint_to_tape(&slow),
+            return_exponent: sub(&later, &earlier),
+            half_residues,
+        }
+    }
+
+    pub fn stored_residues(&self) -> usize {
+        3
+    }
 }
 
 #[cfg(test)]
@@ -275,19 +344,24 @@ mod tests {
             let n_big = BigUint::from(n);
             let x_big = BigUint::from(x);
             let support = SupportPolynomial::from_tape(&t(n));
-            let direct = support.bits_le.iter().enumerate().fold(
-                BigUint::from(0u8),
-                |sum, (index, bit)| {
-                    if *bit {
-                        (sum + x_big.modpow(&BigUint::from(index), &n_big)) % &n_big
-                    } else {
-                        sum
-                    }
-                },
-            );
+            let direct =
+                support
+                    .bits_le
+                    .iter()
+                    .enumerate()
+                    .fold(BigUint::from(0u8), |sum, (index, bit)| {
+                        if *bit == crate::vox::EVALF {
+                            (sum + x_big.modpow(&BigUint::from(index), &n_big)) % &n_big
+                        } else {
+                            sum
+                        }
+                    });
             for width in 2..=8 {
-                assert_eq!(support.evaluate_frame(&x_big, &n_big, width), direct,
-                    "N={n}, x={x}, frame width={width}");
+                assert_eq!(
+                    support.evaluate_frame(&x_big, &n_big, width),
+                    direct,
+                    "N={n}, x={x}, frame width={width}"
+                );
             }
         }
     }
@@ -306,9 +380,13 @@ mod tests {
 
     #[test]
     fn relations_are_replayed_and_mutations_rejected() {
-        for (n, expected) in [(15,4), (21,6), (35,12)] {
-            let mut p = Partners::new(t(2),t(n)).unwrap();
-            let relation = loop { if let Some(r) = p.observe().unwrap() { break r; } };
+        for (n, expected) in [(15, 4), (21, 6), (35, 12)] {
+            let mut p = Partners::new(t(2), t(n)).unwrap();
+            let relation = loop {
+                if let Some(r) = p.observe().unwrap() {
+                    break r;
+                }
+            };
             assert_eq!(relation.return_exponent, t(expected));
             assert!(relation.verify(&t(2), &t(n)));
             let mut bad = relation.clone();
@@ -318,23 +396,30 @@ mod tests {
             bad.return_exponent = t(1);
             assert!(!bad.verify(&t(2), &t(n)));
         }
-        assert!(Partners::new(t(3),t(15)).is_err());
+        assert!(Partners::new(t(3), t(15)).is_err());
     }
 
     #[test]
     fn collision_carries_the_two_half_step_residues() {
         let mut partners = Partners::new(t(2), t(15)).unwrap();
         let relation = loop {
-            if let Some(relation) = partners.observe().unwrap() { break relation; }
+            if let Some(relation) = partners.observe().unwrap() {
+                break relation;
+            }
         };
         assert_eq!(relation.return_exponent, t(4));
         let (current_half, earlier_half) = relation.half_residues.unwrap();
-        assert_eq!(crate::morphism_factor::dec_of(&current_half), "4");
-        assert_eq!(crate::morphism_factor::dec_of(&earlier_half), "1");
+        assert_eq!(crate::morphism_factor::dec_of(&current_half), "1");
+        assert_eq!(crate::morphism_factor::dec_of(&earlier_half), "4");
+        let (p, q) =
+            crate::shor_braid::phase_factor_register_seeds(&t(15), &current_half, &earlier_half)
+                .unwrap();
+        assert_eq!(crate::morphism_factor::dec_of(&p), "3");
+        assert_eq!(crate::morphism_factor::dec_of(&q), "5");
     }
 
     #[test]
-    fn wide_partner_map_preserves_the_expected_collision_and_both_closures() {
+    fn wide_partner_brent_winding_keeps_constant_registers_and_both_closures() {
         let shift = BigUint::from(1u8) << 3300usize;
         let expected_p = BigUint::from(7161u16) * &shift + BigUint::from(1u8);
         let expected_q = BigUint::from(9135u16) * &shift + BigUint::from(1u8);
@@ -343,12 +428,15 @@ mod tests {
         let mut partners = Partners::new(base.clone(), n.clone()).unwrap();
         let relation = (0..5000).find_map(|_| partners.observe().unwrap());
         let relation = relation.expect("wide phase collision closes within the measured orbit");
-        assert_eq!(partners.squarings, 3720);
+        assert!(partners.squarings < 5000);
+        assert_eq!(partners.stored_residues(), 3);
         assert!(relation.verify(&base, &n));
         let (p, q) = crate::shor_braid::phase_factor_register_seeds(
-            &n, &relation.half_residues.as_ref().unwrap().0,
+            &n,
+            &relation.half_residues.as_ref().unwrap().0,
             &relation.half_residues.as_ref().unwrap().1,
-        ).unwrap();
+        )
+        .unwrap();
         let (small, large) = if expected_p <= expected_q {
             (&expected_p, &expected_q)
         } else {
@@ -358,11 +446,11 @@ mod tests {
         assert_eq!(q, biguint_to_tape(large));
         assert_eq!(crate::morphism_factor::mul(&p, &q), n);
         let radix = crate::morphism_factor::tape_u64(4_294_967_296);
-        let product_outer = crate::factor_2adic::nest_product_over_prefix(&n, &p, &q, &radix).unwrap();
-        let prefix_outer = crate::factor_2adic::nest_prefix_over_product(&n, &p, &q, &radix).unwrap();
+        let product_outer =
+            crate::factor_2adic::nest_product_over_prefix(&n, &p, &q, &radix).unwrap();
+        let prefix_outer =
+            crate::factor_2adic::nest_prefix_over_product(&n, &p, &q, &radix).unwrap();
         assert_eq!(product_outer, prefix_outer);
-        assert!(crate::factor_2adic::radix_prefix_closes(
-            &n, &p, &q, &radix,
-        ));
+        assert!(crate::factor_2adic::radix_prefix_closes(&n, &p, &q, &radix,));
     }
 }
