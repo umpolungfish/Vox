@@ -1,9 +1,14 @@
 //! Sequential dyadic partner observations. No register enumeration or supplied
 //! order. A collision proves a return exponent, which may be a multiple of order.
-use std::collections::{hash_map::Entry, HashMap};
+use alloc::collections::btree_map::Entry;
+use alloc::collections::BTreeMap;
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
+use core::cmp::Ordering;
 use num_bigint::BigUint;
 use num_traits::Zero;
-use vox::morphism_factor::{cmp, gcd, modulo, mul, one, sub};
+use crate::morphism_factor::{cmp, gcd, modulo, mul, one, sub};
 type Tape = Vec<char>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -38,7 +43,7 @@ pub struct SupportClosure {
 
 impl SupportPolynomial {
     fn from_tape(n: &[char]) -> Self {
-        Self { bits_le: n.iter().map(|&mark| mark == vox::vox::EVALF).collect() }
+        Self { bits_le: n.iter().map(|&mark| mark == crate::vox::EVALF).collect() }
     }
 
     /// Horner-evaluate the one support polynomial through a width-bit frame.
@@ -77,7 +82,7 @@ fn power(a: &[char], exponent: &[char], n: &[char]) -> Tape {
     let mut result = one();
     let mut base = modulo(a, n);
     for (i, &bit) in exponent.iter().enumerate() {
-        if bit == vox::vox::EVALF { result = modulo(&mul(&result, &base), n); }
+        if bit == crate::vox::EVALF { result = modulo(&mul(&result, &base), n); }
         if i + 1 < exponent.len() { base = modulo(&mul(&base, &base), n); }
     }
     result
@@ -86,9 +91,9 @@ fn power(a: &[char], exponent: &[char], n: &[char]) -> Tape {
 impl ReturnRelation {
     #[allow(dead_code)] // Independent verifier; observe() relies on its recurrence invariant.
     pub fn verify(&self, a: &[char], n: &[char]) -> bool {
-        if cmp(n, &one()) != std::cmp::Ordering::Greater
+        if cmp(n, &one()) != Ordering::Greater
             || gcd(a.to_vec(), n.to_vec()) != one()
-            || cmp(&self.later, &self.earlier) != std::cmp::Ordering::Greater {
+            || cmp(&self.later, &self.earlier) != Ordering::Greater {
             return false;
         }
         self.return_exponent == sub(&self.later, &self.earlier)
@@ -105,7 +110,7 @@ pub struct Partners {
     // Store dynamic residues and only the observation index. Storing each
     // ever-growing exponent tape made total memory quadratic in observations;
     // serializing each residue to bytes added a second representation to hash.
-    seen: HashMap<BigUint, SeenResidue>,
+    seen: BTreeMap<BigUint, SeenResidue>,
     pub squarings: usize,
     previous_residue: Option<BigUint>,
 }
@@ -118,7 +123,7 @@ struct SeenResidue {
 fn tape_to_biguint(tape: &[char]) -> BigUint {
     let mut packed = vec![0u8; (tape.len() + 7) / 8];
     for (index, &mark) in tape.iter().enumerate() {
-        if mark == vox::vox::EVALF {
+        if mark == crate::vox::EVALF {
             packed[index / 8] |= 1u8 << (index % 8);
         }
     }
@@ -135,21 +140,21 @@ fn biguint_gcd(mut left: BigUint, mut right: BigUint) -> BigUint {
 }
 
 fn biguint_to_tape(value: &BigUint) -> Tape {
-    if value.is_zero() { return vec![vox::vox::EVALT]; }
+    if value.is_zero() { return vec![crate::vox::EVALT]; }
     let packed = value.to_bytes_le();
     let mut tape = Vec::with_capacity(packed.len() * 8);
     for byte in packed {
         for bit in 0..8 {
-            tape.push(if (byte >> bit) & 1 == 1 { vox::vox::EVALF } else { vox::vox::EVALT });
+            tape.push(if (byte >> bit) & 1 == 1 { crate::vox::EVALF } else { crate::vox::EVALT });
         }
     }
-    while tape.last() == Some(&vox::vox::EVALT) { tape.pop(); }
+    while tape.last() == Some(&crate::vox::EVALT) { tape.pop(); }
     tape
 }
 
 fn power_of_two_exponent(index: usize) -> Tape {
-    let mut exponent = vec![vox::vox::EVALT; index + 1];
-    exponent[index] = vox::vox::EVALF;
+    let mut exponent = vec![crate::vox::EVALT; index + 1];
+    exponent[index] = crate::vox::EVALF;
     exponent
 }
 
@@ -165,7 +170,7 @@ impl Partners {
     }
 
     fn new_inner(a: Tape, n: Tape, check_unit: bool) -> Result<Self, String> {
-        if cmp(&n, &one()) != std::cmp::Ordering::Greater {
+        if cmp(&n, &one()) != Ordering::Greater {
             return Err("partners require N > 1 and a coprime base".into());
         }
         let n_big = tape_to_biguint(&n);
@@ -173,7 +178,7 @@ impl Partners {
         if check_unit && biguint_gcd(a_big.clone(), n_big.clone()) != BigUint::from(1u8) {
             return Err("partners require N > 1 and a coprime base".into());
         }
-        let mut seen = HashMap::new();
+        let mut seen = BTreeMap::new();
         // The initial state is 1 = a^0, distinguished from a^(2^i).
         seen.insert(BigUint::from(1u8), SeenResidue { index: None, half_residue: None });
         let residue = a_big % &n_big;
@@ -211,7 +216,7 @@ impl Partners {
             Entry::Occupied(entry) => {
                 let seen = entry.get();
                 let later = power_of_two_exponent(self.squarings);
-                let earlier = seen.index.map(power_of_two_exponent).unwrap_or_else(|| vec![vox::vox::EVALT]);
+                let earlier = seen.index.map(power_of_two_exponent).unwrap_or_else(|| vec![crate::vox::EVALT]);
                 let half_residues = self.previous_residue.as_ref().and_then(|current_half| {
                     let earlier_half = match seen.index {
                         None => Some(BigUint::from(1u8)),
@@ -254,12 +259,12 @@ impl Partners {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vox::morphism_factor::tape_u64 as t;
+    use crate::morphism_factor::tape_u64 as t;
 
     #[test]
     fn dynamic_integer_phase_register_round_trips_tapes() {
         for word in ["0", "1", "255", "256", "123456789012345678901234567890"] {
-            let tape = vox::morphism_factor::decimal_to_tape(word).unwrap();
+            let tape = crate::morphism_factor::decimal_to_tape(word).unwrap();
             assert_eq!(biguint_to_tape(&tape_to_biguint(&tape)), tape);
         }
     }
@@ -294,9 +299,9 @@ mod tests {
         partners.observe().unwrap();
         let target = partners.support_target().expect("F_15(4) shares factor 5");
         assert_eq!(target.phase_index, 1);
-        assert_eq!(vox::morphism_factor::dec_of(&target.p), "5");
-        assert_eq!(vox::morphism_factor::dec_of(&target.q), "3");
-        assert_eq!(vox::morphism_factor::mul(&target.p, &target.q), t(15));
+        assert_eq!(crate::morphism_factor::dec_of(&target.p), "5");
+        assert_eq!(crate::morphism_factor::dec_of(&target.q), "3");
+        assert_eq!(crate::morphism_factor::mul(&target.p, &target.q), t(15));
     }
 
     #[test]
@@ -324,8 +329,8 @@ mod tests {
         };
         assert_eq!(relation.return_exponent, t(4));
         let (current_half, earlier_half) = relation.half_residues.unwrap();
-        assert_eq!(vox::morphism_factor::dec_of(&current_half), "4");
-        assert_eq!(vox::morphism_factor::dec_of(&earlier_half), "1");
+        assert_eq!(crate::morphism_factor::dec_of(&current_half), "4");
+        assert_eq!(crate::morphism_factor::dec_of(&earlier_half), "1");
     }
 
     #[test]
@@ -340,7 +345,7 @@ mod tests {
         let relation = relation.expect("wide phase collision closes within the measured orbit");
         assert_eq!(partners.squarings, 3720);
         assert!(relation.verify(&base, &n));
-        let (p, q) = vox::shor_braid::phase_factor_register_seeds(
+        let (p, q) = crate::shor_braid::phase_factor_register_seeds(
             &n, &relation.half_residues.as_ref().unwrap().0,
             &relation.half_residues.as_ref().unwrap().1,
         ).unwrap();
@@ -351,12 +356,12 @@ mod tests {
         };
         assert_eq!(p, biguint_to_tape(small));
         assert_eq!(q, biguint_to_tape(large));
-        assert_eq!(vox::morphism_factor::mul(&p, &q), n);
-        let radix = vox::morphism_factor::tape_u64(4_294_967_296);
-        let product_outer = vox::factor_2adic::nest_product_over_prefix(&n, &p, &q, &radix).unwrap();
-        let prefix_outer = vox::factor_2adic::nest_prefix_over_product(&n, &p, &q, &radix).unwrap();
+        assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+        let radix = crate::morphism_factor::tape_u64(4_294_967_296);
+        let product_outer = crate::factor_2adic::nest_product_over_prefix(&n, &p, &q, &radix).unwrap();
+        let prefix_outer = crate::factor_2adic::nest_prefix_over_product(&n, &p, &q, &radix).unwrap();
         assert_eq!(product_outer, prefix_outer);
-        assert!(vox::factor_2adic::radix_prefix_closes(
+        assert!(crate::factor_2adic::radix_prefix_closes(
             &n, &p, &q, &radix,
         ));
     }

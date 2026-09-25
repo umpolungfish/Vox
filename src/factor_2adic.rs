@@ -808,20 +808,9 @@ pub fn meet_factor_nestings(
     radix: &[char],
 ) -> Option<FactorFixedPoint> {
     let n = trim(n.to_vec());
-    let product_outer = multiply(p, q);
-    if product_outer != n {
-        return None;
-    }
-    let prefix = radix_prefix_fold(&n, p, q, radix)?;
-    let product_inner = multiply(&prefix.p, &prefix.q);
-    if product_inner != n || product_inner != product_outer {
-        return None;
-    }
-    Some(FactorFixedPoint {
-        p: prefix.p,
-        q: prefix.q,
-        product: product_inner,
-    })
+    let product_outer = nest_product_over_prefix(&n, p, q, radix)?;
+    let prefix_outer = nest_prefix_over_product(&n, p, q, radix)?;
+    (product_outer == prefix_outer).then_some(product_outer)
 }
 
 /// One state contains only the input and the two factor prefixes. Width is the
