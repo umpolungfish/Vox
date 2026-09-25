@@ -1,1 +1,1 @@
-I bake the phase base beside N as an IMASM numeral, carry it through the EML phase winding, and document the contained-binary scale tests and the current timeout wall.
+I bake the phase base as an IMASM input, thread it through the EML phase winding, and record wider contained runs through the 59,227-digit timeout wall.
