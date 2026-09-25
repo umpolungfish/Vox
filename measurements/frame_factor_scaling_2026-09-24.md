@@ -126,3 +126,21 @@ were unnecessary implementation constraints, but removing them does not
 establish width-independent sub-second closure. The binary still has native
 Rust control flow and is still a deterministic single-base phase walk; it is
 not a pure IMASM instruction stream or a physical quantum execution.
+
+## IMASM carrier composition
+
+`frame_factor_carrier.imasm` is the executable carrier word: its seven ordered
+motifs are PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX, and UNBRAID. The
+input is supplied to the carrier as a native numeral word, so decimal digits do
+not enter the factor operation. `vox construct-carrier` reads the seven motifs;
+`vox factor-with <carrier-word> <numeral-word>` returns one factor word.
+
+| Input | Factor pair | Factor-word closure | Factor-with wall time |
+|---|---|---|---:|
+| 8,051 | 83 × 97 | returned 97; `vox verify` returned `p*q == N: true` | under 1 ms |
+| 1,000,036,000,099 | 1,000,003 × 1,000,033 | returned 1,000,033; `vox verify` returned `p*q == N: true` | 6 ms |
+| 580,284,393,595,165,992,175,009,793 | 3,221,225,473 × 180,143,985,094,819,841 | returned factor matched one input prime; `vox verify` returned `p*q == N: true` | 1.012 s |
+
+The carrier word carries the operation ordering, and each numeral remains an
+IMASM tape across the call. These runs verify the composed PHASE-to-UNBRAID
+route on the listed inputs.
