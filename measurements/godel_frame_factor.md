@@ -5,15 +5,22 @@ cell-local carry normalization and signed contribution cancellation. Given an
 odd candidate word, `complementWord` reads the residual parity, cancels that
 candidate's contribution when the next complementary bit is set, and shifts
 the even residual with its signed carry. It returns a complementary word and
-the remaining residual after consuming the source width. It does not choose
-the candidate. These operations are currently Lean definitions; the compiled
-IMASM extractor does not yet execute them.
+the remaining residual after consuming the source width.
+
+`recoverPhaseWords` connects the existing phase-difference closure to this
+recovery: the input comprises the source word and two phase-residue words.
+The proper odd difference gcd supplies the first word, and cancellation
+constructs its complement. `pairedPhaseReturn` then packs two cells from each
+word into each kernel `Reg16_3`, reverses that pairing, and extracts both
+factor tapes. Unequal widths receive high-order zero padding. This connection
+currently lives in the Lean executable specification; integration into the
+contained IMASM runtime remains pending.
 
 Kernel checks establish the value identities for normalization, cancellation,
 and even-residual shifting. Concrete inverse checks include exact products,
 a nonzero terminal residual for a nondivisor, and word widths crossing 64,
-128, and 256 bits. Those are complementary-word unit tests, not RSA factoring
-results or evidence of N-only candidate selection.
+128, and 256 bits. Pair encoding and reversal are mutual inverses for every
+register, and map-level reversal preserves every aligned paired stream.
 
 `./frame_factor_build.sh <decimal-N> [frame-width]` compiles a contained binary
 with the source value imscribed as an IMASM numeral and the frame width baked
