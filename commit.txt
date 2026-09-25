@@ -1,1 +1,1 @@
-I nest all three supplied EML operator arms inside the phase parent and verify their dispatch and factoring path.
+I test all four nested EML arms on the 160-digit carrier, preserve standalone phase behavior, and retain the rebuilt contained binary.

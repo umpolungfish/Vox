@@ -1070,7 +1070,6 @@ fn advance_eml_phase(state: &mut State) {
         state.eml_phase_done = state.eml_partners.is_none();
     }
     let candidate = if let Some(partners) = state.eml_partners.as_mut() {
-        let probe_index = partners.squarings;
         let support_probe = partners.support_probe();
         let negative_snapshot = if support_probe {
             Some(partners.negative_support_snapshot())
@@ -1105,13 +1104,6 @@ fn advance_eml_phase(state: &mut State) {
                 Ok(None) => {
                     if let Some(snapshot) = negative_snapshot {
                         state.negative_support.push(snapshot);
-                    }
-                    // The initial eight support apertures are a complete
-                    // negative frame read. Do not wait for a random RSA
-                    // orbit collision before handing that information to the
-                    // structural bridge.
-                    if probe_index == 8 {
-                        state.eml_phase_done = true;
                     }
                     None
                 }
@@ -1708,7 +1700,10 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             apply_morphism(EML_EXP_DIV_LOG, state);
             apply_morphism(EML_REVERSE_NEGATIVE, state);
         }
-        if state.selected.is_none() && state.eml_phase_done && state.bridge_count < 12 {
+        if state.selected.is_none()
+            && (state.eml_phase_done || state.negative_support.len() >= 8)
+            && state.bridge_count < 12
+        {
             apply_morphism(STRUCTURAL_BRIDGE, state);
         }
     } else if operator == STRUCTURAL_BRIDGE {
