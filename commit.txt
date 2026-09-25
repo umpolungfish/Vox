@@ -1,1 +1,1 @@
-I add the three supplied EML operator words as distinct kernel-recognized membrane arms and verify their dispatch.
+I nest all three supplied EML operator arms inside the phase parent and verify their dispatch and factoring path.
