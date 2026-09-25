@@ -1,1 +1,1 @@
-I test the encoded EML phase base through 17 against the 59,227-digit semiprime and record the continuing one-minute closure boundary.
+I remove the one-minute cutoff from the EML membrane runner and rerun the two widest base-2 semiprimes without a timeout. Both contained binaries close and return the exact encoded smaller factor; I retain their inputs, executables, outputs, and timings.
