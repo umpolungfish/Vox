@@ -1017,6 +1017,9 @@ struct State {
     phase: Tape,
     eml_partners: Option<crate::phase_partners::Partners>,
     eml_phase_done: bool,
+    // Negative support is banked at frame apertures instead of being reduced
+    // to the old phase-done boolean. Each entry is (phase index, residue).
+    negative_support: Vec<(Tape, Tape)>,
     divisor: Tape,
     a: Tape,
     pm_a: Tape,
@@ -1052,6 +1055,12 @@ fn advance_eml_phase(state: &mut State) {
         state.eml_phase_done = state.eml_partners.is_none();
     }
     let candidate = if let Some(partners) = state.eml_partners.as_mut() {
+        let support_probe = partners.support_probe();
+        let negative_snapshot = if support_probe {
+            Some(partners.negative_support_snapshot())
+        } else {
+            None
+        };
         if let Some(target) = partners.support_target() {
             state.eml_phase_done = true;
             Some((target.p, target.q))
@@ -1077,8 +1086,16 @@ fn advance_eml_phase(state: &mut State) {
                             .ok()
                         })
                 }
-                Ok(None) => None,
+                Ok(None) => {
+                    if let Some(snapshot) = negative_snapshot {
+                        state.negative_support.push(snapshot);
+                    }
+                    None
+                }
                 Err(_) => {
+                    if let Some(snapshot) = negative_snapshot {
+                        state.negative_support.push(snapshot);
+                    }
                     state.eml_phase_done = true;
                     None
                 }
@@ -1581,6 +1598,7 @@ pub fn run_carrier_rounds_with_phase_base(
         phase: one(),
         eml_partners: None,
         eml_phase_done: false,
+        negative_support: Vec::new(),
         divisor: one(),
         a: a_seed,
         pm_a: two(),
@@ -1973,6 +1991,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         phase: one(),
         eml_partners: None,
         eml_phase_done: false,
+        negative_support: Vec::new(),
         divisor: one(),
         a: a_seed,
         pm_a: two(),
@@ -2858,6 +2877,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         phase: one(),
         eml_partners: None,
         eml_phase_done: false,
+        negative_support: Vec::new(),
         divisor: one(),
         a: a_seed,
         pm_a: two(),

@@ -200,6 +200,11 @@ carries the congruence while Miller-Rabin places it in the falsity lane. The
 two reads coexist paraconsistently, and the fixed modulus 12 names the
 twelve-primitive structural frame without limiting operand width.
 
+Negative support probes are now banked at the same apertures. Each bank entry
+retains the dynamic phase index and resident support residue, so an absent
+target remains available to later frame and base selection instead of being
+collapsed into `phase_done`.
+
 The 14-, 23-, and 27-digit runs returned factors from their baked IMASM
 numerals. Vox multiplication verified each factor/cofactor pair against its
 source.
