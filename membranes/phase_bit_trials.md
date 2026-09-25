@@ -452,6 +452,27 @@ Conversion, baking, and compilation brought total CLI wall time to 83.42 s;
 the silent contained execution completed within its internal one-minute cap,
 and its output matched `M19937` byte-for-byte.
 
+## Incremental width boundary check
+
+The baked nested carrier was rerun on the successful ladder immediately below
+the RSA battery. Each run returned a complete factor word; the roughly 26–28 s
+wall includes rebuilding the contained binary, so it is not the membrane
+execution time alone.
+
+| N digits | result | wall |
+|---:|---|---:|
+| 14 | exact factor | 27 s |
+| 18 | exact factor | 26 s |
+| 23 | exact factor | 26 s |
+| 27 | exact factor | 26 s |
+| 41 | exact factor | 26 s |
+| 160 | exact factor | 28 s |
+
+RSA-100, RSA-110, and RSA-120 all timed out at 60 s without output. This
+brackets the current behavior as structure-sensitive rather than a fixed digit
+limit: the 160-digit structured case closes while the 100-digit RSA case does
+not.
+
 The 39,357-digit phase state previously held a growing residue map. Replacing
 it with Brent winding fixes the resident orbit registers at three; the
 large-width test verifies the return relation and both nested closures. A
