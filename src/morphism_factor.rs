@@ -1039,6 +1039,7 @@ struct State {
     unbraid_q_bits: usize,
     unbraid_started: bool,
     unbraid_done: bool,
+    carrier_closed: bool,
 }
 
 fn advance_eml_phase(state: &mut State) {
@@ -1600,6 +1601,7 @@ pub fn run_carrier_rounds_with_phase_base(
         unbraid_q_bits: 0,
         unbraid_started: false,
         unbraid_done: false,
+        carrier_closed: false,
     };
     let mut r = 0u64;
     loop {
@@ -1607,6 +1609,9 @@ pub fn run_carrier_rounds_with_phase_base(
         execute_nested(tower, &mut state);
         if let Some(ref selected) = state.selected {
             return Some(selected.clone());
+        }
+        if state.carrier_closed {
+            return None;
         }
         r += 1;
         if r >= max_rounds {
@@ -1845,10 +1850,11 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.unbraid_stack.push((vec![EVALF], vec![EVALF]));
         }
         let Some((p, q)) = state.unbraid_stack.pop() else {
-            // This bit-width split failed. Leave the outer nested carrier
-            // active so its remaining methods can continue on the same N.
+            // This bit-width split failed. Close the outer carrier so the
+            // caller can distinguish exhausted support from a live re-entry.
             state.unbraid_done = true;
             state.exhausted = true;
+            state.carrier_closed = true;
             return;
         };
         let p_bits = state.unbraid_p_bits;
@@ -1987,6 +1993,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         unbraid_q_bits: 0,
         unbraid_started: false,
         unbraid_done: false,
+        carrier_closed: false,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     loop {
@@ -2380,6 +2387,15 @@ mod tests {
         assert!(prime12_support(&composite));
         assert!(!miller_rabin(&composite));
         assert!(!prime12_support(&tape_u64(3)));
+    }
+
+    #[test]
+    fn exhausted_nested_arm_closes_the_outer_carrier() {
+        let tower: [&[char]; 1] = [UNBRAID];
+        assert!(
+            run_carrier_rounds_with_phase_base(&tower, &tape_u64(17), &tape_u64(2), u64::MAX,)
+                .is_none()
+        );
     }
 
     // A single operator word whose interior is the six motif interiors in
@@ -2862,6 +2878,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         unbraid_q_bits: 0,
         unbraid_started: false,
         unbraid_done: false,
+        carrier_closed: false,
     };
     let tower: [&[char]; 6] = [PHASE, ARITHMETIC, BRANCH, SELECT, CONTINUE, FIX];
     for _ in 0..max_steps {
