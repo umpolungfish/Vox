@@ -993,6 +993,8 @@ struct State {
     x: Tape,
     y: Tape,
     phase: Tape,
+    eml_partners: Option<crate::phase_partners::Partners>,
+    eml_phase_done: bool,
     divisor: Tape,
     a: Tape,
     pm_a: Tape,
@@ -1014,6 +1016,61 @@ struct State {
     unbraid_q_bits: usize,
     unbraid_started: bool,
     unbraid_done: bool,
+}
+
+fn advance_eml_phase(state: &mut State) {
+    if state.eml_phase_done || state.selected.is_some() {
+        return;
+    }
+    if state.eml_partners.is_none() {
+        state.eml_partners = crate::phase_partners::Partners::new(two(), state.n.clone()).ok();
+        state.eml_phase_done = state.eml_partners.is_none();
+    }
+    let candidate = if let Some(partners) = state.eml_partners.as_mut() {
+        if let Some(target) = partners.support_target() {
+            state.eml_phase_done = true;
+            Some((target.p, target.q))
+        } else {
+            match partners.observe() {
+                Ok(Some(relation)) => {
+                    state.eml_phase_done = true;
+                    relation
+                        .half_residues
+                        .as_ref()
+                        .and_then(|(current, earlier)| {
+                            crate::shor_braid::phase_factor_register_seeds(
+                                &state.n, current, earlier,
+                            )
+                            .ok()
+                        })
+                        .or_else(|| {
+                            crate::shor_braid::factor_close_public(
+                                &two(),
+                                &state.n,
+                                &relation.return_exponent,
+                            )
+                            .ok()
+                        })
+                }
+                Ok(None) => None,
+                Err(_) => {
+                    state.eml_phase_done = true;
+                    None
+                }
+            }
+        }
+    } else {
+        None
+    };
+    if let Some((p, q)) = candidate {
+        if let Some(fixed) = crate::factor_2adic::meet_factor_nestings(&state.n, &p, &q, &two()) {
+            if let Some(pair) =
+                crate::factor_2adic::terminal_pair_given_semiprime_promise(&state.n, fixed)
+            {
+                state.selected = Some(pair.p);
+            }
+        }
+    }
 }
 
 /// The interior of each operator motif (its marks between VINIT and TANCH).
@@ -1446,6 +1503,8 @@ pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> 
         x: two(),
         y: two(),
         phase: one(),
+        eml_partners: None,
+        eml_phase_done: false,
         divisor: one(),
         a: a_seed,
         pm_a: two(),
@@ -1484,9 +1543,17 @@ fn apply_morphism(operator: &[char], state: &mut State) {
     // Dispatch is read from the operator word itself. Each operator therefore
     // remains both the boundary and the action performed at that boundary.
     if operator == EML_FRAME {
-        // The EML evaluation frame reads adjacent LSB-first cells as joint
-        // states. Reassembling those states is the inverse frame shift, so the
-        // transported numeral stays exact for the following carrier morphism.
+        // One EML firing advances one phase observation for each bit in both
+        // factor registers before the deeper carrier arms execute. The sweep
+        // width is derived from the encoded source and has no fixed cap.
+        for _ in 0..(state.n.len() * 2) {
+            advance_eml_phase(state);
+            if state.eml_phase_done || state.selected.is_some() {
+                break;
+            }
+        }
+        // Reassemble the adjacent joint states exactly before passing the
+        // numeral to the next morphism in the tower.
         state.n = state
             .n
             .chunks(2)
@@ -1780,9 +1847,14 @@ fn unbraid_low_bits(t: &[char], k: usize) -> Tape {
 }
 
 fn execute_nested(operators: &[&[char]], state: &mut State) {
+    if state.selected.is_some() {
+        return;
+    }
     if let Some((operator, continuation)) = operators.split_first() {
         apply_morphism(operator, state);
-        execute_nested(continuation, state);
+        if state.selected.is_none() {
+            execute_nested(continuation, state);
+        }
     }
 }
 
@@ -1809,6 +1881,8 @@ pub fn factor(word: &str) -> Result<String, String> {
         x: two(),
         y: two(),
         phase: one(),
+        eml_partners: None,
+        eml_phase_done: false,
         divisor: one(),
         a: a_seed,
         pm_a: two(),
@@ -2230,7 +2304,7 @@ mod tests {
         const NESTED: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
         const EML_PHASE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
         const EML_FULL: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⋈⊤⊥∋∈⊤⊥∋∈⊙∋≻⋈⊙⊡⊣";
-        const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+        const EML_NINE: &str = "⊢≻≺∈⊤⊥⊞≺⊙∋⊡∈≻⊤⊥∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
 
         let eml = construct_carrier(EML).unwrap();
         assert_eq!(
@@ -2286,6 +2360,11 @@ mod tests {
         let wide_q = 180_143_985_094_819_841u64;
         let wide_source = decimal_to_tape("580284393595165992175009793").unwrap();
         let wide_word = emit_numeral(&wide_source);
+        let phase_tower: [&[char]; 2] = [EML_FRAME, FIX];
+        let phase_factor = run_carrier_rounds(&phase_tower, &wide_source, 1024).unwrap();
+        let wide_left = parse_numeral(&numeral(wide_p)).unwrap();
+        let wide_right = parse_numeral(&numeral(wide_q)).unwrap();
+        assert!(phase_factor == wide_left || phase_factor == wide_right);
         assert_eq!(
             construct_carrier(EML_NINE)
                 .unwrap()
@@ -2294,6 +2373,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             [
                 "EML_FRAME",
+                "PHASE",
                 "WITNESS",
                 "POWER",
                 "EXTRACT",
@@ -2306,8 +2386,6 @@ mod tests {
             ]
         );
         let wide_factor = parse_numeral(&factor_with(EML_NINE, &wide_word).unwrap()).unwrap();
-        let wide_left = parse_numeral(&numeral(wide_p)).unwrap();
-        let wide_right = parse_numeral(&numeral(wide_q)).unwrap();
         assert!(wide_factor == wide_left || wide_factor == wide_right);
         let (wide_cofactor, wide_remainder) = divmod(&wide_source, &wide_factor);
         assert!(zero(&wide_remainder));
@@ -2647,6 +2725,8 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         x: two(),
         y: two(),
         phase: one(),
+        eml_partners: None,
+        eml_phase_done: false,
         divisor: one(),
         a: a_seed,
         pm_a: two(),

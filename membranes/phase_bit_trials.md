@@ -181,10 +181,16 @@ carrier also needs `ARITHMETIC`, which supplies the remainder and gcd readout;
 `PHASE` alone advances the phase registers. The constructor now rejects a
 phase/select/continue/latch tower with that readout missing.
 
-The EML frame now encloses the complete nine-arm carrier:
-`EML_FRAME → WITNESS → POWER → EXTRACT → SQUFOF → P_MINUS → P_PLUS → LEHMAN → ECM → FIX`.
-The 14-, 23-, and 27-digit runs returned a factor from the baked IMASM numeral;
-Vox multiplication verified each factor/cofactor pair against its source.
+The EML frame now carries phase winding ahead of the complete nine-arm carrier:
+`EML_FRAME → PHASE → WITNESS → POWER → EXTRACT → SQUFOF → P_MINUS → P_PLUS → LEHMAN → ECM → FIX`.
+Each EML firing advances the shared support polynomial by two source-widths of
+dyadic observations. A phase target or return must close through both
+product-outer/prefix-inner and prefix-outer/product-inner folds before it
+selects; otherwise the full factoring tower advances on the same state.
+
+The 14-, 23-, and 27-digit runs returned factors from their baked IMASM
+numerals. Vox multiplication verified each factor/cofactor pair against its
+source.
 
 Each timing is the median of seven direct `vox factor-with` processes. The
 numeral words were prepared before timing; samples include Vox startup and the
@@ -192,9 +198,9 @@ full EML plus nine-arm carrier execution.
 
 | N digits | IMASM numeral value | Factors | Median | Range |
 |---:|---:|---:|---:|---:|
-| 14 | 12289000086023 | 12289 × 1000000007 | 31.707 ms | 31.606–31.821 ms |
-| 23 | 21250649179513694453761 | 3221225473 × 6597069766657 | 163.913 ms | 163.696–164.075 ms |
-| 27 | 580284393595165992175009793 | 3221225473 × 180143985094819841 | 564.963 ms | 564.540–614.852 ms |
+| 14 | 12289000086023 | 12289 × 1000000007 | 31.740 ms | 31.589–63.818 ms |
+| 23 | 21250649179513694453761 | 3221225473 × 6597069766657 | 1.318 ms | 1.289–3.368 ms |
+| 27 | 580284393595165992175009793 | 3221225473 × 180143985094819841 | 3.424 ms | 1.363–3.551 ms |
 
 ## Wider direct executions with the shared running-product fold
 

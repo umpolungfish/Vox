@@ -4,9 +4,9 @@
 //! observations produce a return relation, which is closed by nesting the
 //! product shell around the prefix fold and then reversing that nesting.
 
-#[path = "../phase_partners.rs"] mod phase_partners;
 #[path = "../phase_word.rs"] mod phase_word;
 
+use vox::phase_partners;
 use vox::morphism_factor::parse_numeral;
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));

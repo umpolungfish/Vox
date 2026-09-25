@@ -18,8 +18,8 @@ extern crate alloc;
 #[path = "../fde_shor_membrane.rs"] mod fde_shor_membrane;
 #[path = "../shor_qft.rs"] mod shor_qft;
 #[path = "../phase_word.rs"] mod phase_word;
-#[path = "../phase_partners.rs"] mod phase_partners;
 
+use vox::phase_partners;
 use vox::morphism_factor::{parse_numeral, dec_of, tape_u64, one, cmp, modulo, mul};
 use vox::shor_braid::factor_close_public;
 
