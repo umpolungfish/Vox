@@ -1,1 +1,1 @@
-I remove the arbitrary eight-state phase cutoff, keep the phase counter and modular arithmetic on IMASM tapes, close the phase lane on repeated state, and record the index-16 regression plus the balanced RSA run that remains beyond the time target.
+I read every phase state, fuse the support-frame modular arithmetic, and replace orbit-sized storage with an unbounded tape-counter cycle closure. The balanced 19-digit membrane now closes in 0.58 seconds; I record the 90-bit timeout without claiming arbitrary-width timing.

@@ -4,7 +4,7 @@
 //! of EVALT/EVALF marks, least significant cell first.  Arithmetic consumes
 //! and produces those tapes through the full-adder/full-subtractor tables.
 
-use crate::vox::{AREV, AFWD, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT};
+use crate::vox::{AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT};
 use alloc::format;
 use alloc::string::String;
 use alloc::vec;
@@ -21,7 +21,9 @@ const FIX: &[char] = &[VINIT, IMSCRIB, IFIX, TANCH];
 const FIX_BANKED: &[char] = &[VINIT, IFIX, CLINK, IMSCRIB, TANCH];
 // The repaired extract morphism banks its T/F/⊞ deposits and AREV within one
 // frame; the adjacent ⊡⋈⊙ tail is the paired fixed-point latch.
-const EXTRACT: &[char] = &[VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE, TANCH];
+const EXTRACT: &[char] = &[
+    VINIT, FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE, TANCH,
+];
 const EXTRACT_BANKED: &[char] = &[
     VINIT, FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE, TANCH,
 ];
@@ -66,7 +68,9 @@ const SQUFOF: &[char] = &[VINIT, FSPLIT, EVALT, AREV, '⊞', EVALF, FFUSE, TANCH
 // odd-parity fork's two branches are related by exchanging p and q for every
 // remaining bit, so only one is walked; the even-parity fork (both bits equal)
 // has no such symmetry and both sides are walked.
-const UNBRAID: &[char] = &[VINIT, FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, FFUSE, TANCH];
+const UNBRAID: &[char] = &[
+    VINIT, FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, FFUSE, TANCH,
+];
 
 fn bit(mark: char) -> Result<bool, String> {
     match mark {
@@ -207,8 +211,20 @@ fn l_is_zero(a: &[u64]) -> bool {
 }
 
 fn l_cmp(a: &[u64], b: &[u64]) -> core::cmp::Ordering {
-    let la = { let mut n = a.len(); while n > 1 && a[n - 1] == 0 { n -= 1; } n };
-    let lb = { let mut n = b.len(); while n > 1 && b[n - 1] == 0 { n -= 1; } n };
+    let la = {
+        let mut n = a.len();
+        while n > 1 && a[n - 1] == 0 {
+            n -= 1;
+        }
+        n
+    };
+    let lb = {
+        let mut n = b.len();
+        while n > 1 && b[n - 1] == 0 {
+            n -= 1;
+        }
+        n
+    };
     if la != lb {
         return la.cmp(&lb);
     }
@@ -312,8 +328,7 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     let m = n.len() - divisor_len;
     let mut q = vec![0u64; m + 1];
     for j in (0..=m).rev() {
-        let numerator = ((u[j + divisor_len] as u128) << 64)
-            | u[j + divisor_len - 1] as u128;
+        let numerator = ((u[j + divisor_len] as u128) << 64) | u[j + divisor_len - 1] as u128;
         let mut qhat = numerator / top;
         let mut rhat = numerator % top;
         if qhat >= (1u128 << 64) {
@@ -321,8 +336,7 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
             rhat = numerator - qhat * top;
         }
         while rhat < (1u128 << 64)
-            && qhat * v[divisor_len - 2] as u128
-                > (rhat << 64) + u[j + divisor_len - 2] as u128
+            && qhat * v[divisor_len - 2] as u128 > (rhat << 64) + u[j + divisor_len - 2] as u128
         {
             qhat -= 1;
             rhat += top;
@@ -335,7 +349,9 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
             borrow = product >> 64;
             let old = u[j + i];
             u[j + i] = old.wrapping_sub(low);
-            if old < low { borrow += 1; }
+            if old < low {
+                borrow += 1;
+            }
         }
         let old_high = u[j + divisor_len];
         let underflow = (old_high as u128) < borrow;
@@ -389,6 +405,91 @@ pub fn modulo(n: &[char], d: &[char]) -> Tape {
     unfold(&l_divmod(&fold(n), &fold(d)).1)
 }
 
+/// Multiply and add before one modular reduction, keeping every external
+/// numeral on its IMASM tape while avoiding repeated fold/unfold boundaries.
+pub fn mul_mod_add(a: &[char], b: &[char], c: &[char], n: &[char]) -> Tape {
+    let left = fold(a);
+    let right = fold(b);
+    let addend = fold(c);
+    let modulus = fold(n);
+    if left.len() == 1
+        && right.len() == 1
+        && addend.len() == 1
+        && modulus.len() == 1
+        && modulus[0] != 0
+    {
+        let value = left[0] as u128 * right[0] as u128 + addend[0] as u128;
+        return unfold(&[(value % modulus[0] as u128) as u64]);
+    }
+    let product = l_mul(&left, &right);
+    let sum = l_add(&product, &addend);
+    unfold(&l_divmod(&sum, &modulus).1)
+}
+
+/// Modular product with a single dynamic-limb fold and unfold per operand.
+pub fn mul_mod(a: &[char], b: &[char], n: &[char]) -> Tape {
+    let left = fold(a);
+    let right = fold(b);
+    let modulus = fold(n);
+    if left.len() == 1 && right.len() == 1 && modulus.len() == 1 && modulus[0] != 0 {
+        return unfold(&[((left[0] as u128 * right[0] as u128) % modulus[0] as u128) as u64]);
+    }
+    unfold(&l_divmod(&l_mul(&left, &right), &modulus).1)
+}
+
+/// Evaluate an LSB-first binary support tape as a polynomial through one
+/// evaluation frame. The one-limb path keeps residues in the arithmetic
+/// registers between coefficient groups; wider values use the same dynamic
+/// limb/tape operations without a width ceiling.
+pub fn eval_binary_support_frame(bits: &[char], x: &[char], n: &[char], width: usize) -> Tape {
+    if width == 0 || bits.is_empty() {
+        return vec![EVALT];
+    }
+    let modulus = fold(n);
+    let phase = fold(x);
+    if width <= 8 && modulus.len() == 1 && modulus[0] != 0 && phase.len() == 1 {
+        let modulus = modulus[0] as u128;
+        let phase = phase[0] as u128 % modulus;
+        let mut powers = vec![1u128; width + 1];
+        for index in 1..=width {
+            powers[index] = powers[index - 1] * phase % modulus;
+        }
+        let frame_base = powers[width];
+        let mut value = 0u128;
+        for group in bits.chunks(width).rev() {
+            let mut symbol = 0u128;
+            for (position, mark) in group.iter().enumerate() {
+                if *mark == EVALF {
+                    symbol += powers[position];
+                }
+            }
+            symbol %= modulus;
+            value = ((value * frame_base) % modulus + symbol) % modulus;
+        }
+        return unfold(&[value as u64]);
+    }
+
+    let mut powers = vec![vec![1u64]; width + 1];
+    for index in 1..=width {
+        let product = l_mul(&powers[index - 1], &phase);
+        powers[index] = l_divmod(&product, &modulus).1;
+    }
+    let frame_base = &powers[width];
+    let mut value = vec![0u64];
+    for group in bits.chunks(width).rev() {
+        let mut symbol = vec![0u64];
+        for (position, mark) in group.iter().enumerate() {
+            if *mark == EVALF {
+                symbol = l_add(&symbol, &powers[position]);
+            }
+        }
+        let product = l_mul(&value, frame_base);
+        let sum = l_add(&product, &symbol);
+        value = l_divmod(&sum, &modulus).1;
+    }
+    unfold(&value)
+}
+
 fn mod_add(a: &[char], b: &[char], n: &[char]) -> Tape {
     modulo(&add(a, b), n)
 }
@@ -406,6 +507,15 @@ fn abs_diff(a: &[char], b: &[char]) -> Tape {
 }
 
 pub fn gcd(mut a: Tape, mut b: Tape) -> Tape {
+    let left = fold(&a);
+    let right = fold(&b);
+    if left.len() == 1 && right.len() == 1 {
+        let (mut x, mut y) = (left[0], right[0]);
+        while y != 0 {
+            (x, y) = (y, x % y);
+        }
+        return unfold(&[x]);
+    }
     while !zero(&b) {
         let r = modulo(&a, &b);
         a = b;
@@ -442,7 +552,11 @@ fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
     let sixth = iroot(n, 6);
     let sk = {
         let r = isqrt(k);
-        if zero(&r) { one() } else { r }
+        if zero(&r) {
+            one()
+        } else {
+            r
+        }
     };
     let width = divmod(&sixth, &mul(&tape_u64(4), &sk)).0;
     let limit = add(&add(&a, &width), &one());
@@ -855,7 +969,9 @@ fn ecm_curve(n: &[char], seed: u64, k: &[char]) -> Option<Tape> {
     match ec_scalar(k, &p, &a, n) {
         Ok(_) => None,
         Err(g) => {
-            if cmp(&g, &one()) == core::cmp::Ordering::Greater && cmp(&g, n) == core::cmp::Ordering::Less {
+            if cmp(&g, &one()) == core::cmp::Ordering::Greater
+                && cmp(&g, n) == core::cmp::Ordering::Less
+            {
                 Some(trim(g))
             } else {
                 None
@@ -906,9 +1022,7 @@ const CONTINUE_I: &[char] = &[AFWD, CLINK];
 const FIX_I: &[char] = &[IMSCRIB, IFIX];
 const FIX_BANKED_I: &[char] = &[IFIX, CLINK, IMSCRIB];
 const EXTRACT_I: &[char] = &[FSPLIT, AFWD, EVALT, AREV, EVALF, '⊞', CLINK, FFUSE];
-const EXTRACT_BANKED_I: &[char] = &[
-    FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE,
-];
+const EXTRACT_BANKED_I: &[char] = &[FSPLIT, AFWD, EVALT, CLINK, IMSCRIB, AREV, EVALF, '⊞', FFUSE];
 const P_MINUS_I: &[char] = &[FSPLIT, IMSCRIB, '⊞', CLINK, FFUSE];
 const ECM_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, CLINK, FFUSE];
 const WITNESS_I: &[char] = &[FSPLIT, EVALT, AREV, EVALF, FFUSE];
@@ -920,22 +1034,39 @@ const UNBRAID_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, F
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
-    if operator == PHASE { "PHASE" }
-    else if operator == ARITHMETIC { "ARITHMETIC" }
-    else if operator == BRANCH { "BRANCH" }
-    else if operator == SELECT { "SELECT" }
-    else if operator == CONTINUE { "CONTINUE" }
-    else if operator == FIX || operator == FIX_BANKED { "FIX" }
-    else if operator == EXTRACT || operator == EXTRACT_BANKED { "EXTRACT" }
-    else if operator == P_MINUS { "P_MINUS" }
-    else if operator == ECM { "ECM" }
-    else if operator == WITNESS { "WITNESS" }
-    else if operator == POWER { "POWER" }
-    else if operator == P_PLUS { "P_PLUS" }
-    else if operator == LEHMAN { "LEHMAN" }
-    else if operator == SQUFOF { "SQUFOF" }
-    else if operator == UNBRAID { "UNBRAID" }
-    else { "?" }
+    if operator == PHASE {
+        "PHASE"
+    } else if operator == ARITHMETIC {
+        "ARITHMETIC"
+    } else if operator == BRANCH {
+        "BRANCH"
+    } else if operator == SELECT {
+        "SELECT"
+    } else if operator == CONTINUE {
+        "CONTINUE"
+    } else if operator == FIX || operator == FIX_BANKED {
+        "FIX"
+    } else if operator == EXTRACT || operator == EXTRACT_BANKED {
+        "EXTRACT"
+    } else if operator == P_MINUS {
+        "P_MINUS"
+    } else if operator == ECM {
+        "ECM"
+    } else if operator == WITNESS {
+        "WITNESS"
+    } else if operator == POWER {
+        "POWER"
+    } else if operator == P_PLUS {
+        "P_PLUS"
+    } else if operator == LEHMAN {
+        "LEHMAN"
+    } else if operator == SQUFOF {
+        "SQUFOF"
+    } else if operator == UNBRAID {
+        "UNBRAID"
+    } else {
+        "?"
+    }
 }
 
 /// Automated carrier constructor. Read an operator ob3ect word and decompose
@@ -1019,7 +1150,11 @@ pub struct FactorObject<'a> {
 
 impl<'a> FactorObject<'a> {
     pub const fn new(walk: &'a str, type_word: &'a str, reconciliation: Reconciliation) -> Self {
-        Self { walk, type_word, reconciliation }
+        Self {
+            walk,
+            type_word,
+            reconciliation,
+        }
     }
 
     /// Legacy/single-word factoring is the diagonal `(walk,type) = (w,w)`.
@@ -1036,18 +1171,26 @@ impl<'a> FactorObject<'a> {
 fn frame_work_holds(walk: &str, type_word: &str) -> bool {
     let w: Vec<char> = walk.chars().collect();
     let t: Vec<char> = type_word.chars().collect();
-    if w.len() != t.len() { return false; }
+    if w.len() != t.len() {
+        return false;
+    }
 
     for i in 0..w.len().saturating_sub(1) {
-        if w[i] != FSPLIT || w[i + 1] != FFUSE { continue; }
+        if w[i] != FSPLIT || w[i + 1] != FFUSE {
+            continue;
+        }
         let mut wr = w.clone();
         wr.remove(i + 1);
         // The fuse must move strictly to the right, leaving work inside.
         for j in (i + 2)..t.len() {
-            if t[j] != FFUSE { continue; }
+            if t[j] != FFUSE {
+                continue;
+            }
             let mut tr = t.clone();
             tr.remove(j);
-            if wr == tr { return true; }
+            if wr == tr {
+                return true;
+            }
         }
     }
     false
@@ -1056,10 +1199,13 @@ fn frame_work_holds(walk: &str, type_word: &str) -> bool {
 fn fork_balance(word: &[char]) -> Option<i32> {
     let mut depth = 0i32;
     for &g in word {
-        if g == FSPLIT { depth += 1; }
-        else if g == FFUSE {
+        if g == FSPLIT {
+            depth += 1;
+        } else if g == FFUSE {
             depth -= 1;
-            if depth < 0 { return None; }
+            if depth < 0 {
+                return None;
+            }
         }
     }
     Some(depth)
@@ -1076,10 +1222,14 @@ fn close_frame_holds(walk: &str, type_word: &str) -> bool {
         return false;
     }
     for j in 0..t.len() {
-        if t[j] != FFUSE { continue; }
+        if t[j] != FFUSE {
+            continue;
+        }
         let mut tr = t.clone();
         tr.remove(j);
-        if tr == w { return true; }
+        if tr == w {
+            return true;
+        }
     }
     false
 }
@@ -1110,11 +1260,19 @@ fn require_factoring_complete(tower: &[&[char]]) -> Result<(), String> {
     let mut missing = Vec::new();
     // EXTRACT, ECM and UNBRAID each fold advance, decide and continue into one boundary.
     if !has(EXTRACT) && !has(EXTRACT_BANKED) && !has(ECM) && !has(UNBRAID) {
-        if !has(PHASE) && !has(ARITHMETIC) { missing.push("PHASE or ARITHMETIC (advance)"); }
-        if !has(SELECT) { missing.push("SELECT (decide)"); }
-        if !has(CONTINUE) { missing.push("CONTINUE (step the candidate)"); }
+        if !has(PHASE) && !has(ARITHMETIC) {
+            missing.push("PHASE or ARITHMETIC (advance)");
+        }
+        if !has(SELECT) {
+            missing.push("SELECT (decide)");
+        }
+        if !has(CONTINUE) {
+            missing.push("CONTINUE (step the candidate)");
+        }
     }
-    if !has(FIX) && !has(FIX_BANKED) { missing.push("FIX (latch)"); }
+    if !has(FIX) && !has(FIX_BANKED) {
+        missing.push("FIX (latch)");
+    }
     if missing.is_empty() {
         Ok(())
     } else {
@@ -1139,9 +1297,10 @@ pub fn audit_factor_object(object: &FactorObject<'_>) -> Result<Vec<&'static [ch
 /// EXECUTION PRESERVATION obligation therefore becomes a byte-level equality
 /// between the walk's non-frame work and the work carried by the typed tower.
 fn work_projection(word: &[char]) -> Vec<char> {
-    word.iter().copied().filter(|g|
-        *g != VINIT && *g != TANCH && *g != FSPLIT && *g != FFUSE
-    ).collect()
+    word.iter()
+        .copied()
+        .filter(|g| *g != VINIT && *g != TANCH && *g != FSPLIT && *g != FFUSE)
+        .collect()
 }
 
 fn tower_work_projection(tower: &[&[char]]) -> Vec<char> {
@@ -1175,14 +1334,20 @@ fn dispatch_projection_holds(walk_work: &[char], tower_work: &[char]) -> bool {
     for &g in walk_work {
         let mut next = vec![false; tower_work.len() + 1];
         for j in 0..=tower_work.len() {
-            if !reachable[j] { continue; }
+            if !reachable[j] {
+                continue;
+            }
 
             // The carrier constructor explicitly permits this mark to pass
             // without dispatching a morphism.
-            if non_dispatch_carry(g) { next[j] = true; }
+            if non_dispatch_carry(g) {
+                next[j] = true;
+            }
 
             // Or this occurrence can belong to the next dispatched morphism.
-            if j < tower_work.len() && g == tower_work[j] { next[j + 1] = true; }
+            if j < tower_work.len() && g == tower_work[j] {
+                next[j + 1] = true;
+            }
         }
         reachable = next;
     }
@@ -1204,7 +1369,9 @@ pub fn audit_execution_projection(
         return Err("execution preservation failed: walk/type work projections differ".into());
     }
     if !dispatch_projection_holds(&walk_work, &tower_work) {
-        return Err("execution preservation failed: walk work does not match typed morphism tower".into());
+        return Err(
+            "execution preservation failed: walk work does not match typed morphism tower".into(),
+        );
     }
     Ok(())
 }
@@ -1547,21 +1714,31 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         let symmetric_split = p_bits == q_bits && p == q;
         let mut pushed_swap_pair = false;
         for &pb in &[0u8, 1u8] {
-            if !p_open && pb == 1 { continue; }
+            if !p_open && pb == 1 {
+                continue;
+            }
             for &qb in &[0u8, 1u8] {
-                if !q_open && qb == 1 { continue; }
+                if !q_open && qb == 1 {
+                    continue;
+                }
                 if symmetric_split && pb != qb && pushed_swap_pair {
                     // The mirror of the (pb,qb) pair already pushed this round.
                     continue;
                 }
                 let mut new_p = p.clone();
-                if p_open { new_p.push(if pb == 1 { EVALF } else { EVALT }); }
+                if p_open {
+                    new_p.push(if pb == 1 { EVALF } else { EVALT });
+                }
                 let mut new_q = q.clone();
-                if q_open { new_q.push(if qb == 1 { EVALF } else { EVALT }); }
+                if q_open {
+                    new_q.push(if qb == 1 { EVALF } else { EVALT });
+                }
                 let prod_low = unbraid_low_bits(&trim(mul(&new_p, &new_q)), k);
                 if prod_low == n_low {
                     state.unbraid_stack.push((new_p, new_q));
-                    if symmetric_split && pb != qb { pushed_swap_pair = true; }
+                    if symmetric_split && pb != qb {
+                        pushed_swap_pair = true;
+                    }
                 }
             }
         }
@@ -1695,7 +1872,11 @@ pub fn dec_of(t: &[char]) -> String {
     // The in-place digits.reverse() autovectorizes into punpcklbw/pshuflw
     // once the decimal string grows and mis-decodes in the x86 lift — the
     // hazard gpu_shor_one.rs contracts away. Same digits, same string.
-    digits.into_iter().rev().map(|d| d as char).collect::<String>()
+    digits
+        .into_iter()
+        .rev()
+        .map(|d| d as char)
+        .collect::<String>()
 }
 
 /// Shape scout: cheap probes, cheapest first, each of which reads one shape of N
@@ -1756,7 +1937,10 @@ fn scout_factor_with_primality(
                     let p = sub(&a, &bb);
                     if cmp(&p, &one()) == Greater {
                         let q = divmod(&n, &p).0;
-                        return (Some((p.clone(), q, "frontier")), format!("shape: near-root, closed at frontier step {}\n", i));
+                        return (
+                            Some((p.clone(), q, "frontier")),
+                            format!("shape: near-root, closed at frontier step {}\n", i),
+                        );
                     }
                 }
             }
@@ -1774,7 +1958,10 @@ fn scout_factor_with_primality(
         let r = iroot(&n, b);
         if cmp(&r, &one()) == Greater && cmp(&ipow(&r, b), &n) == Equal {
             let q = divmod(&n, &r).0;
-            return (Some((r.clone(), q, "perfect-power")), format!("shape: perfect power, base {}\n", dec_of(&r)));
+            return (
+                Some((r.clone(), q, "perfect-power")),
+                format!("shape: perfect power, base {}\n", dec_of(&r)),
+            );
         }
         b += 1;
     }
@@ -1795,8 +1982,7 @@ fn scout_factor_with_primality(
 pub const HARD_CARRIER_ROUNDS: u64 = u64::MAX;
 
 /// The full nine-arm carrier word, the deepest routing in one string.
-pub const NINE_ARM: &str =
-    "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+pub const NINE_ARM: &str = "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
 
 /// Smart factorization: scout each piece for its shape and route it, recursing
 /// to a full prime multiset. A piece the scout labels HARD (large factor, far
@@ -1846,7 +2032,9 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 let hit = crate::sieve::mpqs(&c, bound, 2 * m, 64)
                     .filter(&good)
                     .or_else(|| crate::sieve::qs(&c, bound, m, 64).filter(&good))
-                    .or_else(|| run_carrier_rounds(&tower_refs, &c, HARD_CARRIER_ROUNDS).filter(&good))
+                    .or_else(|| {
+                        run_carrier_rounds(&tower_refs, &c, HARD_CARRIER_ROUNDS).filter(&good)
+                    })
                     .or_else(|| crate::sieve::dixon(&c, bound, 8, u64::MAX).filter(&good));
                 match hit {
                     Some(p) => {
@@ -1873,7 +2061,11 @@ pub fn repl_scout(n_in: &[char]) -> String {
     let (res, log) = scout_factor(n_in);
     let n = dec_of(n_in);
     match res {
-        Some((p, q, shape)) => format!("N={n}\n{log}  {n} = {} x {}  [{shape}]", dec_of(&p), dec_of(&q)),
+        Some((p, q, shape)) => format!(
+            "N={n}\n{log}  {n} = {} x {}  [{shape}]",
+            dec_of(&p),
+            dec_of(&q)
+        ),
         None => format!("N={n}\n{log}"),
     }
 }
@@ -1905,14 +2097,42 @@ mod tests {
     }
 
     #[test]
+    fn fused_modular_products_match_tape_arithmetic_across_limb_widths() {
+        for (a, b, c, n) in [
+            ("123456789", "987654321", "12345", "1000000007"),
+            (
+                "18446744073709551617",
+                "340282366920938463463374607431768211457",
+                "98765432101234567890",
+                "6277101735386680763835789423207666416102355444464034512895",
+            ),
+        ] {
+            let a = decimal_to_tape(a).unwrap();
+            let b = decimal_to_tape(b).unwrap();
+            let c = decimal_to_tape(c).unwrap();
+            let n = decimal_to_tape(n).unwrap();
+            let expected = modulo(&add(&mul(&a, &b), &c), &n);
+            assert_eq!(mul_mod_add(&a, &b, &c, &n), expected);
+            assert_eq!(mul_mod(&a, &b, &n), modulo(&mul(&a, &b), &n));
+        }
+    }
+
+    #[test]
     fn smart_factor_gives_full_multiset() {
         let (fs, _) = smart_factor(&tape_u64(360));
         let prod = fs.iter().fold(1u64, |a, f| {
-            let mut v = 0u64; for &c in trim(f.clone()).iter().rev() { v = (v << 1) | if c == EVALF { 1 } else { 0 }; } a * v
+            let mut v = 0u64;
+            for &c in trim(f.clone()).iter().rev() {
+                v = (v << 1) | if c == EVALF { 1 } else { 0 };
+            }
+            a * v
         });
         assert_eq!(prod, 360);
         assert_eq!(fs.len(), 6); // 2^3 * 3^2 * 5
-        assert!(repl_smart_factor(&tape_u64(8051)).contains("83 x 97") || repl_smart_factor(&tape_u64(8051)).contains("97 x 83"));
+        assert!(
+            repl_smart_factor(&tape_u64(8051)).contains("83 x 97")
+                || repl_smart_factor(&tape_u64(8051)).contains("97 x 83")
+        );
     }
 
     #[test]
@@ -1928,7 +2148,11 @@ mod tests {
         assert!(r.is_none(), "{log}");
         assert!(log.contains("HARD"), "{log}");
         let (factors, route) = smart_factor(&n);
-        assert_eq!(factors, vec![tape_u64(1000003), tape_u64(1000000007)], "{route}");
+        assert_eq!(
+            factors,
+            vec![tape_u64(1000003), tape_u64(1000000007)],
+            "{route}"
+        );
         assert_eq!(factors.iter().fold(one(), |p, f| mul(&p, f)), n);
     }
 
@@ -1973,7 +2197,10 @@ mod tests {
     fn constructor_recovers_the_full_tower() {
         let tower = construct_carrier(FULL).unwrap();
         let names: Vec<&str> = tower.iter().map(|t| morphism_name(t)).collect();
-        assert_eq!(names, ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]);
+        assert_eq!(
+            names,
+            ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]
+        );
     }
 
     #[test]
@@ -1993,28 +2220,16 @@ mod tests {
 
     #[test]
     fn frozen_walk_type_reconciliation_is_first_class() {
-        let frame = FactorObject::new(
-            "∈∋⊤≻⊡",
-            "∈⊤≻⊡∋",
-            Reconciliation::FrameWork,
-        );
+        let frame = FactorObject::new("∈∋⊤≻⊡", "∈⊤≻⊡∋", Reconciliation::FrameWork);
         assert!(audit_reconciliation(&frame).is_ok());
 
-        let close = FactorObject::new(
-            "⊢∈≻⊤⊣",
-            "⊢∈≻⊤∋⊣",
-            Reconciliation::CloseFrame,
-        );
+        let close = FactorObject::new("⊢∈≻⊤⊣", "⊢∈≻⊤∋⊣", Reconciliation::CloseFrame);
         assert!(audit_reconciliation(&close).is_ok());
     }
 
     #[test]
     fn reconciliation_mismatch_is_not_silently_normalized() {
-        let wrong = FactorObject::new(
-            "∈∋⊤≻⊡",
-            "∈∋⊤≻⊡",
-            Reconciliation::FrameWork,
-        );
+        let wrong = FactorObject::new("∈∋⊤≻⊡", "∈∋⊤≻⊡", Reconciliation::FrameWork);
         let err = audit_reconciliation(&wrong).unwrap_err();
         assert!(err.contains("reconciliation mismatch"));
     }
@@ -2084,15 +2299,39 @@ mod tests {
 
     #[test]
     fn extract_banks_both_deposits_across_its_internal_arev() {
-        let split = EXTRACT_BANKED.iter().position(|&mark| mark == FSPLIT).unwrap();
-        let reversal = EXTRACT_BANKED.iter().position(|&mark| mark == AREV).unwrap();
-        let fuse = EXTRACT_BANKED.iter().position(|&mark| mark == FFUSE).unwrap();
+        let split = EXTRACT_BANKED
+            .iter()
+            .position(|&mark| mark == FSPLIT)
+            .unwrap();
+        let reversal = EXTRACT_BANKED
+            .iter()
+            .position(|&mark| mark == AREV)
+            .unwrap();
+        let fuse = EXTRACT_BANKED
+            .iter()
+            .position(|&mark| mark == FFUSE)
+            .unwrap();
         assert!(split < reversal && reversal < fuse);
-        assert_eq!(EXTRACT_BANKED.iter().filter(|&&mark| mark == FSPLIT).count(), 1);
-        assert_eq!(EXTRACT_BANKED.iter().filter(|&&mark| mark == FFUSE).count(), 1);
+        assert_eq!(
+            EXTRACT_BANKED
+                .iter()
+                .filter(|&&mark| mark == FSPLIT)
+                .count(),
+            1
+        );
+        assert_eq!(
+            EXTRACT_BANKED.iter().filter(|&&mark| mark == FFUSE).count(),
+            1
+        );
         for deposit in [EVALT, EVALF] {
-            let at = EXTRACT_BANKED.iter().position(|&mark| mark == deposit).unwrap();
-            assert!(split < at && at < fuse, "{deposit} must remain inside EXTRACT's bank");
+            let at = EXTRACT_BANKED
+                .iter()
+                .position(|&mark| mark == deposit)
+                .unwrap();
+            assert!(
+                split < at && at < fuse,
+                "{deposit} must remain inside EXTRACT's bank"
+            );
         }
     }
 
@@ -2105,7 +2344,10 @@ mod tests {
         let q = 1000000007u64;
         let carrier = "⊢∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋⊙⊡⊣";
         let names: Vec<&str> = construct_carrier(carrier)
-            .unwrap().iter().map(|t| morphism_name(t)).collect();
+            .unwrap()
+            .iter()
+            .map(|t| morphism_name(t))
+            .collect();
         assert_eq!(names, ["EXTRACT", "P_MINUS", "FIX"]);
         let f = factor_with(carrier, &numeral(p * q)).unwrap();
         assert!(f == numeral(p) || f == numeral(q));
@@ -2127,7 +2369,11 @@ mod tests {
         // SQUFOF wired as a morphism, nested with a complete arm.
         let carrier = "⊢∈⊤≺⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(carrier)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["WITNESS", "EXTRACT", "SQUFOF", "FIX"]
         );
         let f = factor_with(carrier, &numeral(2027651281)).unwrap();
@@ -2142,7 +2388,11 @@ mod tests {
         // Nested in a complete carrier it still factors.
         let carrier = "⊢∈⊤≺⊥∋∈≻⊤≺⊥⊞⋈∋∈≻⋈⊤⊥∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(carrier)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["WITNESS", "EXTRACT", "LEHMAN", "FIX"]
         );
         let g = factor_with(carrier, &numeral(8051)).unwrap();
@@ -2156,7 +2406,10 @@ mod tests {
         assert_eq!(iroot(&tape_u64(1001), 3), tape_u64(10));
         assert_eq!(iroot(&tape_u64(999), 3), tape_u64(9));
         // Lucas V_4(a=3) = 47, mod a prime large enough that no reduction bites.
-        assert_eq!(lucas_v(&tape_u64(4), &tape_u64(3), &tape_u64(1_000_000_007)), tape_u64(47));
+        assert_eq!(
+            lucas_v(&tape_u64(4), &tape_u64(3), &tape_u64(1_000_000_007)),
+            tape_u64(47)
+        );
     }
 
     #[test]
@@ -2164,20 +2417,34 @@ mod tests {
         // WITNESS -> POWER -> EXTRACT -> P_MINUS -> P_PLUS -> ECM -> FIX
         let carrier = "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋∈⊙≺⋈∋∈⊙≻⋈∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(carrier)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["WITNESS", "POWER", "EXTRACT", "P_MINUS", "P_PLUS", "ECM", "FIX"]
         );
-        assert_eq!(factor_with(carrier, &numeral(2147483647)).unwrap(), numeral(2147483647));
+        assert_eq!(
+            factor_with(carrier, &numeral(2147483647)).unwrap(),
+            numeral(2147483647)
+        );
         let f = factor_with(carrier, &numeral(8051)).unwrap();
         assert!(f == numeral(83) || f == numeral(97));
         // POWER first (before EXTRACT) takes a prime square to its base.
         let pw = "⊢∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(pw).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(pw)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["POWER", "EXTRACT", "FIX"]
         );
         // 9973 is prime; POWER returns the base 9973 of 9973^2.
-        assert_eq!(factor_with(pw, &numeral(9973 * 9973)).unwrap(), numeral(9973));
+        assert_eq!(
+            factor_with(pw, &numeral(9973 * 9973)).unwrap(),
+            numeral(9973)
+        );
     }
 
     #[test]
@@ -2187,11 +2454,18 @@ mod tests {
         // WITNESS -> EXTRACT -> P_MINUS -> ECM -> FIX.
         let carrier = "⊢∈⊤≺⊥∋∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋∈⊙≻⋈∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(carrier).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(carrier)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["WITNESS", "EXTRACT", "P_MINUS", "ECM", "FIX"]
         );
         // 2^31-1 is prime: selected as itself.
-        assert_eq!(factor_with(carrier, &numeral(2147483647)).unwrap(), numeral(2147483647));
+        assert_eq!(
+            factor_with(carrier, &numeral(2147483647)).unwrap(),
+            numeral(2147483647)
+        );
         // A composite still factors through the deeper arms.
         let f = factor_with(carrier, &numeral(8051)).unwrap();
         assert!(f == numeral(83) || f == numeral(97));
@@ -2203,7 +2477,11 @@ mod tests {
         // an independent condition from p-1's. Carrier ECM -> FIX.
         let ecm = "⊢∈⊙≻⋈∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(ecm).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(ecm)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["ECM", "FIX"]
         );
         let f = factor_with(ecm, &numeral(8051)).unwrap();
@@ -2211,7 +2489,11 @@ mod tests {
         // Nested with EXTRACT: EXTRACT -> ECM -> FIX composes and factors.
         let nested = "⊢∈≻⊤≺⊥⊞⋈∋∈⊙≻⋈∋⊙⊡⊣";
         assert_eq!(
-            construct_carrier(nested).unwrap().iter().map(|t| morphism_name(t)).collect::<Vec<_>>(),
+            construct_carrier(nested)
+                .unwrap()
+                .iter()
+                .map(|t| morphism_name(t))
+                .collect::<Vec<_>>(),
             ["EXTRACT", "ECM", "FIX"]
         );
         let g = factor_with(nested, &numeral(100160063)).unwrap();
@@ -2280,5 +2562,8 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
             return Ok(emit_numeral(selected));
         }
     }
-    Err(format!("no factor in reach within {} tower steps", max_steps))
+    Err(format!(
+        "no factor in reach within {} tower steps",
+        max_steps
+    ))
 }
