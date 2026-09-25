@@ -114,6 +114,8 @@ count limit.
 | N | Width | Result | Phase index | Direct binary time |
 |---:|---:|---|---:|---:|
 | 1000000016000000063 | 8 | 1000000007 × 1000000009; exact product closure | 325692 | 0.58 s |
+| 23074570993201435367657 | 8 | 10007 × 2305843009213693951; exact product closure | 1 | median 1.182 ms; max 1.529 ms |
+| 17014628769597304580863925433499558225017181 | 8 | 100003 × 170141183460469231731687303715884105727; exact product closure | 1 | median 1.526 ms; max 1.986 ms |
 | 580284393595165992175009793 | 8 | no completion/readout | not emitted | stopped by explicit 60 s timeout |
 
 The 19-digit balanced case now reaches its late support target under the
