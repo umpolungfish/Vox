@@ -81,12 +81,31 @@ fn return_from_frame(frame: &EvaluationFrame) -> Result<Tape, String> {
     frame_support(frame).map(|groups| groups.into_iter().flatten().collect())
 }
 
-fn factor_in_frame(frame: &EvaluationFrame) -> Result<Vec<EvaluationFrame>, String> {
+fn factor_in_frame(
+    frame: &EvaluationFrame,
+) -> Result<(Vec<EvaluationFrame>, Option<usize>), String> {
     let support_frames = frame_support(frame)?;
-    let (left, right) = vox::factor_2adic::factor_2adic_semiprime_frames(&support_frames, Some(1))
-        .into_iter()
-        .next()
-        .ok_or_else(|| "support-frame inverse convolution did not close".to_string())?;
+    let phase_pair = vox::factor_2adic::factor_2adic_phase_support_frames(&support_frames);
+    let (mut left, mut right, phase_index) = if let Some((left, right, index)) = phase_pair {
+        (left, right, Some(index))
+    } else {
+        let (left, right) =
+            vox::factor_2adic::factor_2adic_semiprime_frames(&support_frames, Some(1))
+                .into_iter()
+                .next()
+                .ok_or_else(|| {
+                    "support/frame phase closure and inverse convolution did not close".to_string()
+                })?;
+        (left, right, None)
+    };
+    if morphism_factor::cmp(&left, &right) == core::cmp::Ordering::Greater {
+        core::mem::swap(&mut left, &mut right);
+    }
+    if !vox::factor_2adic::factor_pair_closes_in_frames(&support_frames, &left, &right) {
+        return Err(format!(
+            "candidate pair failed the inverse-convolution frame closure (phase {phase_index:?})"
+        ));
+    }
     let shifted_source = return_from_frame(frame)?;
     let left_frame = shift_evaluation_frame(&left, frame.width);
     let right_frame = shift_evaluation_frame(&right, frame.width);
@@ -100,7 +119,7 @@ fn factor_in_frame(frame: &EvaluationFrame) -> Result<Vec<EvaluationFrame>, Stri
     if shifted_product != shifted_source {
         return Err("inverse-convolution registers do not close on the source frame".into());
     }
-    Ok(vec![left_frame, right_frame])
+    Ok((vec![left_frame, right_frame], phase_index))
 }
 
 fn factor_baked_value() -> Result<String, String> {
@@ -114,7 +133,7 @@ fn factor_baked_value() -> Result<String, String> {
         return Err("source frame failed its exact return check".into());
     }
 
-    let factor_frames = factor_in_frame(&source_frame)?;
+    let (factor_frames, phase_index) = factor_in_frame(&source_frame)?;
     let returned_factors = factor_frames
         .iter()
         .map(|frame| return_from_frame(frame))
@@ -151,11 +170,18 @@ fn factor_baked_value() -> Result<String, String> {
         .iter()
         .map(|factor| dec_of(factor))
         .collect::<Vec<_>>();
+    let route = if phase_index.is_some() {
+        "support-frame-phase"
+    } else {
+        "prefix-fallback"
+    };
     Ok(format!(
-        "frame-width  {}\nsource-word  {}\nsource       {}\nfactor-words {}\nfactors      {}\nproduct      {}\nclosure      closed\n",
+        "frame-width  {}\nsource-word  {}\nsource       {}\nfactor-route {}\nphase-index  {}\nfactor-words {}\nfactors      {}\nproduct      {}\nclosure      closed\n",
         BAKED_WIDTH,
         BAKED_N_WORD,
         dec_of(&source),
+        route,
+        phase_index.map_or_else(|| "none".to_string(), |index| index.to_string()),
         factor_words.join(" | "),
         factor_values.join(" x "),
         dec_of(&product),
@@ -196,7 +222,7 @@ mod tests {
         let source = numeral("100160063");
         for width in (2..=8).chain([65, 257]) {
             let source_frame = shift_evaluation_frame(&source, width);
-            let factor_frames = factor_in_frame(&source_frame).unwrap();
+            let (factor_frames, _) = factor_in_frame(&source_frame).unwrap();
             let returned = factor_frames
                 .iter()
                 .map(|frame| return_from_frame(frame).unwrap())

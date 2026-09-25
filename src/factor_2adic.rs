@@ -1065,6 +1065,82 @@ pub fn factor_2adic_semiprime_frames(
     factor_2adic_frames_inner(groups, max_solutions, &sieve_primes)
 }
 
+fn evaluate_support_frame(
+    support: &[char],
+    width: usize,
+    x: &[char],
+    modulus: &[char],
+) -> Option<Vec<char>> {
+    use crate::morphism_factor::{add, modulo, mul, one};
+
+    if width == 0 || support.is_empty() {
+        return None;
+    }
+    let groups: Vec<Vec<char>> = support.chunks(width).map(<[char]>::to_vec).collect();
+    let mut powers = Vec::with_capacity(width + 1);
+    powers.push(one());
+    for _ in 1..=width {
+        powers.push(modulo(&mul(powers.last()?, x), modulus));
+    }
+    let frame_base = powers.get(width)?.clone();
+    let mut value = vec![ZERO];
+    for group in groups.iter().rev() {
+        let mut symbol = vec![ZERO];
+        for (position, mark) in group.iter().enumerate() {
+            if *mark == ONE {
+                symbol = add(&symbol, &powers[position]);
+            }
+        }
+        value = modulo(&add(&mul(&value, &frame_base), &symbol), modulus);
+    }
+    Some(value)
+}
+
+/// Probe the encoded support at the first eight dyadic phase-register states.
+/// A proper gcd is accepted only after all frame widths return the same
+/// support-polynomial residue. `None` means this bounded structural read did
+/// not expose a factor; the caller may continue with another membrane arm.
+///
+/// All numeral arithmetic remains on LSB-first IMASM tapes. The only host
+/// sized values are frame positions and the diagnostic phase index.
+pub fn factor_2adic_phase_support_frames(
+    groups: &[Vec<char>],
+) -> Option<(Vec<char>, Vec<char>, usize)> {
+    use crate::morphism_factor::{cmp, divmod, gcd, modulo, mul, one, zero};
+
+    if groups.is_empty() || groups.iter().any(Vec::is_empty) {
+        return None;
+    }
+    let source: Vec<char> = groups.iter().flatten().copied().collect();
+    let n = trim(source.clone());
+    if n.len() < 2 || bit(&n, 0) == 0 {
+        return None;
+    }
+    let base = alloc::vec![ZERO, ONE]; // IMASM numeral 2, LSB first.
+    let mut phase = modulo(&base, &n);
+    for phase_index in 1..=8 {
+        phase = modulo(&mul(&phase, &phase), &n);
+        let residue = evaluate_support_frame(&source, 8, &phase, &n)?;
+        let factor = gcd(residue, n.clone());
+        if cmp(&factor, &one()) == core::cmp::Ordering::Greater
+            && cmp(&factor, &n) == core::cmp::Ordering::Less
+        {
+            let canonical = evaluate_support_frame(&source, 8, &phase, &n)?;
+            for width in 2..=7 {
+                let frame_residue = evaluate_support_frame(&source, width, &phase, &n)?;
+                if cmp(&canonical, &frame_residue) != core::cmp::Ordering::Equal {
+                    return None;
+                }
+            }
+            let (cofactor, remainder) = divmod(&n, &factor);
+            if zero(&remainder) {
+                return Some((factor, cofactor, phase_index));
+            }
+        }
+    }
+    None
+}
+
 fn passes_small_prime_sieve(value: &[char], sieve_primes: &[Vec<char>]) -> bool {
     sieve_primes.iter().all(|prime| {
         cmp(value, prime) == core::cmp::Ordering::Equal
@@ -1405,6 +1481,23 @@ mod tests {
             set_bit(&mut tape, index, 1);
         }
         trim(tape)
+    }
+
+    #[test]
+    fn support_frame_phase_target_returns_a_pair_that_closes() {
+        let n = from_one_bits(&[0, 1, 2, 3]); // N=15
+        let frames: Vec<Vec<char>> = n.chunks(8).map(<[char]>::to_vec).collect();
+        let (p, q, phase_index) = factor_2adic_phase_support_frames(&frames).unwrap();
+        assert_eq!(phase_index, 1);
+        assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+        assert!(factor_pair_closes_in_frames(&frames, &p, &q));
+    }
+
+    #[test]
+    fn support_frame_phase_probe_reports_a_clean_miss_for_balanced_rsa_fixture() {
+        let n = crate::morphism_factor::decimal_to_tape("1000000016000000063").unwrap();
+        let frames: Vec<Vec<char>> = n.chunks(8).map(<[char]>::to_vec).collect();
+        assert!(factor_2adic_phase_support_frames(&frames).is_none());
     }
 
     #[test]

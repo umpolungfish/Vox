@@ -28,3 +28,44 @@ The wider 127-bit-factor sweep closes at 44, 45, and 46 decimal digits, with sho
 The inverse-convolution route reads each target cell from the active evaluation frame. It fixes the odd anchor `p₀=q₀=1`, shifts a candidate `pₖ` into the current support position, cancels `bitₖ(PQ) XOR pₖ` against the source cell to recover `qₖ`, then advances the carry-normalized product tape. Frame widths 2–8 are tested as lossless regroupings of the same source word. The semiprime specialization rejects shorter-factor candidates divisible by 3, 5, or 7 when the longer support still has at least eight unresolved cells; the corresponding negative residue reads are also applied at the terminal complementary factor.
 
 The run supports exact factor-pair closure, not a primality certificate. These fixtures were constructed from known primes. A mistyped candidate, `100003000210021`, was excluded: it is not `100003 × 1000000007` and the membrane returned `421 × 237536817601`. This is a useful reminder that exact product closure alone does not establish semiprimality.
+
+## Interframe candidate wiring, 2026-09-24
+
+The prior executable flattened each frame back to the source and then entered
+the two-branch factor-bit recursion. I added a tape-native support-polynomial
+read at the first eight dyadic phase states. The width-8 evaluation proposes a
+proper gcd; widths 2–7 must return the identical residue, and the proposed pair
+must then close through the carry-normalized inverse-convolution frame and all
+cross-width product-return checks. This gives the phase/frame read a real role
+in candidate formation instead of only checking a pair after the search.
+
+The N-only binaries below were rebuilt with warnings denied and run directly.
+Twenty executions per binary were timed with `perf_counter_ns`; the table gives
+the median and maximum wall times, including process startup and complete
+readout. The source numeral is baked in IMASM form; neither factor is a build
+input.
+
+| Decimal digits | Factor bits | N | Returned factors | Phase index | Median / max | Binary |
+|---:|---:|---:|---:|---:|---:|---|
+| 43 | 14 × 127 | 1702602822888915601938994848284852246010089 | 10007 × 170141183460469231731687303715884105727 | 1 | 1.824 / 2.202 ms | `frame_factor_212df6193784cbada649` |
+| 11 | 17 × 17 | 10002200057 | 100003 × 100019 | none | 152.848 / 177.765 ms | `frame_factor_1532da89708f509c4d96` |
+| 44 | 17 × 127 | 17014628769597304580863925433499558225017181 | 100003 × 170141183460469231731687303715884105727 | 1 | 1.798 / 2.540 ms | `frame_factor_56b7099d5f0ffd6ac7c5` |
+| 45 | 20 × 127 | 170141693884019613139382498777795253379317181 | 1000003 × 170141183460469231731687303715884105727 | 1 | 1.856 / 2.873 ms | `frame_factor_a2015a1f1c2016c55e4e` |
+| 46 | 24 × 127 | 1701415067287178066232275939217611659068008813 | 10000019 × 170141183460469231731687303715884105727 | 1 | 1.965 / 2.984 ms | `frame_factor_8387d1707a9b2f3befa3` |
+| 19 | 30 × 30 | 1000000016000000063 | not closed after 5 s | none | timed out; silent | `frame_factor_688766701f761ca6937c` |
+
+The wider asymmetric fixtures now close under 3 ms because their support
+polynomial has a proper factor target at phase index 1. This is not yet a
+width-independent result. This support read is a frame-consistent candidate
+probe, not yet the full operation-transport map between distinct evaluation
+frames. The balanced 19-digit RSA fixture
+`1000000016000000063 = 1000000007 × 1000000009` produces no target in the
+first eight phase states; its fallback bit-branch route was still running
+after a 5-second timeout and emitted no partial report. Its contained binary
+is `frame_factor_688766701f761ca6937c`. The 11-digit balanced fixture
+`10002200057` also misses the phase probe, then closes by fallback in a
+152.848 ms median (177.765 ms maximum). The current phase/frame selector
+therefore explains the dramatic speedup for the 127-bit-factor set but does
+not solve the balanced case. The next wiring task is to derive additional
+candidate states from interframe operation transport, not to extend the same
+factor-bit branch search.
