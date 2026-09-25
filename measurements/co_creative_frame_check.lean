@@ -268,8 +268,7 @@ theorem shiftResidual_value (frame : List Int) (even : frame.headD 0 % 2 = 0) :
     simp only [shiftResidual, carryInto_value, signedValue]
     omega
 
--- These tests supply the candidate explicitly. They exercise inverse
--- cancellation, including borrows; they are not N-only factoring tests.
+-- These cancellation tests supply an explicit candidate and exercise borrows.
 example : complementWord [true, true] [true, false, true, false, true] =
     ([true, true, true, false, false], [0]) := by decide
 example : complementWord [true, true] [true, false, false, true] =
@@ -285,5 +284,105 @@ example : ∀ width ∈ ([65, 129, 257] : List Nat),
     complementWord [true, true]
       ([true, true] ++ List.replicate (width - 2) false ++ [true, true]) =
     ([true] ++ List.replicate (width - 1) false ++ [true, false], [0]) := by decide
+
+-- The phase arm supplies residue words, not factor words. Its difference
+-- closure selects the first register; cancellation constructs the second.
+-- Nat.gcd here specifies the existing phase arm's Euclidean closure.
+def recoverPhaseWords (source currentHalf earlierHalf : List Bool) :
+    Option (List Bool × List Bool) :=
+  let n := numeral source
+  let x := numeral currentHalf
+  let y := numeral earlierHalf
+  let difference := if x ≥ y then x - y else y - x
+  let seed := Nat.gcd difference n
+  if 1 < seed && seed < n && seed % 2 == 1 && (x * x) % n == (y * y) % n then
+    let candidate := emitBits seed
+    let recovered := complementWord candidate source
+    if signedValue recovered.2 == 0 then some (candidate, recovered.1) else none
+  else none
+
+-- N=21, current half=8, earlier half=1. Both factor words are outputs.
+theorem phase21_return : recoverPhaseWords [true, false, true, false, true]
+    [false, false, false, true] [true] =
+    some ([true, true, true], [true, true, false, false, false]) := by
+  simp [recoverPhaseWords, numeral, emitBits, complementWord, recoverComplement,
+    signedFrame, cancelContribution, shiftResidual, carryInto, signedValue]
+
+-- Coincident phase halves have no proper difference closure.
+example : recoverPhaseWords [true, false, true, false, true] [true] [true] = none := by
+  simp [recoverPhaseWords, numeral]
+
+-- FOUR × FOUR is carried by the kernel's actual four-lane register.
+abbrev FourCell := Bool × Bool
+
+def encodePair (pair : FourCell × FourCell) : Reg16_3 :=
+  Reg16_3.mk pair.1.1 pair.1.2 pair.2.1 pair.2.2
+
+def reversePair (register : Reg16_3) : FourCell × FourCell :=
+  ((register.bigT, register.bigF), (register.smallT, register.smallF))
+
+theorem pair_return (pair : FourCell × FourCell) :
+    reversePair (encodePair pair) = pair := rfl
+
+theorem register_return (register : Reg16_3) :
+    encodePair (reversePair register) = register := rfl
+
+theorem paired_stream_return (stream : List (FourCell × FourCell)) :
+    (stream.map encodePair).map reversePair = stream := by
+  simp only [List.map_map, Function.comp_def, pair_return]
+  exact List.map_id stream
+
+-- Two cells from each factor per register. Missing high cells are zero;
+-- the stream grows with the longer word and has no fixed-width register cap.
+def pairFactorWords (left right : List Bool) : List Reg16_3 :=
+  if left.isEmpty && right.isEmpty then [] else
+    encodePair ((left.headD false, (left.drop 1).headD false),
+      (right.headD false, (right.drop 1).headD false)) ::
+      pairFactorWords (left.drop 2) (right.drop 2)
+termination_by left.length + right.length
+decreasing_by
+  simp_all only [Bool.and_eq_true, List.isEmpty_iff, not_and]
+  simp only [List.length_drop]
+  cases left <;> cases right <;> simp_all
+  all_goals omega
+
+def extractPairStream (stream : List Reg16_3) : List Bool × List Bool :=
+  (stream.flatMap fun r => [r.bigT, r.bigF],
+   stream.flatMap fun r => [r.smallT, r.smallF])
+
+def pairedPhaseReturn (source currentHalf earlierHalf : List Bool) :
+    Option (List Bool × List Bool) :=
+  (recoverPhaseWords source currentHalf earlierHalf).map fun pair =>
+    extractPairStream (pairFactorWords pair.1 pair.2)
+
+-- The diagram's return preserves both numeral readouts, including the
+-- unequal factor widths. Padding remains high-order zero cells.
+example : (extractPairStream (pairFactorWords [true, true, true]
+    [true, true, false, false, false])).map numeral numeral = (7, 3) := by
+  simp [pairFactorWords, encodePair, extractPairStream, Reg16_3.mk,
+    Reg16_3.bigT, Reg16_3.bigF, Reg16_3.smallT, Reg16_3.smallF, numeral]
+
+example : (pairedPhaseReturn [true, false, true, false, true]
+    [false, false, false, true] [true]).map (fun pair =>
+      (numeral pair.1, numeral pair.2)) = some (7, 3) := by
+  unfold pairedPhaseReturn
+  rw [phase21_return]
+  simp only [Option.map_some]
+  simp [pairFactorWords, encodePair, extractPairStream, Reg16_3.mk,
+    Reg16_3.bigT, Reg16_3.bigF, Reg16_3.smallT, Reg16_3.smallF, numeral]
+
+example : (pairedPhaseReturn [true, true, false, false, false, true]
+    [false, true, true] [true]).map (fun pair =>
+      (numeral pair.1, numeral pair.2)) = some (5, 7) := by
+  have returned : recoverPhaseWords [true, true, false, false, false, true]
+      [false, true, true] [true] =
+      some ([true, false, true], [true, true, true, false, false, false]) := by
+    simp [recoverPhaseWords, numeral, emitBits, complementWord, recoverComplement,
+      signedFrame, cancelContribution, shiftResidual, carryInto, signedValue]
+  unfold pairedPhaseReturn
+  rw [returned]
+  simp only [Option.map_some]
+  simp [pairFactorWords, encodePair, extractPairStream, Reg16_3.mk,
+    Reg16_3.bigT, Reg16_3.bigF, Reg16_3.smallT, Reg16_3.smallF, numeral]
 
 end CoCreativeFrameCheck
