@@ -55,6 +55,21 @@ fn native_word(n: &BigUint) -> String {
     out
 }
 
+/// Minimal period under one-glyph cyclic rotation, measured in Unicode glyphs.
+fn rotat_period(word: &str) -> usize {
+    let chars: Vec<char> = word.chars().collect();
+    if chars.is_empty() { return 0; }
+    let mut prefix = vec![0usize; chars.len()];
+    for i in 1..chars.len() {
+        let mut j = prefix[i - 1];
+        while j > 0 && chars[i] != chars[j] { j = prefix[j - 1]; }
+        if chars[i] == chars[j] { j += 1; }
+        prefix[i] = j;
+    }
+    let candidate = chars.len() - prefix[chars.len() - 1];
+    if chars.len() % candidate == 0 { candidate } else { chars.len() }
+}
+
 fn decode_native_word(word: &str) -> Result<BigUint, String> {
     let chars: Vec<char> = word.trim().chars().collect();
     if chars.len() == 4 && chars[0] == '⊢' && chars[1] == '⊙' && chars[2] == '⊡' && chars[3] == '⊣' {
@@ -91,8 +106,9 @@ fn is_mersenne(n: &BigUint) -> bool {
     !n.is_zero() && n.to_str_radix(2).bytes().all(|bit| bit == b'1')
 }
 
-/// The shift-faithful domain consists of odd, non-Mersenne integers above one.
-/// Even values and Mersennes have no unique decode at every frame position.
+/// The configured factor domain consists of odd, non-Mersenne integers above
+/// one. This is separate from native-word ROTAT period, which equals the full
+/// glyph count for even, Mersenne, and other inputs alike.
 fn is_shift_faithful(n: &BigUint) -> bool {
     n > &BigUint::one() && (n % 2u8) != BigUint::zero() && !is_mersenne(n)
 }
@@ -253,9 +269,14 @@ fn run(args: &[String]) -> Result<String, String> {
     out.push_str("shift-faithful domain = odd, non-Mersenne integers greater than one\n");
     out.push_str(&format!("dialect register = {n_register} ({})\n", if n_is_mersenne { "Mersenne" } else { "non-Mersenne" }));
     out.push_str(&format!("hex-digit word = {}\n", hex_word(&n)));
-    out.push_str(&format!("native word = {}\n", native_word(&n)));
+    let native = native_word(&n);
+    let native_glyphs = native.chars().count();
+    let native_period = rotat_period(&native);
+    out.push_str(&format!("native word = {native}\n"));
+    out.push_str(&format!("native word glyph count = {native_glyphs}\nnative ROTAT period = {native_period}\n"));
+    out.push_str(&format!("period equals native word length = {}\n", native_period == native_glyphs));
     out.push_str(&format!("roundtrip hex-word = {}\n", decode_hex_word(&hex_word(&n))? == n));
-    out.push_str(&format!("roundtrip native-word = {}\n", decode_native_word(&native_word(&n))? == n));
+    out.push_str(&format!("roundtrip native-word = {}\n", decode_native_word(&native)? == n));
     out.push_str(&format!("factor source = {source_label}\np = {p}\np_bits = {}\np_popcount = {}\nq = {q}\nq_bits = {}\nq_popcount = {}\n",
         p.bits(), popcount(&p), q.bits(), popcount(&q)));
     out.push_str(&format!("p dialect register = {} ({})\nq dialect register = {} ({})\n",
@@ -333,5 +354,20 @@ mod tests {
         assert_eq!(dialect_register(&q), dialect_register(&n));
         assert!(is_shift_faithful(&p));
         assert!(is_shift_faithful(&q));
+    }
+
+    #[test]
+    fn native_rotat_period_is_full_word_length_for_even_and_mersenne_values() {
+        for value in 1u32..=256 {
+            let n = BigUint::from(value);
+            let word = native_word(&n);
+            let glyph_count = word.chars().count();
+            assert_eq!(glyph_count, 5 * n.bits() as usize + 4);
+            assert_eq!(rotat_period(&word), glyph_count, "value={value}");
+        }
+        for value in [2u32, 10, 22, 7, 15, 31] {
+            let word = native_word(&BigUint::from(value));
+            assert_eq!(rotat_period(&word), word.chars().count(), "value={value}");
+        }
     }
 }

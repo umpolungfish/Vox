@@ -41,12 +41,12 @@ also invoke `g-momonados trilattice_factor read` on N, p, and q so period, cuts,
 register, and type hash are measured for the current input. Set
 `VOX_TRILATTICE_FACTOR` if that executable is not on `PATH`.
 The shift-faithful domain is the integers greater than one that are odd and
-non-Mersenne. Even values and Mersennes are outside the domain because their
-frame-shift encoding does not provide an injective decode at every position;
-operations and factor witnesses are only defined within the faithful domain.
-This is the domain definition, not a search heuristic. The register records the
-Mersenne/non-Mersenne class (`001000011100` / `111111111111`); parity is checked
-separately, so even inputs and factors are rejected too.
+non-Mersenne; inputs and factor witnesses are checked against that declared
+domain. The native word for a k-bit value has `5k + 4` glyphs, and its unique
+`⊢` marker makes its literal ROTAT period equal that full length. This also
+holds for even and Mersenne values, so those classes are not excluded because
+of a shorter ROTAT orbit. The register records the Mersenne/non-Mersenne class
+(`001000011100` / `111111111111`); parity is checked separately.
 
 ```bash
 cargo run --release --bin vox -- factor-membrane 143 --factors 11 13
