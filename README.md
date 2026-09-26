@@ -31,6 +31,26 @@ vox imasm <file> | vox word <file> | vox disasm <file> | vox <file>  # module/wo
 vox verdict ⊢∈⊡⊣ | vox evm HEX | vox wasm HEX | vox rna SEQ | vox --selftest
 ```
 
+### Membrane numeral factor verification
+
+`factor-membrane` accepts a decimal or `0x` integer, the canonical
+g-mOMonadOS hex-digit word, or its native binary word. It emits both canonical
+encodings and checks the encoding round trips. Supply a candidate pair with
+`--factors P Q` to verify its product and inspect the actual binary
+multiplication carry-out columns; without a pair it uses Vox's smart
+factorizer.
+
+```bash
+cargo run --release --bin vox -- factor-membrane 143 --factors 11 13
+cargo run --release --bin vox -- factor-membrane --native-word '⊢≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣' --factors 11 13
+cargo run --release --bin factor_membrane -- 143 --factors 11 13
+```
+
+Period/cut/type-hash annotations are printed only by the source membrane
+readers and are not treated as factor constraints by this arithmetic
+certificate. In particular, a popcount delta is reported separately from the
+column carry trace.
+
 ## Verdicts and B-cost
 
 T closes, B holds a fork open across the cycle, N never forked, F ill-typed (∋ with no ∈). T needs work inside the paired region - bare split+fuse is μ∘δ=id and verifies nothing. B-cost lesson from self-lift: early return = fork that never rejoins; ∈-surplus rises with exits (0.28/5.26/12.91/15.00 at 0/1/2/4+ exits), so `vox self` reports the residual after exits are paid.
