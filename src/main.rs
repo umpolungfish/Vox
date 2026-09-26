@@ -13,6 +13,8 @@ use ::vox::fold;
 use ::vox::fold3d;
 use ::vox::x86;
 use ::vox::{imasm_module, imasm_vm, loader, safetensors, divisor_membrane};
+#[path = "bin/factor_membrane_support.rs"]
+mod factor_membrane_support;
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
@@ -1230,7 +1232,11 @@ fn main() {
             }
         }
         Some("factor-membrane") => match ::vox::membrane_factor::command(&args[1..]) {
-            Ok(report) => { print!("{report}"); 0 }
+            Ok(report) => {
+                print!("{report}");
+                factor_membrane_support::append_trilattice_reads(&report);
+                0
+            }
             Err(error) => { eprintln!("factor-membrane: {error}"); 2 }
         },
         Some("perfect") => {

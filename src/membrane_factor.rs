@@ -1,6 +1,6 @@
-//! Read and verify semiprime candidates carried by the G-mOMonadOS membrane
-//! numeral encodings. Arithmetic certificates are recomputed in Vox; opaque
-//! membrane annotations are not promoted to arithmetic constraints.
+//! Decode membrane numeral encodings, factor arbitrary inputs with Vox, and
+//! verify the product and binary carry trace. The standalone binary adds the
+//! canonical g-mOMonadOS per-value trilattice readings at runtime.
 
 use alloc::format;
 use alloc::string::{String, ToString};
@@ -87,11 +87,13 @@ fn bit_string(n: &BigUint) -> String { n.to_str_radix(2) }
 
 fn popcount(n: &BigUint) -> usize { bit_string(n).bytes().filter(|b| *b == b'1').count() }
 
-/// Return (nonzero carry-out column count, positions, output bits LSB-first).
-fn binary_product_carries(p: &BigUint, q: &BigUint) -> (usize, Vec<usize>, Vec<bool>) {
+/// Return (nonzero carry-out columns, sum of carry-out values, positions,
+/// output bits LSB-first). Carry values can exceed one in multiplication.
+fn binary_product_carries(p: &BigUint, q: &BigUint) -> (usize, usize, Vec<usize>, Vec<bool>) {
     let pb = bit_string(p).bytes().rev().map(|b| b == b'1').collect::<Vec<_>>();
     let qb = bit_string(q).bytes().rev().map(|b| b == b'1').collect::<Vec<_>>();
     let mut carry = 0usize;
+    let mut carry_mass = 0usize;
     let mut positions = Vec::new();
     let mut product = Vec::new();
     let mut k = 0usize;
@@ -102,10 +104,11 @@ fn binary_product_carries(p: &BigUint, q: &BigUint) -> (usize, Vec<usize>, Vec<b
         }
         product.push(column % 2 == 1);
         carry = column / 2;
+        carry_mass += carry;
         if carry != 0 { positions.push(k); }
         k += 1;
     }
-    (positions.len(), positions, product)
+    (positions.len(), carry_mass, positions, product)
 }
 
 fn from_lsb_bits(bits: &[bool]) -> BigUint {
@@ -125,9 +128,9 @@ fn decode_integer(text: &str) -> Result<BigUint, String> {
 fn run(args: &[String]) -> Result<String, String> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
         return Ok("vox factor-membrane <decimal|0xHEX|--hex-word WORD|--native-word WORD> [--factors P Q]\n\
-             Decodes a membrane numeral, computes binary metrics, and verifies supplied factors.\n\
-             Without --factors, Vox's smart factorizer supplies a candidate factorization.\n\
-             Period/cut/type-hash annotations are not assumed as arithmetic constraints.\n".into());
+             Decodes a membrane numeral, factors arbitrary N, and verifies the product and carry trace.\n\
+             The standalone binary reads N and its factors with trilattice_factor read.\n\
+             Set VOX_TRILATTICE_FACTOR when trilattice_factor is not on PATH.\n".into());
     }
     let mut source: Option<BigUint> = None;
     let mut factor_pair: Option<(BigUint, BigUint)> = None;
@@ -173,7 +176,7 @@ fn run(args: &[String]) -> Result<String, String> {
         (a, b, "Vox smart factorizer")
     };
 
-    let (carry_count, carry_positions, product_bits) = binary_product_carries(&p, &q);
+    let (carry_columns, carry_mass, carry_positions, product_bits) = binary_product_carries(&p, &q);
     let product = from_lsb_bits(&product_bits);
     if product != n { return Err("internal carry trace failed to reconstruct N".into()); }
     let mut out = String::new();
@@ -186,8 +189,11 @@ fn run(args: &[String]) -> Result<String, String> {
         p.bits(), popcount(&p), q.bits(), popcount(&q)));
     out.push_str(&format!("product check = {}\npopcount sum = {}\npopcount delta = {}\n",
         &p * &q == n, popcount(&p) + popcount(&q), popcount(&n) as isize - popcount(&p) as isize - popcount(&q) as isize));
-    out.push_str(&format!("binary multiplication nonzero carry-out columns = {carry_count}\ncarry-out positions (0-based) = {carry_positions:?}\n"));
-    out.push_str("membrane period/cut/type-hash data = not inferred by this arithmetic certificate\n");
+    out.push_str(&format!("binary multiplication nonzero carry-out columns = {carry_columns}\ncarry-out positions (0-based) = {carry_positions:?}\n"));
+    out.push_str(&format!("sum of carry-out values = {carry_mass}\n"));
+    out.push_str(&format!("carry identity: popcount(p) * popcount(q) - popcount(N) = {}\n",
+        popcount(&p) * popcount(&q) - popcount(&n)));
+    out.push_str("This identity equals the sum of carry-out values; it does not equal the number of nonzero carry columns.\n");
     Ok(out)
 }
 
@@ -206,7 +212,25 @@ mod tests {
         assert_eq!(decode_hex_word(&hex_word(&n)).unwrap(), n);
         assert_eq!(decode_native_word(&native_word(&n)).unwrap(), n);
         assert_eq!((popcount(&n), popcount(&p), popcount(&q)), (186, 87, 82));
-        assert_eq!(binary_product_carries(&p, &q).0, 327);
+        let (columns, carry_mass, _, _) = binary_product_carries(&p, &q);
+        assert_eq!(columns, 327);
+        assert_eq!(carry_mass, 6948);
+        assert_eq!(popcount(&p) * popcount(&q) - popcount(&n), carry_mass);
         assert_eq!(popcount(&n) - popcount(&p) - popcount(&q), 17);
+    }
+
+    #[test]
+    fn carry_mass_identity_holds_for_small_products() {
+        for p in 2u32..40 {
+            for q in 2u32..40 {
+                let p = BigUint::from(p);
+                let q = BigUint::from(q);
+                let n = &p * &q;
+                let (columns, carry_mass, _, bits) = binary_product_carries(&p, &q);
+                assert_eq!(from_lsb_bits(&bits), n);
+                assert!(carry_mass >= columns);
+                assert_eq!(carry_mass, popcount(&p) * popcount(&q) - popcount(&n));
+            }
+        }
     }
 }

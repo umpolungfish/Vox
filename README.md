@@ -33,12 +33,13 @@ vox verdict ⊢∈⊡⊣ | vox evm HEX | vox wasm HEX | vox rna SEQ | vox --self
 
 ### Membrane numeral factor verification
 
-`factor-membrane` accepts a decimal or `0x` integer, the canonical
+`factor-membrane` accepts any positive decimal or `0x` integer, the canonical
 g-mOMonadOS hex-digit word, or its native binary word. It emits both canonical
-encodings and checks the encoding round trips. Supply a candidate pair with
-`--factors P Q` to verify its product and inspect the actual binary
-multiplication carry-out columns; without a pair it uses Vox's smart
-factorizer.
+encodings, factors the decoded value with Vox, and checks the result. Supply a
+candidate pair with `--factors P Q` to verify its product. Both CLI entrypoints
+also invoke `g-momonados trilattice_factor read` on N, p, and q so period, cuts, dialect
+register, and type hash are measured for the current input. Set
+`VOX_TRILATTICE_FACTOR` if that executable is not on `PATH`.
 
 ```bash
 cargo run --release --bin vox -- factor-membrane 143 --factors 11 13
@@ -46,10 +47,11 @@ cargo run --release --bin vox -- factor-membrane --native-word '⊢≻⋈∈⊥�
 cargo run --release --bin factor_membrane -- 143 --factors 11 13
 ```
 
-Period/cut/type-hash annotations are printed only by the source membrane
-readers and are not treated as factor constraints by this arithmetic
-certificate. In particular, a popcount delta is reported separately from the
-column carry trace.
+The binary multiplication trace distinguishes nonzero carry columns from the
+sum of carry values. The exact identity is
+`sum(carry_out[k]) = popcount(p) * popcount(q) - popcount(N)`; the difference
+`popcount(N) - popcount(p) - popcount(q)` is not a carry count. Per-input
+period and cut residuals are reported as measured values for each input.
 
 ## Verdicts and B-cost
 
