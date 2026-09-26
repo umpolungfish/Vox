@@ -347,3 +347,7 @@ num-traits = "0.2"
 [[bin]]
 name = "factor_2adic_bigint"
 path = "src/bin/factor_2adic_bigint.rs"
+
+[[bin]]
+name = "factor_membrane"
+path = "src/bin/factor_membrane.rs"
