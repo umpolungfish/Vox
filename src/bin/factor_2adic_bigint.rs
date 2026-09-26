@@ -188,3 +188,23 @@ pub fn factor_2adic_bigint(
     
     solutions
 }
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        eprintln!("usage: factor_2adic_bigint <N> [lp] [lq] [max_solutions]");
+        std::process::exit(2);
+    }
+    let n: BigUint = args[1].parse().expect("N must be a decimal integer");
+    let lp: Option<usize> = args.get(2).and_then(|s| s.parse().ok());
+    let lq: Option<usize> = args.get(3).and_then(|s| s.parse().ok());
+    let max_solutions: Option<usize> = args.get(4).and_then(|s| s.parse().ok());
+    let solutions = factor_2adic_bigint(&n, lp, lq, max_solutions);
+    if solutions.is_empty() {
+        eprintln!("no factor pair found for {}", n);
+        std::process::exit(1);
+    }
+    for (p, q) in &solutions {
+        println!("{} = {} x {}", n, p, q);
+    }
+}
