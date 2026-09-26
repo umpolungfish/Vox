@@ -40,8 +40,13 @@ candidate pair with `--factors P Q` to verify its product. Both CLI entrypoints
 also invoke `g-momonados trilattice_factor read` on N, p, and q so period, cuts, dialect
 register, and type hash are measured for the current input. Set
 `VOX_TRILATTICE_FACTOR` if that executable is not on `PATH`.
-The register-guided candidate search excludes Mersenne inputs and Mersenne
-factors, using `001000011100` for that class and `111111111111` otherwise.
+The shift-faithful domain is the integers greater than one that are odd and
+non-Mersenne. Even values and Mersennes are outside the domain because their
+frame-shift encoding does not provide an injective decode at every position;
+operations and factor witnesses are only defined within the faithful domain.
+This is the domain definition, not a search heuristic. The register records the
+Mersenne/non-Mersenne class (`001000011100` / `111111111111`); parity is checked
+separately, so even inputs and factors are rejected too.
 
 ```bash
 cargo run --release --bin vox -- factor-membrane 143 --factors 11 13

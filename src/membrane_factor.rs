@@ -1,5 +1,5 @@
-//! Decode membrane numeral encodings, factor arbitrary inputs with Vox, and
-//! verify the product and binary carry trace. The standalone binary adds the
+//! Decode membrane numeral encodings, factor shift-faithful inputs with Vox,
+//! and verify the product and binary carry trace. The standalone binary adds
 //! canonical g-mOMonadOS per-value trilattice readings at runtime.
 
 use alloc::format;
@@ -91,12 +91,30 @@ fn is_mersenne(n: &BigUint) -> bool {
     !n.is_zero() && n.to_str_radix(2).bytes().all(|bit| bit == b'1')
 }
 
+/// The shift-faithful domain consists of odd, non-Mersenne integers above one.
+/// Even values and Mersennes have no unique decode at every frame position.
+fn is_shift_faithful(n: &BigUint) -> bool {
+    n > &BigUint::one() && (n % 2u8) != BigUint::zero() && !is_mersenne(n)
+}
+
+fn shift_domain_exclusion(n: &BigUint) -> Option<&'static str> {
+    if n <= &BigUint::one() {
+        Some("value must be greater than one")
+    } else if (n % 2u8).is_zero() {
+        Some("even values are outside the shift-faithful domain")
+    } else if is_mersenne(n) {
+        Some("Mersenne values are outside the shift-faithful domain")
+    } else {
+        None
+    }
+}
+
 fn dialect_register(n: &BigUint) -> &'static str {
     if is_mersenne(n) { "001000011100" } else { "111111111111" }
 }
 
-/// Search non-Mersenne divisor candidates whose registers match N. Mersenne
-/// values are excluded from this candidate space.
+/// Search divisor candidates in the shift-faithful domain and require their
+/// register to match N's register.
 fn register_filtered_trial_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
     const TRIAL_LIMIT: u64 = 100_000;
     let target_register = dialect_register(n);
@@ -107,8 +125,8 @@ fn register_filtered_trial_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
         let remainder = n % &p;
         if remainder.is_zero() {
             let q = n / &p;
-            if !is_mersenne(&p)
-                && !is_mersenne(&q)
+            if is_shift_faithful(&p)
+                && is_shift_faithful(&q)
                 && dialect_register(&p) == target_register
                 && dialect_register(&q) == target_register
             {
@@ -161,8 +179,9 @@ fn decode_integer(text: &str) -> Result<BigUint, String> {
 fn run(args: &[String]) -> Result<String, String> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
         return Ok("vox factor-membrane <decimal|0xHEX|--hex-word WORD|--native-word WORD> [--factors P Q]\n\
-             Decodes and factors non-Mersenne semiprimes whose factors are non-Mersenne.\n\
-             Register filter: 111111111111 for non-Mersenne values; Mersenne values are excluded.\n\
+             Decodes and factors semiprimes in the shift-faithful domain.\n\
+             Domain: odd, non-Mersenne values greater than one; factors must also be in-domain.\n\
+             Register: 111111111111 for non-Mersenne values; 001000011100 for Mersennes.\n\
              The standalone binary reads N and its factors with g-momonados trilattice_factor read.\n\
              Set VOX_TRILATTICE_FACTOR when g-momonados is not on PATH.\n".into());
     }
@@ -194,20 +213,24 @@ fn run(args: &[String]) -> Result<String, String> {
         }
     }
     let n = source.ok_or_else(|| "missing integer source".to_string())?;
-    if n <= BigUint::one() { return Err("a semiprime modulus must be greater than one".into()); }
-    let n_is_mersenne = is_mersenne(&n);
-    if n_is_mersenne {
-        return Err("Mersenne values are excluded by the dialect-register candidate filter".into());
+    if let Some(reason) = shift_domain_exclusion(&n) {
+        return Err(format!("N={n}: {reason}"));
     }
+    let n_is_mersenne = is_mersenne(&n);
     let n_register = dialect_register(&n);
 
     let (p, q, source_label) = if let Some((p, q)) = factor_pair {
         if p <= BigUint::one() || q <= BigUint::one() || &p * &q != n {
             return Err(format!("factor witness does not multiply to N={n}"));
         }
+        for (label, factor) in [("p", &p), ("q", &q)] {
+            if let Some(reason) = shift_domain_exclusion(factor) {
+                return Err(format!("{label}={factor}: {reason}"));
+            }
+        }
         (p, q, "supplied factor witness")
     } else if let Some((p, q)) = register_filtered_trial_factor(&n) {
-        (p, q, "dialect-register filtered candidate search")
+        (p, q, "shift-faithful-domain trial division")
     } else {
         let tape = crate::morphism_factor::decimal_to_tape(&n.to_string()).ok_or_else(|| "could not encode N for Vox factorizer".to_string())?;
         let (factors, _log) = crate::morphism_factor::smart_factor(&tape);
@@ -216,8 +239,10 @@ fn run(args: &[String]) -> Result<String, String> {
         let b = decode_integer(&crate::morphism_factor::dec_of(&factors[1]))?;
         (a, b, "Vox smart factorizer")
     };
-    if is_mersenne(&p) || is_mersenne(&q) {
-        return Err("Mersenne factors are excluded by the dialect-register candidate filter".into());
+    for (label, factor) in [("p", &p), ("q", &q)] {
+        if let Some(reason) = shift_domain_exclusion(factor) {
+            return Err(format!("Vox produced out-of-domain {label}={factor}: {reason}"));
+        }
     }
 
     let (carry_columns, carry_mass, carry_positions, product_bits) = binary_product_carries(&p, &q);
@@ -225,6 +250,7 @@ fn run(args: &[String]) -> Result<String, String> {
     if product != n { return Err("internal carry trace failed to reconstruct N".into()); }
     let mut out = String::new();
     out.push_str(&format!("N = {n}\nhex = {}\nbitlength = {}\npopcount = {}\n", n.to_str_radix(16), n.bits(), popcount(&n)));
+    out.push_str("shift-faithful domain = odd, non-Mersenne integers greater than one\n");
     out.push_str(&format!("dialect register = {n_register} ({})\n", if n_is_mersenne { "Mersenne" } else { "non-Mersenne" }));
     out.push_str(&format!("hex-digit word = {}\n", hex_word(&n)));
     out.push_str(&format!("native word = {}\n", native_word(&n)));
@@ -283,19 +309,29 @@ mod tests {
     }
 
     #[test]
-    fn register_filter_excludes_mersenne_values_and_factors() {
+    fn shift_faithful_domain_excludes_even_and_mersenne_values() {
+        for value in [2u32, 22, 31, 127] {
+            assert!(!is_shift_faithful(&BigUint::from(value)));
+            assert!(run(&[value.to_string()]).is_err());
+        }
+        for value in [11u32, 13, 143] {
+            assert!(is_shift_faithful(&BigUint::from(value)));
+        }
+
         let n = BigUint::from(21u32);
         assert!(register_filtered_trial_factor(&n).is_none());
         assert_eq!(dialect_register(&n), "111111111111");
         assert_eq!(dialect_register(&BigUint::from(3u32)), "001000011100");
         assert_eq!(dialect_register(&BigUint::from(7u32)), "001000011100");
+        assert!(run(&["21".into(), "--factors".into(), "3".into(), "7".into()]).is_err());
+        assert!(run(&["143".into(), "--factors".into(), "2".into(), "71".into()]).is_err());
 
         let n = BigUint::from(143u32);
         let (p, q) = register_filtered_trial_factor(&n).unwrap();
         assert_eq!(&p * &q, n);
         assert_eq!(dialect_register(&p), dialect_register(&n));
         assert_eq!(dialect_register(&q), dialect_register(&n));
-        assert!(!is_mersenne(&p));
-        assert!(!is_mersenne(&q));
+        assert!(is_shift_faithful(&p));
+        assert!(is_shift_faithful(&q));
     }
 }
