@@ -87,6 +87,39 @@ fn bit_string(n: &BigUint) -> String { n.to_str_radix(2) }
 
 fn popcount(n: &BigUint) -> usize { bit_string(n).bytes().filter(|b| *b == b'1').count() }
 
+fn is_mersenne(n: &BigUint) -> bool {
+    !n.is_zero() && n.to_str_radix(2).bytes().all(|bit| bit == b'1')
+}
+
+fn dialect_register(n: &BigUint) -> &'static str {
+    if is_mersenne(n) { "001000011100" } else { "111111111111" }
+}
+
+/// Search non-Mersenne divisor candidates whose registers match N. Mersenne
+/// values are excluded from this candidate space.
+fn register_filtered_trial_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
+    const TRIAL_LIMIT: u64 = 100_000;
+    let target_register = dialect_register(n);
+    let mut divisor = 2u64;
+    while divisor <= TRIAL_LIMIT {
+        let p = BigUint::from(divisor);
+        if &p * &p > n.clone() { break; }
+        let remainder = n % &p;
+        if remainder.is_zero() {
+            let q = n / &p;
+            if !is_mersenne(&p)
+                && !is_mersenne(&q)
+                && dialect_register(&p) == target_register
+                && dialect_register(&q) == target_register
+            {
+                return Some((p, q));
+            }
+        }
+        divisor += 1;
+    }
+    None
+}
+
 /// Return (nonzero carry-out columns, sum of carry-out values, positions,
 /// output bits LSB-first). Carry values can exceed one in multiplication.
 fn binary_product_carries(p: &BigUint, q: &BigUint) -> (usize, usize, Vec<usize>, Vec<bool>) {
@@ -128,9 +161,10 @@ fn decode_integer(text: &str) -> Result<BigUint, String> {
 fn run(args: &[String]) -> Result<String, String> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
         return Ok("vox factor-membrane <decimal|0xHEX|--hex-word WORD|--native-word WORD> [--factors P Q]\n\
-             Decodes a membrane numeral, factors arbitrary N, and verifies the product and carry trace.\n\
-             The standalone binary reads N and its factors with trilattice_factor read.\n\
-             Set VOX_TRILATTICE_FACTOR when trilattice_factor is not on PATH.\n".into());
+             Decodes and factors non-Mersenne semiprimes whose factors are non-Mersenne.\n\
+             Register filter: 111111111111 for non-Mersenne values; Mersenne values are excluded.\n\
+             The standalone binary reads N and its factors with g-momonados trilattice_factor read.\n\
+             Set VOX_TRILATTICE_FACTOR when g-momonados is not on PATH.\n".into());
     }
     let mut source: Option<BigUint> = None;
     let mut factor_pair: Option<(BigUint, BigUint)> = None;
@@ -161,12 +195,19 @@ fn run(args: &[String]) -> Result<String, String> {
     }
     let n = source.ok_or_else(|| "missing integer source".to_string())?;
     if n <= BigUint::one() { return Err("a semiprime modulus must be greater than one".into()); }
+    let n_is_mersenne = is_mersenne(&n);
+    if n_is_mersenne {
+        return Err("Mersenne values are excluded by the dialect-register candidate filter".into());
+    }
+    let n_register = dialect_register(&n);
 
     let (p, q, source_label) = if let Some((p, q)) = factor_pair {
         if p <= BigUint::one() || q <= BigUint::one() || &p * &q != n {
             return Err(format!("factor witness does not multiply to N={n}"));
         }
         (p, q, "supplied factor witness")
+    } else if let Some((p, q)) = register_filtered_trial_factor(&n) {
+        (p, q, "dialect-register filtered candidate search")
     } else {
         let tape = crate::morphism_factor::decimal_to_tape(&n.to_string()).ok_or_else(|| "could not encode N for Vox factorizer".to_string())?;
         let (factors, _log) = crate::morphism_factor::smart_factor(&tape);
@@ -175,18 +216,25 @@ fn run(args: &[String]) -> Result<String, String> {
         let b = decode_integer(&crate::morphism_factor::dec_of(&factors[1]))?;
         (a, b, "Vox smart factorizer")
     };
+    if is_mersenne(&p) || is_mersenne(&q) {
+        return Err("Mersenne factors are excluded by the dialect-register candidate filter".into());
+    }
 
     let (carry_columns, carry_mass, carry_positions, product_bits) = binary_product_carries(&p, &q);
     let product = from_lsb_bits(&product_bits);
     if product != n { return Err("internal carry trace failed to reconstruct N".into()); }
     let mut out = String::new();
     out.push_str(&format!("N = {n}\nhex = {}\nbitlength = {}\npopcount = {}\n", n.to_str_radix(16), n.bits(), popcount(&n)));
+    out.push_str(&format!("dialect register = {n_register} ({})\n", if n_is_mersenne { "Mersenne" } else { "non-Mersenne" }));
     out.push_str(&format!("hex-digit word = {}\n", hex_word(&n)));
     out.push_str(&format!("native word = {}\n", native_word(&n)));
     out.push_str(&format!("roundtrip hex-word = {}\n", decode_hex_word(&hex_word(&n))? == n));
     out.push_str(&format!("roundtrip native-word = {}\n", decode_native_word(&native_word(&n))? == n));
     out.push_str(&format!("factor source = {source_label}\np = {p}\np_bits = {}\np_popcount = {}\nq = {q}\nq_bits = {}\nq_popcount = {}\n",
         p.bits(), popcount(&p), q.bits(), popcount(&q)));
+    out.push_str(&format!("p dialect register = {} ({})\nq dialect register = {} ({})\n",
+        dialect_register(&p), if is_mersenne(&p) { "Mersenne" } else { "non-Mersenne" },
+        dialect_register(&q), if is_mersenne(&q) { "Mersenne" } else { "non-Mersenne" }));
     out.push_str(&format!("product check = {}\npopcount sum = {}\npopcount delta = {}\n",
         &p * &q == n, popcount(&p) + popcount(&q), popcount(&n) as isize - popcount(&p) as isize - popcount(&q) as isize));
     out.push_str(&format!("binary multiplication nonzero carry-out columns = {carry_columns}\ncarry-out positions (0-based) = {carry_positions:?}\n"));
@@ -232,5 +280,22 @@ mod tests {
                 assert_eq!(carry_mass, popcount(&p) * popcount(&q) - popcount(&n));
             }
         }
+    }
+
+    #[test]
+    fn register_filter_excludes_mersenne_values_and_factors() {
+        let n = BigUint::from(21u32);
+        assert!(register_filtered_trial_factor(&n).is_none());
+        assert_eq!(dialect_register(&n), "111111111111");
+        assert_eq!(dialect_register(&BigUint::from(3u32)), "001000011100");
+        assert_eq!(dialect_register(&BigUint::from(7u32)), "001000011100");
+
+        let n = BigUint::from(143u32);
+        let (p, q) = register_filtered_trial_factor(&n).unwrap();
+        assert_eq!(&p * &q, n);
+        assert_eq!(dialect_register(&p), dialect_register(&n));
+        assert_eq!(dialect_register(&q), dialect_register(&n));
+        assert!(!is_mersenne(&p));
+        assert!(!is_mersenne(&q));
     }
 }
