@@ -40,7 +40,7 @@ fn mod_inverse_odd_2adic(a: &BigUint, k: u32) -> Option<BigUint> {
         let modulus = BigUint::one() << (bits * 2).min(64); // Cap at 64-bit steps
         let two = BigUint::from(2u32);
         let ax = a * &x;
-        let two_minus_ax = (two - (ax % &modulus)) % &modulus;
+        let two_minus_ax = (two + &modulus - &(ax % &modulus)) % &modulus;
         x = (&x * two_minus_ax) % &modulus;
         bits *= 2;
         if bits > k {

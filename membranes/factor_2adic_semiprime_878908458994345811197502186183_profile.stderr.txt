@@ -1,2 +1,0 @@
-membrane timing: candidate-factorization=10.667736409s encoded-fold=31.339µs
-elapsed=10.66

@@ -74,6 +74,8 @@ pub mod fixed_point_quantum_readout;
 pub mod factor_2adic; // 2-adic prefix inversion factorization
 pub mod phase_partners;
 pub mod membrane_factor;
+pub mod combined_factor;
+pub mod coupled_factor;
 
 // Legacy host-side phase-table factor membrane is intentionally not exported.
 // pub mod fixed_point_membrane;

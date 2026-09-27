@@ -74,4 +74,52 @@ Lanes: x86 (lifts+verdicts+runs), EVM/WASM/genetic (lift+verdict); genetic table
 
 Full 382-line version: `README_backups/Vox_README.md`.
 
+## Native numeral encoding — commuting structure
+
+Every number is a word; the codec is exact, prefix-free, and bit-order symmetric. Every identity below was witnessed live (26/26 PASS over 1..2000, 64/127-bit randoms, and all 21 BIGBREAK cells; kernel compose witnesses at the end).
+
+```
+n ——encode——▶ ⊢ c(b₀) c(b₁) … c(b_{m−1}) ⊙⊡⊣ ——decode——▶ n
+                c(0)=≻⋈∈⊤∋   c(1)=≻⋈∈⊥∋
+bits LSB-first · canonical: final cell ⊥ (MSB = 1) · prefix-free (Kraft)
+
+σ (×2)     : prepend one ⊤-cell          enc(2n) = σ(enc(n))
+R (reverse): bit order LSB↔MSB           R² = id
+popcount   : commutes with {enc, σ, R}   popcount(enc(n)) = popcount(n)
+support    : conjugate under R           support_MSB = {m−1−i : i ∈ support_LE}
+
+          σ (prepend ⊤-cell)
+    W(n) ─────────────────▶ W(2n)
+     │ R                        │ R
+     ▼                          ▼
+    R(W(n)) ────────────────▶ R(W(2n))
+          σ (append ⊤-cell)
+
+    R ∘ σ = append ∘ R      the ONLY non-commuting pair — clean anticommutation
+
+    Γ / Λ  (interlace / deinterlace — braid pair):
+
+    (Wp, Wq) ─—Γ—▶ p₀ q₀ pᵧ qᵧ … pₖ qₖ
+        │ Λ_even  Λ_odd        ▲
+        ▼       ▼              │ Γ
+       Wp       Wq ───────────┘
+    Λ∘Γ = id per lane · Γ∘(Λe,Λo) = id (even cell count)
+    Γ∘swap = swap_pairs∘Γ   (S₂-equivariance — the braid relation)
+    number level: Γ#(p,q) = P₄(p) + 2·P₄(q),   P₄(2n) = 4·P₄(n)
+    ⇒ Γ#(2p,2q) = 4·Γ#(p,q)   (interlace commutes with simultaneous doubling)
+
+    v₂(n) = initial ⊤-run of enc(n)   (file: composite.decomp-k / shift-factor)
+
+    compose rule — LIVE kernel witnesses:
+
+    ⊙> native_numeral compose 7 13      ⊙> native_numeral compose 13 7
+    per(7)=20 per(13)=25 per(91)=40     per(13)=25 per(7)=20 per(91)=40
+    d = 20+25−40 = 5, rule true         d = 25+20−40 = 5, rule true
+
+    d(p,q) = period(p)+period(q)−period(pq) ∈ {5,10}  and  d(p,q) = d(q,p)
+    — the composition defect is commutative in the factors.
+```
+
+Full list of twelve: **(1)** codec involution dec∘enc = id = enc∘dec · **(2)** prefix-free unique decode · **(3)** shift σ commutes with popcount · **(4)** R² = id, R∘σ = append∘R · **(5)** support/polynomial conjugacy under R · **(6)** Γ/Λ braid pair · **(7)** Γ# = P₄ + 2P₄ homomorphism · **(8)** v₂ = initial ⊤-run · **(9)** compose-defect commutative (live) · **(10)** Belnap binary-gcd commutative (mirror N/T/F/B trace) · **(11)** kernel invariants commute with every cell operation (frame-sweep widths 2..8 preserve all bits; type hash 16389838/17280000 constant across all 21 cells; sieve certificate 53 primes / aperture 2⁸) · **(12)** orbit readout invariant under presentation (word, binary, bits-le, support, polynomial all pass the same asserts per cell).
+
 μ∘δ = id

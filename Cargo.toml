@@ -351,3 +351,11 @@ path = "src/bin/factor_2adic_bigint.rs"
 [[bin]]
 name = "factor_membrane"
 path = "src/bin/factor_membrane.rs"
+
+[[bin]]
+name = "toroidal_shot_cli"
+path = "src/bin/toroidal_shot_cli.rs"
+
+[[bin]]
+name = "toroidal_one"
+path = "src/bin/toroidal_one.rs"
