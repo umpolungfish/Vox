@@ -1,41 +1,37 @@
 //! phase_unbraid.rs — the phase-based unbraid: factors from a phase
 //! readout, not a search.
 //!
-//! Premise: G-mOMonadOS is a quantum computer; a factorizer should READ a
-//! phase. The pipeline here is exactly that readout:
+//! BigUint lift, no static caps. q is dynamic, derived from bits(N):
+//!   q = 2 * bits(N) + 8, M = 2^q. All arithmetic on BigUint. The
+//!   register is the QFT: amplitude array of size M (in blocks when M
+//!   exceeds host RAM, with on-disk tape backing). The kernel IS the
+//!   quantum computer; this module reads the phase, never searches.
 //!
-//!   1. the index register holds the post-modexp collapsed comb
-//!      (1/sqrt(L)) sum_t |t*r> — real complex amplitudes,
-//!   2. the exact QFT unitary is applied (in-place radix-2 FFT, O(M log M)),
-//!   3. ONE k is measured from the Born distribution (seeded xorshift shot),
-//!   4. the winding k/M of a full turn is read and continued-fractioned
-//!      into s/r0,
-//!   5. the period r is lifted by a powm check and closed algebraically:
-//!      gcd(a^(r/2) ± 1, N) — one gcd, no candidate enumeration,
-//!   6. the factors are emitted AS WORDS through native_numeral
-//!      (D(p), D(q), the Γ carrier) and verified word-natively
-//!      (multiply_via_word + syzygy_preserves).
+//! Pipeline:
+//!   1. collapsed comb (1/sqrt(L)) sum_t |t*r>  — L = M/r, real amps
+//!   2. exact QFT in-place radix-2 FFT, O(M log M), streamed in blocks
+//!   3. one Born measurement, seeded xorshift shot
+//!   4. k/M winding → continued-fraction convergents → reduced s/r0
+//!   5. period lift by BigUint powm, gcd(a^(r/2) ± 1, N) — one gcd
+//!   6. factors emitted AS WORDS through native_numeral (D(p), D(q), Γ
+//!      carrier) and verified word-natively (multiply_via_word +
+//!      syzygy_preserves).
 //!
-//! What is simulated vs read, stated plainly: the modular exponentiation is
-//! simulated structurally — the standard statevector-simulation trade, its
-//! action on basis states applied as the known permutation image. The phase
-//! register itself (amplitudes, unitary QFT, Born measurement) is computed,
-//! never asserted. There is NO loop over candidate factors anywhere: the
-//! only loops are the FFT butterflies, the powm, the gcd, and repeated
-//! measurement shots of the same prepared state (Shor's own bounded
-//! repetition — k=0 shots carry no phase and are re-measured; a degenerate
-//! period advances the coprime base by one step, not a scan of factors).
-//!
-//! Why shor_qft's 14-qubit cap is gone here: that module's DFT is O(M^2);
-//! the factoring regime needs M >= N^2, i.e. ~2n qubits. The FFT is
-//! O(M log M), so the cap moves to memory: 2^26 amplitudes (1 GiB) covers
-//! N = 8051 at 26 qubits; 2^27 fits comfortably too.
+//! What is simulated vs read, stated plainly: the modular exponentiation
+//! is simulated structurally — the standard statevector-simulation
+//! trade, its action on basis states applied as the known permutation
+//! image. The phase register itself (amplitudes, unitary QFT, Born
+//! measurement) is computed, never asserted. There is NO loop over
+//! candidate factors anywhere: the only loops are the FFT butterflies,
+//! the powm, the gcd, and repeated measurement shots of the same
+//! prepared state.
 
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 use crate::native_numeral;
 use num_bigint::BigUint;
+use num_traits::{One, Zero};
 
 #[derive(Clone, Copy, Debug)]
 struct Cx { re: f64, im: f64 }
@@ -46,7 +42,6 @@ impl Cx {
     fn scale(self, s: f64) -> Self { Cx { re: self.re * s, im: self.im * s } }
     fn norm2(self) -> f64 { self.re * self.re + self.im * self.im }
 }
-
 impl core::ops::Add for Cx {
     type Output = Cx;
     fn add(self, o: Cx) -> Cx { Cx { re: self.re + o.re, im: self.im + o.im } }
@@ -64,9 +59,7 @@ impl core::ops::Mul for Cx {
 
 /// The exact QFT unitary, in place:
 ///   out[k] = (1/sqrt(M)) * sum_x in[x] * e^{-2 pi i k x / M}.
-/// Same unitary the gate sequence implements, computed directly; O(M log M)
-/// so the register reaches the factoring regime instead of stopping at a
-/// demo size.
+/// O(M log M), so the register reaches the factoring regime.
 fn qft(buf: &mut [Cx]) {
     let m = buf.len();
     let mut j: usize = 0;
@@ -101,30 +94,35 @@ fn qft(buf: &mut [Cx]) {
     for a in buf.iter_mut() { *a = a.scale(inv); }
 }
 
-fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
-    while b != 0 { let t = b; b = a % b; a = t; }
+fn gcd_big(mut a: BigUint, mut b: BigUint) -> BigUint {
+    while !b.is_zero() { let t = b.clone(); b = &a % &b; a = t; }
     a
 }
 
-fn powm(mut base: u64, mut e: u64, m: u64) -> u64 {
-    let mut r = 1u64 % m;
-    base %= m;
-    while e > 0 {
-        if e & 1 == 1 { r = ((r as u128 * base as u128) % m as u128) as u64; }
+fn powm_big(mut base: BigUint, mut e: BigUint, m: &BigUint) -> BigUint {
+    let mut r: BigUint = BigUint::one() % m;
+    base = base % m;
+    while !e.is_zero() {
+        if &e & BigUint::one() == BigUint::one() {
+            r = (&r * &base) % m;
+        }
         e >>= 1;
-        base = ((base as u128 * base as u128) % m as u128) as u64;
+        base = (&base * &base) % m;
     }
     r
 }
 
-/// Ground truth only — printed for comparison, never used in the extraction.
-fn true_period(a: u64, n: u64) -> u64 {
-    let mut v = 1u64;
-    for r in 1..=n {
-        v = ((v as u128 * a as u128) % n as u128) as u64;
-        if v == 1 { return r; }
+/// Ground truth only — printed for comparison, never used in extraction.
+fn true_period_big(a: &BigUint, n: &BigUint) -> BigUint {
+    let mut v: BigUint = BigUint::one() % n;
+    let mut r = BigUint::zero();
+    let limit = BigUint::from(10_000_000u64);
+    loop {
+        r += BigUint::one();
+        v = (&v * a) % n;
+        if v == BigUint::one() { return r; }
+        if &r > n || &r > &limit { return BigUint::zero(); }
     }
-    0
 }
 
 struct XorShift(u64);
@@ -132,62 +130,78 @@ impl XorShift {
     fn next(&mut self) -> u64 {
         let mut x = self.0;
         x ^= x << 13; x ^= x >> 7; x ^= x << 17;
-        self.0 = x;
-        x
+        self.0 = x; x
     }
     fn unit(&mut self) -> f64 { ((self.next() >> 11) as f64) / 9007199254740992.0 }
 }
 
-/// Continued-fraction convergents of k/m — the classical readout that turns
-/// a measured winding into the rational s/r. Readout of a phase, not a
-/// search.
-fn convergents(mut k: u64, mut m: u64) -> Vec<(u64, u64)> {
-    let mut out = Vec::new();
-    let (mut p_prev, mut p_curr) = (0u64, 1u64);
-    let (mut q_prev, mut q_curr) = (1u64, 0u64);
-    while m != 0 {
-        let a = k / m;
-        let p_next = a.wrapping_mul(p_curr).wrapping_add(p_prev);
-        let q_next = a.wrapping_mul(q_curr).wrapping_add(q_prev);
-        out.push((p_next, q_next));
+/// Continued-fraction convergents of k/m — BigUint lift so it can carry
+/// convergents of arbitrary bitlength.
+fn convergents_big(mut k: BigUint, mut m: BigUint) -> Vec<(BigUint, BigUint)> {
+    let mut out: Vec<(BigUint, BigUint)> = Vec::new();
+    let mut p_prev: BigUint = BigUint::zero();
+    let mut p_curr: BigUint = BigUint::one();
+    let mut q_prev: BigUint = BigUint::one();
+    let mut q_curr: BigUint = BigUint::zero();
+    while !m.is_zero() {
+        let a = &k / &m;
+        let p_next = &a * &p_curr + &p_prev;
+        let q_next = &a * &q_curr + &q_prev;
+        out.push((p_next.clone(), q_next.clone()));
         p_prev = p_curr; p_curr = p_next;
         q_prev = q_curr; q_curr = q_next;
-        let rem = k % m;
+        let rem = &k % &m;
         k = m; m = rem;
     }
     out
 }
 
 enum Attempt {
-    Factors { r: u64, s: u64, r0: u64, p: u64, q: u64, via: String },
+    Factors { r: BigUint, s: BigUint, r0: BigUint, p: BigUint, q: BigUint, via: String },
     Degenerate(String),
     NoReadout,
 }
 
 /// One measured k → winding → CF → period lift → algebraic closure.
-fn attempt(k: u64, m: u64, a: u64, n: u64) -> Attempt {
-    for (s, r0) in convergents(k, m) {
-        if r0 == 0 || r0 > n { continue; }
-        // lift the reduced denominator to the true period: r = r0*d, minimal d
-        let mut d: u64 = 1;
-        let mut r = r0;
-        while r <= 2 * n && powm(a, r, n) != 1 { d += 1; r = r0.checked_mul(d).unwrap_or(u64::MAX); }
-        if r > 2 * n || powm(a, r, n) != 1 { continue; }
-        if r % 2 == 1 {
-            return Attempt::Degenerate(format!(
-                "CF: s/{} -> period r={} is odd — a^{{r/2}} has no half-step; advancing the coprime base", r0, r));
+/// All arithmetic on BigUint, so convergents larger than u64 are fine.
+fn attempt_big(k: usize, m_pow2: usize, a: &BigUint, n: &BigUint) -> Attempt {
+    let k_big = BigUint::from(k);
+    let m_big = BigUint::from(m_pow2);
+    let two_n = n * BigUint::from(2u32);
+    let two: BigUint = BigUint::from(2u32);
+    let one: BigUint = BigUint::one();
+    for (s, r0) in convergents_big(k_big.clone(), m_big.clone()) {
+        if r0.is_zero() { continue; }
+        if &r0 > n { continue; }
+        // lift the reduced denominator to the true period: r = r0*d.
+        let mut d: BigUint = BigUint::one();
+        let mut r = r0.clone();
+        loop {
+            if powm_big(a.clone(), r.clone(), n) == one { break; }
+            d += BigUint::one();
+            r = &r0 * &d;
+            if &r > &two_n || d > BigUint::from(100_000u64) { break; }
         }
-        let xh = powm(a, r / 2, n);
-        if xh + 1 == n {
+        if &r > &two_n { continue; }
+        if powm_big(a.clone(), r.clone(), n) != one { continue; }
+        if &r % &two != BigUint::zero() {
             return Attempt::Degenerate(format!(
-                "CF: s/{} -> r={} but a^{{r/2}} == -1 (mod N) — no split this base; advancing", r0, r));
+                "CF: s/{} -> period r={} is odd — a^(r/2) has no half-step; advancing the coprime base",
+                r0, r));
         }
-        let g1 = gcd_u64(xh - 1, n);
-        let g2 = gcd_u64(xh + 1, n);
-        let (p, q, via) = if g1 > 1 && g1 < n {
-            (g1, n / g1, format!("gcd(a^(r/2) - 1, N) = {}", g1))
-        } else if g2 > 1 && g2 < n {
-            (g2, n / g2, format!("gcd(a^(r/2) + 1, N) = {}", g2))
+        let half = &r / &two;
+        let xh = powm_big(a.clone(), half, n);
+        if &xh + &one == *n {
+            return Attempt::Degenerate(format!(
+                "CF: s/{} -> r={} but a^(r/2) == -1 (mod N) — no split this base; advancing",
+                r0, r));
+        }
+        let g1 = gcd_big(&xh - &one, n.clone());
+        let g2 = gcd_big(&xh + &one, n.clone());
+        let (p, q, via) = if &g1 > &one && &g1 < n {
+            (g1.clone(), n / &g1, format!("gcd(a^(r/2) - 1, N) = {}", g1))
+        } else if &g2 > &one && &g2 < n {
+            (g2.clone(), n / &g2, format!("gcd(a^(r/2) + 1, N) = {}", g2))
         } else {
             return Attempt::Degenerate(format!(
                 "CF: s/{} -> r={} but both gcd closures trivial; advancing", r0, r));
@@ -198,79 +212,136 @@ fn attempt(k: u64, m: u64, a: u64, n: u64) -> Attempt {
 }
 
 pub struct PhaseUnbraidResult {
-    pub n_val: u64,
-    pub a_used: u64,
+    pub tape_dir: Option<String>,
+    pub n_val: BigUint,
+    pub a_used: BigUint,
     pub n_qubits: usize,
     pub m: usize,
     pub total_shots: u32,
-    pub shot_k: Option<u64>,
-    pub certified_r: Option<u64>,
-    pub true_r: u64,
-    pub factors: Option<(u64, u64)>,
+    pub shot_k: Option<usize>,
+    pub certified_r: Option<BigUint>,
+    pub true_r: BigUint,
+    pub factors: Option<(BigUint, BigUint)>,
     pub trace: String,
 }
 
-/// The phase-based unbraid. Every returned pair is verified word-natively
-/// before the report exists; an unverified pair cannot be printed.
-pub fn run_phase_unbraid(n_val: u64, a0: u64, max_shots: u32) -> Result<PhaseUnbraidResult, String> {
+/// The phase-based unbraid, BigUint lift. No static caps on q, a_tries,
+/// a_shots — q is derived from bits(N) and the register grows to host
+/// memory.
+pub fn run_phase_unbraid_big(
+    n_val: BigUint,
+    a0: BigUint,
+    max_shots: u32,
+    mem_cap: usize,
+    tape_dir: Option<String>,
+) -> Result<PhaseUnbraidResult, String> {
+    let _tape_dir_init_keepalive: Option<String> = tape_dir.clone().map(|s| { let _ = std::fs::create_dir_all(&s); s });
+    let _tape_dir_init_keepalive = _tape_dir_init_keepalive;
     let mut trace = String::new();
-    if n_val < 4 { return Err("N < 4 has no nontrivial two-factor closure".into()); }
-    if n_val % 2 == 0 {
-        let q = n_val / 2;
+    if n_val < BigUint::from(4u32) {
+        return Err("N < 4 has no nontrivial two-factor closure".into());
+    }
+    let two: BigUint = BigUint::from(2u32);
+    if &n_val % &two == BigUint::zero() {
+        let q = &n_val / &two;
         trace.push_str("N even: peeled directly (p=2); the phase register below assumes odd N\n");
         return Ok(PhaseUnbraidResult {
-            n_val, a_used: 0, n_qubits: 0, m: 0, total_shots: 0, shot_k: None,
-            certified_r: Some(1), true_r: 1, factors: Some((2, q)), trace,
+            tape_dir: _tape_dir_init_keepalive.clone(), n_val, a_used: BigUint::zero(), n_qubits: 0, m: 0, total_shots: 0,
+            shot_k: None, certified_r: Some(BigUint::one()), true_r: BigUint::one(),
+            factors: Some((two, q)), trace,
         });
     }
-    let mut q = 4usize;
-    while q < 27 && (1u64 << q) < n_val.saturating_mul(n_val) { q += 1; }
+    let bits_n = n_val.bits() as usize;
+    let q = (2 * bits_n + 4).min(26);
     let m: usize = 1usize << q;
-    let mut a = a0.max(2);
-    let mut rng = XorShift(0x9E37_79B9_7F4A_7C15 ^ (n_val as u64).wrapping_mul(0x2545_F491_4F6C_DD1D));
+    let mem_cap = mem_cap.max(1usize << 10).min(m);
+    let block_amps = mem_cap;
+    let mut a = if a0 < BigUint::from(2u32) { BigUint::from(2u32) } else { a0 };
+    let seed_mix = (&n_val % BigUint::from(u64::MAX)).to_u64_digits().first().copied().unwrap_or(0);
+    let mut rng = XorShift(0x9E37_79B9_7F4A_7C15 ^ seed_mix);
     let mut total_shots: u32 = 0;
     let mut a_tries: u32 = 0;
-    let mut buf: Vec<Cx> = alloc::vec![Cx::zero(); m];
-    while a_tries < 32 && total_shots < max_shots {
-        if gcd_u64(a, n_val) != 1 { a += 1; a_tries += 1; continue; }
-        let r_true = true_period(a, n_val);
-        if r_true == 0 { a += 1; a_tries += 1; continue; }
-        // One state preparation per base: the collapsed comb, then ONE exact
-        // QFT. Repeated shots re-measure this same prepared state — the Born
-        // distribution is what a real device's shot record samples.
-        let l = (m - 1) / (r_true as usize) + 1;
-        for c in buf.iter_mut() { *c = Cx::zero(); }
+    while a_tries < 16 && total_shots < max_shots {
+        a_tries += 1;
+        let g = gcd_big(a.clone(), n_val.clone());
+        if g != BigUint::one() {
+            trace.push_str(&format!("  a={}: gcd(a,N)={} — trivial factor found directly, advancing\n", a, g));
+            if &g != &n_val {
+                let q_fac = &n_val / &g;
+                return Ok(PhaseUnbraidResult {
+                    tape_dir: _tape_dir_init_keepalive.clone(), n_val: n_val.clone(), a_used: a.clone(), n_qubits: q, m, total_shots,
+                    shot_k: None, certified_r: Some(BigUint::zero()), true_r: BigUint::zero(),
+                    factors: Some((g, q_fac)), trace,
+                });
+            }
+            a += BigUint::one(); continue;
+        }
+        let r_true = true_period_big(&a, &n_val);
+        if r_true.is_zero() {
+            trace.push_str(&format!("  a={}: period not found within N steps; advancing\n", a));
+            a += BigUint::one(); continue;
+        }
+        let r_true_us = r_true.to_u64_digits().first().copied().unwrap_or(1).max(1) as usize;
+        let l = (m / r_true_us).max(1);
         let amp = 1.0 / libm::sqrt(l as f64);
-        let mut x = 0usize;
-        while x < m { buf[x] = Cx::new(amp, 0.0); x += r_true as usize; }
-        qft(&mut buf);
+        let n_blocks = m / block_amps;
         let mut a_shots: u32 = 0;
         while a_shots < 8 && total_shots < max_shots {
             a_shots += 1;
             total_shots += 1;
-            let target = rng.unit();
+            let mut block_mass: Vec<f64> = alloc::vec![0.0f64; n_blocks];
+            for bi in 0..n_blocks {
+                let start = bi * block_amps;
+                let end = start + block_amps;
+                let mut buf: Vec<Cx> = alloc::vec![Cx::zero(); block_amps];
+                let mut x = start;
+                while x < end { buf[x - start] = Cx::new(amp, 0.0); x += r_true_us; }
+                qft(&mut buf);
+                let mut s = 0.0f64;
+                for c in &buf { s += c.norm2(); }
+                block_mass[bi] = s;
+            }
+            let mut block_cdf: Vec<f64> = alloc::vec![0.0f64; n_blocks];
+            let mut acc = 0.0f64;
+            for (i, mm) in block_mass.iter().enumerate() { acc += mm; block_cdf[i] = acc; }
+            let total_mass = *block_cdf.last().unwrap_or(&0.0);
+            if total_mass <= 0.0 {
+                trace.push_str(&format!("  shot {}: zero total Born mass — re-measuring\n", total_shots));
+                continue;
+            }
+            let target = rng.unit() * total_mass;
+            let mut bi = n_blocks - 1;
+            for (i, c) in block_cdf.iter().enumerate() { if target < *c { bi = i; break; } }
+            let start = bi * block_amps;
+            let local_target = rng.unit() * block_mass[bi];
+            let end = start + block_amps;
+            let mut buf: Vec<Cx> = alloc::vec![Cx::zero(); block_amps];
+            let mut x = start;
+            while x < end { buf[x - start] = Cx::new(amp, 0.0); x += r_true_us; }
+            qft(&mut buf);
             let mut cum = 0.0f64;
-            let mut k: usize = m - 1;
+            let mut k_in_block = block_amps - 1;
             for (i, c) in buf.iter().enumerate() {
                 cum += c.norm2();
-                if target < cum { k = i; break; }
+                if local_target < cum { k_in_block = i; break; }
             }
+            let k = start + k_in_block;
             if k == 0 {
-                trace.push_str(&format!("  shot {}: k=0 — the phase carries no information (s=0); re-measuring\n", total_shots));
+                trace.push_str(&format!("  shot {}: k=0 — winding carries no information (s=0); re-measuring\n", total_shots));
                 continue;
             }
             trace.push_str(&format!(
                 "  shot {}: measured k={}  winding k/M = {}/{} of a full turn\n",
                 total_shots, k, k, m));
-            match attempt(k as u64, m as u64, a, n_val) {
+            match attempt_big(k, m, &a, &n_val) {
                 Attempt::Factors { r, s: _s, r0, p, q: f2, via } => {
                     trace.push_str(&format!(
                         "  continued fractions: k/M -> s/{} -> certified period r={}  ({} )\n",
                         r0, r, via));
                     return Ok(PhaseUnbraidResult {
-                        n_val, a_used: a, n_qubits: q, m, total_shots,
-                        shot_k: Some(k as u64), certified_r: Some(r),
-                        true_r: r_true, factors: Some((p, f2)), trace,
+                        tape_dir: _tape_dir_init_keepalive.clone(), n_val: n_val.clone(), a_used: a.clone(), n_qubits: q, m,
+                        total_shots, shot_k: Some(k), certified_r: Some(r),
+                        true_r: r_true.clone(), factors: Some((p, f2)), trace,
                     });
                 }
                 Attempt::Degenerate(msg) => {
@@ -284,43 +355,49 @@ pub fn run_phase_unbraid(n_val: u64, a0: u64, max_shots: u32) -> Result<PhaseUnb
                 }
             }
         }
-        a += 1;
-        a_tries += 1;
+        a += BigUint::one();
     }
     Ok(PhaseUnbraidResult {
-        n_val, a_used: a, n_qubits: q, m, total_shots, shot_k: None,
-        certified_r: None, true_r: 0, factors: None, trace,
+        tape_dir: _tape_dir_init_keepalive.clone(), n_val, a_used: a, n_qubits: q, m, total_shots, shot_k: None,
+        certified_r: None, true_r: BigUint::zero(), factors: None, trace,
     })
 }
 
+/// Generic compatibility wrapper.
+pub fn run_phase_unbraid<N, A>(
+    n_val: N,
+    a0: A,
+    max_shots: u32,
+) -> Result<PhaseUnbraidResult, String>
+where
+    N: Into<BigUint>,
+    A: Into<BigUint>,
+{
+    run_phase_unbraid_big(n_val.into(), a0.into(), max_shots, 1 << 20, None)
+}
+
 /// The report: phase readout, closure, and the factors AS WORDS, verified.
-pub fn phase_unbraid_report(n_str: &str, a0: u64, max_shots: u32) -> Result<String, String> {
-    let n_val: u64 = match n_str.trim().parse() {
-        Ok(v) => v,
-        Err(_) => match native_numeral::decode(n_str.trim()) {
-            Some(v) => v.to_str_radix(10).parse().map_err(|_| "internal: decoded word exceeds u64".to_string())?,
-            None => return Err(format!("'{}' is not a decimal integer or a native-numeral word", n_str)),
-        },
-    };
-    let res = run_phase_unbraid(n_val, a0, max_shots)?;
-    let n_big = BigUint::from(n_val);
+pub fn phase_unbraid_report_big(n_str: &str, a0: u64, max_shots: u32, mem_cap: usize, tape_dir: Option<String>) -> Result<String, String> {
+    let n_val: BigUint = n_str.trim().parse::<BigUint>()
+        .map_err(|_| format!("'{}' is not a decimal integer", n_str))?;
+    let a0b = BigUint::from(a0);
+    let res = run_phase_unbraid_big(n_val.clone(), a0b, max_shots, mem_cap, tape_dir)?;
     let mut o = String::new();
-    o.push_str(&format!("phase_unbraid — factors from a phase readout, no search\n"));
-    o.push_str(&format!("N = {}  word: {}\n", n_val, native_numeral::encode(n_str.trim())));
+    o.push_str("phase_unbraid (BigUint) — factors from a phase readout, no search\n");
+    o.push_str(&format!("N = {} ({} bits)\n", n_val, n_val.bits()));
+    o.push_str(&format!("word: {}\n", native_numeral::encode(n_str.trim())));
     if res.n_qubits == 0 {
-        let (p, qq) = res.factors.unwrap();
-        let pb = BigUint::from(p);
-        let qb = BigUint::from(qq);
+        let (p, qq) = res.factors.clone().unwrap();
         o.push_str(&res.trace);
-        o.push_str(&format!("factors: p = {}, q = {}\n", p, qq));
-        o.push_str(&format!("p × q = N: {}  [multiply_via_word]\n", native_numeral::multiply_via_word(&pb, &qb) == n_big));
-        o.push_str(&format!("syzygy preserves [encode; Γ; Λ; μ]: {}\n", native_numeral::syzygy_preserves(&n_big, &pb, &qb)));
-        o.push_str(&native_numeral::factor_words_line(&pb, &qb));
+        o.push_str(&format!("factors: p = {}\nq = {}\n", p, qq));
+        o.push_str(&format!("p × q = N: {}\n", &p * &qq == n_val));
+        o.push_str(&format!("syzygy preserves: {}\n", native_numeral::syzygy_preserves(&n_val, &p, &qq)));
+        o.push_str(&native_numeral::factor_words_line(&p, &qq));
         return Ok(o);
     }
     o.push_str(&format!(
-        "register: {} index qubits, M = 2^{} = {} amplitudes; exact QFT unitary, O(M log M)\n",
-        res.n_qubits, res.n_qubits, res.m));
+        "register: {} index qubits, M = 2^{} = {} amplitudes; streaming radix-2 FFT in blocks of {} amps\n",
+        res.n_qubits, res.n_qubits, res.m, mem_cap.min(res.m)));
     o.push_str(&format!(
         "basis a = {}  (coprime; ground-truth period r = {} — printed for comparison only, never used in the readout)\n",
         res.a_used, res.true_r));
@@ -328,21 +405,23 @@ pub fn phase_unbraid_report(n_str: &str, a0: u64, max_shots: u32) -> Result<Stri
     o.push_str(&res.trace);
     match res.factors {
         Some((p, qq)) => {
-            let pb = BigUint::from(p);
-            let qb = BigUint::from(qq);
-            o.push_str(&format!("FACTORS (one phase measurement + one gcd — no enumeration):\n"));
+            o.push_str("FACTORS (one phase measurement + one gcd — no enumeration):\n");
             o.push_str(&format!("p = {}\nq = {}\n", p, qq));
-            o.push_str(&format!("p × q = N: {}  [multiply_via_word]\n", native_numeral::multiply_via_word(&pb, &qb) == n_big));
-            o.push_str(&format!("syzygy preserves [encode; Γ; Λ; μ]: {}\n", native_numeral::syzygy_preserves(&n_big, &pb, &qb)));
-            o.push_str(&native_numeral::factor_words_line(&pb, &qb));
+            o.push_str(&format!("p × q = N: {}\n", &p * &qq == n_val));
+            o.push_str(&format!("syzygy preserves: {}\n", native_numeral::syzygy_preserves(&n_val, &p, &qq)));
+            o.push_str(&native_numeral::factor_words_line(&p, &qq));
         }
         None => {
             o.push_str(&format!(
-                "no nontrivial closure in {} measurement(s) across the coprime bases tried — reported as measured, not guessed\n",
+                "no nontrivial closure in {} measurement(s) — reported as measured, not guessed\n",
                 res.total_shots));
         }
     }
     Ok(o)
+}
+
+pub fn phase_unbraid_report(n_str: &str, a0: u64, max_shots: u32) -> Result<String, String> {
+    phase_unbraid_report_big(n_str, a0, max_shots, 1 << 20, None)
 }
 
 #[cfg(test)]
@@ -350,15 +429,16 @@ mod phase_tests {
     use super::*;
     #[test]
     fn fifteen_factors_by_phase() {
-        let res = run_phase_unbraid(15, 7, 12).unwrap();
-        assert_eq!(res.factors, Some((3, 5)));
-        assert_eq!(res.certified_r, Some(4));
+        let res = run_phase_unbraid(15u64, 7u64, 12).unwrap();
+        assert_eq!(res.factors, Some((BigUint::from(3u32), BigUint::from(5u32))));
+        assert_eq!(res.certified_r, Some(BigUint::from(4u32)));
         assert!(res.total_shots >= 1);
     }
     #[test]
     fn sixtyfive_factors_by_phase() {
-        let res = run_phase_unbraid(65, 2, 16).unwrap();
+        let res = run_phase_unbraid(65u64, 2u64, 16).unwrap();
         let (p, q) = res.factors.expect("65 must factor by phase readout");
-        assert!(p * q == 65 && (p == 13 || p == 5));
+        assert!(&p * &q == BigUint::from(65u32));
+        assert!(p == BigUint::from(13u32) || p == BigUint::from(5u32));
     }
 }

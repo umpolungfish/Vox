@@ -1233,6 +1233,18 @@ fn main() {
         }
         Some("factor-membrane") => match ::vox::membrane_factor::command(&args[1..]) {
             Ok(report) => {
+                if let Some(pos) = report.find("[EMITTED_MODULE_DESTINATION: ") {
+                    let after = &report[pos + "[EMITTED_MODULE_DESTINATION: ".len()..];
+                    if let Some(end_bracket) = after.find(']') {
+                        let dest_path = &after[..end_bracket];
+                        let code = after[end_bracket + 1..].trim_start();
+                        if let Err(e) = std::fs::write(dest_path, code) {
+                            eprintln!("warning: could not write {dest_path}: {e}");
+                        } else {
+                            println!("[EMITTED] Module written to {dest_path}");
+                        }
+                    }
+                }
                 print!("{report}");
                 factor_membrane_support::append_trilattice_reads(&report);
                 0
@@ -1270,6 +1282,22 @@ fn main() {
                 }
                 (Some(_), Some(_)) => { eprintln!("phase base is not coprime to N"); 2 }
                 _ => { eprintln!("vox coprime <base> <N>   validate a phase base before baking"); 2 }
+            }
+        }
+        Some("coupled") => {
+            match args.get(1).and_then(|a| ::vox::morphism_factor::decimal_to_tape(a)) {
+                Some(n) => match ::vox::coupled_factor::coupled(&n) {
+                    Ok(report) => { println!("{report}"); 0 }
+                    Err(::vox::coupled_factor::Reject::Even) => {
+                        eprintln!("arm cap: even N — phase base 2 is not a unit mod N; the domain gate rejects"); 2
+                    }
+                    Err(::vox::coupled_factor::Reject::TooSmall) => {
+                        eprintln!("N must be > 1"); 1
+                    }
+                },
+                None => {
+                    eprintln!("vox coupled <decimal N>   the coupled factorizer: P-membrane phase arm + frame-shift unbraid, self-certifying"); 1
+                }
             }
         }
         Some("numeral") => {
