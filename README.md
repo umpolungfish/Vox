@@ -76,48 +76,84 @@ Full 382-line version: `README_backups/Vox_README.md`.
 
 ## Native numeral encoding — commuting structure
 
-Every number is a word; the codec is exact, prefix-free, and bit-order symmetric. Every identity below was witnessed live (26/26 PASS over 1..2000, 64/127-bit randoms, and all 21 BIGBREAK cells; kernel compose witnesses at the end).
+Every number is a word; the codec is exact, prefix-free, and bit-order symmetric. Every identity below was witnessed live (26/26 PASS over 1..2000, 64/127-bit randoms, and all 21 BIGBREAK cells; kernel compose witnesses in §4).
+
+### 1. The word shape
 
 ```
-n ——encode——▶ ⊢ c(b₀) c(b₁) … c(b_{m−1}) ⊙⊡⊣ ——decode——▶ n
-                c(0)=≻⋈∈⊤∋   c(1)=≻⋈∈⊥∋
-bits LSB-first · canonical: final cell ⊥ (MSB = 1) · prefix-free (Kraft)
+example:  n = 42,  bits b₀ b₁ b₂ b₃ b₄ b₅ = 0 1 0 1 0 1    (LSB → MSB)
 
-σ (×2)     : prepend one ⊤-cell          enc(2n) = σ(enc(n))
-R (reverse): bit order LSB↔MSB           R² = id
-popcount   : commutes with {enc, σ, R}   popcount(enc(n)) = popcount(n)
-support    : conjugate under R           support_MSB = {m−1−i : i ∈ support_LE}
+  ⊢ │ ≻⋈∈⊤∋ │ ≻⋈∈⊥∋ │ ≻⋈∈⊤∋ │ ≻⋈∈⊥∋ │ ≻⋈∈⊤∋ │ ≻⋈∈⊥∋ │ ⊙⊡⊣
+      cell(b₀)  cell(b₁)  cell(b₂)  cell(b₃)  cell(b₄)  cell(b₅)
+      └────────────────── the word of 42 ─────────────────────────┘
 
-          σ (prepend ⊤-cell)
-    W(n) ─────────────────▶ W(2n)
-     │ R                        │ R
-     ▼                          ▼
-    R(W(n)) ────────────────▶ R(W(2n))
-          σ (append ⊤-cell)
+  cell(b) =  ≻⋈∈⊤∋   if b = 0
+             ≻⋈∈⊥∋   if b = 1
 
-    R ∘ σ = append ∘ R      the ONLY non-commuting pair — clean anticommutation
+  rules:   bits run LSB → MSB (cell 0 = b₀)
+           the final cell is always ⊥ (the leading 1 bit)  →  prefix-free
+           decode = inverse of encode (round-trip exact)
+```
 
-    Γ / Λ  (interlace / deinterlace — braid pair):
+### 2. Shift σ and reversal R — the one non-commuting pair
 
-    (Wp, Wq) ─—Γ—▶ p₀ q₀ pᵧ qᵧ … pₖ qₖ
-        │ Λ_even  Λ_odd        ▲
-        ▼       ▼              │ Γ
-       Wp       Wq ───────────┘
-    Λ∘Γ = id per lane · Γ∘(Λe,Λo) = id (even cell count)
-    Γ∘swap = swap_pairs∘Γ   (S₂-equivariance — the braid relation)
-    number level: Γ#(p,q) = P₄(p) + 2·P₄(q),   P₄(2n) = 4·P₄(n)
-    ⇒ Γ#(2p,2q) = 4·Γ#(p,q)   (interlace commutes with simultaneous doubling)
+```
+              σ : prepend one ⊤-cell          (enc(2n) = σ(enc(n)))
+   W(n)  ──────────────────────────────────►  W(2n)
+     │                                         │
+     │ R : reverse the cell order              │ R : reverse the cell order
+     ▼                                         ▼
+   R(W(n)) ────────────────────────────────►  R(W(2n))
+              σ′ : append one ⊤-cell
 
-    v₂(n) = initial ⊤-run of enc(n)   (file: composite.decomp-k / shift-factor)
+   Read around the square:   R ∘ σ = append ∘ R
+   reversal turns a PREPEND into an APPEND.
+   That anticommutation is the ONLY non-commuting pair in the ring.
+   Everything else commutes with everything:
+     popcount ∘ {encode, σ, R}  are all equal   (popcount(enc(n)) = popcount(n))
+     R conjugates the support:   support_MSB = { m−1−i : i ∈ support_LE }
+```
 
-    compose rule — LIVE kernel witnesses:
+### 3. Interlace Γ / deinterlace Λ — the braid pair
 
-    ⊙> native_numeral compose 7 13      ⊙> native_numeral compose 13 7
-    per(7)=20 per(13)=25 per(91)=40     per(13)=25 per(7)=20 per(91)=40
-    d = 20+25−40 = 5, rule true         d = 25+20−40 = 5, rule true
+```
+  input lanes (equal bit length):
 
-    d(p,q) = period(p)+period(q)−period(pq) ∈ {5,10}  and  d(p,q) = d(q,p)
-    — the composition defect is commutative in the factors.
+        lane p :   p₀    p₁    p₂    p₃
+        lane q :   q₀    q₁    q₂    q₃
+
+                   Γ : weave — one cell of p, then one of q, alternating
+                   ▼
+        woven  :   p₀    q₀    p₁    q₁    p₂    q₂    p₃    q₃
+                   pos 0    1     2     3     4     5     6     7
+                   │
+  ┌────────────────┴────────────────────────────┐
+  │ Λ_even : keep even positions (0,2,4,6)      │ Λ_odd : keep odd positions (1,3,5,7)
+  ▼                                             ▼
+  lane p (recovered)                        lane q (recovered)
+
+   Λ_even ∘ Γ = id      Λ_odd ∘ Γ = id        (projections recover each lane)
+   Γ ∘ (Λ_even, Λ_odd) = id                    (re-weave recovers the input; even length)
+   Γ ∘ swap = swap_pairs ∘ Γ                   (swap lanes ↔ swap each adjacent pair: S₂-equivariance)
+
+   number level:   Γ#(p,q) = P₄(p) + 2·P₄(q),    P₄(n) = Σᵢ bᵢ(n)·4ⁱ,    P₄(2n) = 4·P₄(n)
+                   ⇒  Γ#(2p,2q) = 4·Γ#(p,q)      (weaving commutes with doubling both lanes)
+
+   v₂(n) = the initial run of ⊤-cells in enc(n)    (the file's composite.decomp-k / shift-factor)
+```
+
+### 4. Compose rule — live kernel witnesses (the defect commutes)
+
+```
+   ⊙> native_numeral compose 7 13               ⊙> native_numeral compose 13 7
+   period(7)  = 20                              period(13) = 25
+   period(13) = 25                              period(7)  = 20
+   period(91) = 40                              period(91) = 40
+   d = 20 + 25 − 40 = 5   rule (5 or 10): OK    d = 25 + 20 − 40 = 5   rule (5 or 10): OK
+
+   Swap the factors: the two single periods exchange places, period(91) is
+   fixed, and the defect is unchanged   →   d(p,q) = d(q,p).
+   (d(p,q) = period(p) + period(q) − period(p·q) always lands in {5,10}.)
 ```
 
 Full list of twelve: **(1)** codec involution dec∘enc = id = enc∘dec · **(2)** prefix-free unique decode · **(3)** shift σ commutes with popcount · **(4)** R² = id, R∘σ = append∘R · **(5)** support/polynomial conjugacy under R · **(6)** Γ/Λ braid pair · **(7)** Γ# = P₄ + 2P₄ homomorphism · **(8)** v₂ = initial ⊤-run · **(9)** compose-defect commutative (live) · **(10)** Belnap binary-gcd commutative (mirror N/T/F/B trace) · **(11)** kernel invariants commute with every cell operation (frame-sweep widths 2..8 preserve all bits; type hash 16389838/17280000 constant across all 21 cells; sieve certificate 53 primes / aperture 2⁸) · **(12)** orbit readout invariant under presentation (word, binary, bits-le, support, polynomial all pass the same asserts per cell).
