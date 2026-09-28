@@ -7,20 +7,14 @@
 //! frames, where their product closes on the baked source.
 
 use vox::morphism_factor::{self, dec_of, mul, parse_numeral};
+use std::env;
 
 const BAKED_N_WORD: &str = match option_env!("FRAME_FACTOR_N_WORD") {
     Some(word) => word,
     None => "⊢⊙⊡⊣",
 };
-const BAKED_WIDTH: usize = match option_env!("FRAME_FACTOR_WIDTH") {
-    Some(width) => match parse_width(width) {
-        Some(value) => value,
-        None => 2,
-    },
-    None => 2,
-};
 
-const fn parse_width(raw: &str) -> Option<usize> {
+fn parse_width(raw: &str) -> Option<usize> {
     let bytes = raw.as_bytes();
     if bytes.is_empty() {
         return None;
@@ -46,6 +40,13 @@ const fn parse_width(raw: &str) -> Option<usize> {
     } else {
         None
     }
+}
+
+fn get_baked_width() -> usize {
+    env::var("FRAME_FACTOR_WIDTH")
+        .ok()
+        .and_then(|w| parse_width(&w))
+        .unwrap_or(2)
 }
 
 type Tape = Vec<char>;
@@ -123,11 +124,12 @@ fn factor_in_frame(
 }
 
 fn factor_baked_value() -> Result<String, String> {
-    if BAKED_WIDTH < 2 {
+    let baked_width = get_baked_width();
+    if baked_width < 2 {
         return Err("baked frame width must be at least 2".into());
     }
     let source = parse_numeral(BAKED_N_WORD)?;
-    let source_frame = shift_evaluation_frame(&source, BAKED_WIDTH);
+    let source_frame = shift_evaluation_frame(&source, baked_width);
     let framed_source = return_from_frame(&source_frame)?;
     if framed_source != source {
         return Err("source frame failed its exact return check".into());
@@ -177,7 +179,7 @@ fn factor_baked_value() -> Result<String, String> {
     };
     Ok(format!(
         "frame-width  {}\nsource-word  {}\nsource       {}\nfactor-route {}\nphase-index  {}\nfactor-words {}\nfactors      {}\nproduct      {}\nclosure      closed\n",
-        BAKED_WIDTH,
+        baked_width,
         BAKED_N_WORD,
         dec_of(&source),
         route,
