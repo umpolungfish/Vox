@@ -49,71 +49,36 @@ PY
 }
 
 bake_one() { # $1 = N, $2 = run (0/1)
-  local N="$1" RUN="$2" WORD OUT
-  echo "🌀 [1/4] Ensuring vox compiler is built..."
+  local N="$1" RUN="$2" WORD OUT FRAME_NAME FRAME_MEM
+  echo "🌀 [1/2] Ensuring vox compiler is built..."
   ensure_vox
-  echo "🌀 [2/4] Encoding decimal N=$N into IMASM numeral word..."
+  echo "🌀 [2/2] Encoding decimal N=$N into IMASM numeral word..."
   WORD="$("$VOX" numeral "$N")"
   echo "         Numeral Word: $WORD"
-echo "🌀 [3/4] Baking state into standalone binary via encode-before-compile..."
-touch src/bin/toroidal_one.rs
-FACTOR_N_WORD="$WORD" cargo build --release --bin toroidal_one >/dev/null 2>&1
 
-# === Frame sweep verification (BIGBREAK.txt: kernel.frame-sweep preserved-bits) ===
-echo ""
-WORD_LEN=${#WORD}
-echo "🔬 [Frame Sweep Verification] Testing reversible frame shifts across all widths 2..$WORD_LEN"
-echo "         (verified lossless bit preservation across all frame widths)"
-FRAME_SWEEP_OK=1
-FAILED_WIDTHS=""
-for (( width=2; width<=WORD_LEN; width++ )); do
-  NGROUPS=$(( (WORD_LEN + width - 1) / width ))
-  NGROUPS_STR=""
-  for (( gi=0; gi<NGROUPS; gi++ )); do
-    NGROUPS_STR+="${WORD:gi*width:width}"
-  done
-  if [ "$NGROUPS_STR" != "$WORD" ]; then
-    FRAME_SWEEP_OK=0
-    FAILED_WIDTHS="$FAILED_WIDTHS $width"
+  FRAME_NAME=$(echo -n "$N" | sha256sum | cut -c1-16)
+  FRAME_MEM="membranes/frame_factor_${FRAME_NAME}"
+  OUT="membranes/toroidal_factor_${FRAME_NAME}"
+  if [ -f "$OUT" ] && [ -x "$OUT" ] && [ -f "$FRAME_MEM" ] && [ -x "$FRAME_MEM" ]; then
+    echo "🌀 Membrane already baked: $OUT"
+  else
+    touch src/bin/toroidal_one.rs
+    FACTOR_N_WORD="$WORD" cargo build --release --bin toroidal_one >/dev/null 2>&1
+    touch src/bin/frame_factor_one.rs
+    FRAME_FACTOR_N_WORD="$WORD" FRAME_FACTOR_WIDTH=2 cargo build --release --bin frame_factor_one >/dev/null 2>&1
+    cp -f ./target/release/frame_factor_one "$FRAME_MEM"
+    chmod +x "$FRAME_MEM"
+    mkdir -p membranes
+    cp -f ./target/release/toroidal_one "$OUT"
+    chmod +x "$OUT"
+    echo "🌀 EMITTED BAKED MEMBRANE: $OUT"
   fi
-done
-if [ $FRAME_SWEEP_OK -eq 1 ]; then
-  echo "         Frame sweep: ALL WIDTHS 2..$WORD_LEN PASSED — reversible coordinate system confirmed"
-else
-  echo "         Frame sweep: SOME WIDTHS FAILED — bit loss detected at widths:$FAILED_WIDTHS"
-fi
+  echo ""
 
-# === Frame factor extraction (BIGBREAK.txt: frame_factor_build.sh with cross-width closure) ===
-echo ""
-# Use a short hash of N for the membrane filename — works for arbitrarily large N
-FRAME_NAME=$(echo -n "$N" | sha256sum | cut -c1-16)
-FRAME_MEM="membranes/frame_factor_${FRAME_NAME}"
-OUT="membranes/toroidal_factor_${FRAME_NAME}"
-FRAME_FACTOR_WIDTH=2
-if [ -f "$OUT" ] && [ -x "$OUT" ] && [ -f "$FRAME_MEM" ] && [ -x "$FRAME_MEM" ]; then
-  echo "🌀 [3/4] Membrane already baked: $OUT"
-  echo "🎯 [Frame Factor] Membrane already baked: $FRAME_MEM"
-else
-  touch src/bin/toroidal_one.rs
-  FACTOR_N_WORD="$WORD" cargo build --release --bin toroidal_one >/dev/null 2>&1
-  touch src/bin/frame_factor_one.rs
-  FRAME_FACTOR_N_WORD="$WORD" FRAME_FACTOR_WIDTH="$FRAME_FACTOR_WIDTH" cargo build --release --bin frame_factor_one >/dev/null 2>&1
-  cp -f ./target/release/frame_factor_one "$FRAME_MEM"
-  chmod +x "$FRAME_MEM"
-  echo "         Frame membrane: $FRAME_MEM"
-  echo "         (Run separately: ./$FRAME_MEM)"
-  mkdir -p membranes
-  cp -f ./target/release/toroidal_one "$OUT"
-  chmod +x "$OUT"
-  echo "🌀 [4/4] EMITTED BAKED MEMBRANE: $OUT"
-  echo "         Preserved Quantum State: pristine (no runtime passing)"
-  echo "         Run separately with:     $OUT"
-fi
-echo ""
-if [ "$DO_RUN" -eq 1 ]; then
-  echo "==================== EXECUTING EMITTED MEMBRANE ===================="
-  "$OUT"
-fi
+  if [ "$RUN" -eq 1 ]; then
+    echo "==================== EXECUTING EMITTED MEMBRANE ===================="
+    "$OUT"
+  fi
 }
 
 # ---- arg parsing ----------------------------------------------------------
@@ -122,7 +87,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --all)   MODE=all ;;
     --bake)  BAKE=1 ;;
-    --run)   DO_RUN=1 ;;
+    --run)   BAKE=1; DO_RUN=1 ;;
     --bound) shift; BOUND="${1:-1000}" ;;
     --out)   shift; OUT="${1:-}" ;;
     *)  if [ -z "$N" ]; then N="$1"; else echo "unexpected argument: $1" >&2; exit 1; fi ;;

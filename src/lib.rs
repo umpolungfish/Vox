@@ -72,6 +72,7 @@ pub mod fixed_point_quantum_phase;
 pub mod fixed_point_quantum_relation;
 pub mod fixed_point_quantum_readout;
 pub mod factor_2adic; // 2-adic prefix inversion factorization
+pub mod glut_system;
 pub mod phase_partners;
 pub mod membrane_factor;
 pub mod combined_factor;
