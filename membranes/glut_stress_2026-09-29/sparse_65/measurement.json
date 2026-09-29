@@ -1,0 +1,25 @@
+{
+  "name": "sparse_65",
+  "n": "18446744073709551616",
+  "bits": 65,
+  "popcount": 1,
+  "word_chars": 329,
+  "shape": "power of two",
+  "supplied_p": "4294967296",
+  "supplied_q": "4294967296",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": -15,
+  "interrupted": true,
+  "wall_seconds": 8.078988371999003,
+  "sampled_rss_peak_kib": 605688,
+  "last_frame": [
+    "15",
+    "1",
+    "278528",
+    "1",
+    "3410606"
+  ],
+  "peak_completed_frame_states": 278528,
+  "result": null
+}

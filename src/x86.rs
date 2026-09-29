@@ -158,6 +158,19 @@ mod membrane_decode_tests {
     use super::*;
 
     #[test]
+    fn indirect_stack_and_control_operands_keep_host_pointer_width() {
+        for (group, name) in [(2, "call"), (4, "jmp"), (6, "push")] {
+            let bytes = [0xff, 0x84 | (group << 3), 0x24, 0x80, 0, 0, 0];
+            let insn = decode(&bytes, 0).unwrap();
+            assert_eq!(insn.mnemonic, name);
+            assert_eq!(insn.ops[0].field(), "m:rsp::1:0x80:8");
+            assert_eq!(insn.len, bytes.len());
+        }
+        let inc = decode(&[0xff, 0x04, 0x24], 0).unwrap();
+        assert_eq!(inc.ops[0].field(), "m:rsp::1:0x0:4");
+    }
+
+    #[test]
     fn pinsrw_consumes_the_complete_formatting_instruction() {
         let bytes = [0x66, 0x43, 0x0f, 0xc4, 0x84, 0x09, 0xc0, 0x4a, 0x45, 0x00, 0x01];
         let insn = decode(&bytes, 0x40b4eb).unwrap();
@@ -335,7 +348,12 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
                         4 => ins!(addr,c,"mul",vec![rm],false,None), 5 => ins!(addr,c,"imul",vec![rm],false,None),
                         6 => ins!(addr,c,"div",vec![rm],false,None), _ => ins!(addr,c,"idiv",vec![rm],false,None) } }
         0xFE => { let (rm,g)=modrm(&mut c,&rex,1,1)?; let wm=rm.is_mem(); ins!(addr,c,if g&7==0{"inc"}else{"dec"},vec![rm],wm,None) }
-        0xFF => { let (rm,g)=modrm(&mut c,&rex,osz,osz)?; let wm=rm.is_mem();
+        0xFF => {
+            let group = (c.b.get(c.i)? >> 3) & 7;
+            let width = if rex.bits == 64 && matches!(group, 2 | 4 | 6) {
+                if group == 6 && o66 { 2 } else { 8 }
+            } else { osz };
+            let (rm,g)=modrm(&mut c,&rex,width,width)?; let wm=rm.is_mem();
             match g&7 { 0 => ins!(addr,c,"inc",vec![rm],wm,None), 1 => ins!(addr,c,"dec",vec![rm],wm,None),
                         2 => ins!(addr,c,"call",vec![rm],false,None), 4 => ins!(addr,c,"jmp",vec![rm],false,None),
                         6 => ins!(addr,c,"push",vec![rm],false,None), _ => None } }

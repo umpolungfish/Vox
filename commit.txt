@@ -1,5 +1,5 @@
-I wire dynamic glut computation through exact frame replay and factor certificates.
+I stress the dynamic glut across increasing widths and connect verified replay boundaries.
 
-I replace fixed carry integers with growing bit tapes, adapt frame widths to the live population, remove membrane width ceilings, and keep the exact survivor set. I select proper factor closures and transport actual executed checkpoints through folded trace records.
+I retain a baked extraction ladder across balanced, square, sparse and unbalanced sources from 6 through 258 bits. I measure completed-frame populations, process memory, exact closures and interrupted frontiers. I census the shared zero-carry valuation relation and compare supplied-witness replay through 4098 product bits.
 
-I repair SSE packing in the lift and VM so the baked membrane agrees with native execution. I retain baseline probes, repaired measurements, executable membranes, lifted words, and verification output. I verify 249 library tests, all target compilation, re-entry integration, and matching native/lifted extraction of 83 times 97.
+I reuse verified frame boundaries in reverse replay while preserving full checkpoint checks and exact transition reconstruction. I repair long-mode indirect operand widths so memory pushes retain trace pointers above 4 GiB. I keep native and lifted controls, static executables, generated words, raw measurements and plots. I verify all 251 library tests, four re-entry integration tests, all-target compilation and matching native/lifted controls.

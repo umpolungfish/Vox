@@ -785,3 +785,16 @@ sequence.
 
 Retained measurements and native/lifted artifacts are indexed in
 `measurements/glut_wiring_2026-09-29.md`.
+
+### Glut stress measurements
+
+Run `python3 measurements/glut_stress_run.py` to bake and measure the extraction
+ladder. `GLUT_STRESS_CASES` selects comma-separated fixture names;
+`GLUT_STRESS_RUN` names the retained run directory. `GLUT_STRESS_SECONDS` sets
+the external observation window. Each child has an external 768 MiB address
+envelope; the membrane has no state quota.
+
+Run `python3 measurements/glut_replay_stress_run.py` to measure supplied-witness
+reverse replay and trace folding independently. Use `GLUT_REPLAY_RUN` to retain
+a separate comparison. Results, controls and plots are indexed in
+`measurements/glut_stress_2026-09-29.md`.

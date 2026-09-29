@@ -1,0 +1,35 @@
+{
+  "name": "dense_32",
+  "n": "4294836225",
+  "bits": 32,
+  "popcount": 16,
+  "word_chars": 164,
+  "shape": "dense square",
+  "supplied_p": "65535",
+  "supplied_q": "65535",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 2.914475861005485,
+  "sampled_rss_peak_kib": 47852,
+  "last_frame": [
+    "16",
+    "1",
+    "32768",
+    "4",
+    "1955695"
+  ],
+  "peak_completed_frame_states": 32768,
+  "result": [
+    "closed",
+    "65535",
+    "65535",
+    "2401253",
+    "3230",
+    "15",
+    "32768",
+    "538",
+    "1460"
+  ]
+}
