@@ -2,6 +2,9 @@
 //! Structural graph closure is a separate judgment. This evaluator records
 //! deposits and their payloads; a seeded register never invents an observation.
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Deposit<T> {
     pub id: usize,
@@ -19,6 +22,10 @@ pub struct Readout<T> {
     pub deposits: usize,
     pub seeded: usize,
     pub inert: usize,
+    /// Lane-mask of each frame popped by `∋`, innermost first.
+    /// The mask is the frame's own deposits unioned with every nested frame
+    /// already restored into it, which is `Γ` at that boundary.
+    pub restore_supports: Vec<u8>,
 }
 
 fn union<T: Clone>(target: &mut Vec<Deposit<T>>, source: &[Deposit<T>]) -> usize {
@@ -36,7 +43,8 @@ pub fn execute<T: Clone>(word: &str, observation: &T) -> Result<Readout<T>, Stri
         return Err("invalid phase execution word".into());
     }
     let mut out = Readout { register: 0, surviving: Vec::new(), cleared: 0,
-        restored: 0, exposed: 0, deposits: 0, seeded: 0, inert: 0 };
+        restored: 0, exposed: 0, deposits: 0, seeded: 0, inert: 0,
+        restore_supports: Vec::new() };
     let mut frames: Vec<Vec<Deposit<T>>> = Vec::new();
     let mut fixed = false;
     let mut next_id = 0;
@@ -60,6 +68,11 @@ pub fn execute<T: Clone>(word: &str, observation: &T) -> Result<Readout<T>, Stri
             '∈' => frames.push(Vec::new()),
             '∋' => {
                 if let Some(frame) = frames.pop() {
+                    let mut support = 0u8;
+                    for d in &frame {
+                        support |= d.lane;
+                    }
+                    out.restore_supports.push(support);
                     out.restored += union(&mut out.surviving, &frame);
                     for d in &frame { out.register |= d.lane; }
                     if let Some(parent) = frames.last_mut() { union(parent, &frame); }
@@ -111,6 +124,7 @@ mod tests {
         assert_eq!(r.surviving.len(), 1);
         assert_eq!(r.restored, 1);
         assert_eq!(r.exposed, 0);
+        assert_eq!(r.restore_supports, vec![1, 1]);
         assert!(execute("⊙⊡", &42).unwrap().surviving.is_empty());
         assert!(execute("⊡?", &42).is_err());
         assert!(execute("", &42).is_err());

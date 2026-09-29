@@ -4,6 +4,7 @@
 //! observations produce a return relation, which is closed by nesting the
 //! product shell around the prefix fold and then reversing that nesting.
 #![deny(warnings)]
+extern crate alloc;
 
 #[path = "../phase_word.rs"] mod phase_word;
 
