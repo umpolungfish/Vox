@@ -63,13 +63,13 @@ bake_one() { # $1 = N, $2 = run (0/1)
     echo "🌀 Membrane already baked: $OUT"
   else
     touch src/bin/toroidal_one.rs
-    FACTOR_N_WORD="$WORD" cargo build --release --bin toroidal_one >/dev/null 2>&1
+    FACTOR_N_WORD="$WORD" cargo build --release --bin toroidal_one --target x86_64-unknown-linux-musl >/dev/null 2>&1
     touch src/bin/frame_factor_one.rs
-    FRAME_FACTOR_N_WORD="$WORD" FRAME_FACTOR_WIDTH=2 cargo build --release --bin frame_factor_one >/dev/null 2>&1
-    cp -f ./target/release/frame_factor_one "$FRAME_MEM"
+    FRAME_FACTOR_N_WORD="$WORD" FRAME_FACTOR_WIDTH=2 cargo build --release --bin frame_factor_one --target x86_64-unknown-linux-musl >/dev/null 2>&1
+    cp -f ./target/x86_64-unknown-linux-musl/release/frame_factor_one "$FRAME_MEM"
     chmod +x "$FRAME_MEM"
     mkdir -p membranes
-    cp -f ./target/release/toroidal_one "$OUT"
+    cp -f ./target/x86_64-unknown-linux-musl/release/toroidal_one "$OUT"
     chmod +x "$OUT"
     echo "🌀 EMITTED BAKED MEMBRANE: $OUT"
   fi

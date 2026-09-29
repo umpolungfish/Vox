@@ -2220,16 +2220,23 @@ fn scout_factor_with_primality(
     }
     // short frontier first: closes at once iff the factors sit near the root, so
     // a near-root N never pays the width-heavy rho below.
+    // Adaptive bound: for k-bit N, factors within ~2^(k/4) of sqrt(N) are "near-root".
     {
         let mut a = isqrt(&n);
         if cmp(&mul(&a, &a), &n) == Less {
             a = add(&a, &one());
         }
+        let bits = n.len();
+        // Near-root window: factors within 2^(bits/4) of sqrt(N)
+        // For 330-bit RSA-100: 2^82 ≈ 4.8e24 steps
+        // Cap at 2^20 for practicality
+        let bound = if bits <= 128 {
+            1 << (bits / 4)
+        } else {
+            1 << 20  // ~1M iterations for larger numbers
+        };
         let mut i = 0u64;
-        // A short frontier catches only genuinely near-root factors at once; the
-        // sieve handles the rest, so keep this cheap rather than paying thousands
-        // of isqrt steps the sieve would beat.
-        while i < 64 {
+        while i < bound {
             let a2 = mul(&a, &a);
             if cmp(&a2, &n) != Less {
                 let dl = sub(&a2, &n);

@@ -183,7 +183,7 @@ impl FoldMembrane {
         multiply_all(&self.factors) == self.n
     }
 
-    fn prefix_matches(&self) -> bool {
+    pub fn prefix_matches(&self) -> bool {
         let product = multiply_all(&self.factors);
         (0..self.width).all(|i| bit(&product, i) == bit(&self.n, i))
     }

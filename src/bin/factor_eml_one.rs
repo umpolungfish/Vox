@@ -2,7 +2,7 @@
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
-const EML_NINE: &str = "⊢∈≻⊤⊥≻≺∈⊤⊥⊞≺⊙∋⊡∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋∈⊙≻⊤≺⊥⋈∋⊙⊡⊣";
+const EML_NINE: &str = "⊢∈⊙≻⊤≺⊥⋈∈⊤≺⊥∈⊤⊞⊥∈≻⊤≺⊥⊞⋈∈⊤≺⊞⊥∈⊙⊞⋈∈⊙≺⋈∈≻⋈⊤⊥∈⊙≻⋈∋∋∋∋∋∋∋∋∋⊣";
 
 fn main() {
     let (Some(source), Some(phase_base)) = (BAKED_MODULUS_WORD, BAKED_BASE_WORD) else {

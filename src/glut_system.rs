@@ -117,7 +117,7 @@ impl GlutState {
                 let prod_sum = p_bit * q_bit + self.carry as u32;
                 let prod_bit = prod_sum & 1;
                 let carry_out = prod_sum >> 1;
-                if prod_bit == n_bit {
+                if prod_bit == n_bit as u32 {
                     let mut new_p = self.p_prefix.clone();
                     let mut new_q = self.q_prefix.clone();
                     new_p.push(if p_bit == 1 { ONE } else { ZERO });
