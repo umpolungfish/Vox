@@ -1,55 +1,42 @@
-//! GLUT p-System: Polynomial-Time Factorization via Glut Superposition
+//! GLUT p-System: Glut Superposition Factorization
 //!
-//! The GLUT (Glut-in-Loop) p-system factors N in O(L_N²) time by maintaining
-//! a superposed state of all viable (p, q) candidates simultaneously.
+//! The GLUT (Glut-in-Loop) p-system factors N by maintaining a superposed
+//! state of all viable (p, q) candidates simultaneously and closing the
+//! mod-2^L congruence into equality at the crystal.
 //!
-//! Key insight: The running-product constraint p_k XOR q_k = n_k XOR carry_k
-//! creates a carry propagation tree. The "glut" is the set of all (carry, p_prefix)
-//! states that survive frame consistency checks across widths 2..8.
+//! The running-product constraint (p·q) mod 2^k == N mod 2^k creates a
+//! carry propagation tree. The "glut" at level k is the set of all
+//! (carry, p_prefix, q_prefix) states that survive frame consistency
+//! checks, where the carry c_k is the EXACT carry into bit position k of
+//! p·q:
 //!
-//! Algorithm:
-//! 1. Frame sweep: decompose N's bits into windows of size 2..8
-//! 2. Glut superposition: for each width, propagate candidate states forward
-//! 3. Frame sieve: cross-check states across all widths, keep only consistent
-//! 4. Glut crystal: extend from width-limited state to full bit length
-//! 5. Glut readout: extract factor pairs from the shrunk state space
+//! ```text
+//! s_k     = c_k + Σ_{i+j=k} p_i q_j
+//! n_k     = s_k mod 2
+//! c_{k+1} = s_k >> 1
+//! ```
+//!
+//! Algorithm (the seven-step membrane program):
+//!
+//! 1. Skin membrane:      seed the superposition at bit 0 from N's own parity
+//! 2. Frame sweep:        advance the glut in windows of width w = 2..=8,
+//!                        cycling the widths until every state is complete,
+//!                        so the sweep covers the full bit length L for any N
+//! 3. Glut superposition: at each bit, all four (p_bit, q_bit) pairs are held
+//! 4. Glut multiplication: the running-product constraint keeps only the
+//!                        pairs whose convolution bit matches N's bit
+//! 5. Glut sieve:         cross-width consistency + deduplication by prefix;
+//!                        states are exact, so no arbitrary truncation
+//! 6. Glut crystal:       verify p·q == N EXACTLY — the congruence
+//!                        p·q ≡ N (mod 2^L) admits alias pairs (e.g. 9·11 = 99
+//!                        ≡ 35 (mod 64)) that only the full product rejects
+//! 7. Glut readout:       the verified factor pairs, (p, q) with p·q = N
 
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
-use core::cmp::Ordering;
-use num_bigint::BigUint;
-use num_traits::One;
 
 const ZERO: char = '⊤';
 const ONE: char = '⊥';
-
-fn tape_to_biguint(tape: &[char]) -> BigUint {
-    let mut bytes = alloc::vec![0u8; (tape.len() + 7) / 8];
-    for (index, mark) in tape.iter().enumerate() {
-        if *mark == ONE {
-            bytes[index / 8] |= 1 << (index % 8);
-        }
-    }
-    BigUint::from_bytes_le(&bytes)
-}
-
-fn biguint_to_tape(value: &BigUint) -> Vec<char> {
-    let mut tape = Vec::new();
-    let bytes = value.to_bytes_le();
-    for byte in &bytes {
-        for bit in 0..8 {
-            tape.push(if (byte >> bit) & 1 == 1 { ONE } else { ZERO });
-        }
-    }
-    // Remove trailing zeros
-    while tape.last() == Some(&ZERO) {
-        tape.pop();
-    }
-    if tape.is_empty() {
-        alloc::vec![ZERO]
-    } else {
-        tape
-    }
-}
 
 fn trim(mut tape: Vec<char>) -> Vec<char> {
     while tape.last() == Some(&ZERO) {
@@ -66,31 +53,9 @@ fn bit(tape: &[char], index: usize) -> u8 {
     u8::from(tape.get(index) == Some(&ONE))
 }
 
-fn cmp_tape(a: &[char], b: &[char]) -> Ordering {
-    let a_len = a.iter().rposition(|c| *c != ZERO).map_or(0, |i| i + 1);
-    let b_len = b.iter().rposition(|c| *c != ZERO).map_or(0, |i| i + 1);
-    match a_len.cmp(&b_len) {
-        Ordering::Equal => {
-            for i in (0..a_len.max(1)).rev() {
-                let ab = bit(a, i);
-                let bb = bit(b, i);
-                match ab.cmp(&bb) {
-                    Ordering::Equal => {}
-                    order => return order,
-                }
-            }
-            Ordering::Equal
-        }
-        order => order,
-    }
-}
-
-fn mul(a: &[char], b: &[char]) -> Vec<char> {
-    crate::morphism_factor::mul(a, b)
-}
-
-/// Glut state: tracks carry for the running product.
-/// At bit position k, we track the carry from the multiplication p*q below position k.
+/// Glut state: the exact carry into bit `position` plus the factor prefixes
+/// that produced it. Invariant: (p·q) mod 2^position == N mod 2^position and
+/// `carry` is the true carry c_position of the running product.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GlutState {
     pub carry: u32,
@@ -100,33 +65,54 @@ pub struct GlutState {
 }
 
 impl GlutState {
-    pub fn new() -> Self {
-        Self {
-            carry: 0,
-            p_prefix: alloc::vec![ONE],
-            q_prefix: alloc::vec![ONE],
-            position: 1,
+    /// Seed the superposition from N's own bit 0. For odd N the only live
+    /// pair is (1, 1); for even N the pairs (0, 0), (0, 1), (1, 0) survive.
+    pub fn seed(n_bit0: u8) -> Vec<Self> {
+        let mut seeds = Vec::new();
+        for p_bit in 0..2u8 {
+            for q_bit in 0..2u8 {
+                if p_bit * q_bit == n_bit0 {
+                    seeds.push(Self {
+                        carry: 0,
+                        p_prefix: alloc::vec![if p_bit == 1 { ONE } else { ZERO }],
+                        q_prefix: alloc::vec![if q_bit == 1 { ONE } else { ZERO }],
+                        position: 1,
+                    });
+                }
+            }
         }
+        seeds
     }
 
     /// Advance one bit position, returning all valid next states.
+    ///
+    /// The convolution at position k sums the FULL diagonal
+    /// Σ_{i+j=k} p_i q_j over the stored prefixes plus the new corner bits.
     pub fn advance(&self, n_bit: u8) -> Vec<Self> {
+        let k = self.position;
+        let p = &self.p_prefix;
+        let q = &self.q_prefix;
         let mut results = Vec::new();
-        for p_bit in 0..2 {
-            for q_bit in 0..2 {
-                let prod_sum = p_bit * q_bit + self.carry as u32;
-                let prod_bit = prod_sum & 1;
-                let carry_out = prod_sum >> 1;
-                if prod_bit == n_bit as u32 {
-                    let mut new_p = self.p_prefix.clone();
-                    let mut new_q = self.q_prefix.clone();
+        for p_bit in 0..2u8 {
+            for q_bit in 0..2u8 {
+                let mut sum = self.carry as u64;
+                for i in 0..k {
+                    let pi = bit(p, i);
+                    let qi = bit(q, k - i);
+                    sum += pi as u64 * qi as u64;
+                }
+                sum += p_bit as u64 * bit(q, 0) as u64;
+                sum += bit(p, 0) as u64 * q_bit as u64;
+                if sum & 1 == n_bit as u64 {
+                    let mut new_p = p.clone();
+                    let mut new_q = q.clone();
                     new_p.push(if p_bit == 1 { ONE } else { ZERO });
                     new_q.push(if q_bit == 1 { ONE } else { ZERO });
                     results.push(Self {
-                        carry: carry_out,
+                        carry: (sum >> 1) as u32,
                         p_prefix: new_p,
                         q_prefix: new_q,
-                        position: self.position + 1,
+                        position: k + 1,
                     });
                 }
             }
@@ -134,13 +120,11 @@ impl GlutState {
         results
     }
 
-    /// Verify the state's product matches N up to current position.
-    pub fn verify_product_bit(&self, n_bit: u8) -> bool {
-        let p_tape = &self.p_prefix;
-        let q_tape = &self.q_prefix;
-        let prod = mul(p_tape, q_tape);
-        let prod_bit = bit(&prod, self.position - 1);
-        prod_bit == n_bit
+    pub fn verify_product_bit(&self, n: &[char]) -> bool {
+        let prod = crate::morphism_factor::mul(&self.p_prefix, &self.q_prefix);
+        (0..self.position).all(|i| {
+            prod.get(i).copied().unwrap_or(ZERO) == n.get(i).copied().unwrap_or(ZERO)
+        })
     }
 
     pub fn is_complete(&self, total_bits: usize) -> bool {
@@ -148,27 +132,30 @@ impl GlutState {
     }
 }
 
-/// The GLUT sieve: maintains a superposed set of states.
+/// The GLUT sieve: maintains the superposed glut across the frame sweep.
+/// No cap. The state vector is the exact live set at every level.
 pub struct GlutSieve {
+    pub n_tape: Vec<char>,
     pub n_bits: Vec<u8>,
     pub states: Vec<GlutState>,
-    pub n_tape: Vec<char>,
 }
 
 impl GlutSieve {
     pub fn new(n: &[char]) -> Self {
-        let n_bits: Vec<u8> = n.iter().map(|c| if *c == ONE { 1 } else { 0 }).collect();
+        let trimmed = trim(n.to_vec());
+        let n_bits: Vec<u8> = trimmed.iter().map(|c| u8::from(*c == ONE)).collect();
         Self {
+            n_tape: trimmed.clone(),
             n_bits,
-            states: vec![GlutState::new()],
-            n_tape: n.to_vec(),
+            states: GlutState::seed(bit(&trimmed, 0)),
         }
     }
 
-    /// Propagate states through one frame width.
-    /// For width w, process w bits at a time using the frame sweep.
+    /// One frame: advance every state by `width` bits (or as far as N runs).
+    /// Dedup by (p_prefix, q_prefix) is loss-free — the carry is a function
+    /// of the prefixes.
     pub fn frame_superpose(&mut self, width: usize) -> usize {
-        let mut next_states = alloc::vec![];
+        let mut next_states = Vec::new();
         for state in self.states.iter() {
             let pos = state.position.min(self.n_bits.len());
             if pos >= self.n_bits.len() {
@@ -179,11 +166,23 @@ impl GlutSieve {
             let branches = self.propagate_block(state, pos, bits_to_process);
             next_states.extend(branches);
         }
-        self.states = next_states;
+        let mut seen = BTreeSet::new();
+        let mut kept = Vec::new();
+        for s in next_states {
+            if seen.insert((s.p_prefix.clone(), s.q_prefix.clone())) {
+                kept.push(s);
+            }
+        }
+        self.states = kept;
         self.states.len()
     }
 
-    fn propagate_block(&self, state: &GlutState, start_pos: usize, num_bits: usize) -> Vec<GlutState> {
+    fn propagate_block(
+        &self,
+        state: &GlutState,
+        start_pos: usize,
+        num_bits: usize,
+    ) -> Vec<GlutState> {
         let mut current = alloc::vec![state.clone()];
         for k in 0..num_bits {
             let pos = start_pos + k;
@@ -193,107 +192,157 @@ impl GlutSieve {
             let n_bit = self.n_bits[pos];
             let mut next = Vec::new();
             for s in current.iter() {
-                let branches = s.advance(n_bit);
-                next.extend(branches);
-            }
-            if next.len() > 10000 {
-                next.truncate(10000);
+                next.extend(s.advance(n_bit));
             }
             current = next;
+            if current.is_empty() {
+                return alloc::vec![];
+            }
         }
         current
     }
 
-    /// Glut sieve: cross-check across all widths, keeping only states
-    /// that are consistent with every frame sweep.
-    pub fn frame_sieve(&mut self) {
-        for width in 2..=8 {
+    /// The frame sweep: cycle widths 2..=8 until every state is complete.
+    pub fn frame_sweep(&mut self) {
+        if self.states.is_empty() {
+            return;
+        }
+        let mut width = 2;
+        while self.states.iter().any(|s| !s.is_complete(self.n_bits.len())) {
             self.frame_superpose(width);
+            if self.states.is_empty() {
+                return;
+            }
+            width = if width == 8 { 2 } else { width + 1 };
         }
-        self.states.retain(|s| s.is_complete(self.n_bits.len()));
     }
 
-    /// Glut crystal: finalize the surviving states.
+    /// Glut crystal: the survivors satisfy (p·q) ≡ N (mod 2^L); the crystal
+    /// closes the congruence to equality.
     pub fn glut_crystal(&self) -> Vec<(Vec<char>, Vec<char>)> {
-        self.states
-            .iter()
-            .filter(|s| s.is_complete(self.n_bits.len()))
-            .map(|s| {
-                let p_trim = trim(s.p_prefix.clone());
-                let q_trim = trim(s.q_prefix.clone());
-                (p_trim, q_trim)
-            })
-            .collect()
-    }
-
-    /// Glut readout: extract the best verified factor pair.
-    ///
-    /// The crystal yields candidate tape pairs; the readout certifies one.
-    /// Each candidate is lifted to true integers (`tape_to_biguint`) and
-    /// survives only if the exact product holds (`pv * qv == n`) and neither
-    /// factor is trivial (`BigUint::one`). Survivors are canonical-ordered
-    /// `p <= q` by `cmp_tape`, the smallest `p` wins, and the winning pair is
-    /// re-encoded to canonical tape (`biguint_to_tape`) before it leaves the
-    /// module.
-    pub fn readout(&self) -> Option<(Vec<char>, Vec<char>)> {
-        let n = tape_to_biguint(&self.n_tape);
-        let one = BigUint::one(); // keeps `num_traits::One` live
-        let mut best: Option<(Vec<char>, Vec<char>)> = None;
-
-        for (p, q) in self.glut_crystal() {
-            let (pv, qv) = (tape_to_biguint(&p), tape_to_biguint(&q));
-            if &pv * &qv != n {
-                continue; // not the true integer product
+        let total = self.n_bits.len();
+        let mut pairs = Vec::new();
+        let mut seen = BTreeSet::new();
+        for s in self.states.iter().filter(|s| s.is_complete(total)) {
+            let p = trim(s.p_prefix.clone());
+            let q = trim(s.q_prefix.clone());
+            let prod = crate::morphism_factor::mul(&p, &q);
+            if crate::morphism_factor::cmp(&prod, &self.n_tape) != core::cmp::Ordering::Equal {
+                continue;
             }
-            if pv == one || qv == one {
-                continue; // reject the trivial 1 x N
-            }
-
-            // canonical order p <= q
-            let (p, q) = if cmp_tape(&p, &q) == Ordering::Greater {
-                (q, p)
-            } else {
-                (p, q)
-            };
-
-            match &best {
-                None => best = Some((p, q)),
-                Some((bp, _)) if cmp_tape(&p, bp) != Ordering::Greater => {
-                    best = Some((p, q));
-                }
-                _ => {}
+            if seen.insert((p.clone(), q.clone())) {
+                pairs.push((p, q));
             }
         }
+        pairs
+    }
 
-        best.map(|(p, q)| {
-            (
-                biguint_to_tape(&tape_to_biguint(&p)),
-                biguint_to_tape(&tape_to_biguint(&q)),
-            )
-        })
+    /// Glut readout: the first verified factor pair.
+    pub fn readout(&self) -> Option<(Vec<char>, Vec<char>)> {
+        self.glut_crystal().into_iter().next()
     }
 }
 
-/// GLUT p-system factorization: O(L_N²) polynomial time.
-/// Maintains a superposed state of all viable (p, q) candidates,
-/// using frame sweep consistency to prune the state space.
+/// GLUT p-system factorization.
 pub fn glut_factor(n: &[char]) -> Option<(Vec<char>, Vec<char>)> {
     let mut sieve = GlutSieve::new(n);
-    sieve.frame_sieve();
+    sieve.frame_sweep();
     sieve.readout()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::morphism_factor::cmp;
+
+    fn to_tape(mut n: u64) -> Vec<char> {
+        let mut t = Vec::new();
+        if n == 0 {
+            t.push(ZERO);
+            return t;
+        }
+        while n > 0 {
+            t.push(if n & 1 == 1 { ONE } else { ZERO });
+            n >>= 1;
+        }
+        t
+    }
 
     #[test]
     fn test_glut_factor_35() {
-        let n = vec![ONE, ONE, ONE, ZERO, ONE, ONE, ONE]; // 35 = 5 * 7
-        if let Some((p, q)) = glut_factor(&n) {
-            let prod = trim(mul(&p, &q));
-            let expected = trim(n.to_vec());
-            assert_eq!(prod, expected, "Product must equal N");
+        let n = to_tape(35);
+        let (p, q) = glut_factor(&n).expect("35 must factor");
+        assert_eq!(
+            cmp(&crate::morphism_factor::mul(&p, &q), &n),
+            core::cmp::Ordering::Equal
+        );
+    }
+
+    #[test]
+    fn test_glut_factor_8051() {
+        let n = to_tape(8051);
+        let (p, q) = glut_factor(&n).expect("8051 must factor");
+        assert_eq!(
+            cmp(&crate::morphism_factor::mul(&p, &q), &n),
+            core::cmp::Ordering::Equal
+        );
+    }
+
+    #[test]
+    fn test_glut_factor_even_56() {
+        let n = to_tape(56);
+        let (p, q) = glut_factor(&n).expect("56 must factor");
+        assert_eq!(
+            cmp(&crate::morphism_factor::mul(&p, &q), &n),
+            core::cmp::Ordering::Equal
+        );
+    }
+
+    #[test]
+    fn test_glut_crystal_rejects_alias() {
+        let n = to_tape(35);
+        let sieve = GlutSieve::new(&n);
+        let pairs = {
+            let mut s = sieve;
+            s.frame_sweep();
+            s.glut_crystal()
+        };
+        for (p, q) in &pairs {
+            assert_eq!(
+                cmp(&crate::morphism_factor::mul(p, q), &n),
+                core::cmp::Ordering::Equal
+            );
+        }
+        assert_eq!(pairs.len(), 4);
+    }
+
+    #[test]
+    fn test_glut_state_count_is_exact_at_each_level() {
+        let n = to_tape(35);
+        let mut sieve = GlutSieve::new(&n);
+        for level in 1..=12usize {
+            sieve.frame_superpose(1);
+            assert_eq!(
+                sieve.states.len(),
+                1usize << (level - 1),
+                "state count at level {}",
+                level,
+            );
+        }
+    }
+
+    #[test]
+    fn test_glut_invariant_holds() {
+        let n = to_tape(8051);
+        let mut sieve = GlutSieve::new(&n);
+        for width in [2, 3, 4] {
+            sieve.frame_superpose(width);
+            for s in &sieve.states {
+                assert!(
+                    s.verify_product_bit(&sieve.n_tape),
+                    "invariant broken at width {width}"
+                );
+            }
         }
     }
 }

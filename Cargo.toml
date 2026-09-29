@@ -108,6 +108,10 @@ name = "membrane"
 path = "src/bin/membrane.rs"
 
 [[bin]]
+name = "m3mbrain"
+path = "src/bin/m3mbrain.rs"
+
+[[bin]]
 name = "multi_quantum_membrane"
 path = "src/bin/multi_quantum_membrane.rs"
 
