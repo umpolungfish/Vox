@@ -18,9 +18,9 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 use vox::factor_extract::{extract, FactorCarrier};
-use vox::factorization_31_membrane::{UnboundedResident, WORD};
+use vox::factorization_31_membrane::WORD;
 use vox::glut_system::glut_factor;
-use vox::morphism_factor::{cmp, dec_of, divmod, gcd, mul, parse_numeral, tape_u64, trim, zero};
+use vox::morphism_factor::{cmp, dec_of, divmod, gcd, mul, parse_numeral, tape_u64, trim};
 use vox::reentry_certificate::{
     certify_reentry, decode_reentry_certificate, encode_reentry_certificate,
     verify_reentry_certificate,
@@ -220,11 +220,7 @@ fn main() {
             && cmp(&p_g, &tape_u64(1)) == Ordering::Greater;
         if exact {
             println!("      ⚡ Gematria fast path: gematria sum reveals factor");
-            let (p, q, shape_name) = (
-                gem_gcd,
-                p_g,
-                "gematria-gcd",
-            );
+            let (p, q) = (gem_gcd, p_g);
             // Skip to product boundary + certificate generation
             let prod = trim(mul(&p, &q));
             let exact_reconstruct = cmp(&prod, &n) == Ordering::Equal;
@@ -272,7 +268,7 @@ fn main() {
             let dt = t0.elapsed();
             let p_len = p.len();
             let q_len = q.len();
-            let ratio = if p_len > 0 { q_len as f64 / p_len as f64 } else { 1.0 };
+            let _ratio = if p_len > 0 { q_len as f64 / p_len as f64 } else { 1.0 };
             println!("  [5] Passive Normal Form: {} (Transforms: {}, Generations: {})", 
                 readout.normal_form.iter().collect::<String>(), readout.transforms, readout.generations.len());
             println!("  [6] Dialectic Certificate: Verified True (Transform Steps: {}, Wire Size: {} chars)", 
@@ -286,13 +282,11 @@ fn main() {
     //     The GLUT maintains all viable (p, q) candidates simultaneously,
     //     using frame sweep consistency to prune the state space.
     if let Some((p_glut, q_glut)) = glut_factor(&n) {
-        let p_glut_dec = dec_of(&p_glut);
-        let q_glut_dec = dec_of(&q_glut);
         let prod_glut = trim(mul(&p_glut, &q_glut));
         let exact_glut = cmp(&prod_glut, &n) == Ordering::Equal;
         if exact_glut && cmp(&p_glut, &tape_u64(1)) == Ordering::Greater {
             println!("      ⚡ GLUT p-System: polynomial-time factorization succeeded");
-            let (p, q, shape_name) = (p_glut, q_glut, "glut-p-system");
+            let (p, q) = (p_glut, q_glut);
             println!("      [3] Extracted Witness:   p = {}  |  q = {}", dec_of(&p), dec_of(&q));
             println!("      Factor Width Ratio:  {} x {} bits (Aspect Ratio: {:.2}:1)", p.len(), q.len(), if p.len() > 0 { q.len() as f64 / p.len() as f64 } else { 1.0 });
             println!("      [4] Product Boundary:    p * q == N: {} (Tape Witness Valid: {})", exact_glut, true);
@@ -337,7 +331,7 @@ fn main() {
             let dt = t0.elapsed();
             let p_len = p.len();
             let q_len = q.len();
-            let ratio = if p_len > 0 { q_len as f64 / p_len as f64 } else { 1.0 };
+            let _ratio = if p_len > 0 { q_len as f64 / p_len as f64 } else { 1.0 };
             println!("  [5] Passive Normal Form: {} (Transforms: {}, Generations: {})", 
                 readout.normal_form.iter().collect::<String>(), readout.transforms, readout.generations.len());
             println!("  [6] Dialectic Certificate: Verified True (Transform Steps: {}, Wire Size: {} chars)", 
@@ -348,9 +342,9 @@ fn main() {
     }
 
     // 2. Hyper-Nested Multi-Arm EML Resident Cascade
-    const EML_NINE: &str = "⊢∈≻⊤⊥≻≺∈⊤⊥⊞≺⊙∋⊡∋∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋∈⊙≻⊤≺⊥⋈∋⊙⊡⊣";
-    println!("  [2] Resident Membrane:  31-Step Word [{}]", WORD);
-    println!("      EML Nested Carrier: [{}]", EML_NINE);
+    //     Single unified membrane: resident outer frame with EML carrier nested inside.
+    const UNIFIED_MEMBRANE: &str = "⊢⊣≻∈⊤⋈≺⊥⊞⊙⋈⊤≺⊥⋈⊤≺⊥⋈⊤≺⊥⋈⊤≻⊤⊥≻≺⊤⊥⊞≺⊙⊤≺⊥⊤⊞⊥≻⊤≺⊥⊞⋈⊤≺⊞⊥⊙⊞⋈⊙≺⋈≻⋈⊤⊥⊙≻⋈⊙≻⊤≺⊥⋈⊙∋⊡⊣";
+    println!("  [2] Unified Toroidal Membrane:  {} glyphs [{}]", UNIFIED_MEMBRANE.chars().count(), UNIFIED_MEMBRANE);
     
     let (p, q, shape_name) = match vox::morphism_factor::scout_semiprime(&n) {
         (Some((p_scout, q_scout, shape)), _log) => {
