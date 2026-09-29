@@ -175,6 +175,9 @@ mod membrane_decode_tests {
             (&[0x66,0x0f,0x60,0xc9][..], "punpcklbw"),
             (&[0x66,0x0f,0x61,0xc9][..], "punpcklwd"),
             (&[0x66,0x0f,0x64,0xc2][..], "pcmpgtb"),
+            (&[0x66,0x0f,0x6b,0xd2][..], "packssdw"),
+            (&[0x66,0x0f,0x63,0xd2][..], "packsswb"),
+            (&[0x66,0x0f,0x67,0xc1][..], "packuswb"),
             (&[0xf2,0x0f,0x70,0xc0,0xd4][..], "pshuflw"),
             (&[0x66,0x0f,0xd6,0x44,0x0a,0x08][..], "movq"),
             (&[0x66,0x0f,0x14,0xd2][..], "unpcklpd"),
@@ -382,6 +385,11 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xDA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pminub",vec![rop(r,16,rex.p),rm],false,None) }
         0xDE => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmaxub",vec![rop(r,16,rex.p),rm],false,None) }
         0xD7 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmovmskb",vec![rop(r,4,rex.p),rm],false,None) }
+        0x63|0x67|0x6B if o66 => {
+            let (rm,r)=modrm(c,rex,16,16)?;
+            let mn=match op2 {0x63=>"packsswb",0x67=>"packuswb",_=>"packssdw"};
+            ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None)
+        }
         // Bit test and its set/reset/complement forms, register and immediate.
         // musl's free() gates on bt; without it the sweep desynced and skipped
         // a mov, leaving a register stale and a later check false.

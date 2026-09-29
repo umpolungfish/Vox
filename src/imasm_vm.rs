@@ -885,6 +885,27 @@ impl Machine {
                 for k in 0..16u32 { if (a>>(k*8+7))&1==1 { m |= 1u128<<k; } }
                 self.write(&dst, m);
             }
+            "packssdw"|"packsswb"|"packuswb" => {
+                let a = self.read(&dst, 16).0;
+                let b = self.read(&f[1], 16).0;
+                let input_width = if op == "packssdw" { 4 } else { 2 };
+                let output_width = input_width / 2;
+                let lanes = 16 / input_width;
+                let (low, high) = if op == "packuswb" { (0, 255) }
+                    else if output_width == 1 { (-128, 127) }
+                    else { (-32768, 32767) };
+                let mut packed = 0u128;
+                for (half, source) in [a, b].into_iter().enumerate() {
+                    for lane in 0..lanes {
+                        let value = sign((source >> (lane * input_width * 8))
+                            & mask(input_width), input_width).clamp(low, high);
+                        let shift = (half * lanes as usize + lane as usize)
+                            * output_width as usize * 8;
+                        packed |= ((value as u128) & mask(output_width)) << shift;
+                    }
+                }
+                self.write(&dst, packed);
+            }
             _ => { // lane-wise padd/psub/pmull
                 let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
                 let w: u8 = match op.chars().last().unwrap() {'b'=>1,'w'=>2,'d'=>4,'q'=>8,_=>4};
@@ -1244,12 +1265,43 @@ fn is_simd(op: &str) -> bool {
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
+        |"packssdw"|"packsswb"|"packuswb"
         |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
         |"xorps"|"andps"|"orps"|"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
 }
 
 #[cfg(test)]
 mod membrane_simd_tests {
+    #[test]
+    fn packing_saturates_signed_lanes_and_keeps_both_sources_in_order() {
+        use super::{Machine, mask};
+        for (op, width, values, expected) in [
+            ("packssdw", 4, vec![-40000, -32768, 0, 40000, 32767, -1, 1, 65535],
+                vec![-32768, -32768, 0, 32767, 32767, -1, 1, 32767]),
+            ("packsswb", 2, vec![-300, -129, -128, -1, 0, 1, 127, 128,
+                255, 32767, -32768, 42, 126, -127, 2, 3],
+                vec![-128, -128, -128, -1, 0, 1, 127, 127,
+                127, 127, -128, 42, 126, -127, 2, 3]),
+            ("packuswb", 2, vec![-300, -1, 0, 1, 254, 255, 256, 32767,
+                -32768, 42, 128, 300, 2, 3, 4, 5],
+                vec![0, 0, 0, 1, 254, 255, 255, 255,
+                0, 42, 128, 255, 2, 3, 4, 5]),
+        ] {
+            let lanes = 16 / width;
+            let pack = |slice: &[i128]| slice.iter().enumerate().fold(0u128, |sum, (i, value)|
+                sum | ((*value as u128 & mask(width as u8)) << (i * width * 8)));
+            let mut machine = Machine::new("");
+            machine.set_reg("xmm0", pack(&values[..lanes]));
+            machine.set_reg("xmm1", pack(&values[lanes..]));
+            machine.simd(op, &vec!["r:xmm0".into(), "r:xmm1".into()]);
+            for (lane, expected) in expected.into_iter().enumerate() {
+                let output_width = width / 2;
+                assert_eq!((machine.reg("xmm0") >> (lane * output_width * 8))
+                    & mask(output_width as u8), expected as u128 & mask(output_width as u8), "{op} lane={lane}");
+            }
+        }
+    }
+
     #[test]
     fn clock_gettime_writes_the_entire_result_and_reports_errors() {
         use super::{Machine,Host};

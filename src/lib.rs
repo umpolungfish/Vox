@@ -81,8 +81,10 @@ pub mod fixed_point_quantum_readout;
 pub mod factor_2adic; // 2-adic prefix inversion factorization
 pub mod glut_system;
 pub use glut_system::glut_factor;
-#[path = "glut_system.rs.work"]
-pub mod glut_system_perfected;
+/// Both public surfaces use the same live glut implementation.
+pub mod glut_system_perfected {
+    pub use crate::glut_system::*;
+}
 pub mod phase_partners;
 pub mod membrane_factor;
 pub mod combined_factor;

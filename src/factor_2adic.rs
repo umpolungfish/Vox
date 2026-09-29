@@ -56,9 +56,9 @@ impl FrameSweep {
     }
 }
 
-/// Produce the seven register decompositions for windows 2 through 8.
+/// Decompose at every window across the current source extent.
 pub fn frame_sweep(tape: &[char]) -> Vec<FrameSweep> {
-    (2..=8)
+    (1..=tape.len().max(1))
         .map(|window| {
             let groups: Vec<Vec<char>> = tape.chunks(window).map(|g| g.to_vec()).collect();
             let rem = tape.len() % window;
@@ -1602,8 +1602,8 @@ mod tests {
             let mut state = FramePrefix::seed(&n).unwrap();
             let mut q_recovered = alloc::vec![ONE];
 
-            for group in &frame.groups {
-                for &source_cell in group.iter().skip(usize::from(state.width == 1)) {
+            for (group_index, group) in frame.groups.iter().enumerate() {
+                for &source_cell in group.iter().skip(usize::from(group_index == 0)) {
                     let index = state.width;
                     let p_bit = bit(&p, index);
                     let (next, q_bit) = state
@@ -1779,7 +1779,7 @@ mod tests {
         let flipped_value = bit(&flipped, 5) ^ 1;
         set_bit(&mut flipped, 5, flipped_value);
         let flipped_frames = frame_sweep(&flipped);
-        assert_eq!(frames.len(), 7);
+        assert_eq!(frames.len(), tape.len());
         for (frame, changed_frame) in frames.iter().zip(flipped_frames.iter()) {
             assert_eq!(frame.reconstruct(), tape);
             assert_eq!(frame.groups.iter().map(Vec::len).sum::<usize>(), tape.len());

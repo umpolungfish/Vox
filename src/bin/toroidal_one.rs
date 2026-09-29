@@ -20,7 +20,7 @@ use core::cmp::Ordering;
 
 use vox::factor_extract::{extract, FactorCarrier};
 use vox::factorization_31_membrane::WORD;
-use vox::glut_system::glut_factor;
+use vox::glut_system::{glut_factor_execution, verify_glut_trace, verify_glut_reentry_certificate};
 use vox::morphism_factor::{cmp, dec_of, divmod, gcd, mul, parse_numeral, tape_u64, trim};
 use vox::reentry_certificate::{
     certify_reentry, decode_reentry_certificate, encode_reentry_certificate,
@@ -132,10 +132,10 @@ impl PhaseShift {
             && tape_popcount(&r_n) == tape_popcount(n);
 
         // R conjugates the support: i ↦ (m−1)−i, m = number of cells.
-        let last = n.len().saturating_sub(1) as u64;
+        let last = n.len().saturating_sub(1);
         let mut conjugate: Vec<usize> = cell_support(n)
             .iter()
-            .map(|&i| (last - i as u64) as usize)
+            .map(|&i| last - i)
             .collect();
         conjugate.sort_unstable();
         let support_ok = cell_support(&r_n) == conjugate;
@@ -192,8 +192,8 @@ fn main() {
     let ones_count = n.iter().filter(|&&c| c == vox::vox::EVALF).count();
     let sweeps = vox::factor_2adic::frame_sweep(&n);
     println!("  [1] Gödel-Complete Numeral Representation: {} bits, popcount {}", bit_len, ones_count);
-    println!("      Multi-Window Frame Sweeps: widths=2..8, groups=[{}], aperture 2^{}",
-        sweeps.iter().map(|s| s.groups.len().to_string()).collect::<Vec<_>>().join(", "), bit_len);
+    println!("      Multi-Window Frame Sweeps: widths=1..{}, groups=[{}], aperture 2^{}",
+        bit_len.max(1), sweeps.iter().map(|s| s.groups.len().to_string()).collect::<Vec<_>>().join(", "), bit_len);
     println!("      Toroidal Phase Base: g = {} (Unit mod N: {})", dec_of(&g), is_unit);
 
     // 1.5 Phase Shift Operation Schema — the README §2 commuting diagram,
@@ -212,8 +212,10 @@ fn main() {
     // word has a systematic relationship with N's factors. Compute gematria
     // and check gcd(gematria, N) as an instant factor candidate before the
     // expensive carrier cascade.
-    let gematria: u64 = word.chars().map(|c| c as u64).sum::<u64>();
-    let gem_gcd = gcd(tape_u64(gematria), n.clone());
+    let gematria = word.chars().fold(tape_u64(0), |sum, c| {
+        vox::morphism_factor::add(&sum, &tape_u64(u64::from(u32::from(c))))
+    });
+    let gem_gcd = gcd(gematria, n.clone());
     let gem_is_unit = cmp(&gem_gcd, &tape_u64(1)) == Ordering::Equal;
     if !gem_is_unit {
         let (p_g, q_g) = divmod(&n, &gem_gcd);
@@ -279,20 +281,20 @@ fn main() {
         }
     }
 
-    // 1.7 GLUT p-System: polynomial-time factorization via glut superposition.
-    //     The GLUT maintains all viable (p, q) candidates simultaneously,
-    //     using frame sweep consistency to prune the state space.
-    if let Some((p_glut, q_glut)) = glut_factor(&n) {
+    // 1.7 GLUT: descend through frames and return verified carry/product states.
+    if let Some(execution) = glut_factor_execution(&n) {
+        let (p_glut, q_glut) = (execution.p.clone(), execution.q.clone());
         let prod_glut = trim(mul(&p_glut, &q_glut));
         let exact_glut = cmp(&prod_glut, &n) == Ordering::Equal;
-        if exact_glut && cmp(&p_glut, &tape_u64(1)) == Ordering::Greater {
-            println!("      ⚡ GLUT p-System: polynomial-time factorization succeeded");
+        if exact_glut && witness_valid(&n, &p_glut, &q_glut) {
+            println!("      ⚡ GLUT p-System: frame/carry factor closure succeeded");
             let (p, q) = (p_glut, q_glut);
             println!("      [3] Extracted Witness:   p = {}  |  q = {}", dec_of(&p), dec_of(&q));
             println!("      Factor Width Ratio:  {} x {} bits (Aspect Ratio: {:.2}:1)", p.len(), q.len(), if p.len() > 0 { q.len() as f64 / p.len() as f64 } else { 1.0 });
             println!("      [4] Product Boundary:    p * q == N: {} (Tape Witness Valid: {})", exact_glut, true);
-            // Emit minimal passive extraction and certificate
-            let trace = build_resident_trace();
+            let trace = execution.trace(&n).expect("verified glut execution trace");
+            verify_glut_trace(&n, &p, &q, &trace).expect("glut frame replay");
+            println!("      Glut Frame Replay: verified ({} checkpoints)", execution.checkpoints.len());
             let carrier = match FactorCarrier::new(n.clone(), p.clone(), q.clone(), trace) {
                 Ok(c) => c,
                 Err(e) => {
@@ -322,7 +324,7 @@ fn main() {
                     std::process::exit(1);
                 }
             };
-            let summary = match verify_reentry_certificate(&decoded) {
+            let summary = match verify_glut_reentry_certificate(&decoded) {
                 Ok(s) => s,
                 Err(e) => {
                     eprintln!("  ❌ Certificate independent verification failed: {e}");
@@ -388,7 +390,7 @@ fn main() {
 
      // 4.5 Frame sweep verification — baked into the membrane (lossless check only)
     let word_len = n.len();
-    let sweep_end = (word_len.min(8)).max(2);
+    let sweep_end = word_len.max(2);
     println!("");
     println!("  [4] Frame Sweep Verification — testing all widths 2..{}", sweep_end);
     let mut sweep_ok = true;

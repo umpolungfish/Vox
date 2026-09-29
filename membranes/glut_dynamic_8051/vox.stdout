@@ -1,0 +1,21 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║       V⊙X BAKED TOROIDAL ONE-SHOT RESIDENT MEMBRANE                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+  Baked Numeral Word:  ⊢≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋⊙⊡⊣
+  Target Semiprime N:  8051
+
+  [1] Gödel-Complete Numeral Representation: 13 bits, popcount 10
+      Multi-Window Frame Sweeps: widths=1..13, groups=[13, 7, 5, 4, 3, 3, 2, 2, 2, 2, 2, 2, 1], aperture 2^13
+      Toroidal Phase Base: g = 2 (Unit mod N: true)
+      Phase Shift Schema:  R∘σ=σ′∘R true | R²=id true | popcount∘{σ,R}=popcount true | support m−1−i true
+      Phase Shift Faithfulness:  σ is exact ×2 true | gcd(σg,σN)=σ(gcd) true (2 → 2)
+      ⚡ GLUT p-System: frame/carry factor closure succeeded
+      [3] Extracted Witness:   p = 83  |  q = 97
+      Factor Width Ratio:  7 x 7 bits (Aspect Ratio: 1.00:1)
+      [4] Product Boundary:    p * q == N: true (Tape Witness Valid: true)
+      Glut Frame Replay: verified (7 checkpoints)
+  [5] Passive Normal Form: ∈⋈⊤⊤⊡∈⊤⊥⊥⊥⊤⊥⊤⊥∋⊢∈⊥∋∈⊤∋∈⊥∋∈⊥∋∈⊤⊥∋∈⊤∋∈⊥⊥∋∈⊥⊤∋∈⊥⊥∋∈⊤∋∈⊥⊥⊤∋∈⊥⊤⊤∋∈⊤⊤⊥∋∈⊤∋∈⊥⊥⊤⊤∋∈⊥⊤⊤⊤∋∈⊥⊤⊥∋∈⊤∋∈⊥⊥⊤⊤⊥∋∈⊥⊤⊤⊤⊤∋∈⊤⊥⊥∋∈⊤∋∈⊥⊥⊤⊤⊥⊤∋∈⊥⊤⊤⊤⊤⊥∋∈⊥⊥⊥∋∈⊥∋∈⊥⊥⊤⊤⊥⊤⊥∋∈⊥⊤⊤⊤⊤⊥⊥∋⊣∋ (Transforms: 0, Generations: 1)
+  [6] Dialectic Certificate: Verified True (Transform Steps: 0, Wire Size: 366 chars)
+  ⚡ Toroidal Extractor Finished in: 20.00s
+
+entry(...) exited(0)   [18626751 steps in the twelve]
