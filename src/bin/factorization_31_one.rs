@@ -1,4 +1,5 @@
 //! Baked executable for the 31-step resident factorization membrane.
+#![deny(warnings)]
 
 fn main() {
     let word = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");

@@ -1,4 +1,5 @@
 // trace_replay_cli — the trace as an executable proof-object.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, Belnap, ReprTag, TraceStep, run, judge_router_v2, rewrite_policy, partial_router, RW_EXPOSE};
 use ::vox::router_store::{IStore, execute, OP_PRESERVE, OP_SCAN_APPEND};

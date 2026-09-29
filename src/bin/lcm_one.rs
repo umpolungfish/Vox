@@ -1,3 +1,4 @@
+#![deny(warnings)]
 #[path = "../prime_power_membrane.rs"] mod prime_power_membrane;
 #[path = "../baked_membrane.rs"] mod baked_membrane;
 fn run() -> Result<(), String> {

@@ -1,3 +1,4 @@
+#![deny(warnings)]
 use vox::glut_factor;
 
 fn dec(tape: &[char]) -> u64 {

@@ -6,6 +6,7 @@
 //! terminal, N never forked, F is ill-typed (a ∋ with no ∈). Both modules are
 //! `no_std`+`alloc` and depend on nothing outside this crate, so a consumer
 //! links `vox` the way every project links the foundation.
+#![deny(warnings)]
 #![no_std]
 
 #[macro_use]

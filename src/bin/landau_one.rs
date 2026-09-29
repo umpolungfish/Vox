@@ -1,4 +1,5 @@
 //! Baked Landau membrane: membrane_one.sh landau N...
+#![deny(warnings)]
 #[path = "../landau_membrane.rs"] mod landau_membrane;
 #[path = "../baked_membrane.rs"] mod baked_membrane;
 fn run() -> Result<(), String> {

@@ -4,6 +4,7 @@
 //! artifact IS this one transformation and the run takes no input. The membrane
 //! splits the value (delta), carries a real transform at the core, fuses it back
 //! (mu), and recovers the input exactly: mu∘delta = id by the matched circuitry.
+#![deny(warnings)]
 
 fn main() {
     let word: &str = option_env!("PERFECT_N_WORD").unwrap_or("⊢⊙⊡⊣");

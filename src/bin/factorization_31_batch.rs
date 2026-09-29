@@ -3,6 +3,7 @@
 //! The decimal operands are compile-time constants.  Each report is retained
 //! until the complete batch has finished, so the process emits no payload
 //! output during factoring.
+#![deny(warnings)]
 
 const BAKED: &[&str] = &[
     "10000000000000000016800000000000000005031",

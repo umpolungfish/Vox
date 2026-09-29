@@ -5,6 +5,7 @@
 //! performs inverse convolution and carry closure while traversing those
 //! groups. Returned factor supports are then transported back through the same
 //! frames, where their product closes on the baked source.
+#![deny(warnings)]
 
 use vox::morphism_factor::{self, dec_of, mul, parse_numeral};
 use std::env;

@@ -4,6 +4,7 @@
 //! to the existing G-mOMonadOS CUDA GNFS membrane, with two resident workers
 //! assigned across the two physical GPUs.  Child output is buffered so
 //! the launcher emits nothing until every baked value has completed.
+#![deny(warnings)]
 
 use std::process::Command;
 use std::thread;

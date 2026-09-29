@@ -6,6 +6,7 @@
 //! 2. Operculum single-puncture containment (open -> deposit -> seal -> run -> extract)
 //!    recovering N without divergence.
 //! 3. Exact factor product checks (P * Q = N_lane) across all 31 lines.
+#![deny(warnings)]
 
 use std::time::Instant;
 use vox::complete_membrane::CompleteMembrane;

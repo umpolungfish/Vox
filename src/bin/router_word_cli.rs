@@ -1,5 +1,6 @@
 // router_word_cli — the clause is only a word with a reader: run_word (tape-matched)
 // == run_mark (mark-keyed clauses) == run (enum oracle), on closure and on every step.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, run, partial_router};
 use ::vox::router_marks::{RouterG, run_mark, run_word, match_word, M_N};

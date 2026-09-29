@@ -1,4 +1,5 @@
 //! Baked ABC cutoff membrane. Usage: membrane_one.sh abc numerator denominator cutoff...
+#![deny(warnings)]
 extern crate alloc;
 #[path = "../abc_iutt.rs"] mod abc_iutt;
 #[path = "../baked_membrane.rs"] mod baked_membrane;

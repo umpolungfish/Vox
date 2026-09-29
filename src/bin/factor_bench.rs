@@ -2,6 +2,7 @@
 //! numeral before compilation; the binary factors them all and prints the table
 //! only when the whole batch is done. One operculum for the batch: sealed, run to
 //! completion, opened once. No peeking at the interior mid-run.
+#![deny(warnings)]
 
 fn main() {
     let words = option_env!("BENCH_WORDS").unwrap_or("");

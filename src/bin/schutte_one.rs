@@ -1,4 +1,5 @@
 //! Baked Schutte membrane: membrane_one.sh schutte vertices subset_size...
+#![deny(warnings)]
 #[path = "../schutte_membrane.rs"] mod schutte_membrane;
 #[path = "../baked_membrane.rs"] mod baked_membrane;
 fn run() -> Result<(), String> {

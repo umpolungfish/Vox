@@ -1,3 +1,4 @@
+#![deny(warnings)]
 use std::process::Command;
 
 pub fn append_trilattice_reads(report: &str) {

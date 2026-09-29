@@ -1,5 +1,6 @@
 // judge_judge_cli — judge the judge: does the current judge conflate "no distinction"
 // (unmatched but well-formed) with "failed recognition" (malformed)?
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, Belnap, TraceStep, run, judge_router, judge_router_v2, partial_router, no_n_router};
 

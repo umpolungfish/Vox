@@ -1,3 +1,4 @@
+#![deny(warnings)]
 extern crate alloc;
 
 // Item position: the generated file declares `const` items, which parse only at

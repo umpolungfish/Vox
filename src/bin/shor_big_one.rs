@@ -1,4 +1,5 @@
 //! Baked Shor membrane with arbitrary-width IMASM operands.
+#![deny(warnings)]
 
 extern crate alloc;
 #[allow(dead_code)]

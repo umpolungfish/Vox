@@ -1,4 +1,5 @@
 //! Batch arbitrary-width Shor membrane. All operands are compile-time baked.
+#![deny(warnings)]
 
 extern crate alloc;
 #[allow(dead_code)]

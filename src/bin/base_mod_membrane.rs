@@ -15,6 +15,7 @@
 //! The relative rotation of the base ring inside the modulus cycle is the
 //! order; it closes the factors. Read per coordinate (one residue at a step),
 //! never the saturating aggregate.
+#![deny(warnings)]
 #![allow(dead_code)]
 extern crate alloc;
 

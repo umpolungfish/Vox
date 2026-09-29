@@ -2,6 +2,7 @@
 // record span and commits its complement. The Rust delete_record is kept ONLY as an
 // oracle: we require byte equality delete_word(trace,i) == delete_record(trace,i) for
 // every trace and every index, then drive the whole reduction through the word.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::run_word;

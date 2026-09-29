@@ -17,6 +17,7 @@
 //! decimal string grows -- both mis-decode in the x86 lift. Baby table is a
 //! sorted Vec compared with cmp; digits are emitted through a scalar .rev()
 //! iterator. Every code path stays lift-proven.
+#![deny(warnings)]
 
 use ::vox::morphism_factor::{add, cmp, decimal_to_tape, divmod, gcd, mul, modulo, one, parse_numeral, sub, tape_u64, trim, zero};
 

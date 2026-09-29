@@ -2,6 +2,7 @@
 // trajectory bit-for-bit: route_g(N) vs meta_router::route(N).
 // The judge is judge_g (GValue), re-entry is reenter_mark — no Judg, no Repr,
 // on the loop's path.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::meta_router::{route, Judg};
 use ::vox::judge_g::{route_g, judg_to_mark, J_T, J_B, J_N, J_F};

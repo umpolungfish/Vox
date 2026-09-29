@@ -3,6 +3,7 @@
 //! Base and modulus arrive as baked IMASM numeral tapes. Dyadic phase
 //! observations produce a return relation, which is closed by nesting the
 //! product shell around the prefix fold and then reversing that nesting.
+#![deny(warnings)]
 
 #[path = "../phase_word.rs"] mod phase_word;
 

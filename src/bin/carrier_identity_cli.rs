@@ -1,4 +1,5 @@
 // carrier_identity_cli — the ⊙ identity: judgment N and wildcard source are one mark.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, Belnap, ReprTag};
 use ::vox::carrier::{GValue, probe, is_probe, is_judgment, is_source, ANY_MARK};

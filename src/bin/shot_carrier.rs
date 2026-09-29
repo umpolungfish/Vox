@@ -2,6 +2,7 @@
 //! Holds the index register as an amplitude vector of length m (O(m) memory);
 //! the output register |a^x mod N> is carried implicitly (deterministic per x),
 //! so the readout is not bounded by the dense O(m*N) joint vector.
+#![deny(warnings)]
 use std::env;
 use std::f64::consts::PI;
 

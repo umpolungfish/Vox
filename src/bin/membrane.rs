@@ -13,6 +13,7 @@
 //!   QWORD="$(./target/release/vox numeral 0)"   # 0 = auto (2*|N| bits)
 //!   MEMBRANE_WORDS="$AWORD $NWORD $QWORD" cargo build --release --bin membrane
 //!   ./target/release/membrane
+#![deny(warnings)]
 
 extern crate alloc;
 #[allow(dead_code)]

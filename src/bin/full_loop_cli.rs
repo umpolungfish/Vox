@@ -1,5 +1,6 @@
 // full_loop_cli — the complete resident loop under judge v2 (unmatched->N).
 // judge v2 -> N -> MEASURE word -> probe -> SCAN-APPEND -> R'.  No F, no DISTINGUISH.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, ReprTag, TraceStep, run, judge_router_v2, rewrite, rewrite_policy, partial_router, RW_EXPOSE};
 use ::vox::router_store::{IStore, execute, OP_PRESERVE, OP_SCAN_APPEND, TraceStore, measure, OP_MEASURE};

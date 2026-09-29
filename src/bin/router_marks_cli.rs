@@ -1,5 +1,6 @@
 // router_marks_cli — the enum-backed clause table and the mark-keyed one produce
 // identical control: apply_g == apply on every key, run_mark == run on every step.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, run, partial_router};
 use ::vox::router_marks::{RouterG, run_mark, M_N, M_FIX, M_T};

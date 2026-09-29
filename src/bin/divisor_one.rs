@@ -1,4 +1,5 @@
 //! Baked divisor-ring membrane. Usage: membrane_one.sh divisor N...
+#![deny(warnings)]
 extern crate alloc;
 #[path = "../divisor_ring.rs"] mod divisor_ring;
 #[path = "../baked_membrane.rs"] mod baked_membrane;

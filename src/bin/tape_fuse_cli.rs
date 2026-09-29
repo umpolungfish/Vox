@@ -3,6 +3,7 @@
 // semantics: a fusion is admissible iff it preserves the CHOSEN equivalence.
 //   ≡s (strict):  replay_state equal + judge ⊤ + factor equal
 //   ≡c (relaxed): judge ⊤ + closure & factor equal
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::run_word;

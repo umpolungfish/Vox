@@ -3,6 +3,7 @@
 // record skeletons so we can see what recurs; then we sweep spans of length 2 and 3.
 //   state-preserving   carriers under ≡s  (full replay state)
 //   closure-preserving carriers under ≡c  (closure + reconstructed factor)
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::run_word;

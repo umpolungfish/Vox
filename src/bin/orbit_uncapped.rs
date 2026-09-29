@@ -1,3 +1,4 @@
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::morphism_factor::{decimal_to_tape, parse_numeral, modulo, mul, one, cmp};
 fn tape(s:&str)->Vec<char>{ if s.starts_with('⊢'){parse_numeral(s).unwrap()} else {decimal_to_tape(s).unwrap()} }

@@ -19,6 +19,7 @@
 //!
 //! This is the minimal membrane pattern that survives a clear operation.
 //! The frame protects the deposit from being lost during AREV.
+#![deny(warnings)]
 #![allow(dead_code)]
 
 fn main() {

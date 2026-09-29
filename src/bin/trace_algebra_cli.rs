@@ -2,6 +2,7 @@
 // candidate still closes to the SAME factor, that record was operationally redundant.
 // Iterate to a fixed point. Two admissibility levels: REQUALITY (replay-state preserved) and
 // RELAXED (closure + factor preserved).
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::run_word;

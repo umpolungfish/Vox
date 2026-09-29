@@ -1,6 +1,7 @@
 // self_repair_word_cli — the resident self-repair loop (1 clause -> 2 -> 3 -> T) with the
 // enum-free router: at EVERY generation the word-only control law run_word reproduces the
 // enum run() on the corpus, and the clause growth and final trajectories are unchanged.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, ReprTag, TraceStep, run, judge_router_v2, rewrite,
     rewrite_policy, partial_router, RW_EXPOSE};

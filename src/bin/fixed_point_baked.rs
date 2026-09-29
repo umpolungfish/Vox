@@ -4,6 +4,7 @@
 //! executable consumes that value together with the compiled fixed-point
 //! membrane and emits only p and q. No factor, period, base, phase sample,
 //! winding, re-entry count, or surviving N is accepted or returned.
+#![deny(warnings)]
 
 use vox::fixed_point_membrane::CompiledFixedPointMembrane;
 use vox::morphism_factor::{dec_of, emit_numeral, parse_numeral};

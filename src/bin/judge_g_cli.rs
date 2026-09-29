@@ -1,5 +1,6 @@
 // judge_g_cli — the judge as a GValue-native function agrees, mark for mark,
 // with meta_router::judge, and the numerals-as-marks carrier round-trips.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::meta_router::{judge, Repr, Judg};
 use ::vox::nested_frame::isqrt_u64;

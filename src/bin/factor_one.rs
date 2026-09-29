@@ -8,6 +8,7 @@
 //!
 //!   FACTOR_N_WORD="$(vox numeral 8051)" cargo build --release --bin factor_one
 //!   ./target/release/factor_one
+#![deny(warnings)]
 
 fn main() {
     // Baked at compile time as the IMASM numeral word. The default is the numeral

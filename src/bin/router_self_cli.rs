@@ -6,6 +6,7 @@
 //   (1) round-trip exact:  E(D(R)) == R      and  E(D(W)) == W for the word
 //   (2) behavioural closure: R1 closes every N that R0 closed
 //   (3) new closures: R1 closes N's that R0 did not
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, Belnap, TraceStep, run, judge_router, rewrite};
 

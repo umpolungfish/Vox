@@ -8,6 +8,7 @@
 //! and so on, and the run takes no input and factors instantly.
 //!
 //!   ./hyperstack_one.sh 8051 phase shor fib
+#![deny(warnings)]
 use vox::morphism_factor::{add, cmp, dec_of, isqrt, mul, one, parse_numeral, sub};
 type Tape = Vec<char>;
 

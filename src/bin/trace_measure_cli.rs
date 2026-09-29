@@ -1,4 +1,5 @@
 // trace_measure_cli — the probe derivation: host vs a resident MEASURE word.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, Belnap, ReprTag, TraceStep, run, partial_router, no_n_router};
 use ::vox::router_store::{TraceStore, measure, OP_MEASURE};

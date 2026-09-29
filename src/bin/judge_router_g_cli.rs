@@ -1,6 +1,7 @@
 // judge_router_g_cli — the meta-judge (judge the router from its own traces) as a
 // mark: judge_router_v2_mark agrees with judge_router_v2's glyph on every generation
 // of the resident loop, and the mark drives the same rewrite.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, TraceStep, run, judge_router_v2, judge_router_v2_mark,
     rewrite, rewrite_policy, partial_router, RW_EXPOSE};
