@@ -18,19 +18,17 @@
 //!
 //! Algorithm (the seven-step membrane program):
 //!
-//! 1. Skin membrane:      seed the superposition at bit 0 from N's own parity
-//! 2. Frame sweep:        advance the glut in windows that grow or shrink with the live population,
-//!                        returning at the first exact proper product closure,
-//!                        or covering the full bit length when no pair closes
-//! 3. Glut superposition: at each bit, all four (p_bit, q_bit) pairs are held
-//! 4. Glut multiplication: the running-product constraint keeps only the
-//!                        pairs whose convolution bit matches N's bit
-//! 5. Glut sieve:         cross-width consistency + deduplication by prefix;
-//!                        states are exact, so no arbitrary truncation
-//! 6. Glut crystal:       verify p·q == N EXACTLY — the congruence
-//!                        p·q ≡ N (mod 2^L) admits alias pairs (e.g. 9·11 = 99
-//!                        ≡ 35 (mod 64)) that only the full product rejects
-//! 7. Glut readout:       the verified factor pairs, (p, q) with p·q = N
+//! 1. Skin membrane: fold the source's low zero run through product valuation.
+//! 2. Frame sweep: visit all proper factor-width geometries fairly.
+//! 3. Glut superposition: retain free factor cells as symbolic masks and intervals.
+//! 4. Glut multiplication: constrain high product bounds and low convolution carry.
+//! 5. Glut sieve: intersect exact mask extrema; split unresolved cells dynamically.
+//! 6. Glut crystal: materialize the selected assignment through actual carry
+//!    transitions and verify the complete product and checkpoint ancestry.
+//! 7. Glut readout: transport the exact proper pair and executed checkpoints.
+//!
+//! Production extraction folds the relation without a state, width or decision
+//! quota. Explicit frame queries remain available for concrete state censuses.
 
 use alloc::collections::BTreeSet;
 use alloc::rc::Rc;
@@ -38,6 +36,10 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 use crate::morphism_factor as mf;
+
+#[path = "glut_fold.rs"]
+mod fold;
+pub use fold::FoldStats;
 
 const ZERO: char = '⊤';
 const ONE: char = '⊥';
@@ -173,13 +175,16 @@ impl GlutState {
     }
 }
 
-/// The GLUT sieve: maintains the superposed glut across the frame sweep.
-/// No cap. The state vector is the exact live set at every level.
+/// The glut source relation. Production extraction keeps free cells folded.
+/// `states` exposes concrete frame materializations and the selected closure.
+/// Explicit `frame_superpose` queries enumerate their requested finite frame;
+/// `frame_sweep` solves the source relation without a breadth-state vector.
 pub struct GlutSieve {
     pub n_tape: Vec<char>,
     pub n_bits: Vec<u8>,
     pub states: Vec<GlutState>,
     paths: Vec<Rc<GlutPath>>,
+    pub fold_stats: FoldStats,
 }
 
 struct GlutPath {
@@ -210,6 +215,7 @@ impl GlutSieve {
             n_bits,
             states,
             paths,
+            fold_stats: FoldStats::default(),
         }
     }
 
@@ -279,30 +285,37 @@ impl GlutSieve {
         current
     }
 
-    /// Adapt frame width to the live population; close at the first proper product.
+    /// Fold the source relation and close at the first verified proper product.
     pub fn frame_sweep(&mut self) {
         self.frame_sweep_observed(|_, _| {});
     }
 
-    /// Observe seed and completed frames without limiting or changing the live set.
-    /// Width zero identifies the seed observation.
+    /// Observe the materialized boundary and symbolic frontier without a quota.
+    /// Width zero identifies seed or fold-progress observations; `fold_stats`
+    /// distinguishes them. A closing observation projects the selected fold.
     pub fn frame_sweep_observed(&mut self, mut observe: impl FnMut(&Self, usize)) {
+        // Validate materialized ancestry before opening the source relation.
+        // Resuming a frame uses folding too, rather than a breadth fallback.
+        self.frame_superpose(0);
         observe(self, 0);
-        if self.states.is_empty() {
-            return;
-        }
-        let mut width = 1;
-        while self.states.iter().any(|s| !s.is_complete(self.n_bits.len())) {
-            let before = self.states.len();
-            self.frame_superpose(width);
-            observe(self, width);
-            if self.states.is_empty() || self.readout().is_some() {
-                return;
+        if self.states.is_empty() { return; }
+        let source = self.n_tape.clone();
+        let (pair, stats) = fold::solve(&source, |stats| {
+            self.fold_stats = stats.clone();
+            observe(self, 0);
+        });
+        self.fold_stats = stats;
+        self.states.clear(); self.paths.clear();
+        if let Some((p, q)) = pair {
+            let execution = materialize_fold(&source, p, q)
+                .expect("folded assignment failed its verified materialization");
+            let mut parent = None;
+            for state in &execution.checkpoints {
+                parent = Some(Rc::new(GlutPath { state: state.clone(), parent }));
             }
-            let remaining = self.n_bits.len() - self.states[0].position;
-            width = if self.states.len() <= before {
-                width.checked_mul(2).unwrap_or(remaining).min(remaining).max(1)
-            } else { (width / 2).max(1) };
+            self.states.push(execution.checkpoints.last().unwrap().clone());
+            self.paths.push(parent.unwrap());
+            observe(self, self.states[0].position - 1);
         }
     }
 
@@ -354,6 +367,32 @@ impl GlutSieve {
         execution.verify(&self.n_tape).ok()?;
         Some(execution)
     }
+}
+
+/// Materialize the selected symbolic assignment through the actual convolution
+/// rail. The checkpoints record these executed transitions, including folded
+/// zero runs, and the same reverse rail checks the returned integer closure.
+fn materialize_fold(n: &[char], p: Vec<char>, q: Vec<char>) -> Result<GlutExecution, String> {
+    let mut state = GlutState::seed(bit(n, 0)).into_iter().find(|s|
+        bit(&s.p_prefix, 0) == bit(&p, 0) && bit(&s.q_prefix, 0) == bit(&q, 0))
+        .ok_or("folded assignment has no parity seed")?;
+    let mut checkpoints = vec![state.clone()];
+    let end = p.len().max(q.len());
+    let mut boundary = 2;
+    while state.position < end {
+        let k = state.position;
+        state = state.advance(bit(n, k)).into_iter().find(|candidate|
+            bit(&candidate.p_prefix, k) == bit(&p, k)
+                && bit(&candidate.q_prefix, k) == bit(&q, k))
+            .ok_or("folded assignment failed its convolution return")?;
+        if state.position == boundary || state.position == end {
+            checkpoints.push(state.clone());
+            boundary = boundary.checked_mul(2).unwrap_or(end).min(end);
+        }
+    }
+    let execution = GlutExecution { p, q, checkpoints };
+    execution.verify(n)?;
+    Ok(execution)
 }
 
 /// GLUT p-system factorization.
@@ -515,6 +554,30 @@ mod tests {
     }
 
     #[test]
+    fn resumed_sparse_frame_uses_the_same_folded_source_relation() {
+        let mut n = vec![ZERO; 256]; n.push(ONE);
+        let mut sieve = GlutSieve::new(&n);
+        sieve.frame_superpose(2);
+        assert!(sieve.states.len() > 3);
+        sieve.frame_sweep();
+        let execution = sieve.readout_execution().unwrap();
+        execution.verify(&n).unwrap();
+        assert_eq!(sieve.fold_stats.zero_run, 256);
+        assert_eq!(sieve.fold_stats.peak_frontier, 1);
+        assert_eq!(execution.p, execution.q);
+    }
+
+    #[test]
+    fn folded_sweep_rejects_mutated_materialized_ancestry() {
+        let n = to_tape(35);
+        let mut sieve = GlutSieve::new(&n);
+        sieve.states[0].carry = vec![ONE];
+        sieve.frame_sweep();
+        assert!(sieve.states.is_empty());
+        assert!(sieve.readout_execution().is_none());
+    }
+
+    #[test]
     fn carry_folds_beyond_machine_width() {
         let mut state = GlutState::seed(1).remove(0);
         state.carry = vec![ONE; 130];
@@ -550,7 +613,7 @@ mod tests {
     fn test_glut_factor_even_56() {
         let n = to_tape(56);
         let (p, q) = glut_factor(&n).expect("56 must factor");
-        assert_eq!((p.clone(), q.clone()), (to_tape(4), to_tape(14)));
+        assert_eq!((p.clone(), q.clone()), (to_tape(7), to_tape(8)));
         assert_eq!(
             cmp(&crate::morphism_factor::mul(&p, &q), &n),
             core::cmp::Ordering::Equal

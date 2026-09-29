@@ -1,0 +1,44 @@
+{
+  "name": "square_17",
+  "n": "66049",
+  "bits": 17,
+  "popcount": 3,
+  "word_chars": 89,
+  "shape": "square",
+  "supplied_p": "257",
+  "supplied_q": "257",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 0.022850429988466203,
+  "sampled_rss_peak_kib": 384,
+  "last_frame": [
+    "9",
+    "8",
+    "1",
+    "1",
+    "497"
+  ],
+  "last_fold": [
+    "3",
+    "1",
+    "1",
+    "54",
+    "54",
+    "0",
+    "174"
+  ],
+  "peak_completed_frame_states": 1,
+  "result": [
+    "closed",
+    "257",
+    "257",
+    "504",
+    "963",
+    "1",
+    "1",
+    "125",
+    "314"
+  ]
+}

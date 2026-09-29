@@ -1,0 +1,44 @@
+{
+  "name": "control_8051",
+  "n": "8051",
+  "bits": 13,
+  "popcount": 10,
+  "word_chars": 69,
+  "shape": "balanced",
+  "supplied_p": "83",
+  "supplied_q": "97",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 0.02189370198175311,
+  "sampled_rss_peak_kib": 384,
+  "last_frame": [
+    "7",
+    "6",
+    "1",
+    "1",
+    "676"
+  ],
+  "last_fold": [
+    "12",
+    "2",
+    "3",
+    "84",
+    "126",
+    "0",
+    "626"
+  ],
+  "peak_completed_frame_states": 1,
+  "result": [
+    "closed",
+    "83",
+    "97",
+    "679",
+    "808",
+    "1",
+    "1",
+    "91",
+    "238"
+  ]
+}

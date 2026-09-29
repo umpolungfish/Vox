@@ -773,8 +773,11 @@ real `.text` read whole sits at B.
 
 `glut_system::glut_factor_execution(&n)` accepts an IMASM numeral tape and
 returns a proper exact factor pair together with its executed frame checkpoints.
-Carry tapes grow with the computation. Frame widths adapt to the live state
-population; no live-state quota truncates the superposition.
+Carry tapes grow with the computation. Production extraction folds free factor
+cells into masks and numeric intervals, connects product bounds to convolution
+carry, and schedules factor-width geometries fairly. Source zero runs fold
+through product valuation. No state, factor-width or decision quota truncates
+the relation. Explicit frame queries still provide concrete state censuses.
 
 Call `execution.trace(&n)` to transport the checkpoints. Long payloads fold
 across trace records. `verify_glut_trace` checks their multiplication and carry
@@ -798,3 +801,17 @@ Run `python3 measurements/glut_replay_stress_run.py` to measure supplied-witness
 reverse replay and trace folding independently. Use `GLUT_REPLAY_RUN` to retain
 a separate comparison. Results, controls and plots are indexed in
 `measurements/glut_stress_2026-09-29.md`.
+
+### Folded extraction and complete IMASM executables
+
+Current extraction results and executable verification are indexed in
+[the folded glut report](measurements/glut_fold_2026-09-29.md).
+
+`glut_one` bakes `GLUT_SOURCE_WORD` at compile time. Its source, factor outputs
+and verified re-entry certificate are IMASM words. Run
+`GLUT_IMASM_RUN=fresh_name python3 measurements/glut_imasm_bake.py` to retain
+complete executables, recover their modules and execute their `.glyphs` words
+through Vox. The complete glyph carrier includes code, operands, addresses,
+values, data and metadata. The existing codec carries lossless UTF-8 module
+records in numeral payloads; Vox decodes these records before executing the
+lifted module. Rust and ELF remain build intermediates in this workflow.

@@ -1,0 +1,54 @@
+[
+  {
+    "name": "control_35",
+    "source_bits": 6,
+    "artifact_glyphs": 31244431,
+    "artifact_sha256": "2004644ddfcf2565916d5a7195e8feba22a5b7dc5246c06e9d3af6d4c35c97a0",
+    "glyph_alphabet_only": true,
+    "complete_module_recovery": true,
+    "execution_exit": 0,
+    "output_glyph_alphabet_only": true,
+    "output_matches_native": true,
+    "imasm_wall_seconds": 1.738492975011468,
+    "vm_footer": "entry(...) exited(0)   [1189382 steps in the twelve]"
+  },
+  {
+    "name": "balanced_64",
+    "source_bits": 64,
+    "artifact_glyphs": 31258327,
+    "artifact_sha256": "ecc706b80e8fc49582d6d69221ccce349005c39a1403ce134575c050c362e7d1",
+    "glyph_alphabet_only": true,
+    "complete_module_recovery": true,
+    "execution_exit": 0,
+    "output_glyph_alphabet_only": true,
+    "output_matches_native": true,
+    "imasm_wall_seconds": 54.73819718498271,
+    "vm_footer": "entry(...) exited(0)   [60052438 steps in the twelve]"
+  },
+  {
+    "name": "sparse_257",
+    "source_bits": 257,
+    "artifact_glyphs": 31304431,
+    "artifact_sha256": "6aa37e83b663c76aebf0e5e336183e371d04be41e6748ba344c3ab94e76e8f3e",
+    "glyph_alphabet_only": true,
+    "complete_module_recovery": true,
+    "execution_exit": 0,
+    "output_glyph_alphabet_only": true,
+    "output_matches_native": true,
+    "imasm_wall_seconds": 21.391736138029955,
+    "vm_footer": "entry(...) exited(0)   [22317165 steps in the twelve]"
+  },
+  {
+    "name": "unbalanced_258",
+    "source_bits": 258,
+    "artifact_glyphs": 31304943,
+    "artifact_sha256": "20dfe9da2b316a3a059218effc04274ee44a7da4278ef31ec29783e58c8f97b4",
+    "glyph_alphabet_only": true,
+    "complete_module_recovery": true,
+    "execution_exit": 0,
+    "output_glyph_alphabet_only": true,
+    "output_matches_native": true,
+    "imasm_wall_seconds": 60.37073042499833,
+    "vm_footer": "entry(...) exited(0)   [66684482 steps in the twelve]"
+  }
+]

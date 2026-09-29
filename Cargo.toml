@@ -363,3 +363,7 @@ path = "src/bin/toroidal_shot_cli.rs"
 [[bin]]
 name = "toroidal_one"
 path = "src/bin/toroidal_one.rs"
+
+[[bin]]
+name = "glut_one"
+path = "src/bin/glut_one.rs"

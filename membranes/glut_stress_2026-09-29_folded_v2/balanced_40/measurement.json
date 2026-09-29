@@ -1,0 +1,35 @@
+{
+  "name": "balanced_40",
+  "n": "1000036000099",
+  "bits": 40,
+  "popcount": 20,
+  "word_chars": 204,
+  "shape": "balanced",
+  "supplied_p": "1000003",
+  "supplied_q": "1000033",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 0.386821947991848,
+  "sampled_rss_peak_kib": 384,
+  "last_frame": [
+    "20",
+    "19",
+    "1",
+    "2",
+    "365005"
+  ],
+  "peak_completed_frame_states": 1,
+  "result": [
+    "closed",
+    "1000003",
+    "1000033",
+    "365010",
+    "720",
+    "1",
+    "1",
+    "196",
+    "503"
+  ]
+}

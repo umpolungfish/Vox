@@ -1,0 +1,13 @@
+{
+  "name": "balanced_64",
+  "source_bits": 64,
+  "artifact_glyphs": 31258327,
+  "artifact_sha256": "ecc706b80e8fc49582d6d69221ccce349005c39a1403ce134575c050c362e7d1",
+  "glyph_alphabet_only": true,
+  "complete_module_recovery": true,
+  "execution_exit": 0,
+  "output_glyph_alphabet_only": true,
+  "output_matches_native": true,
+  "imasm_wall_seconds": 54.73819718498271,
+  "vm_footer": "entry(...) exited(0)   [60052438 steps in the twelve]"
+}

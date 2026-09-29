@@ -17,6 +17,14 @@ fn main() {
     let mut frames = 0;
     let mut peak = 0;
     sieve.frame_sweep_observed(|sieve, width| {
+        if sieve.fold_stats.active && width == 0 {
+            let f = &sieve.fold_stats;
+            println!("FOLD\t{}\t{}\t{}\t{}\t{}\t{}\t{}", f.decisions,
+                f.frontier, f.peak_frontier, f.cells, f.peak_cells, f.zero_run,
+                started.elapsed().as_micros());
+            io::stdout().flush().unwrap();
+            return;
+        }
         peak = peak.max(sieve.states.len());
         if width > 0 { frames += 1; }
         let position = sieve.states.first().map_or(0, |s| s.position);

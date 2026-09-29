@@ -1,0 +1,4 @@
+control_35 IMASM executable and value alphabet verified; entry(...) exited(0)   [1171985 steps in the twelve]
+balanced_64 IMASM executable and value alphabet verified; entry(...) exited(0)   [59607026 steps in the twelve]
+sparse_257 IMASM executable and value alphabet verified; entry(...) exited(0)   [22190329 steps in the twelve]
+unbalanced_258 IMASM executable and value alphabet verified; entry(...) exited(0)   [66617723 steps in the twelve]
