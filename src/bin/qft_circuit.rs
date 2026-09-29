@@ -1,4 +1,5 @@
 //! Exported, single-threaded resident-circuit ABI for Vox function calls.
+#![deny(warnings)]
 #[path = "../membrane_complex.rs"] mod membrane_complex;
 #[path = "../qft_circuit.rs"] mod qft_circuit;
 use qft_circuit::{QftCircuit, PORTS};

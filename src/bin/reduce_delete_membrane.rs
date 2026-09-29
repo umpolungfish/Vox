@@ -9,6 +9,7 @@
 //! when the multiply-by-a gate wrapped the modulus (a reduction fired), ⊥ when
 //! it did not. The ⊤/⊥ sequence is periodic with the order, so the coordinate
 //! that flips tracks the winding, and the return to the unit fixes it.
+#![deny(warnings)]
 #![allow(dead_code)]
 extern crate alloc;
 

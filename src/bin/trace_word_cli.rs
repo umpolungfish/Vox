@@ -1,6 +1,7 @@
 // trace_word_cli — Stage 13: the trace is only a word. GStep is a reader; the
 // production representation is the record word. Round-trip exact, judge structural,
 // replay positional (applied_word = ⊙ means no operation was committed).
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{RouterG, run_word, GStep, M_T, M_B, M_N, M_F, M_FIX};

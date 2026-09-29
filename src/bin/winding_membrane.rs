@@ -11,6 +11,7 @@
 //! Each arm reads a winding and closes the factors by gcd(a^{r/2} +- 1, N).
 //! The arms are separate instruments answering the same question; the membrane
 //! runs all three and reports each.
+#![deny(warnings)]
 #![allow(dead_code)]
 extern crate alloc;
 

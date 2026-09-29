@@ -2,6 +2,7 @@
 //!
 //! Quantum phase estimation on baked IMASM numeral tapes.
 //! Unbounded BigUint register with QFT continued-fraction readout.
+#![deny(warnings)]
 
 extern crate alloc;
 #[path = "../phase_unbraid.rs"] mod phase_unbraid;

@@ -1,3 +1,4 @@
+#![deny(warnings)]
 #[path = "../reptiling_membrane.rs"] mod reptiling_membrane;
 #[path = "../baked_membrane.rs"] mod baked_membrane;
 fn main() {

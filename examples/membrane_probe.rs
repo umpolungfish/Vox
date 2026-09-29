@@ -1,3 +1,4 @@
+#![deny(warnings)]
 use vox::membrane_state::MembraneState;
 use vox::{morphism_factor as mf, vox as vx};
 

@@ -1,6 +1,7 @@
 // router_g_cli — the router's control law in marks (run_g, judge_g) reproduces
 // the enum control law (run) step-for-step: same closure, same judgment marks,
 // same recognition flags, same next tags, same applied words.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, run, run_g, partial_router};
 

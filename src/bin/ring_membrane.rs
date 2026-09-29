@@ -14,6 +14,7 @@
 //!
 //! The relative rotation is read by the gates stepping the ring, not by
 //! precomputing residues. The winding closes the factors by gcd(a^{r/2} ±1, N).
+#![deny(warnings)]
 #![allow(dead_code)]
 extern crate alloc;
 

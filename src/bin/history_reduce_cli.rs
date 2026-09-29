@@ -4,6 +4,7 @@
 // before/after, (b) transform-history length before/after, (c) normal-form stability under replay.
 // And we name the trap: compressing h under ≡s/≡c discards the edit COUNT, so a reconstruction
 // relation (≡r) does NOT see the compression — the reconstruction-preserving carrier is EDIT^k.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{run_word, M_T, M_FIX, GStep};

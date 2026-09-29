@@ -1,3 +1,4 @@
+#![deny(warnings)]
 #[path = "factor_membrane_support.rs"]
 mod support;
 

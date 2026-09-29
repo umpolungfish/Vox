@@ -23,6 +23,7 @@
 //! The double AREV at depth 3 creates idempotent clearing behavior.
 //! Each clear fires against banked content, and the fuses restore
 //! the accumulated count. This produces a 3-phase cycle instead of 4.
+#![deny(warnings)]
 #![allow(dead_code)]
 
 fn main() {

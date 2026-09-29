@@ -2,6 +2,7 @@
 // live in marks and REDUCE_WORD = ∈∋⊤≻⊡ walks them. A host reference reducer does the same work in
 // a plain Rust loop; we require byte equality and identical transform counts across rule sets and
 // across BOTH relations (≡s strict, ≡c relaxed), and that the result is a fixed point of the rule set.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{run_word, M_T, GStep};

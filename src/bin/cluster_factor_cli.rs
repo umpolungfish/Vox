@@ -3,6 +3,7 @@
 // SHAPE first (judgment/recognised/next sequence + applied-word lengths, repr bytes ignored), then
 // run FACTOR INSIDE each class. A class carrier at (pos, len) is accepted only if replacing that
 // shape-span by its COMPOSED record preserves the chosen relation in EVERY class member.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{run_word, M_T, GStep};

@@ -1,4 +1,5 @@
 // carrier_cli — the carrier: repr tags, judgments, probes are one value.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{ReprTag, Belnap};
 use ::vox::carrier::GValue;

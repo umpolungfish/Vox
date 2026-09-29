@@ -3,6 +3,7 @@
 //       max_steps (n=2: 64 records), and DELETE reduces 64 -> 1.
 //   (b) the CONTROL GRAMMAR makes a ⊤ closure a terminal fixed point: run_word_terminal halts on
 //       the ⊡ (M_FIX) terminal marker instead of re-entering. Word-native, same factor for every n.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{run_word, run_word_terminal};

@@ -1,4 +1,5 @@
 //! Baked distinct-triple-sum membrane: membrane_one.sh tripsum limit...
+#![deny(warnings)]
 #[path = "../tripsum_membrane.rs"] mod tripsum_membrane;
 #[path = "../baked_membrane.rs"] mod baked_membrane;
 fn run() -> Result<(), String> {

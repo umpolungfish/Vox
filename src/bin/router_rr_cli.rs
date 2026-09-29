@@ -1,5 +1,6 @@
 // router_rr_cli — R-of-R with the probe DERIVED BY THE MEASURE WORD.
 // Host probe derivation is gone from production; the probe comes from IMASM.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, Belnap, TraceStep, run, judge_router, rewrite, partial_router};
 use ::vox::router_store::{IStore, execute, OP_PRESERVE, OP_SCAN_APPEND, TraceStore, measure, OP_MEASURE};

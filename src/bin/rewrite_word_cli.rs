@@ -1,6 +1,7 @@
 // rewrite_word_cli — WORD-NATIVE TRAJECTORY REWRITE. The loop advances with
 // rewrite_word (probe read off the trace tape, SCAN-APPEND, no enum step). Byte-equal to
 // the enum oracle rewrite() at every generation of the self-repair sequence 1 → 2 → 3.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, run, judge_router_v2, rewrite, partial_router};
 use ::vox::router_marks::run_word;

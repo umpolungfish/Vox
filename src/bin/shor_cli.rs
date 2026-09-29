@@ -1,6 +1,7 @@
 //! Unbaked arbitrary-width Shor membrane: `shor_cli <a> <N> <qubits>`.
 //! shor_qft is a bin-only module (it uses crate-relative paths for its two
 //! local deps), so it is included by path here rather than from the lib.
+#![deny(warnings)]
 extern crate alloc;
 use std::env;
 #[path = "../membrane_complex.rs"] mod membrane_complex;

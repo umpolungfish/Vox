@@ -6,6 +6,7 @@
 //!   3. 4-Valued Dialectic & Syzygy Cuts: Truth lattice (T, F, B, N) evaluation.
 //!   4. Passive Extract Walk: Trace reduction from EXTRACT_WALK (∈∋⊤≻⊡) to EXTRACT_TYPE (∈⊤≻⊡∋).
 //!   5. Re-entry Certificate: Marks-only wire encoding and self-verifying audit.
+#![deny(warnings)]
 
 extern crate alloc;
 

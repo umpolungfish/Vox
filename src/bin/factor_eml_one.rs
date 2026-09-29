@@ -1,4 +1,5 @@
 //! Run the nested phase/EML factoring carrier over one baked IMASM numeral.
+#![deny(warnings)]
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 

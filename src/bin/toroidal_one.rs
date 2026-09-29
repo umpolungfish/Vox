@@ -10,6 +10,7 @@
 //!   4. Extracts the factor witness (p, q) directly into FactorCarrier.
 //!   5. Runs passive self-entry reduction to EXTRACT_TYPE (∈⊤≻⊡∋).
 //!   6. Emits and validates the dialectic ReentryCertificate wire proof.
+#![deny(warnings)]
 
 extern crate alloc;
 

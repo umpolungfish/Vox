@@ -1,6 +1,7 @@
 // frame_work_cli — FRAME_WORK is resident. The machine consumes marks and exposes only
 // balanced structure and positions. frame_work.py is kept ONLY as an oracle: we require
 // byte equality resident_frame_work(w) == python_frame_work(w) for every word.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::frame_work::{adjacent_dyad, captured_span, frame_work};
 

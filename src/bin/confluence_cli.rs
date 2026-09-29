@@ -4,6 +4,7 @@
 //   (1) ONE-STEP: from every admissible one-step edit, reduce to a normal form; do branches rejoin?
 //   (2) ALL-ORDERINGS: full-tree DFS over every maximal reduction (bounded) — do ALL terminal
 //       traces agree under the relation? (the strongest invariant asked for)
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{run_word, M_T, GStep};

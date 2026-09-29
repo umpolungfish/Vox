@@ -1,6 +1,7 @@
 // trace_reentry_cli — the trajectory re-enters as the object. The router is judged
 // from its trajectory WORDS (judge_router_trace), and that verdict drives the rewrite.
 // Cross-checked against the enum judge_router_v2 at every generation.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::{RouterObject, ReprTag, TraceStep, run, judge_router_v2, rewrite,
     rewrite_policy, partial_router, RW_EXPOSE};

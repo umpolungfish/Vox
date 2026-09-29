@@ -1,4 +1,5 @@
 //! Each build embeds its case as IMASM numerals. There is no runtime input API.
+#![deny(warnings)]
 extern crate alloc;
 #[path = "../membrane_complex.rs"] mod membrane_complex;
 #[path = "../fde_shor_membrane.rs"] mod fde_shor_membrane;

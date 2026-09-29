@@ -2,6 +2,7 @@
 // against the DFS semiprime_shot on the SAME semiprimes. Metrics: frames
 // entered, killed by p, killed by q, max live capacity, max nesting depth,
 // exact candidates reaching FIX — and frames-entered / factor-bits.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::morphism_factor::{dec_of, tape_u64};
 

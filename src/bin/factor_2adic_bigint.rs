@@ -9,6 +9,7 @@
 //! - Modular exponentiation in 2-adic rings has favorable circuit depth properties
 //!
 //! Usage: cargo run --bin factor_2adic_bigint <N> [lp] [lq] [max_solutions]
+#![deny(warnings)]
 
 use num_bigint::BigUint;
 use num_traits::{One, Zero};

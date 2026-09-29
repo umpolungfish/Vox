@@ -1,4 +1,5 @@
 //! Baked Shor statevector membrane: membrane_one.sh shor a N qubits.
+#![deny(warnings)]
 extern crate alloc;
 #[allow(dead_code)]
 #[path = "../shor_qft.rs"] mod shor_qft;

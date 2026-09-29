@@ -15,41 +15,9 @@
 //! 5. Glut readout: extract factor pairs from the shrunk state space
 
 use alloc::vec::Vec;
-use core::cmp::Ordering;
-use num_bigint::BigUint;
-use num_traits::One;
 
 const ZERO: char = '⊤';
 const ONE: char = '⊥';
-
-fn tape_to_biguint(tape: &[char]) -> BigUint {
-    let mut bytes = alloc::vec![0u8; (tape.len() + 7) / 8];
-    for (index, mark) in tape.iter().enumerate() {
-        if *mark == ONE {
-            bytes[index / 8] |= 1 << (index % 8);
-        }
-    }
-    BigUint::from_bytes_le(&bytes)
-}
-
-fn biguint_to_tape(value: &BigUint) -> Vec<char> {
-    let mut tape = Vec::new();
-    let bytes = value.to_bytes_le();
-    for byte in &bytes {
-        for bit in 0..8 {
-            tape.push(if (byte >> bit) & 1 == 1 { ONE } else { ZERO });
-        }
-    }
-    // Remove trailing zeros
-    while tape.last() == Some(&ZERO) {
-        tape.pop();
-    }
-    if tape.is_empty() {
-        alloc::vec![ZERO]
-    } else {
-        tape
-    }
-}
 
 fn trim(mut tape: Vec<char>) -> Vec<char> {
     while tape.last() == Some(&ZERO) {
@@ -64,25 +32,6 @@ fn trim(mut tape: Vec<char>) -> Vec<char> {
 
 fn bit(tape: &[char], index: usize) -> u8 {
     u8::from(tape.get(index) == Some(&ONE))
-}
-
-fn cmp_tape(a: &[char], b: &[char]) -> Ordering {
-    let a_len = a.iter().rposition(|c| *c != ZERO).map_or(0, |i| i + 1);
-    let b_len = b.iter().rposition(|c| *c != ZERO).map_or(0, |i| i + 1);
-    match a_len.cmp(&b_len) {
-        Ordering::Equal => {
-            for i in (0..a_len.max(1)).rev() {
-                let ab = bit(a, i);
-                let bb = bit(b, i);
-                match ab.cmp(&bb) {
-                    Ordering::Equal => {}
-                    order => return order,
-                }
-            }
-            Ordering::Equal
-        }
-        order => order,
-    }
 }
 
 fn mul(a: &[char], b: &[char]) -> Vec<char> {

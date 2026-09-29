@@ -3,6 +3,7 @@
 // The history of rewrites is recorded as a TRACE whose records' applied words ARE the resident
 // edit word. That meta-trace is read by the SAME judge_trace as any object trace. So the system
 // judges the transformations that judge and rewrite its histories.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{run_word, GStep, M_T, M_FIX};

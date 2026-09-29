@@ -6,6 +6,7 @@
 //! divisible by that prime alone, and gcd(a^k − 1, n) is the split. The
 //! membrane spins many cylinders (bases generated inside, not input) and reads
 //! off the first alignment. The modulus is baked in; there is no runtime input.
+#![deny(warnings)]
 #![allow(dead_code)]
 extern crate alloc;
 

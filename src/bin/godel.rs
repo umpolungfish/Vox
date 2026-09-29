@@ -1,3 +1,4 @@
+#![deny(warnings)]
 use vox::{godel_analyzer, godel_calculus, godel_product};
 
 fn dispatch(args: &[&str]) -> Result<String, String> {

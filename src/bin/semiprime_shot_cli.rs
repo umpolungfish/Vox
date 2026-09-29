@@ -1,3 +1,4 @@
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::morphism_factor::{cmp, dec_of, decimal_to_tape, mul, trim};
 

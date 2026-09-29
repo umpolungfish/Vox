@@ -2,6 +2,7 @@
 //!
 //! `BAKED_INDEX` selects exactly one line from the compile-time embedded
 //! bvalsd payload.  The resulting executable has no runtime operand input.
+#![deny(warnings)]
 
 extern crate alloc;
 #[allow(dead_code)]

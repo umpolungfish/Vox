@@ -2,6 +2,7 @@
 //! membrane, baked and one-shot. a, N and the register widths are IMASM
 //! numerals compiled in (include_str! of the pre-encoded words file); there is
 //! no runtime input and no runtime encoding. One prepared state, one measurement.
+#![deny(warnings)]
 extern crate alloc;
 #[allow(dead_code)]
 #[path = "../shor_qft.rs"] mod shor_qft;

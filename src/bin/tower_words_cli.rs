@@ -1,4 +1,5 @@
 // tower_words_cli — dump the tower walk words (Router, Trace, History) as glyphs.
+#![deny(warnings)]
 extern crate alloc;
 use ::vox::router_object::RouterObject;
 use ::vox::router_marks::{RouterG, run_word, GStep, M_T, M_FIX};
