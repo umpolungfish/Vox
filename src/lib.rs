@@ -49,6 +49,7 @@ pub mod trace_algebra;
 pub mod factor_extract;
 pub mod reentry_certificate;
 pub mod provenance_envelope;
+pub mod fibre_geometry; // Core Numeral fibre axis: N(k,r), F(k), A046165, Hasse edges, Stirling bridge
 pub mod producer_provenance;
 pub mod dialectic_reentry;
 pub mod dialectic_certificate;
