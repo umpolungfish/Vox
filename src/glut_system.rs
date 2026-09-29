@@ -152,6 +152,7 @@ impl GlutState {
 pub struct GlutSieve {
     pub n_bits: Vec<u8>,
     pub states: Vec<GlutState>,
+    pub n_tape: Vec<char>,
 }
 
 impl GlutSieve {
@@ -160,6 +161,7 @@ impl GlutSieve {
         Self {
             n_bits,
             states: vec![GlutState::new()],
+            n_tape: n.to_vec(),
         }
     }
 
@@ -224,9 +226,51 @@ impl GlutSieve {
             .collect()
     }
 
-    /// Glut readout: extract the first valid factor pair.
+    /// Glut readout: extract the best verified factor pair.
+    ///
+    /// The crystal yields candidate tape pairs; the readout certifies one.
+    /// Each candidate is lifted to true integers (`tape_to_biguint`) and
+    /// survives only if the exact product holds (`pv * qv == n`) and neither
+    /// factor is trivial (`BigUint::one`). Survivors are canonical-ordered
+    /// `p <= q` by `cmp_tape`, the smallest `p` wins, and the winning pair is
+    /// re-encoded to canonical tape (`biguint_to_tape`) before it leaves the
+    /// module.
     pub fn readout(&self) -> Option<(Vec<char>, Vec<char>)> {
-        self.glut_crystal().into_iter().next()
+        let n = tape_to_biguint(&self.n_tape);
+        let one = BigUint::one(); // keeps `num_traits::One` live
+        let mut best: Option<(Vec<char>, Vec<char>)> = None;
+
+        for (p, q) in self.glut_crystal() {
+            let (pv, qv) = (tape_to_biguint(&p), tape_to_biguint(&q));
+            if &pv * &qv != n {
+                continue; // not the true integer product
+            }
+            if pv == one || qv == one {
+                continue; // reject the trivial 1 x N
+            }
+
+            // canonical order p <= q
+            let (p, q) = if cmp_tape(&p, &q) == Ordering::Greater {
+                (q, p)
+            } else {
+                (p, q)
+            };
+
+            match &best {
+                None => best = Some((p, q)),
+                Some((bp, _)) if cmp_tape(&p, bp) != Ordering::Greater => {
+                    best = Some((p, q));
+                }
+                _ => {}
+            }
+        }
+
+        best.map(|(p, q)| {
+            (
+                biguint_to_tape(&tape_to_biguint(&p)),
+                biguint_to_tape(&tape_to_biguint(&q)),
+            )
+        })
     }
 }
 
