@@ -767,3 +767,21 @@ real `.text` read whole sits at B.
   split+fuse with no work inside is the identity, not a close — T needs work
   in the paired region.
 - **`src/main.rs.tmp`** and `safetensors.rs.bak` are stale copies, not built.
+
+
+## Glut membrane computation
+
+`glut_system::glut_factor_execution(&n)` accepts an IMASM numeral tape and
+returns a proper exact factor pair together with its executed frame checkpoints.
+Carry tapes grow with the computation. Frame widths adapt to the live state
+population; no live-state quota truncates the superposition.
+
+Call `execution.trace(&n)` to transport the checkpoints. Long payloads fold
+across trace records. `verify_glut_trace` checks their multiplication and carry
+recurrence. For a passive re-entry certificate originating in this membrane,
+use `verify_glut_reentry_certificate` to check both its source execution and
+its subsequent re-entry links. The baked `toroidal_one` glut path uses this
+sequence.
+
+Retained measurements and native/lifted artifacts are indexed in
+`measurements/glut_wiring_2026-09-29.md`.

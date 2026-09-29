@@ -1,0 +1,16 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║       V⊙X BAKED TOROIDAL ONE-SHOT RESIDENT MEMBRANE                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+  Baked Numeral Word:  ⊢≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊤∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋≻⋈∈⊥∋⊙⊡⊣
+  Target Semiprime N:  8051
+
+  [1] Gödel-Complete Numeral Representation: 13 bits, popcount 10
+      Multi-Window Frame Sweeps: widths=2..8, groups=[7, 5, 4, 3, 3, 2, 2], aperture 2^13
+      Toroidal Phase Base: g = 2 (Unit mod N: true)
+      Phase Shift Schema:  R∘σ=σ′∘R true | R²=id true | popcount∘{σ,R}=popcount true | support m−1−i true
+      Phase Shift Faithfulness:  σ is exact ×2 true | gcd(σg,σN)=σ(gcd) true (2 → 2)
+  [2] Unified Toroidal Membrane:  73 glyphs [⊢⊣≻∈⊤⋈≺⊥⊞⊙⋈⊤≺⊥⋈⊤≺⊥⋈⊤≺⊥⋈⊤≻⊤⊥≻≺⊤⊥⊞≺⊙⊤≺⊥⊤⊞⊥≻⊤≺⊥⊞⋈⊤≺⊞⊥⊙⊞⋈⊙≺⋈≻⋈⊤⊥⊙≻⋈⊙≻⊤≺⊥⋈⊙∋⊡⊣]
+
+  [4] Frame Sweep Verification — testing all widths 2..8
+      Frame sweep: ALL WIDTHS 2..8 PASSED — reversible coordinate system confirmed
+entry(...) exited(1)   [18121892 steps in the twelve]

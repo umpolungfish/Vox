@@ -1,0 +1,7 @@
+membranes/glut_wiring_8051/toroidal_one  elf  entry 0x20730  651454 byte(s) of code
+  1434 function(s), 128355 instruction(s)
+  claimed 85% of the image (560181 of 651454 bytes)
+
+  1434 function(s) by descent, 7236 more by fallback sweep
+  covered 100% of the image (651454 of 651454 bytes)
+  verdicts  T 297   B 1634   N 6739   F 0  (F: 0 from descent, 0 from fallback sweep)

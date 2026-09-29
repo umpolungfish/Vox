@@ -1,1 +1,5 @@
-I test all four nested EML arms on the 160-digit carrier, preserve standalone phase behavior, and retain the rebuilt contained binary.
+I wire dynamic glut computation through exact frame replay and factor certificates.
+
+I replace fixed carry integers with growing bit tapes, adapt frame widths to the live population, remove membrane width ceilings, and keep the exact survivor set. I select proper factor closures and transport actual executed checkpoints through folded trace records.
+
+I repair SSE packing in the lift and VM so the baked membrane agrees with native execution. I retain baseline probes, repaired measurements, executable membranes, lifted words, and verification output. I verify 249 library tests, all target compilation, re-entry integration, and matching native/lifted extraction of 83 times 97.

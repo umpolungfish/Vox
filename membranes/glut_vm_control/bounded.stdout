@@ -1,0 +1,83 @@
+copy equality true
+entry(...) halted: step budget 200000 reached, still running at 0x4068d0
+  previous 12:
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0
+  4068d0: ⊞ movdqu r:xmm2 m:r14:rcx:4:0x0:16
+  4068d6: ⊞ pcmpeqd r:xmm2 r:xmm0
+  4068dc: ⊞ imul r:edx r:edx i:0x66
+  4068e0: ⋈ movsxd r:rdx r:edx
+  4068e2: ⊞ pand r:xmm2 r:xmm1
+  4068e6: ⊡ movd m:r15:rcx:1:0x0:4 r:xmm2
+  4068ec: ⊞ add r:rcx i:0x4
+  4068f0: ⊤ cmp r:rdx r:rcx
+  4068f3: ∈ ne i:0x4068d0   [200001 steps]
