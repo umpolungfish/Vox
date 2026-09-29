@@ -1,16 +1,20 @@
-//! GLUT p-System: Polynomial-Time Factorization via Glut Superposition
+//! GLUT p-System: Glut Superposition Factorization
 //!
-//! The GLUT (Glut-in-Loop) p-system factors N in O(L_N²) time by maintaining
-//! a superposed state of all viable (p, q) candidates simultaneously.
+//! The GLUT (Glut-in-Loop) p-system factors N by maintaining a superposed
+//! state of all viable (p, q) candidates simultaneously and closing the
+//! mod-2^L congruence into equality at the crystal.
 //!
-//! Key insight: The running-product constraint (p·q) mod 2^k == N mod 2^k
-//! creates a carry propagation tree. The "glut" at level k is the set of all
-//! (carry, p_prefix, q_prefix) states that survive frame consistency checks,
-//! where the carry c_k is the EXACT carry into bit position k of p·q:
+//! The running-product constraint (p·q) mod 2^k == N mod 2^k creates a
+//! carry propagation tree. The "glut" at level k is the set of all
+//! (carry, p_prefix, q_prefix) states that survive frame consistency
+//! checks, where the carry c_k is the EXACT carry into bit position k of
+//! p·q:
 //!
-//!     s_k   = c_k + Σ_{i+j=k} p_i q_j
-//!     n_k   = s_k mod 2
-//!     c_{k+1} = s_k >> 1
+//! ```text
+//! s_k     = c_k + Σ_{i+j=k} p_i q_j
+//! n_k     = s_k mod 2
+//! c_{k+1} = s_k >> 1
+//! ```
 //!
 //! The full diagonal Σ_{i+j=k} p_i q_j is read off the stored prefixes —
 //! not just the p_k·q_k corner, which is what the original carry rule used
@@ -18,19 +22,26 @@
 //! (5, 7) dies at bit 1 under the diagonal-only rule).
 //!
 //! Algorithm (the seven-step membrane program):
-//! 1. Skin membrane:     seed the superposition at bit 0 from N's own parity
-//! 2. Frame sweep:       advance the glut in windows of width w = 2..=8,
-//!                       cycling the widths until every state is complete,
-//!                       so the sweep covers the full bit length L for any N
+//!
+//! 1. Skin membrane:      seed the superposition at bit 0 from N's own parity
+//! 2. Frame sweep:        advance the glut in windows of width w = 2..=8,
+//!                        cycling the widths until every state is complete,
+//!                        so the sweep covers the full bit length L for any N
 //! 3. Glut superposition: at each bit, all four (p_bit, q_bit) pairs are held
 //! 4. Glut multiplication: the running-product constraint keeps only the
-//!                       pairs whose convolution bit matches N's bit
-//! 5. Glut sieve:        cross-width consistency + deduplication by prefix;
-//!                       states are exact, so no arbitrary truncation
-//! 6. Glut crystal:      verify p·q == N EXACTLY — the congruence
-//!                       p·q ≡ N (mod 2^L) admits alias pairs (e.g. 9·11 = 99
-//!                       ≡ 35 (mod 64)) that only the full product rejects
-//! 7. Glut readout:      the verified factor pairs, (p, q) with p·q = N
+//!                        pairs whose convolution bit matches N's bit
+//! 5. Glut sieve:         cross-width consistency + deduplication by prefix;
+//!                        states are exact, so no arbitrary truncation
+//! 6. Glut crystal:       verify p·q == N EXACTLY — the congruence
+//!                        p·q ≡ N (mod 2^L) admits alias pairs (e.g. 9·11 = 99
+//!                        ≡ 35 (mod 64)) that only the full product rejects
+//! 7. Glut readout:       the verified factor pairs, (p, q) with p·q = N
+//!
+//! Realized complexity: the odd-N glut holds one state per odd p prefix,
+//! 2^(L-1) at level L, so the superposition is exponential in the bit length.
+//! The sieve caps it at MAX_SUPERPOSITION and reports the boundary via
+//! `exhausted` rather than truncating silently. The tests assert this cap for
+//! both even and odd N above the historical 35-bit ceiling.
 
 use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
@@ -144,6 +155,7 @@ impl GlutState {
         self.position >= total_bits
     }
 }
+
 /// The GLUT sieve: maintains the superposed glut across the frame sweep.
 pub struct GlutSieve {
     pub n_tape: Vec<char>,
@@ -270,7 +282,7 @@ impl GlutSieve {
     }
 }
 
-/// GLUT p-system factorization: O(L_N²) polynomial time.
+/// GLUT p-system factorization.
 /// Maintains the superposed glut of all viable (p, q) candidates, using the
 /// frame sweep (widths 2..=8, glut-preserving) to propagate the exact
 /// running-product constraint across the full bit length, and the crystal to
@@ -280,6 +292,7 @@ pub fn glut_factor(n: &[char]) -> Option<(Vec<char>, Vec<char>)> {
     sieve.frame_sweep();
     sieve.readout()
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
