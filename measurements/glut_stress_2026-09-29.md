@@ -117,3 +117,7 @@ and measured stdout/stderr. JSON manifests preserve per-case process settings,
 exit codes, observed memory and completed frame frontiers. The executable files
 preserve the paired replay implementations; rerunning the driver bakes the
 current source. Use a fresh run name when comparing a further change.
+
+## Subsequent folded wiring repair
+
+The retained baseline above is followed by [the folded extraction report](glut_fold_2026-09-29.md), which records closure of the interrupted fixtures and complete emitted IMASM executable checks.

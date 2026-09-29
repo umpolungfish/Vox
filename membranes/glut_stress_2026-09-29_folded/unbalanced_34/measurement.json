@@ -1,0 +1,35 @@
+{
+  "name": "unbalanced_34",
+  "n": "12884901891",
+  "bits": 34,
+  "popcount": 4,
+  "word_chars": 174,
+  "shape": "unbalanced",
+  "supplied_p": "3",
+  "supplied_q": "4294967297",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 0.02217493101488799,
+  "sampled_rss_peak_kib": 384,
+  "last_frame": [
+    "33",
+    "32",
+    "1",
+    "1",
+    "499"
+  ],
+  "peak_completed_frame_states": 1,
+  "result": [
+    "closed",
+    "3",
+    "4294967297",
+    "502",
+    "2682",
+    "1",
+    "1",
+    "316",
+    "567"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "sparse_257",
+  "source_bits": 257,
+  "artifact_glyphs": 30952943,
+  "artifact_sha256": "60dd6ee02f29a8191aa5270278043865a06c75255b17ee7460cf8d5e306c971a",
+  "glyph_alphabet_only": true,
+  "complete_module_recovery": true,
+  "execution_exit": 0,
+  "output_glyph_alphabet_only": true,
+  "output_matches_native": true,
+  "imasm_wall_seconds": 21.373212823062204,
+  "vm_footer": "entry(...) exited(0)   [22190329 steps in the twelve]"
+}

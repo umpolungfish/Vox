@@ -1,0 +1,34 @@
+{
+  "name": "unbalanced_17_261",
+  "n": "1968465517034375322200706745147694433505589739315889588670778928134523203878929",
+  "bits": 261,
+  "popcount": 4,
+  "word_chars": 1309,
+  "shape": "unbalanced",
+  "supplied_p": "17",
+  "supplied_q": "115792089237316195423570985008687907853269984665640564039457584007913129639937",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": -15,
+  "interrupted": true,
+  "wall_seconds": 8.015037917066365,
+  "sampled_rss_peak_kib": 384,
+  "last_frame": [
+    "1",
+    "0",
+    "1",
+    "1",
+    "13"
+  ],
+  "last_fold": [
+    "2",
+    "1",
+    "1",
+    "786",
+    "786",
+    "0",
+    "82"
+  ],
+  "peak_completed_frame_states": 1,
+  "result": null
+}

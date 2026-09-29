@@ -1,0 +1,13 @@
+{
+  "name": "unbalanced_258",
+  "source_bits": 258,
+  "artifact_glyphs": 30953455,
+  "artifact_sha256": "e1fe173ab9e66831cfcbc142f2ad324e5fdc8aedd60a1980bc780517da42d98c",
+  "glyph_alphabet_only": true,
+  "complete_module_recovery": true,
+  "execution_exit": 0,
+  "output_glyph_alphabet_only": true,
+  "output_matches_native": true,
+  "imasm_wall_seconds": 60.33224134100601,
+  "vm_footer": "entry(...) exited(0)   [66617723 steps in the twelve]"
+}

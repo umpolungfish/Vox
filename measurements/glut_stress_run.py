@@ -32,6 +32,8 @@ CASES = [
     ('unbalanced_66', 3*((1<<64)+1), 'unbalanced', 3, (1<<64)+1),
     ('unbalanced_130', 3*((1<<128)+1), 'unbalanced', 3, (1<<128)+1),
     ('unbalanced_258', 3*((1<<256)+1), 'unbalanced', 3, (1<<256)+1),
+    ('unbalanced_5_259', 5*((1<<256)+1), 'unbalanced', 5, (1<<256)+1),
+    ('unbalanced_17_261', 17*((1<<256)+1), 'unbalanced', 17, (1<<256)+1),
 ]
 SECONDS = float(os.environ.get('GLUT_STRESS_SECONDS', '8'))
 ADDRESS_BYTES = 768*1024*1024
@@ -71,6 +73,7 @@ def measure(binary, folder):
     return dict(returncode=proc.returncode, interrupted=interrupted,
         wall_seconds=time.monotonic()-start, sampled_rss_peak_kib=rss_peak,
         last_frame=frames[-1] if frames else None,
+        last_fold=next((line.split('\t')[1:] for line in reversed(lines) if line.startswith('FOLD\t')), None),
         peak_completed_frame_states=max((int(f[2]) for f in frames), default=0), result=result)
 
 selected = os.environ.get('GLUT_STRESS_CASES')

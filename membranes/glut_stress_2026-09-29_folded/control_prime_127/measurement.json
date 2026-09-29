@@ -1,0 +1,35 @@
+{
+  "name": "control_prime_127",
+  "n": "127",
+  "bits": 7,
+  "popcount": 7,
+  "word_chars": 39,
+  "shape": "prime control",
+  "supplied_p": null,
+  "supplied_q": null,
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 0.02200529701076448,
+  "sampled_rss_peak_kib": 384,
+  "last_frame": [
+    "1",
+    "0",
+    "1",
+    "1",
+    "2"
+  ],
+  "peak_completed_frame_states": 1,
+  "result": [
+    "exhausted_exact_set",
+    "-",
+    "-",
+    "299",
+    "0",
+    "0",
+    "1",
+    "0",
+    "0"
+  ]
+}
