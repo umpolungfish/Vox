@@ -52,6 +52,9 @@ pub mod provenance_envelope;
 pub mod phase_word;
 pub mod suffix_envelope; // Core Numeral suffix-envelope axis: Gamma_i, r(x), product fibre, M(k,d)
 pub mod fibre_geometry; // Core Numeral fibre axis: N(k,r), F(k), A046165, Hasse edges, Stirling bridge
+pub mod bool_polynomial; // Core Numeral Boolean carry axis: P(I) coefficients, Cauchy product ★
+pub mod layer_stack; // Core Numeral Boolean layer axis: threshold supports, layer-cake mass
+pub mod lean_evidence; // Lean Evidence registry: theorem id -> build witness (tag only)
 pub mod producer_provenance;
 pub mod dialectic_reentry;
 pub mod dialectic_certificate;

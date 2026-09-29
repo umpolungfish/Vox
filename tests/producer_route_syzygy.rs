@@ -104,7 +104,7 @@ fn route_trace(provenance: &ProducerRouteProvenance) -> Vec<char> {
 fn real_semiprime_routes_land_in_distinct_native_provenance_fibres() {
     let p_value = next_prime(1_000_000);
     let p = tape_u64(p_value);
-    let requested_gaps = [1_000u64, 4_000, 8_000, 16_000, 32_000, 48_000, 64_000];
+    let requested_gaps = [1_000u64, 2_000, 4_000, 8_000, 16_000, 32_000, 48_000, 64_000, 80_000, 96_000, 112_000];
     let terminal = terminal_trace();
 
     let mut ladders_by_route: BTreeMap<String, BTreeSet<Vec<u32>>> = BTreeMap::new();
