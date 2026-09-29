@@ -1,0 +1,35 @@
+{
+  "name": "control_35",
+  "n": "35",
+  "bits": 6,
+  "popcount": 3,
+  "word_chars": 34,
+  "shape": "balanced",
+  "supplied_p": "5",
+  "supplied_q": "7",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 0.0221919110044837,
+  "sampled_rss_peak_kib": 256,
+  "last_frame": [
+    "3",
+    "1",
+    "4",
+    "1",
+    "333"
+  ],
+  "peak_completed_frame_states": 4,
+  "result": [
+    "closed",
+    "5",
+    "7",
+    "445",
+    "424",
+    "2",
+    "4",
+    "62",
+    "163"
+  ]
+}

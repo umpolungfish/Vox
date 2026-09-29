@@ -1273,6 +1273,18 @@ fn is_simd(op: &str) -> bool {
 #[cfg(test)]
 mod membrane_simd_tests {
     #[test]
+    fn lifted_memory_push_preserves_addresses_above_four_gib() {
+        let insn = crate::x86::decode(&[0xff, 0x34, 0x24], 0x1000).unwrap();
+        let module = alloc::format!("@0x1000\n⋈\tpush\t{}\n@0x1003\n", insn.ops[0].field());
+        let mut machine = super::Machine::new(&module);
+        machine.set_reg("rsp", 0x2000);
+        machine.store(0x2000, 0x30005c5a0, 8);
+        assert!(machine.step(0x1000).is_ok());
+        assert_eq!(machine.reg("rsp"), 0x1ff8);
+        assert_eq!(machine.load(0x1ff8, 8), 0x30005c5a0);
+    }
+
+    #[test]
     fn packing_saturates_signed_lanes_and_keeps_both_sources_in_order() {
         use super::{Machine, mask};
         for (op, width, values, expected) in [

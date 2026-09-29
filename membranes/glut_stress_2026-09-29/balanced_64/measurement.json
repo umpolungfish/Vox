@@ -1,0 +1,25 @@
+{
+  "name": "balanced_64",
+  "n": "18446743979220271189",
+  "bits": 64,
+  "popcount": 33,
+  "word_chars": 324,
+  "shape": "balanced",
+  "supplied_p": "4294967291",
+  "supplied_q": "4294967279",
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "returncode": -15,
+  "interrupted": true,
+  "wall_seconds": 8.03549410996493,
+  "sampled_rss_peak_kib": 98228,
+  "last_frame": [
+    "17",
+    "1",
+    "65536",
+    "4",
+    "5644517"
+  ],
+  "peak_completed_frame_states": 65536,
+  "result": null
+}

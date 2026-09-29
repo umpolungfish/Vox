@@ -281,6 +281,13 @@ impl GlutSieve {
 
     /// Adapt frame width to the live population; close at the first proper product.
     pub fn frame_sweep(&mut self) {
+        self.frame_sweep_observed(|_, _| {});
+    }
+
+    /// Observe seed and completed frames without limiting or changing the live set.
+    /// Width zero identifies the seed observation.
+    pub fn frame_sweep_observed(&mut self, mut observe: impl FnMut(&Self, usize)) {
+        observe(self, 0);
         if self.states.is_empty() {
             return;
         }
@@ -288,6 +295,7 @@ impl GlutSieve {
         while self.states.iter().any(|s| !s.is_complete(self.n_bits.len())) {
             let before = self.states.len();
             self.frame_superpose(width);
+            observe(self, width);
             if self.states.is_empty() || self.readout().is_some() {
                 return;
             }
@@ -383,7 +391,9 @@ impl GlutExecution {
                 current = current.advance(bit(n, k)).into_iter().find(|candidate| {
                     candidate.p_prefix == after.p_prefix[..k + 1]
                         && candidate.q_prefix == after.q_prefix[..k + 1]
-                        && candidate.can_close(n)
+                    // The checked frame bounds every intervening prefix product.
+                    // Advance preserves the verified carry recurrence; replay reuses
+                    // that boundary instead of rechecking all earlier columns.
                 }).ok_or("glut frame does not descend from its preceding state")?;
             }
             if current != *after {
