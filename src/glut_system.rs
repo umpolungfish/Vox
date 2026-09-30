@@ -40,6 +40,9 @@ use crate::morphism_factor as mf;
 #[path = "glut_fold.rs"]
 mod fold;
 pub use fold::FoldStats;
+#[path = "glut_carrier.rs"]
+mod carrier;
+pub use carrier::PreparedGlutMembrane;
 
 const ZERO: char = '⊤';
 const ONE: char = '⊥';

@@ -3,6 +3,12 @@
 use super::{bit, mf, trim, ONE, ZERO};
 #[path = "glut_midpoint.rs"]
 mod midpoint;
+#[path = "glut_quantum.rs"]
+mod quantum;
+#[path = "glut_parity.rs"]
+mod parity;
+#[path = "glut_transport.rs"]
+mod transport;
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -64,6 +70,14 @@ pub(super) enum Step {
 }
 pub(super) struct Correlation {
     gates: Vec<Gate>,
+    products: BTreeMap<(usize, usize), usize>,
+    complements: BTreeMap<usize, usize>,
+    sums: BTreeMap<[usize; 3], (usize, usize)>,
+    parity: Vec<parity::ParityRow>,
+    parity_state: Vec<(usize, usize, char)>,
+    parity_pairs: alloc::collections::BTreeSet<usize>,
+    parity_offsets: Vec<usize>,
+    parity_incidence: Vec<usize>,
     adjacent_offsets: Vec<usize>,
     adjacent_gates: Vec<usize>,
     values: Vec<Option<char>>,
@@ -79,15 +93,37 @@ pub(super) struct Correlation {
     watches: BTreeMap<usize, Vec<usize>>,
     p: Vec<usize>,
     q: Vec<usize>,
+    source: Vec<char>,
+    factor_root: Vec<char>,
+    cofactor_floor: Vec<char>,
     empty: bool,
     conjugate: bool,
     pub decisions: usize,
     pub conflicts: usize,
+    pub work: usize,
+    pub fold_calls: usize,
+    pub fold_rejected: usize,
+    pub fold_forced: usize,
+    pub interval_rejected: usize,
+    pub carry_rejected: usize,
+    pub reason_original: usize,
+    pub reason_folded: usize,
+    frame_bank: super::frame_elimination::FrameBank,
+    support_p: Vec<Option<char>>,
+    support_q: Vec<Option<char>>,
 }
 impl Correlation {
     fn blank(empty: bool) -> Self {
         let mut s = Self {
             gates: Vec::new(),
+            products: BTreeMap::new(),
+            complements: BTreeMap::new(),
+            sums: BTreeMap::new(),
+            parity: Vec::new(),
+            parity_state: Vec::new(),
+            parity_pairs: alloc::collections::BTreeSet::new(),
+            parity_offsets: Vec::new(),
+            parity_incidence: Vec::new(),
             adjacent_offsets: Vec::new(),
             adjacent_gates: Vec::new(),
             values: Vec::new(),
@@ -103,10 +139,24 @@ impl Correlation {
             watches: BTreeMap::new(),
             p: Vec::new(),
             q: Vec::new(),
+            source: Vec::new(),
+            factor_root: Vec::new(),
+            cofactor_floor: Vec::new(),
             empty,
             conjugate: false,
             decisions: 0,
             conflicts: 0,
+            work: 0,
+            fold_calls: 0,
+            fold_rejected: 0,
+            fold_forced: 0,
+            interval_rejected: 0,
+            carry_rejected: 0,
+            reason_original: 0,
+            reason_folded: 0,
+            frame_bank: super::frame_elimination::FrameBank::default(),
+            support_p: Vec::new(),
+            support_q: Vec::new(),
         };
         let zero = s.cell();
         let one = s.cell();
@@ -208,7 +258,14 @@ impl Correlation {
         s.connect();
         s
     }
+    #[cfg(test)]
     fn connect(&mut self) {
+        self.connect_observed(&mut |_, _, _| {});
+    }
+    fn connect_observed(&mut self, observe: &mut impl FnMut(char, usize, usize)) {
+        observe('≺', self.gate_count(), self.cell_count());
+        self.fold_transport();
+        observe('≻', self.gate_count(), self.cell_count());
         for &cell in self.p.iter().chain(&self.q) {
             self.activity.insert(cell, vec![ZERO]);
         }
@@ -237,6 +294,19 @@ impl Correlation {
                 next[cell] += 1;
             }
         }
+        // Keep the DQI syndrome connected throughout descent and ascent.
+        // Each assignment updates only incident row residues; root substitution
+        // remains valid because source-root assignments never retreat.
+        observe('⊤', self.gate_count(), self.cell_count());
+        if self.propagate().is_err() {
+            self.empty = true;
+        } else {
+            observe('⊥', self.gate_count(), self.cell_count());
+            self.connect_parity_observed(observe);
+            observe('⋈', self.gate_count(), self.cell_count());
+            if self.propagate().is_err() { self.empty = true; }
+        }
+
     }
     pub fn gate_count(&self) -> usize {
         self.gates.len()
@@ -279,8 +349,13 @@ impl Correlation {
         } else if b == 1 || a == b {
             a
         } else {
+            let key = (a.min(b), a.max(b));
+            if let Some(&out) = self.products.get(&key) {
+                return out;
+            }
             let out = self.cell();
             self.gate(vec![a, b, out], AND);
+            self.products.insert(key, out);
             out
         }
     }
@@ -290,8 +365,13 @@ impl Correlation {
         } else if a == 1 {
             0
         } else {
+            if let Some(&out) = self.complements.get(&a) {
+                return out;
+            }
             let out = self.cell();
             self.gate(vec![a, out], NOT);
+            self.complements.insert(a, out);
+            self.complements.insert(out, a);
             out
         }
     }
@@ -314,12 +394,25 @@ impl Correlation {
         if (b == 0 && c == 1) || (b == 1 && c == 0) {
             return (self.not(a), a);
         }
+        let mut key = [a, b, c];
+        key.sort_unstable();
+        if let Some(&pair) = self.sums.get(&key) {
+            return pair;
+        }
         let sum = self.cell();
         let carry = self.cell();
         self.gate(vec![a, b, c, sum, carry], ADD);
+        self.sums.insert(key, (sum, carry));
         (sum, carry)
     }
     fn bound(&mut self, cells: &[usize], value: &[char], lower: bool) {
+        // A bound wider than the register cannot be truncated modulo its
+        // width: every represented value is below it. A lower bound empties
+        // that frame; an upper bound already holds throughout the frame.
+        if trim(value.to_vec()).len() > cells.len() {
+            self.empty |= lower;
+            return;
+        }
         let mut equal = 1;
         for k in (0..cells.len()).rev() {
             let mark = bit(value, k) == 1;
@@ -345,6 +438,7 @@ impl Correlation {
             return mark == lit.mark;
         }
         self.values[lit.cell] = Some(lit.mark);
+        self.parity_assignment(lit, false);
         self.levels[lit.cell] = self.boundaries.len();
         self.reasons[lit.cell] = reason;
         self.trail.push(lit);
@@ -355,6 +449,7 @@ impl Correlation {
     }
     fn gate_step(&mut self, index: usize) -> Result<(), Vec<Literal>> {
         let gate = &self.gates[index];
+        self.work += gate.cells.len() * 2;
         let mut viable = gate.all;
         for (slot, &cell) in gate.cells.iter().enumerate() {
             if let Some(mark) = self.values[cell] {
@@ -382,26 +477,68 @@ impl Correlation {
                 return Ok(());
             }
         }
-        let mut premise = Vec::new();
-        for &cell in &gate.cells {
-            if let Some(mark) = self.values[cell] {
-                let lit = Literal { cell, mark }.opposite();
-                if !premise.contains(&lit) {
-                    premise.push(lit);
-                }
-            }
-        }
         if viable == 0 {
-            return Err(premise);
+            return Err(self.gate_reason(index, None));
         }
         for lit in forced {
-            let mut reason = premise.clone();
-            reason.push(lit);
+            let reason = self.gate_reason(index, Some(lit));
             if !self.assign(lit, Some(reason.clone())) {
                 return Err(reason);
             }
         }
         Ok(())
+    }
+    fn gate_reason(&mut self, index: usize, conclusion: Option<Literal>) -> Vec<Literal> {
+        let gate = &self.gates[index];
+        let mut premise = Vec::new();
+        for &cell in &gate.cells {
+            if cell <= 1 {
+                continue;
+            }
+            if let Some(mark) = self.values[cell] {
+                let literal = Literal { cell, mark }.opposite();
+                if !premise.contains(&literal) {
+                    premise.push(literal);
+                }
+            }
+        }
+        let mut examined = 0;
+        let mut excludes_opposite = |premise: &[Literal]| {
+            examined += gate.cells.len() * (premise.len() + 1);
+            let mut support = gate.all;
+            for (slot, &cell) in gate.cells.iter().enumerate() {
+                let condition = if cell <= 1 {
+                    self.values[cell]
+                } else {
+                    premise
+                        .iter()
+                        .find(|lit| lit.cell == cell)
+                        .map(|lit| lit.opposite().mark)
+                };
+                if let Some(mark) = condition {
+                    support &= gate.supports[slot][usize::from(mark == ONE)];
+                }
+                if let Some(lit) = conclusion {
+                    if lit.cell == cell {
+                        support &= gate.supports[slot][usize::from(lit.opposite().mark == ONE)];
+                    }
+                }
+            }
+            support == 0
+        };
+        let mut position = 0;
+        while position < premise.len() {
+            let removed = premise.remove(position);
+            if !excludes_opposite(&premise) {
+                premise.insert(position, removed);
+                position += 1;
+            }
+        }
+        self.work += examined;
+        if let Some(lit) = conclusion {
+            premise.push(lit);
+        }
+        premise
     }
     fn propagate(&mut self) -> Result<(), Vec<Literal>> {
         while self.cursor < self.trail.len() {
@@ -412,6 +549,12 @@ impl Correlation {
             {
                 let gate = self.adjacent_gates[slot];
                 self.gate_step(gate)?;
+            }
+            if !self.parity_offsets.is_empty() {
+                for slot in self.parity_offsets[assigned.cell]..self.parity_offsets[assigned.cell+1] {
+                    let row = self.parity_incidence[slot];
+                    self.parity_step(row)?;
+                }
             }
             let false_lit = assigned.opposite();
             let key = false_lit.slot();
@@ -504,7 +647,9 @@ impl Correlation {
             return;
         }
         let end = self.boundaries[level];
-        for lit in self.trail.drain(end..) {
+        while self.trail.len() > end {
+            let lit = self.trail.pop().unwrap();
+            self.parity_assignment(lit, true);
             self.values[lit.cell] = None;
             self.levels[lit.cell] = 0;
             self.reasons[lit.cell] = None;
@@ -512,17 +657,123 @@ impl Correlation {
         self.boundaries.truncate(level);
         self.cursor = self.trail.len();
     }
+    fn interval_rejects(&self, premise: &[Literal], work: &mut usize) -> bool {
+        let mut included: Vec<_> = premise.iter().map(|lit|lit.cell).collect();
+        included.sort_unstable();
+        let read = |cells: &[usize]| cells.iter().map(|&cell| {
+            if self.levels[cell]==0 || included.binary_search(&cell).is_ok() { self.values[cell] }
+            else { None }
+        }).collect::<Vec<_>>();
+        let p=read(&self.p); let q=read(&self.q);
+        *work += (p.len()+q.len())*(included.len().max(1).ilog2() as usize+1);
+        let Some((pmin,pmax))=super::extrema(&p,&[ONE,ONE],&self.factor_root) else { return true; };
+        let Some((qmin,qmax))=super::extrema(&q,&self.cofactor_floor,&super::bounds(&q).1) else { return true; };
+        *work += pmin.len()*qmin.len()+pmax.len()*qmax.len();
+        mf::cmp(&mf::mul(&pmin,&qmin),&self.source)==core::cmp::Ordering::Greater
+            || mf::cmp(&mf::mul(&pmax,&qmax),&self.source)==core::cmp::Ordering::Less
+            || mf::cmp(&pmin,&qmax)==core::cmp::Ordering::Greater
+    }
+    fn support_rejects(&self, premise: &[Literal], work: &mut usize) -> bool {
+        let mut included: Vec<_> = premise.iter().map(|lit|lit.cell).collect();
+        included.sort_unstable();
+        let read = |cells: &[usize]| cells.iter().map(|&cell| {
+            if self.levels[cell]==0 || included.binary_search(&cell).is_ok() { self.values[cell] }
+            else { None }
+        }).collect::<Vec<_>>();
+        let p=read(&self.p); let q=read(&self.q);
+        let mut frame=super::Fold {
+            p_range:(vec![ONE,ONE],self.factor_root.clone()),
+            q_range:(self.cofactor_floor.clone(),super::bounds(&q).1),p,q,
+        };
+        frame.propagate(&self.source,work).is_none()
+    }
+    fn fold_conflict_reason(&mut self, mut premise: Vec<Literal>) -> Vec<Literal> {
+        self.reason_original += premise.len();
+        let mut work=0;
+        let interval=self.interval_rejects(&premise,&mut work);
+        if interval || option_env!("GLUT_CARRY_REASON_FOLD_WORD")==Some("⊤") {
+            if interval { self.interval_rejected += 1; }
+            else { self.carry_rejected += 1; }
+            // Fold whole assumption blocks first, then their smaller pieces.
+            // Every deletion is accepted only after the source interval proves
+            // that the remaining assumptions still exclude every product.
+            let mut width=premise.len();
+            while width!=0 {
+                let mut position=0;
+                while position<premise.len() {
+                    let end=(position+width).min(premise.len());
+                    let mut candidate=premise.clone(); candidate.drain(position..end);
+                    let rejected=if interval { self.interval_rejects(&candidate,&mut work) }
+                        else { self.support_rejects(&candidate,&mut work) };
+                    if rejected { premise=candidate; }
+                    else { position=end; }
+                }
+                width/=2;
+            }
+        }
+        self.work += work;
+        self.reason_folded += premise.len();
+        premise
+    }
+    fn fold_support(&mut self) -> Result<(), Vec<Literal>> {
+        if self.source.is_empty() { return Ok(()); }
+        let p: Vec<_> = self.p.iter().map(|&cell| self.values[cell]).collect();
+        let q: Vec<_> = self.q.iter().map(|&cell| self.values[cell]).collect();
+        if self.support_p == p && self.support_q == q { return Ok(()); }
+        self.fold_calls += 1;
+        let mut premise = Vec::new();
+        for &cell in self.p.iter().chain(&self.q) {
+            if self.levels[cell] == 0 { continue; }
+            if let Some(mark) = self.values[cell] {
+                let lit = Literal {cell,mark}.opposite();
+                if !premise.contains(&lit) { premise.push(lit); }
+            }
+        }
+        let mut frame = super::Fold {
+            p_range: (vec![ONE,ONE], self.factor_root.clone()),
+            q_range: (self.cofactor_floor.clone(), super::bounds(&q).1),
+            p, q,
+        };
+        let mut work = 0;
+        let supported = frame.propagate(&self.source, &mut work).is_some()
+            && super::frame_elimination::eliminate(&self.source, &mut frame.p, &mut frame.q, self.fold_calls-1, &mut self.frame_bank).is_some();
+        self.work += work;
+        if !supported {
+            self.fold_rejected += 1;
+            return Err(self.fold_conflict_reason(premise));
+        }
+        let forced: Vec<_> = self.p.iter().zip(&frame.p).chain(self.q.iter().zip(&frame.q))
+            .filter_map(|(&cell,&mark)| mark.filter(|_| self.values[cell].is_none())
+                .map(|mark| Literal {cell,mark})).collect();
+        for lit in forced {
+            if self.values[lit.cell].is_none() { self.fold_forced += 1; }
+            let mut reason = premise.clone(); reason.push(lit);
+            if !self.assign(lit,Some(reason.clone())) { return Err(reason); }
+        }
+        self.support_p = frame.p;
+        self.support_q = frame.q;
+        Ok(())
+    }
     pub fn advance(&mut self) -> Step {
         if self.empty {
             return Step::Empty;
         }
         loop {
-            if let Err(conflict) = self.propagate() {
+            let settled = loop {
+                if let Err(conflict) = self.propagate() { break Err(conflict); }
+                if let Err(conflict) = self.parity_holonomy() { break Err(conflict); }
+                let before = self.trail.len();
+                if let Err(conflict) = self.fold_support() { break Err(conflict); }
+                if self.trail.len() == before { break Ok(()); }
+            };
+            if let Err(conflict) = settled {
                 self.conflicts += 1;
-                if self.boundaries.is_empty() {
+                let conflict_level=conflict.iter().map(|lit|self.levels[lit.cell]).max().unwrap_or(0);
+                if conflict_level==0 {
                     self.empty = true;
                     return Step::Empty;
                 }
+                if conflict_level<self.boundaries.len() { self.retreat(conflict_level); }
                 let (learned, target) = self.analyze(conflict);
                 self.retreat(target);
                 let forced = learned[0];
@@ -560,7 +811,11 @@ impl Correlation {
             if let Some(cell) = next {
                 self.boundaries.push(self.trail.len());
                 self.decisions += 1;
-                self.assign(Literal { cell, mark: ONE }, None);
+                // Square frames descend toward the source-root midpoint and
+                // small difference support; product frames retain their
+                // factor-oriented polarity. Conflicts can reverse either bit.
+                let mark = if self.conjugate { ZERO } else { ONE };
+                self.assign(Literal { cell, mark }, None);
                 return Step::Running;
             }
             let read = |cells: &[usize]| {
@@ -589,6 +844,60 @@ impl Correlation {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn folded_gate_explanations_are_valid_for_every_partial_assignment() {
+        for rows in [AND, NOT, ADD, midpoint::EQUAL] {
+            let width = rows[0].len();
+            for pattern in 0..3usize.pow(width as u32) {
+                let mut graph = Correlation::blank(false);
+                let cells: Vec<_> = (0..width).map(|_| graph.cell()).collect();
+                graph.gate(cells.clone(), rows);
+                let mut pattern = pattern;
+                for &cell in &cells {
+                    match pattern % 3 {
+                        1 => {
+                            graph.assign(Literal { cell, mark: ZERO }, None);
+                        }
+                        2 => {
+                            graph.assign(Literal { cell, mark: ONE }, None);
+                        }
+                        _ => {}
+                    }
+                    pattern /= 3;
+                }
+                let mut clauses = Vec::new();
+                if let Err(reason) = graph.gate_step(0) {
+                    clauses.push(reason);
+                }
+                for &cell in &cells {
+                    if let Some(reason) = &graph.reasons[cell] {
+                        clauses.push(reason.clone());
+                    }
+                }
+                for clause in clauses {
+                    assert!(rows
+                        .iter()
+                        .all(|row| clause.iter().any(|lit| row[lit.cell - 2] == lit.mark)));
+                    // Every retained premise is required by this local proof.
+                    let premises = if clause
+                        .last()
+                        .is_some_and(|lit| graph.reasons[lit.cell].is_some())
+                    {
+                        clause.len() - 1
+                    } else {
+                        clause.len()
+                    };
+                    for omit in 0..premises {
+                        assert!(rows.iter().any(|row| !clause
+                            .iter()
+                            .enumerate()
+                            .any(|(i, lit)| i != omit && row[lit.cell - 2] == lit.mark)));
+                    }
+                }
+            }
+        }
+    }
+
     use super::*;
     #[test]
     fn local_support_masks_preserve_every_partial_gate_assignment() {

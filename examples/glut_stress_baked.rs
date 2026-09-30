@@ -10,7 +10,14 @@ fn main() {
     let word = option_env!("GLUT_STRESS_WORD")
         .unwrap_or(include_str!("../membranes/glut_dynamic_8051/input.imasm").trim());
     let n = parse_numeral(word).expect("baked numeral");
-    println!("INPUT\t{}\t{}\t{}\t{}", dec_of(&n), n.len(),
+    let mut report = String::new();
+    macro_rules! record {
+        ($($args:tt)*) => {{
+            std::fmt::Write::write_fmt(&mut report, format_args!($($args)*)).unwrap();
+            report.push('\n');
+        }};
+    }
+    record!("INPUT\t{}\t{}\t{}\t{}", dec_of(&n), n.len(),
         n.iter().filter(|&&c| c == '⊥').count(), word.chars().count());
     let started = Instant::now();
     let mut sieve = GlutSieve::new(&n);
@@ -19,22 +26,20 @@ fn main() {
     sieve.frame_sweep_observed(|sieve, width| {
         if sieve.fold_stats.active && width == 0 {
             let f = &sieve.fold_stats;
-            println!("FOLD\t{}\t{}\t{}\t{}\t{}\t{}\t{}", f.decisions,
+            record!("FOLD\t{}\t{}\t{}\t{}\t{}\t{}\t{}", f.decisions,
                 f.frontier, f.peak_frontier, f.cells, f.peak_cells, f.zero_run,
                 started.elapsed().as_micros());
-            println!("RAIL\t{}\t{}\t{}\t{}", f.p_width, f.q_width, f.rejected, f.splits);
-            println!("CORRELATION\t{}\t{}\t{}\t{}", f.correlation_decisions, f.correlation_conflicts, f.correlation_gates, f.correlation_cells);
-            println!("SQUARE\t{}\t{}", f.square_advances, f.square_cells);
-            io::stdout().flush().unwrap();
+            record!("RAIL\t{}\t{}\t{}\t{}", f.p_width, f.q_width, f.rejected, f.splits);
+            record!("CORRELATION\t{}\t{}\t{}\t{}", f.correlation_decisions, f.correlation_conflicts, f.correlation_gates, f.correlation_cells);
+            record!("SQUARE\t{}\t{}", f.square_advances, f.square_cells);
             return;
         }
         peak = peak.max(sieve.states.len());
         if width > 0 { frames += 1; }
         let position = sieve.states.first().map_or(0, |s| s.position);
         let carry_bits = sieve.states.iter().map(|s| s.carry.len()).max().unwrap_or(0);
-        println!("FRAME\t{}\t{}\t{}\t{}\t{}", position, width,
+        record!("FRAME\t{}\t{}\t{}\t{}\t{}", position, width,
             sieve.states.len(), carry_bits, started.elapsed().as_micros());
-        io::stdout().flush().unwrap();
     });
     let search_us = started.elapsed().as_micros();
     if let Some(execution) = sieve.readout_execution() {
@@ -50,10 +55,11 @@ fn main() {
         let mut altered = execution.clone();
         altered.checkpoints.last_mut().unwrap().carry.push('⊥');
         assert!(altered.verify(&n).is_err(), "carry mutation control");
-        println!("RESULT\tclosed\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        record!("RESULT\tclosed\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
             dec_of(&execution.p), dec_of(&execution.q), search_us,
             verify_started.elapsed().as_micros(), frames, peak, trace.len(), wire.len());
     } else {
-        println!("RESULT\texhausted_exact_set\t-\t-\t{}\t0\t{}\t{}\t0\t0", search_us, frames, peak);
+        record!("RESULT\texhausted_exact_set\t-\t-\t{}\t0\t{}\t{}\t0\t0", search_us, frames, peak);
     }
+    io::stdout().lock().write_all(report.as_bytes()).unwrap();
 }

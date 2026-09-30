@@ -1,0 +1,18 @@
+{
+  "source": "hssstttssh",
+  "structural": "H T^5 H",
+  "qc_expansion": "httttth",
+  "identical_braid": true,
+  "metrics": [
+    {
+      "label": "original",
+      "metrics": "Building gate net (depth 15, SK recursion 4)...\n  net: 112260 entries, 17342 KB (heap 20170 of 49152 KB)\n  single arm : error 2.816150e-7  length 7336\n  split+fused: error 4.663468e-9  length 14272\n  gain       : 60.4x\n  unitary    : true\n  word check : PASS (residual 6.94e-13)\n  heap peak  : 20254 of 49152 KB",
+      "generator_count": 14272
+    },
+    {
+      "label": "folded",
+      "metrics": "Building gate net (depth 15, SK recursion 4)...\n  net: 112260 entries, 17342 KB (heap 20170 of 49152 KB)\n  single arm : error 2.816150e-7  length 7336\n  split+fused: error 4.663468e-9  length 14272\n  gain       : 60.4x\n  unitary    : true\n  word check : PASS (residual 6.94e-13)\n  heap peak  : 20254 of 49152 KB",
+      "generator_count": 14272
+    }
+  ]
+}

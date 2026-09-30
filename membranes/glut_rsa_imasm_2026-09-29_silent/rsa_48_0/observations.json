@@ -1,0 +1,12 @@
+{
+  "native": {
+    "returncode": 0,
+    "interrupted": false,
+    "wall_seconds": 0.2645856470335275
+  },
+  "imasm": {
+    "returncode": -15,
+    "interrupted": true,
+    "wall_seconds": 60.00811948499177
+  }
+}

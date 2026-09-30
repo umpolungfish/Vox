@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 2 tests
+test fixed_point_quantum_phase::structural::tests::qc_example_folds_to_one_octant_between_hadamards ... ok
+test fixed_point_quantum_phase::structural::tests::all_short_circuits_preserve_the_complete_unitary ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.03s
+

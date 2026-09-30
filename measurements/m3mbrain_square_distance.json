@@ -1,0 +1,18 @@
+[
+  {
+    "name": "rsa_64_0",
+    "question": "How many adjacent midpoint increments reach the independently expected square closure?",
+    "source_product_verified": true,
+    "midpoint_step": 2,
+    "required_adjacent_advances": 4031502,
+    "producer_receives_expected_factors": false
+  },
+  {
+    "name": "rsa_96_0",
+    "question": "How many adjacent midpoint increments reach the independently expected square closure?",
+    "source_product_verified": true,
+    "midpoint_step": 2,
+    "required_adjacent_advances": 24513068071,
+    "producer_receives_expected_factors": false
+  }
+]

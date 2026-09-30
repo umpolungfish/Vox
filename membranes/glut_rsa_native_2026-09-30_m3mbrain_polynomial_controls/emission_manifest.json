@@ -1,0 +1,22 @@
+[
+  {
+    "name": "rsa_128_1",
+    "native_closed": true,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "2beac341c94d705b2820b638b7b9bfb4b8dc6ee5595c8224eb03715283b5ba1a",
+    "artifact_sha256": "7406fe078f7ba764e3493196e7f95e35d7fc2b6e213a0b96035f9871abeb90eb"
+  },
+  {
+    "name": "rsa_128_2",
+    "native_closed": true,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "804cb88a81cb339f1380bfc195f850114fce0de5fe4ae8782ee087892313896e",
+    "artifact_sha256": "31274600157abb3472f1dc964a9479f3e61af5cdaab2bbc85d9cc3b5b5aca714"
+  }
+]

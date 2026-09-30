@@ -1,9 +1,4 @@
-ports=4096 levels=12 load=91.535998ms prepare=462.11ms prepare_steps=346136
-gates=2c8d59af47c81ab3 feedback=0 activate=973.650521ms steps=1050648 max_error=5.069e-12
-gates=725b472be417e3bf feedback=0 activate=934.103107ms steps=1051288 max_error=6.058e-12
-gates=7ab85439af726ed3 feedback=0 activate=997.291665ms steps=1051160 max_error=6.235e-12
-gates=dfdf66489d155dc0 feedback=0 activate=1.008448884s steps=1051032 max_error=5.851e-12
-gates=b771c7a50ef7c5e5 feedback=0 activate=1.028225176s steps=1051416 max_error=6.533e-12
-gates=00000000000008fb feedback=0 activate=974.216904ms steps=1047576 max_error=3.630e-12
-resident: preparations=1 activations=6 median_activation=997.291665ms
-same_gates_control: cold_parse_prepare_activate=1.493868877s resident_activate=968.130664ms ratio=1.54x samples=5
+ports=4096 levels=12 load=64.498101ms prepare=145.385049ms prepare_steps=346136
+gates=0123456789abcdef feedback=1 activate=337.99951ms steps=1052696 max_error=0.000e0
+resident: preparations=1 activations=1 median_activation=337.99951ms
+same_gates_control: cold_parse_prepare_activate=541.376067ms resident_activate=335.685557ms ratio=1.61x samples=5

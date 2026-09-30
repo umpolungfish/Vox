@@ -1,0 +1,11 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.21s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 3 tests
+test fixed_point_quantum_phase::factor_oracle::tests::invalid_sources_fail_before_emitting_gates ... ok
+test fixed_point_quantum_phase::factor_oracle::tests::preparation_grows_with_source_without_expanding_gate_stream ... ok
+test fixed_point_quantum_phase::factor_oracle::tests::factor_phase_matches_independent_product_and_clears_every_ancilla ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 280 filtered out; finished in 0.12s
+

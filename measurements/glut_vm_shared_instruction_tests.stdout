@@ -1,0 +1,19 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.26s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 11 tests
+test imasm_vm::membrane_simd_tests::carry_survives_increment_and_full_width_borrow ... ok
+test imasm_vm::membrane_simd_tests::clock_gettime_writes_the_entire_result_and_reports_errors ... ok
+test imasm_vm::membrane_simd_tests::byte_swap_preserves_flags ... ok
+test imasm_vm::membrane_simd_tests::lifted_memory_push_preserves_addresses_above_four_gib ... ok
+test imasm_vm::membrane_simd_tests::packed_moves_preserve_adjacent_memory_and_lanes ... ok
+test imasm_vm::membrane_simd_tests::packing_saturates_signed_lanes_and_keeps_both_sources_in_order ... ok
+test imasm_vm::membrane_simd_tests::pinsrw_preserves_other_lanes_and_masks_the_selector ... ok
+test imasm_vm::membrane_simd_tests::multiplication_flags_and_full_product ... ok
+test imasm_vm::membrane_simd_tests::packed_shift_decode_lengths_and_saturation ... ok
+test imasm_vm::membrane_simd_tests::square_root_matches_hardware_rounding ... ok
+test imasm_vm::membrane_simd_tests::double_shifts_decode_and_execute ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 250 filtered out; finished in 0.04s
+

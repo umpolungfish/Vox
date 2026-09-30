@@ -18,8 +18,13 @@ use crate::fixed_point_quantum_membrane::FixedPointQuantumMembrane;
 use crate::fixed_point_quantum_phase::{power_of_two, PhaseLandingProgram};
 use crate::fixed_point_quantum_relation::resident_landing_word;
 use crate::hadamard_factor_bridge::HadamardDescent;
-use crate::hadamard_gate::{modular_phase_power, Tape};
-use crate::morphism_factor::{add, cmp, divmod, one};
+use crate::hadamard_gate::Tape;
+#[cfg(test)]
+use crate::hadamard_gate::modular_phase_power;
+use crate::fixed_point_quantum_phase::execution::{Executor, Program};
+use crate::morphism_factor::cmp;
+#[cfg(test)]
+use crate::morphism_factor::{add, divmod, one};
 use crate::vox::{verdict, AFWD, CLINK, EVALF, EVALT};
 
 /// Opaque one-shot winding preimage produced from N alone by the resident
@@ -118,6 +123,7 @@ impl QuantumPhaseSample {
     /// the resident preimage checks. This is the measurement executor's
     /// landing-to-sample constructor; callers cannot attach a numerator to an
     /// unchecked landing or bypass the opaque preimage boundary.
+    #[cfg(test)]
     fn from_executor_landing(
         landing: PhaseLandingProgram,
         numerator: Tape,
@@ -215,6 +221,21 @@ impl FixedPointQuantumMembrane {
         carrier.descend_phase_sample(&base, &sample.numerator, &sample.precision_denominator)
     }
 
+    /// Prepare the source-bound register and exact structural gate boundaries.
+    pub fn prepare_structural_execution(&self) -> Result<Program, &'static str> {
+        Program::prepare(self.one_shot_winding_preimage()?)
+    }
+
+    /// Execute a genuine backend readout, consume its resident preimage, then
+    /// descend the resulting phase. No period walk or arithmetic fallback runs.
+    pub fn measure_and_descend<E: Executor>(self, executor: &mut E) -> Result<HadamardDescent, &'static str> {
+        let program=self.prepare_structural_execution()?;
+        let numerator=executor.execute_and_measure(&program)?;
+        let sample=QuantumPhaseSample::from_executor_preimage(program.into_preimage(),numerator)?;
+        Ok(self.descend_quantum_measurement(sample))
+    }
+
+    /// Historical arithmetic reference retained solely for regression tests.
     /// Mint one phase sample from N at the collapse tick, then descend.
     ///
     /// The resident register lands at the pair-before-advance boundary carrying
@@ -223,7 +244,8 @@ impl FixedPointQuantumMembrane {
     /// past this call. The sealed `QuantumPhaseSample` carries `k` alone across
     /// the boundary, and the already-certified descent recovers the factors.
     /// Reading `r` is the one measurement step; a coherent device removes it.
-    pub fn measure_and_descend(self) -> HadamardDescent {
+    #[cfg(test)]
+    fn measure_and_descend_arithmetic_reference(self) -> HadamardDescent {
         let landing = match self
             .phase_estimation_register()
             .and_then(|r| r.into_measurement_program())
@@ -251,6 +273,7 @@ impl FixedPointQuantumMembrane {
 /// Least `r > 0` with `base^r ≡ 1 (mod n)`, read from the resident modular
 /// relation. Bounded so the collapse tick terminates; `None` when no order is
 /// found inside the bound (an unusable landing, routed around as `F`).
+#[cfg(test)]
 fn resident_order(base: &[char], n: &[char]) -> Option<Tape> {
     let unit = one();
     let mut r = one();
@@ -353,7 +376,7 @@ mod tests {
             // N = 43691 x 131071, base-2 order 34 (even), 2^17 nontrivial mod N.
             let n = tape_u64(5_726_623_061);
             let membrane = FixedPointQuantumMembrane::from_n(&n).unwrap();
-            match membrane.measure_and_descend() {
+            match membrane.measure_and_descend_arithmetic_reference() {
                 HadamardDescent::T(carrier) => {
                     let readout = extract(&carrier).unwrap();
                     assert_eq!(readout.transforms, 0);

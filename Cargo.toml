@@ -367,3 +367,6 @@ path = "src/bin/toroidal_one.rs"
 [[bin]]
 name = "glut_one"
 path = "src/bin/glut_one.rs"
+
+[lints.rust]
+warnings = "deny"

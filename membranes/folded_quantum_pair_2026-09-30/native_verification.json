@@ -1,0 +1,13 @@
+{
+  "instrument": "exact folded coherent CPU simulation",
+  "source_only": true,
+  "quantile": "1/2",
+  "amplification_rounds": "8",
+  "n": "15",
+  "measured_factors": [
+    "3",
+    "5"
+  ],
+  "silent_until_verified": true,
+  "native_seconds": 1.8220876340055838
+}

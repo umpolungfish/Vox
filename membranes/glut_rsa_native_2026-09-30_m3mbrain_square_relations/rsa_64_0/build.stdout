@@ -1,0 +1,15 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+error: variant `Empty` is never constructed
+ --> src/glut_square_fold.rs:6:62
+  |
+6 | pub(super) enum Step { Running, Closed(Vec<char>,Vec<char>), Empty }
+  |                 ---- variant in this enum                    ^^^^^
+  |
+note: the lint level is defined here
+ --> src/lib.rs:9:9
+  |
+9 | #![deny(warnings)]
+  |         ^^^^^^^^
+  = note: `#[deny(dead_code)]` implied by `#[deny(warnings)]`
+
+error: could not compile `vox` (lib) due to 1 previous error

@@ -1,0 +1,12 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.77s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 4 tests
+test fixed_point_quantum_phase::register::tests::coherent_gate_rejects_alias_and_invalid_quantile ... ok
+test fixed_point_quantum_phase::register::tests::phase_changes_interference_and_hadamard_inverse_closes ... ok
+test fixed_point_quantum_phase::register::tests::entangled_measurement_preserves_joint_correlations ... ok
+test fixed_point_quantum_phase::register::tests::uniform_register_folds_without_basis_expansion ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 285 filtered out; finished in 0.01s
+

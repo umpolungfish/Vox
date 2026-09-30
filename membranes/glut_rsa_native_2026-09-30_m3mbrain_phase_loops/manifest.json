@@ -1,0 +1,87 @@
+[
+  {
+    "name": "rsa_64_0",
+    "expected_fixture": {
+      "name": "rsa_64_0",
+      "seed": "9625c755d2488bbce7b89c305df26efce00d9eff574b3bdb624cb81c2f53897e",
+      "p": "3186128623",
+      "q": "3655595767",
+      "n": "11647198307356338841",
+      "bits": 64,
+      "factor_bits": 32,
+      "factor_gap_bits": 29,
+      "public_exponent": 65537,
+      "primality": "deterministic",
+      "primality_instrument": "SymPy 1.14.0"
+    },
+    "extracted_factor_words": [
+      "\u22a2\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u2299\u22a1\u22a3",
+      "\u22a2\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a4\u220b\u227b\u22c8\u2208\u22a5\u220b\u227b\u22c8\u2208\u22a5\u220b\u2299\u22a1\u22a3"
+    ],
+    "returncode": 0,
+    "interrupted": false,
+    "wall_seconds": 14.338175576063804,
+    "deadline_seconds": 60.0,
+    "closed": true,
+    "silent_until_closure": true,
+    "emitter": "m3mbrain",
+    "resident_dqi_syndrome": true,
+    "carry_reason_fold_preparation": null,
+    "parity_fold_preparation": null,
+    "square_lane_isolated": false,
+    "binary_sha256": "80769292aad6a8a5fba4c16131f5f185ae0de84f35704b08bcdff7f5fd9f9a65",
+    "source_hashes": {
+      "src/bin/m3mbrain.rs": "905c75192075a1d886f46ca0710b0db54490b8c326a1fbf51b25b4ffd8daaf85",
+      "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+      "src/glut_fold.rs": "b7932d9757ae56960fdd06c0cc56e5c323fe33adfe615e77509f326da80a36ac",
+      "src/glut_parity.rs": "ffcb8d36c1c62be105c19eed45c4fd5fa78e7904b7a55907bf85dc928a544aca",
+      "src/glut_quantum.rs": "5238f8c941e272c4560b2607b91b8754c7d0c35f39a482a39ce12e8ad1958d15",
+      "src/glut_transport.rs": "861460820b7b533dfc13947532ff0743ca2705f7422951f220b0bc7173ca160d",
+      "src/glut_correlation.rs": "33e06f81a3e71f65cf099839d58b074b9c9f665c89a94af75949889a743f5214",
+      "src/glut_midpoint.rs": "18c5552e072346a42796aed4792ce0a0ca7f65946c9b8bd4770fad3b5b4d1117",
+      "src/glut_square_fold.rs": "56c7f026874c3e3c97086e31e28d05e326bdbaf5f350852a3e04d3dc4daec135",
+      "src/morphism_factor.rs": "57ca6f37ed5959cd3817b4589d27692537c894ebd4af291e5de3eaa2c62d55d4"
+    }
+  },
+  {
+    "name": "rsa_96_0",
+    "expected_fixture": {
+      "name": "rsa_96_0",
+      "seed": "2525aab2236ae851138b534092bf26776214b38ed2be106b655f5b1a96bb3ec6",
+      "p": "241986861272353",
+      "q": "251827061482663",
+      "n": "60938840191629480966830716039",
+      "bits": 96,
+      "factor_bits": 48,
+      "factor_gap_bits": 44,
+      "public_exponent": 65537,
+      "primality": "deterministic",
+      "primality_instrument": "SymPy 1.14.0"
+    },
+    "extracted_factor_words": null,
+    "returncode": -9,
+    "interrupted": true,
+    "wall_seconds": 60.008640378015116,
+    "deadline_seconds": 60.0,
+    "closed": false,
+    "silent_until_closure": true,
+    "emitter": "m3mbrain",
+    "resident_dqi_syndrome": true,
+    "carry_reason_fold_preparation": null,
+    "parity_fold_preparation": null,
+    "square_lane_isolated": false,
+    "binary_sha256": "0fae7f939ea5f92d61363d741e323fcec76282f6b95cb5c789f05d38307a58f6",
+    "source_hashes": {
+      "src/bin/m3mbrain.rs": "905c75192075a1d886f46ca0710b0db54490b8c326a1fbf51b25b4ffd8daaf85",
+      "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+      "src/glut_fold.rs": "b7932d9757ae56960fdd06c0cc56e5c323fe33adfe615e77509f326da80a36ac",
+      "src/glut_parity.rs": "ffcb8d36c1c62be105c19eed45c4fd5fa78e7904b7a55907bf85dc928a544aca",
+      "src/glut_quantum.rs": "5238f8c941e272c4560b2607b91b8754c7d0c35f39a482a39ce12e8ad1958d15",
+      "src/glut_transport.rs": "861460820b7b533dfc13947532ff0743ca2705f7422951f220b0bc7173ca160d",
+      "src/glut_correlation.rs": "33e06f81a3e71f65cf099839d58b074b9c9f665c89a94af75949889a743f5214",
+      "src/glut_midpoint.rs": "18c5552e072346a42796aed4792ce0a0ca7f65946c9b8bd4770fad3b5b4d1117",
+      "src/glut_square_fold.rs": "56c7f026874c3e3c97086e31e28d05e326bdbaf5f350852a3e04d3dc4daec135",
+      "src/morphism_factor.rs": "57ca6f37ed5959cd3817b4589d27692537c894ebd4af291e5de3eaa2c62d55d4"
+    }
+  }
+]

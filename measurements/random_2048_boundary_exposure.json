@@ -1,0 +1,19 @@
+{
+  "source": "rsa_2048_0",
+  "source_bits": 2048,
+  "instrument": "godel analyze source followed by exact integer boundary-square check",
+  "readings": [
+    {
+      "multiplier": 1,
+      "source_boundary": true,
+      "delta_bits": 1023,
+      "square_exposure": false
+    },
+    {
+      "multiplier": 2,
+      "source_boundary": false,
+      "delta_bits": 1027,
+      "square_exposure": false
+    }
+  ]
+}

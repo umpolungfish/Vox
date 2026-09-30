@@ -10,6 +10,15 @@
 //! with one runtime collapse tick. The resident modulus and base travel with the
 //! collapsed register so the landing boundary remains genuinely N-dependent.
 
+#[path = "structural_quantum_phase.rs"]
+pub mod structural;
+#[path = "structural_quantum_executor.rs"]
+pub mod execution;
+#[path = "structural_factor_oracle.rs"]
+pub mod factor_oracle;
+#[path = "folded_quantum_register.rs"]
+pub mod register;
+
 use alloc::vec;
 
 use crate::fixed_point_hypernest::CollapsedHypernest;

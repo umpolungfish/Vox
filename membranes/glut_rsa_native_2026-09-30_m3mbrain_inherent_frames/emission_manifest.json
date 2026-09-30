@@ -1,0 +1,22 @@
+[
+  {
+    "name": "dialectic_close_2048_0",
+    "native_closed": true,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "e3b2ddf4d74ab906b15eb40e641a8577924454060b07f639468364625d42dd2d",
+    "artifact_sha256": "0f7c1432d52ce7cd6d1acb2e1d69b591add64f5e7cb3b0d9c7949a45e85f8352"
+  },
+  {
+    "name": "rsa_128_0",
+    "native_closed": true,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "55aefbde0c0935562e7f4187fce1160f82b51867fe1f4a2f0d55ab73be9bc57a",
+    "artifact_sha256": "dd2904e44c473d13202e85a1c1979b08b9cb738a39fcf8466504f2680a75f452"
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "name": "rsa_64_0",
+  "expected_fixture": {
+    "name": "rsa_64_0",
+    "seed": "9625c755d2488bbce7b89c305df26efce00d9eff574b3bdb624cb81c2f53897e",
+    "p": "3186128623",
+    "q": "3655595767",
+    "n": "11647198307356338841",
+    "bits": 64,
+    "factor_bits": 32,
+    "factor_gap_bits": 29,
+    "public_exponent": 65537,
+    "primality": "deterministic",
+    "primality_instrument": "SymPy 1.14.0"
+  },
+  "extracted_factor_words": null,
+  "returncode": -9,
+  "interrupted": true,
+  "wall_seconds": 60.01472440198995,
+  "deadline_seconds": 60.0,
+  "closed": false,
+  "silent_until_closure": true,
+  "parity_fold_preparation": null,
+  "square_lane_isolated": false,
+  "binary_sha256": "5458fa8af6a933eb973f0f93b26c1ee9b1e5675b40774e7a465d754a19003878",
+  "source_hashes": {
+    "src/bin/glut_one.rs": "48ad4fcd0e1cd13667885a80ec8f5a2912f2475e8be679569551ff6c88cf4dcb",
+    "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+    "src/glut_fold.rs": "22251796fe265b863a42465f18e7927c4e65155290a9cd7198e4a8edf0c6ec24",
+    "src/glut_parity.rs": "7c3453ac0dac6c35d768c27121b9d6d951587ce366ed82c3e9ce07a829008c94",
+    "src/glut_transport.rs": "066ed55c0c8d5bd1bf6a7f13dc09c28931e9d2a8f8b77d81a8edbac2f8e852a3",
+    "src/glut_correlation.rs": "6130f8cf7e2265c6d4a9c22c02579aa5c9971c6ca22d9ac460661bbd253f16ee",
+    "src/glut_midpoint.rs": "767a4d2dd14159882cfa76a86e405c67a34b102ad21a3e70b27f9785e9bdb27c",
+    "src/glut_square_fold.rs": "56c7f026874c3e3c97086e31e28d05e326bdbaf5f350852a3e04d3dc4daec135",
+    "src/morphism_factor.rs": "7163700ae6ca5c5c39d52303ab23aca0b93a3901692a7c770f6b0a22216be7d1"
+  }
+}

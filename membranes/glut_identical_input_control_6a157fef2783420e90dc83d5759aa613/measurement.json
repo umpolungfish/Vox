@@ -1,0 +1,8 @@
+{
+  "binary": "membranes/glut_rsa_native_29f17e730343476c89178c722d9d3ae6/rsa_128_0_e1436ba7eb4247b2becaf63940a136b9/payload.elf",
+  "fixture_id": "e1436ba7eb4247b2becaf63940a136b9",
+  "bits": 128,
+  "wall_seconds": 14.403706284007058,
+  "closed": true,
+  "identical_output": true
+}

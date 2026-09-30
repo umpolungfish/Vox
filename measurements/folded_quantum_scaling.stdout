@@ -1,0 +1,2 @@
+{"n": 21, "width": 5, "rounds": 16, "closed": true, "native_seconds": 17.946797534939833, "silent_until_closed": true, "binary_sha256": "48bcf250ed78dc16b88b7979cb56dba1ae4502b026ebfa1ec92f5f39713d36e5"}
+{"n": 35, "width": 6, "rounds": 32, "closed": false, "native_seconds": 60.00295985909179, "silent_until_closed": true, "binary_sha256": "624ed82d4448a31b05374cdf91281a79ca481cfe6f942ed927d08da73c5191fb"}

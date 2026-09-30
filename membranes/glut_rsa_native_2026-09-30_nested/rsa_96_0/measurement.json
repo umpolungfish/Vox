@@ -1,0 +1,33 @@
+{
+  "name": "rsa_96_0",
+  "fixture": {
+    "name": "rsa_96_0",
+    "seed": "2525aab2236ae851138b534092bf26776214b38ed2be106b655f5b1a96bb3ec6",
+    "p": "241986861272353",
+    "q": "251827061482663",
+    "n": "60938840191629480966830716039",
+    "bits": 96,
+    "factor_bits": 48,
+    "factor_gap_bits": 44,
+    "public_exponent": 65537,
+    "primality": "deterministic",
+    "primality_instrument": "SymPy 1.14.0"
+  },
+  "returncode": -9,
+  "interrupted": true,
+  "wall_seconds": 60.00682415696792,
+  "deadline_seconds": 60.0,
+  "closed": false,
+  "silent_until_closure": true,
+  "square_lane_isolated": false,
+  "binary_sha256": "abc71a5e093612d2bf34a2a8a0b6d3f53381bef03e42e9287181e061e7a63659",
+  "source_hashes": {
+    "src/bin/glut_one.rs": "48ad4fcd0e1cd13667885a80ec8f5a2912f2475e8be679569551ff6c88cf4dcb",
+    "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+    "src/glut_fold.rs": "7b3a947fa84026375fa0c281ebeacc5e747530b6a285f662623e78532430c654",
+    "src/glut_correlation.rs": "38bdce2f55bdd8ed47c956d687f5b6fc4b2e11600074d958cc385219f9d5f1fd",
+    "src/glut_midpoint.rs": "767a4d2dd14159882cfa76a86e405c67a34b102ad21a3e70b27f9785e9bdb27c",
+    "src/glut_square_fold.rs": "56c7f026874c3e3c97086e31e28d05e326bdbaf5f350852a3e04d3dc4daec135",
+    "src/morphism_factor.rs": "7163700ae6ca5c5c39d52303ab23aca0b93a3901692a7c770f6b0a22216be7d1"
+  }
+}

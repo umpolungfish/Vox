@@ -6,6 +6,10 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 #[path = "glut_correlation.rs"]
 mod correlation;
+#[path = "glut_frame_elimination.rs"]
+mod frame_elimination;
+#[path = "glut_frames.rs"]
+mod frames;
 #[path = "glut_square_fold.rs"]
 mod square_fold;
 
@@ -26,8 +30,23 @@ pub struct FoldStats {
     pub correlation_conflicts: usize,
     pub correlation_gates: usize,
     pub correlation_cells: usize,
+    pub correlation_prepare_stage: char,
     pub square_advances: usize,
     pub square_cells: usize,
+    pub diagnostic_stage: char,
+    pub phase_stage: char,
+    pub phase_columns: usize,
+    pub phase_rows: usize,
+    pub phase_partials: usize,
+    pub mask_work: usize,
+    pub correlation_work: usize,
+    pub support_calls: usize,
+    pub support_rejected: usize,
+    pub support_forced: usize,
+    pub interval_rejected: usize,
+    pub carry_rejected: usize,
+    pub reason_original: usize,
+    pub reason_folded: usize,
 }
 
 #[derive(Clone)]
@@ -304,8 +323,9 @@ impl Fold {
         }
     }
 
-    fn propagate(&mut self, n: &[char]) -> Option<()> {
+    fn propagate(&mut self, n: &[char], work: &mut usize) -> Option<()> {
         loop {
+            *work += self.p.len() * self.q.len() + n.len() * (self.p.len() + self.q.len());
             let mut changed = false;
             let (pmin, pmax) = extrema(&self.p, &self.p_range.0, &self.p_range.1)?;
             let (qmin, qmax) = extrema(&self.q, &self.q_range.0, &self.q_range.1)?;
@@ -405,6 +425,7 @@ fn visit(
     pending_cells: &mut usize,
     observe: &mut impl FnMut(&FoldStats),
 ) -> Option<(Vec<char>, Vec<char>)> {
+    stats.mask_work = 0;
     let mut current = lane.pop()?;
     *pending_count -= 1;
     *pending_cells -= current.cell_count();
@@ -419,7 +440,7 @@ fn visit(
     if new_peak || stats.decisions.is_power_of_two() {
         observe(stats);
     }
-    if current.propagate(n).is_none() {
+    if current.propagate(n, &mut stats.mask_work).is_none() {
         stats.rejected += 1;
         return None;
     }
@@ -450,165 +471,415 @@ fn visit(
     }
 }
 
+/// Ports act on one resident fold register. Their identities are bound to
+/// component slots, so repeated glyphs do not select unrelated operations.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Port {
+    Frames,
+    Square,
+    Admission,
+    Correlation,
+    Masks,
+    Verify,
+}
+impl Port {
+    pub const ORDER: [Self; 6] = [
+        Self::Frames,
+        Self::Square,
+        Self::Admission,
+        Self::Correlation,
+        Self::Masks,
+        Self::Verify,
+    ];
+    pub fn word(self) -> &'static str {
+        match self {
+            Self::Frames => "⊢∈≻⋈⊙≺⊥∋⊣",
+            Self::Square | Self::Correlation => "⊢∈≻⊞⋈∋⊣",
+            Self::Admission => "⊢∈≻⊤∋⊣",
+            Self::Masks => "⊢∈≻⊥∋⊣",
+            Self::Verify => "⊢∈⋈≺∋⊣",
+        }
+    }
+    pub fn trigger(self) -> char {
+        if self == Self::Verify {
+            '≺'
+        } else {
+            '≻'
+        }
+    }
+}
+struct Lanes {
+    frames: frames::Frames,
+    square: square_fold::SquareFold,
+    square_live: bool,
+    shared: Option<correlation::Correlation>,
+    shared_live: bool,
+    geometries: Vec<(usize, usize)>,
+    admitted: usize,
+    pending_count: usize,
+    pending_cells: usize,
+    cursor: usize,
+    lanes: Vec<Vec<Fold>>,
+    factor_bound: Vec<char>,
+    cofactor_bound: Vec<char>,
+    widest: usize,
+    turn_work: usize,
+    square_quantum: usize,
+}
+pub(super) struct Resident {
+    n: Vec<char>,
+    pub stats: FoldStats,
+    pair: Option<(Vec<char>, Vec<char>)>,
+    execution: Option<super::GlutExecution>,
+    lanes: Option<Lanes>,
+    finished: bool,
+}
+impl Resident {
+    pub fn new(n: &[char], mut observe: impl FnMut(&FoldStats)) -> Self {
+        let mut stats = FoldStats {
+            active: true,
+            ..FoldStats::default()
+        };
+        stats.zero_run = n.iter().position(|&c| c == ONE).unwrap_or(n.len());
+        if stats.zero_run == n.len() {
+            observe(&stats);
+            return Self {
+                n: n.to_vec(),
+                stats,
+                pair: None,
+                execution: None,
+                lanes: None,
+                finished: false,
+            };
+        }
+        if stats.zero_run > 0 {
+            // v(p*q)=v(p)+v(q): fold the entire leading-zero relation before
+            // materializing any of its unconstrained prefixes. Unit odd residues
+            // close directly within a nontrivial valuation sector.
+            let odd = trim(n[stats.zero_run..].to_vec());
+            let left_shift = if odd == vec![ONE] {
+                stats.zero_run / 2
+            } else {
+                stats.zero_run
+            };
+            let right_shift = stats.zero_run - left_shift;
+            let mut p = vec![ZERO; left_shift];
+            p.push(ONE);
+            let mut q = vec![ZERO; right_shift];
+            q.extend(odd);
+            if mf::cmp(&p, &q) == Ordering::Greater {
+                core::mem::swap(&mut p, &mut q);
+            }
+            stats.cells = p.len() + q.len();
+            stats.peak_cells = stats.cells;
+            stats.frontier = 1;
+            stats.peak_frontier = 1;
+            observe(&stats);
+            let proper = crate::trace_algebra::witness_valid(n, &p, &q);
+            return Self {
+                n: n.to_vec(),
+                stats,
+                pair: proper.then_some((p, q)),
+                execution: None,
+                lanes: None,
+                finished: false,
+            };
+        }
+        let factor_bound = mf::isqrt(n);
+        let cofactor_bound = ceiling(n, &factor_bound);
+        let widest = n.len().div_ceil(2);
+        let mut widths = Vec::new();
+        let mut low = 2;
+        let mut high = widest;
+        while low <= high {
+            widths.push(low);
+            if low != high {
+                widths.push(high);
+            }
+            low += 1;
+            high -= 1;
+        }
+        // Geometry admission is a live lane too. It cannot hold the correlation
+        // and square rails behind an initialization pass over the entire width.
+        let mut geometries = Vec::new();
+        for p_width in widths {
+            for sum in [n.len(), n.len() + 1] {
+                let q_width = sum - p_width;
+                if q_width >= p_width {
+                    geometries.push((p_width, q_width));
+                }
+            }
+        }
+        let mut l = Lanes {
+            frames: frames::Frames::new(n, &factor_bound),
+            square: square_fold::SquareFold::new(n, &factor_bound),
+            square_live: true,
+            shared: None,
+            shared_live: true,
+            geometries,
+            admitted: 0,
+            pending_count: 0,
+            pending_cells: 0,
+            cursor: 0,
+            lanes: Vec::new(),
+            factor_bound,
+            cofactor_bound,
+            widest,
+            turn_work: n.len() * n.len(),
+            square_quantum: 1,
+        };
+        match option_env!("GLUT_DIAGNOSTIC_LANE") {
+            Some("correlation") => {
+                let graph = correlation::Correlation::new_nested(n, widest, &l.factor_bound);
+                stats.correlation_gates = graph.gate_count();
+                stats.correlation_cells = graph.cell_count();
+                l.shared = Some(graph);
+                l.admitted = l.geometries.len();
+                l.square_live = false;
+            }
+            Some("masked") => {
+                l.shared_live = false;
+                l.square_live = false;
+            }
+            Some("square") => {
+                l.shared_live = false;
+                l.admitted = l.geometries.len();
+            }
+            Some("combined") | None => {}
+            Some(_) => panic!("unknown diagnostic lane"),
+        }
+        if option_env!("GLUT_ISOLATE_SQUARE_WORD") == Some("⊥") {
+            l.shared_live = false;
+            l.admitted = l.geometries.len();
+        }
+        Self {
+            n: n.to_vec(),
+            stats,
+            pair: None,
+            execution: None,
+            lanes: Some(l),
+            finished: false,
+        }
+    }
+    pub fn finished(&self) -> bool {
+        self.finished
+    }
+    pub fn pair(&self) -> Option<(Vec<char>, Vec<char>)> {
+        self.pair.clone()
+    }
+    pub fn take_execution(&mut self) -> Option<super::GlutExecution> {
+        self.execution.take()
+    }
+    #[cfg(test)]
+    pub fn source(&self) -> &[char] {
+        &self.n
+    }
+    pub fn activate(&mut self, port: Port, mut observe: impl FnMut(&FoldStats)) {
+        if self.finished {
+            return;
+        }
+        if port == Port::Verify {
+            if let Some((p, q)) = &mut self.pair {
+                if mf::cmp(p, q) == Ordering::Greater {
+                    core::mem::swap(p, q);
+                }
+                self.execution = Some(
+                    super::materialize_fold(&self.n, p.clone(), q.clone())
+                        .expect("GLUT verification return must close its checkpoint ancestry"),
+                );
+                self.finished = true;
+            } else if self.lanes.as_ref().is_none_or(|l| {
+                l.pending_count == 0
+                    && l.admitted == l.geometries.len()
+                    && !l.shared_live
+                    && !l.square_live
+            }) {
+                self.stats.frontier = 0;
+                self.stats.cells = 0;
+                self.finished = true;
+            }
+            observe(&self.stats);
+            return;
+        }
+        if self.pair.is_some() {
+            return;
+        }
+        let Some(l) = self.lanes.as_mut() else {
+            return;
+        };
+        let n = &self.n;
+        let mut stats = &mut self.stats;
+        match port {
+            Port::Frames => {
+                let scheduled_work = match option_env!("GLUT_ACTIVE_FRAME_WORD") {
+                    Some("⊤") => l.pending_cells / l.pending_count.max(1),
+                    Some("⊥") => l.pending_cells,
+                    _ => l.turn_work,
+                };
+                l.square_quantum = (scheduled_work / l.square.cells().max(1)).max(1);
+                l.turn_work = 0;
+                stats.diagnostic_stage = '⊡';
+                if let Some(pair) = l.frames.advance() {
+                    observe(&stats);
+                    self.pair = Some(pair);
+                    return;
+                }
+            }
+            Port::Square => {
+                for _ in 0..l.square_quantum {
+                    if !l.square_live {
+                        break;
+                    }
+                    let step = l.square.advance_observed(|stage, columns, rows, partials| {
+                        stats.phase_stage = stage;
+                        stats.phase_columns = columns;
+                        stats.phase_rows = rows;
+                        stats.phase_partials = partials;
+                        observe(&stats);
+                    });
+                    stats.square_advances = l.square.advances;
+                    stats.square_cells = l.square.cells();
+                    if stats.square_advances.is_power_of_two()
+                        || !matches!(step, square_fold::Step::Running)
+                    {
+                        observe(&stats);
+                    }
+                    match step {
+                        square_fold::Step::Running => {}
+                        square_fold::Step::Empty => l.square_live = false,
+                        square_fold::Step::Closed(p, q) => {
+                            self.pair = Some((p, q));
+                            return;
+                        }
+                    }
+                }
+                if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
+                    observe(&stats);
+                }
+            }
+            Port::Admission => {
+                stats.diagnostic_stage = '∈';
+                if let Some(&(p_width, q_width)) = l.geometries.get(l.admitted) {
+                    l.admitted += 1;
+                    let mut root = Fold::new(p_width, q_width);
+                    root.p_range.1 = min(root.p_range.1, l.factor_bound.clone());
+                    root.q_range.0 = max(root.q_range.0, l.cofactor_bound.clone());
+                    l.pending_count += 1;
+                    l.pending_cells += root.cell_count();
+                    l.lanes.push(vec![root]);
+                    if let Some(pair) = visit(
+                        l.lanes.last_mut().unwrap(),
+                        n,
+                        &mut stats,
+                        &mut l.pending_count,
+                        &mut l.pending_cells,
+                        &mut observe,
+                    ) {
+                        self.pair = Some(pair);
+                        return;
+                    }
+                    l.turn_work += stats.mask_work;
+                    if l.shared_live && p_width == q_width && l.shared.is_none() {
+                        stats.diagnostic_stage = '≻';
+                        observe(&stats);
+                        let graph = correlation::Correlation::new_nested_observed(
+                            n,
+                            l.widest,
+                            &l.factor_bound,
+                            |stage, gates, cells| {
+                                stats.correlation_prepare_stage = stage;
+                                stats.correlation_gates = gates;
+                                stats.correlation_cells = cells;
+                                observe(&stats);
+                            },
+                        );
+                        stats.correlation_gates = graph.gate_count();
+                        stats.correlation_cells = graph.cell_count();
+                        l.shared = Some(graph);
+                        observe(&stats);
+                    }
+                }
+                if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
+                    observe(&stats);
+                }
+            }
+            Port::Correlation => {
+                stats.diagnostic_stage = '⊞';
+                if l.admitted == l.geometries.len() && l.shared.is_none() {
+                    l.shared_live = false;
+                }
+                if l.shared_live {
+                    if let Some(graph) = l.shared.as_mut() {
+                        let before = graph.work;
+                        let step = graph.advance();
+                        stats.correlation_work = graph.work - before;
+                        stats.support_calls = graph.fold_calls;
+                        stats.support_rejected = graph.fold_rejected;
+                        stats.support_forced = graph.fold_forced;
+                        stats.interval_rejected = graph.interval_rejected;
+                        stats.carry_rejected = graph.carry_rejected;
+                        stats.reason_original = graph.reason_original;
+                        stats.reason_folded = graph.reason_folded;
+                        l.turn_work += stats.correlation_work;
+                        stats.correlation_decisions = graph.decisions;
+                        stats.correlation_conflicts = graph.conflicts;
+                        if stats.correlation_decisions.is_power_of_two()
+                            || !matches!(step, correlation::Step::Running)
+                        {
+                            observe(&stats);
+                        }
+                        match step {
+                            correlation::Step::Running => {}
+                            correlation::Step::Empty => l.shared_live = false,
+                            correlation::Step::Closed(p, q) => {
+                                assert!(crate::trace_algebra::witness_valid(n, &p, &q));
+                                self.pair = Some((p, q));
+                                return;
+                            }
+                        }
+                    }
+                }
+                if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
+                    observe(&stats);
+                }
+            }
+            Port::Masks => {
+                stats.diagnostic_stage = '⋈';
+                if !l.lanes.is_empty() {
+                    l.cursor %= l.lanes.len();
+                    if let Some(pair) = visit(
+                        &mut l.lanes[l.cursor],
+                        n,
+                        &mut stats,
+                        &mut l.pending_count,
+                        &mut l.pending_cells,
+                        &mut observe,
+                    ) {
+                        self.pair = Some(pair);
+                        return;
+                    }
+                    l.turn_work += stats.mask_work;
+                    l.cursor += 1;
+                }
+                if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
+                    observe(&stats);
+                }
+            }
+            Port::Verify => unreachable!(),
+        }
+    }
+}
 pub(super) fn solve(
     n: &[char],
     mut observe: impl FnMut(&FoldStats),
 ) -> (Option<(Vec<char>, Vec<char>)>, FoldStats) {
-    let mut stats = FoldStats {
-        active: true,
-        ..FoldStats::default()
-    };
-    stats.zero_run = n.iter().position(|&c| c == ONE).unwrap_or(n.len());
-    if stats.zero_run == n.len() {
-        observe(&stats);
-        return (None, stats);
-    }
-    if stats.zero_run > 0 {
-        // v(p*q)=v(p)+v(q): fold the entire leading-zero relation before
-        // materializing any of its unconstrained prefixes. Unit odd residues
-        // close directly within a nontrivial valuation sector.
-        let odd = trim(n[stats.zero_run..].to_vec());
-        let left_shift = if odd == vec![ONE] {
-            stats.zero_run / 2
-        } else {
-            stats.zero_run
-        };
-        let right_shift = stats.zero_run - left_shift;
-        let mut p = vec![ZERO; left_shift];
-        p.push(ONE);
-        let mut q = vec![ZERO; right_shift];
-        q.extend(odd);
-        if mf::cmp(&p, &q) == Ordering::Greater {
-            core::mem::swap(&mut p, &mut q);
-        }
-        stats.cells = p.len() + q.len();
-        stats.peak_cells = stats.cells;
-        stats.frontier = 1;
-        stats.peak_frontier = 1;
-        observe(&stats);
-        let proper = crate::trace_algebra::witness_valid(n, &p, &q);
-        return (proper.then_some((p, q)), stats);
-    }
-    let factor_bound = mf::isqrt(n);
-    let cofactor_bound = ceiling(n, &factor_bound);
-    let widest = n.len().div_ceil(2);
-    let mut widths = Vec::new();
-    let mut low = 2;
-    let mut high = widest;
-    while low <= high {
-        widths.push(low);
-        if low != high {
-            widths.push(high);
-        }
-        low += 1;
-        high -= 1;
-    }
-    // Geometry admission is a live lane too. It cannot hold the correlation
-    // and square rails behind an initialization pass over the entire width.
-    let mut geometries = Vec::new();
-    for p_width in widths {
-        for sum in [n.len(), n.len() + 1] {
-            let q_width = sum - p_width;
-            if q_width >= p_width {
-                geometries.push((p_width, q_width));
-            }
+    let mut resident = Resident::new(n, &mut observe);
+    while !resident.finished() {
+        for port in Port::ORDER {
+            resident.activate(port, &mut observe);
         }
     }
-    let mut lanes = Vec::new();
-    let mut pending_count = 0;
-    let mut pending_cells = 0;
-    let mut admitted = 0;
-    let mut cursor = 0;
-    let mut shared = None;
-    let mut shared_live = true;
-    let mut square = square_fold::SquareFold::new(n, &factor_bound);
-    let mut square_live = true;
-    while pending_count != 0 || admitted < geometries.len() || shared_live || square_live {
-        for _ in 0..n.len() {
-            if !square_live {
-                break;
-            }
-            let step = square.advance();
-            stats.square_advances = square.advances;
-            stats.square_cells = square.cells();
-            if stats.square_advances.is_power_of_two()
-                || !matches!(step, square_fold::Step::Running)
-            {
-                observe(&stats);
-            }
-            match step {
-                square_fold::Step::Running => {}
-                square_fold::Step::Empty => square_live = false,
-                square_fold::Step::Closed(p, q) => return (Some((p, q)), stats),
-            }
-        }
-        if let Some(&(p_width, q_width)) = geometries.get(admitted) {
-            admitted += 1;
-            let mut root = Fold::new(p_width, q_width);
-            root.p_range.1 = min(root.p_range.1, factor_bound.clone());
-            root.q_range.0 = max(root.q_range.0, cofactor_bound.clone());
-            pending_count += 1;
-            pending_cells += root.cell_count();
-            lanes.push(vec![root]);
-            if let Some(pair) = visit(
-                lanes.last_mut().unwrap(),
-                n,
-                &mut stats,
-                &mut pending_count,
-                &mut pending_cells,
-                &mut observe,
-            ) {
-                return (Some(pair), stats);
-            }
-            if p_width == q_width && shared.is_none() {
-                let graph = correlation::Correlation::new_midpoint(n, widest, &factor_bound);
-                stats.correlation_gates = graph.gate_count();
-                stats.correlation_cells = graph.cell_count();
-                shared = Some(graph);
-            }
-        }
-        if admitted == geometries.len() && shared.is_none() {
-            shared_live = false;
-        }
-        if shared_live {
-            if let Some(graph) = shared.as_mut() {
-                let step = graph.advance();
-                stats.correlation_decisions = graph.decisions;
-                stats.correlation_conflicts = graph.conflicts;
-                if stats.correlation_decisions.is_power_of_two()
-                    || !matches!(step, correlation::Step::Running)
-                {
-                    observe(&stats);
-                }
-                match step {
-                    correlation::Step::Running => {}
-                    correlation::Step::Empty => shared_live = false,
-                    correlation::Step::Closed(p, q) => {
-                        assert!(crate::trace_algebra::witness_valid(n, &p, &q));
-                        return (Some((p, q)), stats);
-                    }
-                }
-            }
-        }
-        if !lanes.is_empty() {
-            cursor %= lanes.len();
-            if let Some(pair) = visit(
-                &mut lanes[cursor],
-                n,
-                &mut stats,
-                &mut pending_count,
-                &mut pending_cells,
-                &mut observe,
-            ) {
-                return (Some(pair), stats);
-            }
-            cursor += 1;
-        }
-    }
-    stats.frontier = 0;
-    stats.cells = 0;
-    observe(&stats);
-    (None, stats)
+    (resident.pair(), resident.stats)
 }
 
 #[cfg(test)]
