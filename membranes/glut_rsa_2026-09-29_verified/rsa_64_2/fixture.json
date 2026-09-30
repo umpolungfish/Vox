@@ -1,0 +1,13 @@
+{
+  "name": "rsa_64_2",
+  "seed": "f21fd76f4031e09c02d98a12c7176c40a713f9fdbb869ecfebe6a56405e0aa3a",
+  "p": "3580773659",
+  "q": "3815832071",
+  "n": "13663630967004217789",
+  "bits": 64,
+  "factor_bits": 32,
+  "factor_gap_bits": 28,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0"
+}

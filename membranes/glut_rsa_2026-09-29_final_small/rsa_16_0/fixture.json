@@ -1,0 +1,13 @@
+{
+  "name": "rsa_16_0",
+  "seed": "92ed0b017b58dac3dac6d120d4e205af1c946995e22e1e07849c0edcb7e9e990",
+  "p": "191",
+  "q": "251",
+  "n": "47941",
+  "bits": 16,
+  "factor_bits": 8,
+  "factor_gap_bits": 6,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0"
+}

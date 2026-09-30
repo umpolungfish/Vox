@@ -1,0 +1,77 @@
+error[E0425]: cannot find value `cellself` in this scope
+   --> src/glut_correlation.rs:216:31
+    |
+216 |             for (i, &cell) in cellself.iter().enumerate() {
+    |                               ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `cellself` in this scope
+   --> src/glut_correlation.rs:219:26
+    |
+219 |                     .min(cellself.len().saturating_sub(i + 2));
+    |                          ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `cellself` in this scope
+   --> src/glut_correlation.rs:221:64
+    |
+221 |                     .insert(cell, 2 * inside + usize::from(i > cellself.len() / 2));
+    |                                                                ^^^^^^^^ not found in this scope
+
+error[E0609]: no field `valueself` on type `&mut correlation::Correlation`
+   --> src/glut_correlation.rs:225:46
+    |
+225 |         self.adjacent_offsets = vec![0; self.valueself.len() + 1];
+    |                                              ^^^^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+225 -         self.adjacent_offsets = vec![0; self.valueself.len() + 1];
+225 +         self.adjacent_offsets = vec![0; self.values.len() + 1];
+    |
+
+error[E0609]: no field `adjacent_offsetself` on type `&mut correlation::Correlation`
+   --> src/glut_correlation.rs:231:26
+    |
+231 |         for i in 1..self.adjacent_offsetself.len() {
+    |                          ^^^^^^^^^^^^^^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+231 -         for i in 1..self.adjacent_offsetself.len() {
+231 +         for i in 1..self.adjacent_offsets.len() {
+    |
+
+error[E0609]: no field `adjacent_offsetself` on type `&mut correlation::Correlation`
+   --> src/glut_correlation.rs:234:45
+    |
+234 |         self.adjacent_gates = vec![0; *self.adjacent_offsetself.last().unwrap()];
+    |                                             ^^^^^^^^^^^^^^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+234 -         self.adjacent_gates = vec![0; *self.adjacent_offsetself.last().unwrap()];
+234 +         self.adjacent_gates = vec![0; *self.adjacent_offsets.last().unwrap()];
+    |
+
+error[E0609]: no field `valueself` on type `&mut correlation::Correlation`
+   --> src/glut_correlation.rs:235:53
+    |
+235 |         let mut next = self.adjacent_offsets[..self.valueself.len()].to_vec();
+    |                                                     ^^^^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+235 -         let mut next = self.adjacent_offsets[..self.valueself.len()].to_vec();
+235 +         let mut next = self.adjacent_offsets[..self.values.len()].to_vec();
+    |
+
+error[E0609]: no field `gateself` on type `&mut correlation::Correlation`
+   --> src/glut_correlation.rs:236:35
+    |
+236 |         for (index, gate) in self.gateself.iter().enumerate() {
+    |                                   ^^^^^^^^ unknown field
+    |
+    = note: available fields are: `gates`, `adjacent_offsets`, `adjacent_gates`, `values`, `levels` ... and 15 others
+
+Some errors have detailed explanations: E0425, E0609.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `vox` (lib test) due to 8 previous errors

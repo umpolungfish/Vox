@@ -1,0 +1,19 @@
+
+running 5 tests
+glut_system::fold::tests::folded_relation_matches_small_exact_product_census --- FAILED
+....
+failures:
+
+---- glut_system::fold::tests::folded_relation_matches_small_exact_product_census stdout ----
+
+thread 'glut_system::fold::tests::folded_relation_matches_small_exact_product_census' (300) panicked at src/glut_fold.rs:552:25:
+assertion failed: crate::trace_algebra::witness_valid(n, &p, &q)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    glut_system::fold::tests::folded_relation_matches_small_exact_product_census
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 253 filtered out; finished in 1.53s
+
+error: test failed, to rerun pass `--lib`

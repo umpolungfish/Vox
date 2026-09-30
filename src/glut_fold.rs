@@ -4,6 +4,10 @@ use super::{bit, mf, trim, ONE, ZERO};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
+#[path = "glut_correlation.rs"]
+mod correlation;
+#[path = "glut_square_fold.rs"]
+mod square_fold;
 
 #[derive(Clone, Debug, Default)]
 pub struct FoldStats {
@@ -14,6 +18,16 @@ pub struct FoldStats {
     pub cells: usize,
     pub peak_cells: usize,
     pub zero_run: usize,
+    pub p_width: usize,
+    pub q_width: usize,
+    pub rejected: usize,
+    pub splits: usize,
+    pub correlation_decisions: usize,
+    pub correlation_conflicts: usize,
+    pub correlation_gates: usize,
+    pub correlation_cells: usize,
+    pub square_advances: usize,
+    pub square_cells: usize,
 }
 
 #[derive(Clone)]
@@ -131,6 +145,138 @@ fn cell(cells: &[Option<char>], index: usize) -> Option<char> {
     cells.get(index).copied().unwrap_or(Some(ZERO))
 }
 
+// In-place glyph full-adder for a unit contribution. Diagonal counters grow
+// through carry and never round-trip through a host-width numerical value.
+fn increment(tape: &mut Vec<char>) {
+    for mark in tape.iter_mut() {
+        if *mark == ZERO {
+            *mark = ONE;
+            return;
+        }
+        *mark = ZERO;
+    }
+    tape.push(ONE);
+}
+
+// Full convolution envelope connects the terminal carry to every diagonal,
+// including diagonals beyond the first unresolved low corner. All arithmetic
+// bounds remain numeral tapes. Relaxing cross-diagonal correlations is safe:
+// these intervals may retain extra assignments but cannot remove a solution.
+fn carry_envelope(p: &mut [Option<char>], q: &mut [Option<char>], n: &[char]) -> Option<bool> {
+    let extent = n.len().max(p.len() + q.len());
+    let mut diagonals = Vec::with_capacity(extent);
+    let mut carries = vec![(vec![ZERO], vec![ZERO])];
+    for k in 0..extent {
+        let mut lo = vec![ZERO];
+        let mut hi = vec![ZERO];
+        for i in k.saturating_sub(q.len().saturating_sub(1))..p.len().min(k + 1) {
+            let a = p[i];
+            let b = q[k - i];
+            if a == Some(ONE) && b == Some(ONE) {
+                increment(&mut lo);
+            }
+            if a != Some(ZERO) && b != Some(ZERO) {
+                increment(&mut hi);
+            }
+        }
+        let mut lower = mf::add(&carries[k].0, &lo);
+        let mut upper = mf::add(&carries[k].1, &hi);
+        if bit(&lower, 0) != bit(n, k) {
+            lower = mf::add(&lower, &[ONE]);
+        }
+        if bit(&upper, 0) != bit(n, k) {
+            if upper == vec![ZERO] {
+                return None;
+            }
+            upper = mf::sub(&upper, &[ONE]);
+        }
+        if mf::cmp(&lower, &upper) == Ordering::Greater {
+            return None;
+        }
+        carries.push((trim(lower[1..].to_vec()), trim(upper[1..].to_vec())));
+        diagonals.push((lo, hi));
+    }
+    if carries[extent].0 != vec![ZERO] {
+        return None;
+    }
+    carries[extent] = (vec![ZERO], vec![ZERO]);
+    for k in (0..extent).rev() {
+        let double = |value: &[char]| {
+            let mut tape = vec![if bit(n, k) == 1 { ONE } else { ZERO }];
+            tape.extend_from_slice(value);
+            trim(tape)
+        };
+        let next_lo = double(&carries[k + 1].0);
+        let next_hi = double(&carries[k + 1].1);
+        if mf::cmp(&next_hi, &diagonals[k].0) == Ordering::Less {
+            return None;
+        }
+        let lo = if mf::cmp(&next_lo, &diagonals[k].1) == Ordering::Greater {
+            mf::sub(&next_lo, &diagonals[k].1)
+        } else {
+            vec![ZERO]
+        };
+        let hi = mf::sub(&next_hi, &diagonals[k].0);
+        carries[k].0 = max(carries[k].0.clone(), lo);
+        carries[k].1 = min(carries[k].1.clone(), hi);
+        if mf::cmp(&carries[k].0, &carries[k].1) == Ordering::Greater {
+            return None;
+        }
+    }
+    let mut changed = false;
+    for k in 0..extent {
+        let sum = |value: &[char]| {
+            let mut tape = vec![if bit(n, k) == 1 { ONE } else { ZERO }];
+            tape.extend_from_slice(value);
+            trim(tape)
+        };
+        let next_lo = sum(&carries[k + 1].0);
+        let next_hi = sum(&carries[k + 1].1);
+        if mf::cmp(&next_hi, &carries[k].0) == Ordering::Less {
+            return None;
+        }
+        let required_lo = if mf::cmp(&next_lo, &carries[k].1) == Ordering::Greater {
+            mf::sub(&next_lo, &carries[k].1)
+        } else {
+            vec![ZERO]
+        };
+        let required_hi = mf::sub(&next_hi, &carries[k].0);
+        if mf::cmp(&required_lo, &diagonals[k].1) == Ordering::Greater
+            || mf::cmp(&required_hi, &diagonals[k].0) == Ordering::Less
+        {
+            return None;
+        }
+        let force_one = required_lo == diagonals[k].1;
+        let force_zero = required_hi == diagonals[k].0;
+        if !force_one && !force_zero {
+            continue;
+        }
+        for i in k.saturating_sub(q.len().saturating_sub(1))..p.len().min(k + 1) {
+            let j = k - i;
+            if p[i] == Some(ZERO) || q[j] == Some(ZERO) || p[i] == Some(ONE) && q[j] == Some(ONE) {
+                continue;
+            }
+            if force_one {
+                if p[i].is_none() {
+                    p[i] = Some(ONE);
+                    changed = true;
+                }
+                if q[j].is_none() {
+                    q[j] = Some(ONE);
+                    changed = true;
+                }
+            } else if p[i] == Some(ONE) && q[j].is_none() {
+                q[j] = Some(ZERO);
+                changed = true;
+            } else if q[j] == Some(ONE) && p[i].is_none() {
+                p[i] = Some(ZERO);
+                changed = true;
+            }
+        }
+    }
+    Some(changed)
+}
+
 impl Fold {
     fn cell_count(&self) -> usize {
         self.p.len()
@@ -225,6 +371,11 @@ impl Fold {
                 }
                 carry = trim(sum[1..].to_vec());
             }
+            // Let the inexpensive resolved corner and interval rails settle
+            // before the complete convolution envelope scans their masks.
+            if !changed {
+                changed = carry_envelope(&mut self.p, &mut self.q, n)?;
+            }
             if !changed {
                 return Some(());
             }
@@ -258,6 +409,8 @@ fn visit(
     *pending_count -= 1;
     *pending_cells -= current.cell_count();
     stats.decisions += 1;
+    stats.p_width = current.p.len();
+    stats.q_width = current.q.len();
     stats.frontier = *pending_count + 1;
     stats.cells = *pending_cells + current.cell_count();
     let new_peak = stats.frontier > stats.peak_frontier;
@@ -267,9 +420,11 @@ fn visit(
         observe(stats);
     }
     if current.propagate(n).is_none() {
+        stats.rejected += 1;
         return None;
     }
     if let Some((is_p, index)) = current.branch() {
+        stats.splits += 1;
         let mut other = current.clone();
         if is_p {
             current.p[index] = Some(ONE);
@@ -334,6 +489,8 @@ pub(super) fn solve(
         let proper = crate::trace_algebra::witness_valid(n, &p, &q);
         return (proper.then_some((p, q)), stats);
     }
+    let factor_bound = mf::isqrt(n);
+    let cofactor_bound = ceiling(n, &factor_bound);
     let widest = n.len().div_ceil(2);
     let mut widths = Vec::new();
     let mut low = 2;
@@ -346,18 +503,50 @@ pub(super) fn solve(
         low += 1;
         high -= 1;
     }
-    // Each geometry advances one decision at a time. A wide lane therefore
-    // cannot strand a closing narrow lane behind its entire search tree.
-    let mut lanes = Vec::new();
-    let mut pending_count = 0;
-    let mut pending_cells = 0;
+    // Geometry admission is a live lane too. It cannot hold the correlation
+    // and square rails behind an initialization pass over the entire width.
+    let mut geometries = Vec::new();
     for p_width in widths {
         for sum in [n.len(), n.len() + 1] {
             let q_width = sum - p_width;
-            if q_width < p_width {
-                continue;
+            if q_width >= p_width {
+                geometries.push((p_width, q_width));
             }
-            let root = Fold::new(p_width, q_width);
+        }
+    }
+    let mut lanes = Vec::new();
+    let mut pending_count = 0;
+    let mut pending_cells = 0;
+    let mut admitted = 0;
+    let mut cursor = 0;
+    let mut shared = None;
+    let mut shared_live = true;
+    let mut square = square_fold::SquareFold::new(n, &factor_bound);
+    let mut square_live = true;
+    while pending_count != 0 || admitted < geometries.len() || shared_live || square_live {
+        for _ in 0..n.len() {
+            if !square_live {
+                break;
+            }
+            let step = square.advance();
+            stats.square_advances = square.advances;
+            stats.square_cells = square.cells();
+            if stats.square_advances.is_power_of_two()
+                || !matches!(step, square_fold::Step::Running)
+            {
+                observe(&stats);
+            }
+            match step {
+                square_fold::Step::Running => {}
+                square_fold::Step::Empty => square_live = false,
+                square_fold::Step::Closed(p, q) => return (Some((p, q)), stats),
+            }
+        }
+        if let Some(&(p_width, q_width)) = geometries.get(admitted) {
+            admitted += 1;
+            let mut root = Fold::new(p_width, q_width);
+            root.p_range.1 = min(root.p_range.1, factor_bound.clone());
+            root.q_range.0 = max(root.q_range.0, cofactor_bound.clone());
             pending_count += 1;
             pending_cells += root.cell_count();
             lanes.push(vec![root]);
@@ -371,12 +560,40 @@ pub(super) fn solve(
             ) {
                 return (Some(pair), stats);
             }
+            if p_width == q_width && shared.is_none() {
+                let graph = correlation::Correlation::new_midpoint(n, widest, &factor_bound);
+                stats.correlation_gates = graph.gate_count();
+                stats.correlation_cells = graph.cell_count();
+                shared = Some(graph);
+            }
         }
-    }
-    while pending_count != 0 {
-        for lane in &mut lanes {
+        if admitted == geometries.len() && shared.is_none() {
+            shared_live = false;
+        }
+        if shared_live {
+            if let Some(graph) = shared.as_mut() {
+                let step = graph.advance();
+                stats.correlation_decisions = graph.decisions;
+                stats.correlation_conflicts = graph.conflicts;
+                if stats.correlation_decisions.is_power_of_two()
+                    || !matches!(step, correlation::Step::Running)
+                {
+                    observe(&stats);
+                }
+                match step {
+                    correlation::Step::Running => {}
+                    correlation::Step::Empty => shared_live = false,
+                    correlation::Step::Closed(p, q) => {
+                        assert!(crate::trace_algebra::witness_valid(n, &p, &q));
+                        return (Some((p, q)), stats);
+                    }
+                }
+            }
+        }
+        if !lanes.is_empty() {
+            cursor %= lanes.len();
             if let Some(pair) = visit(
-                lane,
+                &mut lanes[cursor],
                 n,
                 &mut stats,
                 &mut pending_count,
@@ -385,6 +602,7 @@ pub(super) fn solve(
             ) {
                 return (Some(pair), stats);
             }
+            cursor += 1;
         }
     }
     stats.frontier = 0;
@@ -396,6 +614,62 @@ pub(super) fn solve(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn terminal_carry_envelope_preserves_every_small_product_assignment() {
+        for pattern in 0..729 {
+            let mut digits = pattern;
+            let masks: Vec<_> = (0..6)
+                .map(|_| {
+                    let mark = match digits % 3 {
+                        0 => None,
+                        1 => Some(ZERO),
+                        _ => Some(ONE),
+                    };
+                    digits /= 3;
+                    mark
+                })
+                .collect();
+            let compatible = |value: u64, mask: &[Option<char>]| {
+                mask.iter()
+                    .enumerate()
+                    .all(|(i, c)| c.is_none_or(|m| ((value >> i) & 1 == 1) == (m == ONE)))
+            };
+            for source in 0..=49u64 {
+                let valid: Vec<_> = (0..8)
+                    .flat_map(|p| (0..8).map(move |q| (p, q)))
+                    .filter(|&(p, q)| {
+                        p * q == source && compatible(p, &masks[..3]) && compatible(q, &masks[3..])
+                    })
+                    .collect();
+                let mut p = masks[..3].to_vec();
+                let mut q = masks[3..].to_vec();
+                let result = carry_envelope(&mut p, &mut q, &mf::tape_u64(source));
+                assert!(
+                    valid.is_empty() || result.is_some(),
+                    "pattern={pattern} source={source}"
+                );
+                assert!(
+                    valid
+                        .iter()
+                        .all(|&(pv, qv)| compatible(pv, &p) && compatible(qv, &q)),
+                    "pattern={pattern} source={source}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn terminal_carry_forces_high_cells_across_unresolved_low_diagonals() {
+        let mut p = vec![Some(ONE), None, Some(ONE)];
+        let mut q = p.clone();
+        assert_eq!(
+            carry_envelope(&mut p, &mut q, &mf::tape_u64(49)),
+            Some(true)
+        );
+        assert_eq!(p, vec![Some(ONE); 3]);
+        assert_eq!(q, p);
+    }
+
     #[test]
     fn interval_fold_keeps_every_assignment_across_fixed_cell_holes() {
         for pattern in 0..81 {

@@ -1,4 +1,5 @@
 """Bake and measure increasing-width glut cases; limits apply to child processes only."""
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -87,11 +88,13 @@ for name, n, shape, p, q in CASES:
     (folder/'input.imasm').write_text(word+'\n')
     env = dict(os.environ, GLUT_STRESS_WORD=word,
         RUSTFLAGS='-C target-feature=+crt-static -C relocation-model=static')
-    with (folder/'build.stdout').open('w') as log:
-        subprocess.run(['cargo', 'build', '--release', '--target', 'x86_64-unknown-linux-musl',
-            '--example', 'glut_stress_baked'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True)
     binary = folder/'glut_stress_baked'
-    shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked', binary)
+    with (ROOT/'measurements/glut_bake.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        with (folder/'build.stdout').open('w') as log:
+            subprocess.run(['cargo', 'build', '--release', '--target', 'x86_64-unknown-linux-musl',
+                '--example', 'glut_stress_baked'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True)
+        shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked', binary)
     measured = measure(binary, folder)
     row = dict(name=name, n=str(n), bits=n.bit_length(), popcount=n.bit_count(),
         word_chars=len(word), shape=shape, supplied_p=str(p) if p else None,

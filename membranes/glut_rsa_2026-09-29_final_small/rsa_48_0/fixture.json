@@ -1,0 +1,13 @@
+{
+  "name": "rsa_48_0",
+  "seed": "cb01a6a7e6d5fa6a7620150cff9d0ab30a77f9b4f5f84393c9c659d8018d20f7",
+  "p": "11349509",
+  "q": "13468219",
+  "n": "152857672754471",
+  "bits": 48,
+  "factor_bits": 24,
+  "factor_gap_bits": 22,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0"
+}

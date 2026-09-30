@@ -1,0 +1,13 @@
+{
+  "name": "rsa_32_0",
+  "seed": "7f26c0154549541875a51c2251a863f474a6d44af550d887b6223511cc946af7",
+  "p": "53717",
+  "q": "62191",
+  "n": "3340713947",
+  "bits": 32,
+  "factor_bits": 16,
+  "factor_gap_bits": 14,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0"
+}

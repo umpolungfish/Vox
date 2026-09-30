@@ -1,0 +1,63 @@
+{
+  "name": "rsa_56_0",
+  "seed": "6ec51e39f02301441bd2f2d0ab1a44b30fe75b357480ccba7a294033e63f8dd9",
+  "p": "191688613",
+  "q": "266289701",
+  "n": "51044703440874713",
+  "bits": 56,
+  "factor_bits": 28,
+  "factor_gap_bits": 27,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0",
+  "source_hashes": {
+    "src/glut_fold.rs": "f1386a510fbfef3453180ee657fbf97a01fc0b4bdc43490587178be21d399806",
+    "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+    "examples/glut_stress_baked.rs": "c51d37a3db40b23b1ffaaef4045084d56a0a218f057d89e1d3ceede0ed6baff8",
+    "src/glut_correlation.rs": "1d3cad50ea399f7b6cf1e0522c2e2ab2c73333746d5e6f3515348064a9879e7a",
+    "src/glut_square_fold.rs": "ec2d5e90b7d77d5e9e552649839e522942f4407881d65d4a96fe5fe5a4e30b99"
+  },
+  "binary_sha256": "010afc3147262aef0a35d4c2282045e7b85f5909ac38f29647bacd5952b94740",
+  "last_square": [
+    "1529204",
+    "156"
+  ],
+  "last_correlation": [
+    "27307",
+    "25452",
+    "1560",
+    "2370"
+  ],
+  "last_rail": [
+    "20",
+    "37",
+    "8405",
+    "8694"
+  ],
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 12.677844355930574,
+  "process_seconds": 60.0,
+  "process_address_bytes": 805306368,
+  "sampled_rss_peak_kib": 72704,
+  "last_fold": [
+    "17099",
+    "344",
+    "502",
+    "58341",
+    "85086",
+    "0",
+    "12634548"
+  ],
+  "result": [
+    "closed",
+    "191688613",
+    "266289701",
+    "12657975",
+    "1532",
+    "1",
+    "1",
+    "214",
+    "571"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "rsa_16_0",
+  "fixture": {
+    "name": "rsa_16_0",
+    "seed": "92ed0b017b58dac3dac6d120d4e205af1c946995e22e1e07849c0edcb7e9e990",
+    "p": "191",
+    "q": "251",
+    "n": "47941",
+    "bits": 16,
+    "factor_bits": 8,
+    "factor_gap_bits": 6,
+    "public_exponent": 65537,
+    "primality": "deterministic",
+    "primality_instrument": "SymPy 1.14.0"
+  },
+  "status": "verified closure",
+  "native": {
+    "returncode": 0,
+    "interrupted": false,
+    "wall_seconds": 0.0035277409479022026
+  },
+  "imasm": {
+    "returncode": 0,
+    "interrupted": false,
+    "wall_seconds": 11.034897108911537
+  },
+  "alphabet_only": true,
+  "complete_module_recovery": true,
+  "output_alphabet_only": true,
+  "native_prefix_agreement": true,
+  "output_lines": 70,
+  "artifact_sha256": "40dafe0cfd57d0c2b2308c40d1c4824e299ffed5d953c9ce0b71c25c821f663a",
+  "artifact_glyphs": 32243775,
+  "vm_footer": "entry(...) exited(0)   [11761060 steps in the twelve]"
+}

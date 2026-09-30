@@ -1,0 +1,8 @@
+rsa_32_0 closed 127838 us last_fold ['1519', '72', '122', '7026', '11898', '0', '127507']
+rsa_40_0 closed 380576 us last_fold ['3454', '153', '219', '18600', '26610', '0', '380123']
+rsa_48_0 observation interrupted last_fold ['32768', '185', '319', '26847', '46332', '0', '4094529']
+rsa_64_0 observation interrupted last_fold ['32768', '561', '687', '108483', '132873', '0', '7520671']
+rsa_128_0 observation interrupted last_fold ['12722', '3337', '3337', '1286412', '1286412', '0', '7393493']
+rsa_256_0 observation interrupted last_fold ['4449', '2538', '2538', '1952781', '1952781', '0', '7990016']
+rsa_1024_0 observation interrupted last_fold ['1546', '2549', '2549', '7833957', '7833957', '0', '8012780']
+rsa_2048_0 observation interrupted last_fold ['855', '1697', '1697', '10428918', '10428918', '0', '7998997']

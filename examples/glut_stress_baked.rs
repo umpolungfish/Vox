@@ -22,6 +22,9 @@ fn main() {
             println!("FOLD\t{}\t{}\t{}\t{}\t{}\t{}\t{}", f.decisions,
                 f.frontier, f.peak_frontier, f.cells, f.peak_cells, f.zero_run,
                 started.elapsed().as_micros());
+            println!("RAIL\t{}\t{}\t{}\t{}", f.p_width, f.q_width, f.rejected, f.splits);
+            println!("CORRELATION\t{}\t{}\t{}\t{}", f.correlation_decisions, f.correlation_conflicts, f.correlation_gates, f.correlation_cells);
+            println!("SQUARE\t{}\t{}", f.square_advances, f.square_cells);
             io::stdout().flush().unwrap();
             return;
         }
