@@ -1,0 +1,58 @@
+{
+  "name": "rsa_32_0",
+  "seed": "7f26c0154549541875a51c2251a863f474a6d44af550d887b6223511cc946af7",
+  "p": "53717",
+  "q": "62191",
+  "n": "3340713947",
+  "bits": 32,
+  "factor_bits": 16,
+  "factor_gap_bits": 14,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0",
+  "source_hashes": {
+    "src/glut_fold.rs": "5a8fc0492daea7665e28668c2cc1e7ad0b18d7d1c16fd5e5783a3105585e4944",
+    "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+    "examples/glut_stress_baked.rs": "5c6f204b4e0d4afd821334dcbe6d42ff92b237e4719e080a5f522d74319835f8",
+    "src/glut_correlation.rs": "fdc9993fc45b03b097678373af3d0d322fd1259b9d6679f773bb5cec913c5c87"
+  },
+  "binary_sha256": "8b7468cad73fa5a6286fdc6d11cb4cb412fe845f414bde1d821fb46223dda0c7",
+  "last_correlation": [
+    "6376",
+    "5678",
+    "502",
+    "772"
+  ],
+  "last_rail": [
+    "13",
+    "20",
+    "1308",
+    "1338"
+  ],
+  "returncode": 0,
+  "interrupted": false,
+  "wall_seconds": 1.1160257230512798,
+  "process_seconds": 60.0,
+  "process_address_bytes": 805306368,
+  "sampled_rss_peak_kib": 6528,
+  "last_fold": [
+    "2646",
+    "61",
+    "122",
+    "5949",
+    "11898",
+    "0",
+    "1100603"
+  ],
+  "result": [
+    "closed",
+    "53717",
+    "62191",
+    "1103540",
+    "593",
+    "1",
+    "1",
+    "143",
+    "381"
+  ]
+}

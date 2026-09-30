@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/mrnob0dy666/imsgct/Vox/measurements/glut_rsa_imasm_bake.py", line 72, in <module>
+    assert vm['returncode']==0 and len(footers)==1 and 'exited(0)' in footers[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

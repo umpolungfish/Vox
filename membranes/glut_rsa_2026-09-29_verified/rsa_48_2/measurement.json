@@ -1,0 +1,41 @@
+{
+  "name": "rsa_48_2",
+  "seed": "726fcb303dd1adb7c816d98f4c2d04dd7cb5eb1c218722ae89bc408ce2f464b8",
+  "p": "12299761",
+  "q": "15296381",
+  "n": "188141830464941",
+  "bits": 48,
+  "factor_bits": 24,
+  "factor_gap_bits": 22,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0",
+  "source_hashes": {
+    "src/glut_fold.rs": "9ec4506436b551101e5f8e9f6e929f457b24dc6dfc581604d478f6c577e4b654",
+    "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+    "examples/glut_stress_baked.rs": "3095b2d3eab931d8cef2a79509286d48cebfb004ef448a891fe08322f4ad8b88"
+  },
+  "binary_sha256": "c89f7299c4483999be642a890748670c687a6c9343506e2ea361821c7de04859",
+  "last_rail": [
+    "24",
+    "24",
+    "16302",
+    "16465"
+  ],
+  "returncode": -15,
+  "interrupted": true,
+  "wall_seconds": 8.017958058975637,
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "sampled_rss_peak_kib": 768,
+  "last_fold": [
+    "32768",
+    "209",
+    "334",
+    "30399",
+    "48579",
+    "0",
+    "4316508"
+  ],
+  "result": null
+}

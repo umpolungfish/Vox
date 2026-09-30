@@ -1,0 +1,166 @@
+[
+  {
+    "name": "rsa_32_0",
+    "seed": "7f26c0154549541875a51c2251a863f474a6d44af550d887b6223511cc946af7",
+    "p": "53717",
+    "q": "62191",
+    "n": "3340713947",
+    "bits": 32,
+    "factor_bits": 16,
+    "factor_gap_bits": 14,
+    "public_exponent": 65537,
+    "primality": "deterministic",
+    "primality_instrument": "SymPy 1.14.0",
+    "source_hashes": {
+      "src/glut_fold.rs": "5a8fc0492daea7665e28668c2cc1e7ad0b18d7d1c16fd5e5783a3105585e4944",
+      "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+      "examples/glut_stress_baked.rs": "5c6f204b4e0d4afd821334dcbe6d42ff92b237e4719e080a5f522d74319835f8",
+      "src/glut_correlation.rs": "1d3cad50ea399f7b6cf1e0522c2e2ab2c73333746d5e6f3515348064a9879e7a"
+    },
+    "binary_sha256": "c000bf5e75c02653548bce5907a3d1c07e8a531369a5b2c0f6a9875f4136fd3b",
+    "last_correlation": [
+      "6350",
+      "5882",
+      "502",
+      "772"
+    ],
+    "last_rail": [
+      "12",
+      "21",
+      "1306",
+      "1332"
+    ],
+    "returncode": 0,
+    "interrupted": false,
+    "wall_seconds": 0.8324625859968364,
+    "process_seconds": 60.0,
+    "process_address_bytes": 805306368,
+    "sampled_rss_peak_kib": 7424,
+    "last_fold": [
+      "2638",
+      "57",
+      "122",
+      "5559",
+      "11898",
+      "0",
+      "822366"
+    ],
+    "result": [
+      "closed",
+      "53717",
+      "62191",
+      "825819",
+      "882",
+      "1",
+      "1",
+      "143",
+      "381"
+    ]
+  },
+  {
+    "name": "rsa_40_0",
+    "seed": "64fdae95513b91dec6de14aaf29a415020b2a919a72661255d8c6f5c851c969e",
+    "p": "933551",
+    "q": "940067",
+    "n": "877600487917",
+    "bits": 40,
+    "factor_bits": 20,
+    "factor_gap_bits": 13,
+    "public_exponent": 65537,
+    "primality": "deterministic",
+    "primality_instrument": "SymPy 1.14.0",
+    "source_hashes": {
+      "src/glut_fold.rs": "5a8fc0492daea7665e28668c2cc1e7ad0b18d7d1c16fd5e5783a3105585e4944",
+      "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+      "examples/glut_stress_baked.rs": "5c6f204b4e0d4afd821334dcbe6d42ff92b237e4719e080a5f522d74319835f8",
+      "src/glut_correlation.rs": "1d3cad50ea399f7b6cf1e0522c2e2ab2c73333746d5e6f3515348064a9879e7a"
+    },
+    "binary_sha256": "fd4ac0d318e1545bb1048ec8dbce3722732b433b1e6b363f2a73a0ee38f9e7a9",
+    "last_correlation": [
+      "42127",
+      "40096",
+      "791",
+      "1209"
+    ],
+    "last_rail": [
+      "15",
+      "25",
+      "8545",
+      "8606"
+    ],
+    "returncode": 0,
+    "interrupted": false,
+    "wall_seconds": 17.392609903006814,
+    "process_seconds": 60.0,
+    "process_address_bytes": 805306368,
+    "sampled_rss_peak_kib": 83456,
+    "last_fold": [
+      "17151",
+      "100",
+      "220",
+      "12153",
+      "26730",
+      "0",
+      "17353640"
+    ],
+    "result": [
+      "closed",
+      "933551",
+      "940067",
+      "17378018",
+      "1071",
+      "1",
+      "1",
+      "197",
+      "505"
+    ]
+  },
+  {
+    "name": "rsa_48_0",
+    "seed": "cb01a6a7e6d5fa6a7620150cff9d0ab30a77f9b4f5f84393c9c659d8018d20f7",
+    "p": "11349509",
+    "q": "13468219",
+    "n": "152857672754471",
+    "bits": 48,
+    "factor_bits": 24,
+    "factor_gap_bits": 22,
+    "public_exponent": 65537,
+    "primality": "deterministic",
+    "primality_instrument": "SymPy 1.14.0",
+    "source_hashes": {
+      "src/glut_fold.rs": "5a8fc0492daea7665e28668c2cc1e7ad0b18d7d1c16fd5e5783a3105585e4944",
+      "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+      "examples/glut_stress_baked.rs": "5c6f204b4e0d4afd821334dcbe6d42ff92b237e4719e080a5f522d74319835f8",
+      "src/glut_correlation.rs": "1d3cad50ea399f7b6cf1e0522c2e2ab2c73333746d5e6f3515348064a9879e7a"
+    },
+    "binary_sha256": "01f600fc0f5346cacbbac87e44f95602ce081967b2254212757a060225310f22",
+    "last_correlation": [
+      "72750",
+      "68408",
+      "1143",
+      "1741"
+    ],
+    "last_rail": [
+      "19",
+      "30",
+      "16315",
+      "16452"
+    ],
+    "returncode": -15,
+    "interrupted": true,
+    "wall_seconds": 60.042505442979746,
+    "process_seconds": 60.0,
+    "process_address_bytes": 805306368,
+    "sampled_rss_peak_kib": 202368,
+    "last_fold": [
+      "32768",
+      "183",
+      "320",
+      "26532",
+      "46473",
+      "0",
+      "40067587"
+    ],
+    "result": null
+  }
+]

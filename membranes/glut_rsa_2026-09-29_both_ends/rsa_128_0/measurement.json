@@ -1,0 +1,53 @@
+{
+  "name": "rsa_128_0",
+  "seed": "8a828c34f63259fa8a85ce0c5f4da12c7c0c538c3a301e0c6e347c4d5e2bd805",
+  "p": "14323446094183309667",
+  "q": "17358541581927542233",
+  "n": "248634134622378624265272678886859666411",
+  "bits": 128,
+  "factor_bits": 64,
+  "factor_gap_bits": 62,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0",
+  "source_hashes": {
+    "src/glut_fold.rs": "3da83b26a73733e953d7ab3a688410ccd4375b0e97508db5a1ab506948177f6a",
+    "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+    "examples/glut_stress_baked.rs": "c51d37a3db40b23b1ffaaef4045084d56a0a218f057d89e1d3ceede0ed6baff8",
+    "src/glut_correlation.rs": "d61124885cd922bc6cd1250cffff7564788b7ced2d33eeb4720ae17c80847273",
+    "src/glut_square_fold.rs": "5392926697fee45bfb18ae41ff5322fc7006f458829ad52e065d954d9da29177"
+  },
+  "binary_sha256": "e00b165b0a289d8f8fd614fd70691aef804b63b0d9c798da8621f6bdb1686457",
+  "last_square": [
+    "591488",
+    "277"
+  ],
+  "last_correlation": [
+    "4619",
+    "4215",
+    "8176",
+    "12334"
+  ],
+  "last_rail": [
+    "23",
+    "105",
+    "693",
+    "3571"
+  ],
+  "returncode": -15,
+  "interrupted": true,
+  "wall_seconds": 8.02466930996161,
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "sampled_rss_peak_kib": 57032,
+  "last_fold": [
+    "4265",
+    "3004",
+    "3004",
+    "1158042",
+    "1158042",
+    "0",
+    "7935346"
+  ],
+  "result": null
+}

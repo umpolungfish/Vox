@@ -1,0 +1,36 @@
+{
+  "name": "rsa_48_0",
+  "seed": "cb01a6a7e6d5fa6a7620150cff9d0ab30a77f9b4f5f84393c9c659d8018d20f7",
+  "p": "11349509",
+  "q": "13468219",
+  "n": "152857672754471",
+  "bits": 48,
+  "factor_bits": 24,
+  "factor_gap_bits": 22,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0",
+  "binary_sha256": "0d748ae9d072835326a2e998fd2f32e90d62e491baa459c2b3e6ba6766ac5d1b",
+  "last_rail": [
+    "24",
+    "24",
+    "4000",
+    "4191"
+  ],
+  "returncode": -15,
+  "interrupted": true,
+  "wall_seconds": 8.017549443989992,
+  "process_seconds": 8.0,
+  "process_address_bytes": 805306368,
+  "sampled_rss_peak_kib": 896,
+  "last_fold": [
+    "8192",
+    "237",
+    "321",
+    "34386",
+    "46626",
+    "0",
+    "5276564"
+  ],
+  "result": null
+}

@@ -1,0 +1,7 @@
+{
+  "src/glut_fold.rs": "3da83b26a73733e953d7ab3a688410ccd4375b0e97508db5a1ab506948177f6a",
+  "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
+  "examples/glut_stress_baked.rs": "c51d37a3db40b23b1ffaaef4045084d56a0a218f057d89e1d3ceede0ed6baff8",
+  "src/glut_correlation.rs": "d61124885cd922bc6cd1250cffff7564788b7ced2d33eeb4720ae17c80847273",
+  "src/glut_square_fold.rs": "5392926697fee45bfb18ae41ff5322fc7006f458829ad52e065d954d9da29177"
+}

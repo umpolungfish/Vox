@@ -1,0 +1,13 @@
+{
+  "name": "rsa_40_2",
+  "seed": "04c597fdd424e0b0f1aacba0336b62439b5d9686da288b2da621d4e98261247e",
+  "p": "703789",
+  "q": "802933",
+  "n": "565095413137",
+  "bits": 40,
+  "factor_bits": 20,
+  "factor_gap_bits": 17,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0"
+}
