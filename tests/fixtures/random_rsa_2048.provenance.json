@@ -1,0 +1,10 @@
+{
+  "seed": "3d62dd344c57dc2e4d012d707c9efc7572d274343d6b04773914c04a962691d1",
+  "bits": 2048,
+  "factor_bits": 1024,
+  "factor_gap_bits": 1020,
+  "primality": "probable prime",
+  "primality_instrument": "SymPy 1.14.0",
+  "generator": "independently sampled random primes; glut-rsa-independent-v1:2048:0",
+  "source_sha256": "40acafe5d9672a5ce86f58a06fa78a3fcb21c03241c67f57d2a7852fc58c73ec"
+}

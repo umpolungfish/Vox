@@ -1,0 +1,13 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.20s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 5 tests
+test fixed_point_quantum_phase::execution::tests::executor_failure_returns_without_arithmetic_fallback ... ok
+test fixed_point_quantum_phase::execution::tests::resident_register_operations_preserve_source_and_order ... ok
+test fixed_point_quantum_phase::execution::tests::executor_measurement_must_be_an_in_range_imasm_numeral ... ok
+test fixed_point_quantum_phase::execution::tests::injected_phase_control_reaches_verified_factor_readout ... ok
+test fixed_point_quantum_phase::execution::tests::wide_preparation_retains_symbolic_registers ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 275 filtered out; finished in 0.00s
+

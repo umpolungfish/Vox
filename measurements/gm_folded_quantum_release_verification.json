@@ -1,0 +1,13 @@
+{
+  "profile": "release",
+  "kernel_command": "factor_phase",
+  "instrument": "exact folded coherent CPU simulation",
+  "source": "15",
+  "measured_pair": [
+    "3",
+    "5"
+  ],
+  "quantile": "1/2",
+  "empty_stderr": true,
+  "command_output_glyph_only": true
+}

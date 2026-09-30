@@ -1,0 +1,27 @@
+{
+  "emitter": "src/bin/m3mbrain.rs",
+  "factor_engine": "src/glut_system.rs",
+  "ports": [
+    {
+      "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/dqi.rs",
+      "source_sha256": "253b4f044d317d6aa5212783ed9c3c7724372a74fafa4d01ef0d7eaa25ce85e5",
+      "methods": [
+        "build_rows",
+        "eliminate"
+      ],
+      "nested_destination": "src/glut_parity.rs"
+    },
+    {
+      "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/fibonacci_qc.rs",
+      "source_sha256": "92bc5c0f0f6c4e3991995dbb48e57804893b4dba234592fdafd7e9e2828282bc",
+      "methods": [
+        "pauli_x"
+      ],
+      "nested_destination": "src/glut_quantum.rs"
+    }
+  ],
+  "values": "IMASM numeral cells",
+  "syndrome": "sparse elimination with free columns retained",
+  "transport": "Pauli-X basis turns modulo two",
+  "phase_loops": "two-free-cell syndrome holonomy with XOR conflict ancestry"
+}

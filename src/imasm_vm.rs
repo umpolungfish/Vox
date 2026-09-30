@@ -7,7 +7,8 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use alloc::boxed::Box;
-use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::collections::{BTreeMap, VecDeque};
 use alloc::format;
 
 fn mask(size: u8) -> u128 {
@@ -68,16 +69,55 @@ pub trait Host {
     fn clock_gettime(&mut self, _clock: i32) -> Result<(i64,i64),i32> { Err(-38) }
 }
 
+// Pages organize storage; the address domain and page count remain dynamic.
+#[derive(Default)]
+struct Memory {
+    pages: BTreeMap<u64, Box<[u8; 4096]>>,
+}
+impl Memory {
+    fn get(&self, addr: &u64) -> Option<&u8> {
+        self.pages.get(&(addr >> 12)).map(|page| &page[(addr & 4095) as usize])
+    }
+    fn insert(&mut self, addr: u64, byte: u8) {
+        self.pages.entry(addr >> 12).or_insert_with(|| Box::new([0; 4096]))[(addr & 4095) as usize] = byte;
+    }
+    fn load(&self, addr: u64, size: u8) -> u128 {
+        let mut value = 0;
+        let mut consumed = 0;
+        while consumed < size as usize {
+            let current = addr.wrapping_add(consumed as u64);
+            let offset = (current & 4095) as usize;
+            let count = (size as usize - consumed).min(4096 - offset);
+            if let Some(page) = self.pages.get(&(current >> 12)) {
+                for i in 0..count { value |= (page[offset + i] as u128) << (8 * (consumed + i)); }
+            }
+            consumed += count;
+        }
+        value
+    }
+    fn store(&mut self, addr: u64, value: u128, size: u8) {
+        let mut consumed = 0;
+        while consumed < size as usize {
+            let current = addr.wrapping_add(consumed as u64);
+            let offset = (current & 4095) as usize;
+            let count = (size as usize - consumed).min(4096 - offset);
+            let page = self.pages.entry(current >> 12).or_insert_with(|| Box::new([0; 4096]));
+            for i in 0..count { page[offset + i] = (value >> (8 * (consumed + i))) as u8; }
+            consumed += count;
+        }
+    }
+}
+
 pub struct Machine {
-    code: BTreeMap<u64, Vec<(char, Vec<String>)>>,
+    code: BTreeMap<u64, Rc<Vec<(char, Vec<String>)>>>,
     addrs: Vec<u64>,
     next_of: BTreeMap<u64, u64>,
     pub entry: u64,
     phdr: u64,
     phent: u64,
     phnum: u64,
-    reg: BTreeMap<String, u128>,
-    mem: BTreeMap<u64, u8>,
+    reg: BTreeMap<&'static str, u128>,
+    mem: Memory,
     flags: (u128, u128, u8),
     kind: String,
     pub steps: u64,
@@ -120,16 +160,16 @@ impl Machine {
     pub fn new(module: &str) -> Machine {
         let mut m = Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0, phdr: 0, phent: 0, phnum: 0,
-            reg: BTreeMap::new(), mem: BTreeMap::new(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
+            reg: BTreeMap::new(), mem: Memory::default(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
             watch: BTreeMap::new(), syslog: alloc::collections::VecDeque::new(), trace_lo: 0, trace_hi: 0, wmem: 0, wmem_lo: 0, wmem_hi: 0, df: false, cur_pc: 0,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
-            m.reg.insert(r.into(), 0);
+            m.reg.insert(r, 0);
         }
-        for k in 0..16 { m.reg.insert(format!("xmm{}", k), 0); }
-        m.reg.insert("rsp".into(), 0x7FFF_0000);
+        for r in ["xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7","xmm8","xmm9","xmm10","xmm11","xmm12","xmm13","xmm14","xmm15"] { m.reg.insert(r, 0); }
+        m.reg.insert("rsp", 0x7FFF_0000);
         m.parse(module);
         m
     }
@@ -193,7 +233,7 @@ impl Machine {
                     if let Some(g) = parts.next() {
                         let glyph = g.chars().next().unwrap_or('?');
                         let fields: Vec<String> = parts.map(|s| s.to_string()).collect();
-                        self.code.get_mut(&a).unwrap().push((glyph, fields));
+                        Rc::make_mut(self.code.get_mut(&a).unwrap()).push((glyph, fields));
                     }
                 }
             }
@@ -216,16 +256,14 @@ impl Machine {
             16 => val & mask(16),
             _ => { let m = mask(size) << (off as u32 * 8); (cur & !m) | ((val << (off as u32 * 8)) & m) }
         };
-        self.reg.insert(base.to_string(), nv);
+        self.reg.insert(base, nv);
     }
     fn load(&self, addr: u64, size: u8) -> u128 {
-        let mut v = 0u128;
-        for k in 0..size as u64 { v |= (*self.mem.get(&(addr + k)).unwrap_or(&0) as u128) << (8 * k); }
-        v
+        self.mem.load(addr, size)
     }
     fn store(&mut self, addr: u64, val: u128, size: u8) {
         let v = val & mask(size);
-        for k in 0..size as u64 { self.mem.insert(addr + k, ((v >> (8*k)) & 0xFF) as u8); }
+        self.mem.store(addr, v, size);
         let hit = (self.wmem != 0 && addr <= self.wmem && self.wmem < addr + size as u64)
             || (self.wmem_hi > self.wmem_lo && addr + size as u64 > self.wmem_lo && addr < self.wmem_hi);
         if hit && self.syslog_room() {
@@ -1034,9 +1072,9 @@ impl Machine {
 
     fn step(&mut self, addr: u64) -> Result<Option<u64>, Stop> {
         let next = self.next_of.get(&addr).copied().unwrap_or(0);
-        self.reg.insert("rip".into(), next as u128);
+        self.reg.insert("rip", next as u128);
         let insns = self.code.get(&addr).cloned().unwrap_or_default();
-        for (glyph, f) in insns {
+        for &(glyph, ref f) in insns.iter() {
             match glyph {
                 '∋' => continue,
                 '⊣' => {
@@ -1130,9 +1168,18 @@ impl Machine {
     pub fn reg(&self, name: &str) -> u128 { self.get_reg(name) }
     pub fn peek(&self, addr: u64, len: u64) -> Vec<u8> { (0..len).map(|k| *self.mem.get(&(addr+k)).unwrap_or(&0)).collect() }
 
+    fn render_trace(&self, trace: &VecDeque<u64>) -> String {
+        trace.iter().map(|pc| {
+            let text = self.code.get(pc).map(|v| v.iter()
+                .map(|(g, f)| format!("{} {}", g, f.join(" ")))
+                .collect::<Vec<_>>().join(" ; ")).unwrap_or_default();
+            format!("  {:04x}: {}", pc, text)
+        }).collect::<Vec<_>>().join("\n")
+    }
+
     fn run_loop(&mut self, mut pc: u64, sentinel: Option<u64>, limit: u64) -> Result<u64, Stop> {
         self.steps = 0;
-        let mut trace: Vec<String> = Vec::new();
+        let mut trace: VecDeque<u64> = VecDeque::new();
         loop {
             if Some(pc) == sentinel { return Ok(pc); }
             self.cur_pc = pc;
@@ -1154,17 +1201,16 @@ impl Machine {
     self.get_reg("r13"), self.get_reg("r14"), self.get_reg("r15"), insn_txt));
             }
             if !self.code.contains_key(&pc) {
-                return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, trace.join("\n"))));
+                return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, self.render_trace(&trace))));
             }
-            if trace.len() >= 80 { trace.remove(0); }
-            let insn_txt = self.code.get(&pc).map(|v| v.iter().map(|(g,f)| format!("{} {}", g, f.join(" "))).collect::<Vec<_>>().join(" ; ")).unwrap_or_default();
-            trace.push(format!("  {:04x}: {}", pc, insn_txt));
+            if trace.len() >= 80 { trace.pop_front(); }
+            trace.push_back(pc);
             match self.step(pc)? {
                 Some(n) => pc = n,
-                None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, trace.join("\n")))),
+                None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, self.render_trace(&trace)))),
             }
             self.steps += 1;
-            if self.steps > limit { return Err(Stop::Halt(format!("step budget {} reached, still running at 0x{:x}\n  previous 12:\n{}", limit, pc, trace.join("\n")))); }
+            if self.steps > limit { return Err(Stop::Halt(format!("step budget {} reached, still running at 0x{:x}\n  previous 12:\n{}", limit, pc, self.render_trace(&trace)))); }
         }
     }
 
@@ -1616,5 +1662,27 @@ fn parse_imm(s: &str) -> i128 {
         -(i128::from_str_radix(rest.trim_start_matches("0x"), 16).unwrap_or(0))
     } else {
         i128::from_str_radix(s.trim_start_matches("0x"), 16).unwrap_or(0)
+    }
+}
+
+#[cfg(test)]
+mod dynamic_page_tests {
+    use super::*;
+    #[test]
+    fn paged_memory_preserves_crossings_holes_and_high_addresses() {
+        let mut memory = Memory::default();
+        let value = 0xFEDC_BA98_7654_3210_0123_4567_89AB_CDEFu128;
+        for address in [0, 4081, 4095, 4096, 0x1_0000_0FFF, u64::MAX - 15] {
+            for size in [1, 2, 4, 8, 16] {
+                assert_eq!(memory.load(address, size), 0);
+                memory.store(address, value, size);
+                assert_eq!(memory.load(address, size), value & mask(size));
+                for i in 0..size { assert_eq!(memory.get(&address.wrapping_add(i as u64)).copied(), Some((value >> (8*i)) as u8)); }
+                memory.store(address, 0, size);
+            }
+        }
+        assert_eq!(memory.load(0xABCDEF000, 16), 0);
+        memory.insert(4095, 7); memory.insert(4096, 9);
+        assert_eq!(memory.load(4095, 2), 0x0907);
     }
 }

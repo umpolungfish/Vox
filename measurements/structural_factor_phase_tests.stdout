@@ -1,0 +1,28 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.80s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 20 tests
+test fixed_point_quantum_phase::execution::tests::executor_measurement_must_be_an_in_range_imasm_numeral ... ok
+test fixed_point_quantum_phase::execution::tests::executor_failure_returns_without_arithmetic_fallback ... ok
+test fixed_point_quantum_phase::execution::tests::injected_phase_control_reaches_verified_factor_readout ... ok
+test fixed_point_quantum_phase::execution::tests::resident_register_operations_preserve_source_and_order ... ok
+test fixed_point_quantum_phase::factor_oracle::tests::invalid_sources_fail_before_emitting_gates ... ok
+test fixed_point_quantum_phase::factor_oracle::tests::preparation_grows_with_source_without_expanding_gate_stream ... ok
+test fixed_point_quantum_phase::execution::tests::wide_preparation_retains_symbolic_registers ... ok
+test fixed_point_quantum_phase::structural::tests::qc_example_folds_to_one_octant_between_hadamards ... ok
+test fixed_point_quantum_phase::tests::banking_cost_and_runtime_ticks_are_depth_invariant ... ok
+test fixed_point_quantum_phase::tests::constructing_collapsed_denominator_does_not_advance_modular_phase_state ... ok
+test fixed_point_quantum_phase::tests::denominator_is_two_to_hypernest_winding ... ok
+test fixed_point_quantum_phase::tests::landing_forms_pair_before_advance_without_expanding_the_hypernest ... ok
+test fixed_point_quantum_phase::tests::landing_is_enclosure_not_concatenated_complete_words ... ok
+test fixed_point_quantum_phase::tests::measurement_boundary_retains_winding_not_expanded_depth ... ok
+test fixed_point_quantum_phase::tests::phase_width_depends_only_on_resident_n_width ... ok
+test fixed_point_quantum_phase::tests::represented_exponential_denominator_has_constant_runtime_shape ... ok
+test fixed_point_quantum_phase::tests::resident_modular_relation_survives_to_landing ... ok
+test fixed_point_quantum_phase::factor_oracle::tests::factor_phase_interferes_with_diffusion_on_a_small_register ... ok
+test fixed_point_quantum_phase::structural::tests::all_short_circuits_preserve_the_complete_unitary ... ok
+test fixed_point_quantum_phase::factor_oracle::tests::factor_phase_matches_independent_product_and_clears_every_ancilla ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 264 filtered out; finished in 0.12s
+

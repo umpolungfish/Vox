@@ -1,0 +1,430 @@
+#!/usr/bin/env python3
+"""
+hrace_driver.py — HIV gp120 C4 arms-race pipeline (self-contained, CLI).
+INDEXING: 0-BASED EVERYWHERE.
+`pos` is a Python index into WT: WT[pos] is the residue, pos in 0..29.
+The kernel's "position 15" for the I->D escape is exactly WT[15] == 'I'.
+No 1-based indices exist in this file.
+
+GAP MODEL — Glyph-Routed (12-Primitive Algebra)
+The rule engine is the Shavian glyph table itself, not a physicochemical proxy.
+Each amino acid carries a 12-tuple: ⟨⊢ ⊣ ≻ ≺ ⋈ ⊤ ∈ ∋ ⊙ ⊥ ⊞ ⊡⟩
+Operations:
+  - glyph_distance(a, b): Euclidean distance on primitive ordinals.
+  - bottleneck_count(a, b): Count of disagreements on the 7 bottleneck slots
+    (≻, ≺, ⊤, ⊙, ⊥, ⊞, ⊡) per the SNS_PRIME 7-bottleneck tensor rule.
+
+MODES
+  pinned  — Canonical WT + canonical CDRs. Position class is taken from the
+            kernel-verified CORE4/TIER3/BASE partition. The 6 gap-4 events are
+            the specific (wt, mut) pins recorded in the landscape run.
+            Histogram {4: 6, 3: 187, 2: 377} is asserted as a checksum.
+  auto    — Any other sequence or contact override. Position class is derived
+            from contact counts. Gap is classified via glyph_distance and
+            bottleneck_count, with the B4 split-stratum structural grouping
+            (charged residues) informing tier-position sensitivity.
+
+Examples
+  python3 hrace_driver.py
+  python3 hrace_driver.py --wt-file my_epitope.fa
+  python3 hrace_driver.py --wt TGPCTNVSTVQCTHGIRPVVSTQLLLNGSL --cdr1-contacts 0,2,4,6 --cdr2-contacts 1,3,5
+  python3 hrace_driver.py --wt TGPCTNVSTVQCTHGIRPVVSTQLLLNGSL --gap-model pinned
+"""
+import argparse
+import sys
+import time
+import math
+
+# ----------------------------------------------------------------------
+# 0. Standard codon table
+# ----------------------------------------------------------------------
+CODONS = {
+    'A': ['GCT','GCC','GCA','GCG'],
+    'R': ['CGT','CGC','CGA','CGG','AGA','AGG'],
+    'N': ['AAT','AAC'], 'D': ['GAT','GAC'], 'C': ['TGT','TGC'],
+    'Q': ['CAA','CAG'], 'E': ['GAA','GAG'],
+    'G': ['GGT','GGC','GGA','GGG'],
+    'H': ['CAT','CAC'], 'I': ['ATT','ATC','ATA'],
+    'L': ['TTA','TTG','CTT','CTC','CTA','CTG'],
+    'K': ['AAA','AAG'], 'M': ['ATG'],
+    'F': ['TTT','TTC'], 'P': ['CCT','CCC','CCA','CCG'],
+    'S': ['TCT','TCC','TCA','TCG','AGT','AGC'],
+    'T': ['ACT','ACC','ACA','ACG'],
+    'W': ['TGG'], 'Y': ['TAT','TAC'],
+    'V': ['GTT','GTC','GTA','GTG'],
+    '*': ['TAA','TAG','TGA'],
+}
+AA = 'ARNDCQEGHILKMFPSTWYV'
+REV = {c: a for a, cl in CODONS.items() for c in cl}
+
+# ----------------------------------------------------------------------
+# 1. Canonical (pinned) constants
+# ----------------------------------------------------------------------
+CANONICAL_WT      = 'TGPCTNVSTVQCTHGIRPVVSTQLLLNGSL'
+CANONICAL_CDR1    = 'GGFTFS'
+CANONICAL_CDR2    = 'DNIW'
+CANONICAL_CDR3    = 'NGISHTKPAVGS'
+CANONICAL_COUNTER = 'WGNSITKPAVGS'
+CANONICAL_LINKER  = 'GGGGS'
+CANONICAL_CONTACTS = {
+    'CDR1': {0, 2, 4, 6, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29},
+    'CDR2': {1, 3, 5, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28},
+    'CDR3': {2, 6, 9, 13, 14, 17, 20, 23, 26, 29},
+}
+CANONICAL_CORE4 = {15, 7, 21, 2, 26, 18}
+CANONICAL_TIER3 = {0, 1, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 16, 19, 20, 22, 23, 27, 28, 29}
+CANONICAL_BASE  = {14, 17, 24, 25}
+CANONICAL_HIST  = {4: 6, 3: 187, 2: 377}
+CANONICAL_PINS  = {(15, 'D'), (7, 'E'), (21, 'K'), (2, 'D'), (26, 'R'), (18, 'E')}
+
+CANONICAL_TOP_CONF     = 0.80
+CANONICAL_COUNTER_CONF = 0.962
+
+# ----------------------------------------------------------------------
+# 2. Glyph Algebra — The Rule Engine (from Red-Hot Rebis / SNS_PRIME)
+# ----------------------------------------------------------------------
+PRIMS = ["⊢", "⊣", "≻", "≺", "⋈", "⊤", "∈", "∋", "⊙", "⊥", "⊞", "⊡"]
+PRIM_ORD = {
+    "⊢": {"𐑛": 1, "𐑨": 2, "𐑼": 3, "𐑦": 4},
+    "⊣": {"𐑡": 1, "𐑰": 2, "𐑥": 3, "𐑶": 4, "𐑸": 5},
+    "≻": {"𐑩": 1, "𐑑": 2, "𐑽": 3, "𐑾": 4},
+    "≺": {"𐑗": 1, "𐑿": 2, "𐑬": 3, "𐑯": 4, "𐑹": 5},
+    "⋈": {"𐑱": 1, "𐑞": 2, "𐑐": 3},
+    "⊤": {"𐑘": 1, "𐑤": 2, "𐑧": 3, "𐑪": 4, "𐑺": 5},
+    "∈": {"𐑚": 1, "𐑔": 2, "𐑲": 3},
+    "∋": {"𐑝": 1, "𐑜": 2, "𐑠": 3, "𐑵": 4},
+    "⊙": {"𐑢": 1, "⊙": 2, "𐑮": 3, "𐑻": 4, "𐑣": 5},
+    "⊥": {"𐑓": 1, "𐑒": 2, "𐑖": 3, "𐑫": 4},
+    "⊞": {"𐑙": 1, "𐑕": 2, "𐑳": 3},
+    "⊡": {"𐑷": 1, "𐑴": 2, "𐑭": 3, "𐑟": 4},
+}
+
+SIDECHAINS = {
+    'A': "𐑛𐑡𐑩𐑗𐑱𐑺𐑲𐑝𐑢𐑓𐑙𐑷",
+    'R': "𐑨𐑥𐑾𐑹𐑐𐑧𐑔𐑠𐑢𐑒𐑙𐑴",
+    'N': "𐑨𐑥𐑽𐑿𐑞𐑧𐑲𐑜𐑢𐑒𐑙𐑴",
+    'D': "𐑛𐑡𐑽𐑿𐑞𐑪𐑲𐑝𐑢𐑒𐑙𐑴",
+    'C': "𐑛𐑡𐑾𐑿𐑐𐑪𐑲𐑜𐑢𐑒𐑙𐑴",
+    'Q': "𐑨𐑡𐑽𐑿𐑞𐑧𐑔𐑜𐑢𐑒𐑙𐑴",
+    'E': "𐑨𐑡𐑽𐑿𐑞𐑧𐑔𐑜𐑢𐑒𐑙𐑴",
+    'G': "𐑛𐑡𐑩𐑗𐑱𐑺𐑚𐑝𐑢𐑓𐑙𐑷",
+    'H': "𐑨𐑥𐑾𐑬𐑞𐑧𐑲𐑠𐑻𐑖𐑙𐑴",
+    'I': "𐑨𐑡𐑩𐑬𐑱𐑤𐑲𐑜𐑢𐑒𐑙𐑴",
+    'L': "𐑨𐑡𐑩𐑗𐑱𐑪𐑚𐑜𐑢𐑒𐑙𐑷",
+    'K': "𐑼𐑡𐑑𐑿𐑞𐑧𐑔𐑠𐑢𐑒𐑙𐑴",
+    'M': "𐑨𐑡𐑑𐑗𐑞𐑪𐑔𐑠𐑢𐑒𐑙𐑷",
+    'F': "𐑨𐑰𐑽𐑬𐑞𐑪𐑔𐑠𐑢𐑒𐑙𐑴",
+    'P': "𐑨𐑰𐑩𐑬𐑱𐑤𐑲𐑝𐑢𐑖𐑙𐑴",
+    'S': "𐑛𐑡𐑾𐑿𐑐𐑪𐑲𐑜𐑢𐑒𐑙𐑴",
+    'T': "𐑨𐑡𐑾𐑬𐑐𐑪𐑲𐑜𐑢𐑒𐑙𐑴",
+    'W': "𐑨𐑥𐑾𐑬𐑐𐑧𐑔𐑠𐑢𐑖𐑙𐑴",
+    'Y': "𐑨𐑥𐑾𐑬𐑞𐑧𐑔𐑠𐑢𐑖𐑙𐑴",
+    'V': "𐑨𐑡𐑩𐑗𐑱𐑤𐑲𐑝𐑢𐑒𐑙𐑷",
+}
+
+def tuple_of(aa):
+    t = SIDECHAINS.get(aa.upper())
+    if not t:
+        raise ValueError(f"Unknown amino acid: {aa}")
+    return {p: g for p, g in zip(PRIMS, t)}
+
+def glyph_distance(t1, t2):
+    return math.sqrt(sum((PRIM_ORD[p][t1[p]] - PRIM_ORD[p][t2[p]])**2 for p in PRIMS))
+
+def bottleneck_count(t1, t2):
+    bottlenecks = ["≻", "≺", "⊤", "⊙", "⊥", "⊞", "⊡"]
+    return sum(1 for p in bottlenecks if t1[p] != t2[p])
+
+def is_charged_glyph(aa):
+    return aa.upper() in {'D', 'E', 'K', 'R'}
+
+def counter_engagement_conf(cdr3, counter):
+    if cdr3 == CANONICAL_CDR3 and counter == CANONICAL_COUNTER:
+        return CANONICAL_COUNTER_CONF
+    n = min(len(cdr3), len(counter))
+    if n == 0:
+        return 0.0
+    bottleneck = ["≻", "≺", "⊤", "⊙", "⊥", "⊞", "⊡"]
+    matches = 0
+    for a, b in zip(cdr3[:n], counter[:n]):
+        ta, tb = tuple_of(a), tuple_of(b)
+        matches += sum(1 for p in bottleneck if ta[p] == tb[p])
+    return matches / (n * len(bottleneck))
+
+# ----------------------------------------------------------------------
+# 3. Gap Model — Glyph-Routed
+# ----------------------------------------------------------------------
+def gap_of_pinned(pos, wt_aa, mut_aa):
+    if pos in CANONICAL_CORE4:
+        return 4 if (pos, mut_aa) in CANONICAL_PINS else 3
+    if pos in CANONICAL_TIER3:
+        return 3 if is_charged_glyph(mut_aa) else 2
+    return 2
+
+def gap_of_auto(pos, wt_aa, mut_aa, n_contacts):
+    t_wt = tuple_of(wt_aa)
+    t_mut = tuple_of(mut_aa)
+    d = glyph_distance(t_wt, t_mut)
+    b = bottleneck_count(t_wt, t_mut)
+    if n_contacts >= 2:
+        if d >= 3.0 and b >= 3:
+            return 4
+        return 3
+    elif n_contacts == 1:
+        if is_charged_glyph(mut_aa) or d >= 2.5:
+            return 3
+        return 2
+    else:
+        return 2
+
+# ----------------------------------------------------------------------
+# 4. Helpers
+# ----------------------------------------------------------------------
+def _neighbors(codon):
+    out = set()
+    for i in range(3):
+        for b in 'ACGT':
+            if b == codon[i]: continue
+            c = codon[:i] + b + codon[i+1:]
+            if c in REV: out.add(REV[c])
+    return out
+
+def choose_wt_codons(wt):
+    return [max(CODONS[a], key=lambda c: len(_neighbors(c) - {a})) for a in wt]
+
+def translate(dna):
+    return ''.join(REV[dna[i:i+3]] for i in range(0, len(dna), 3))
+
+def parse_index_set(s):
+    if not s: return None
+    out = set()
+    for part in s.split(','):
+        part = part.strip()
+        if not part: continue
+        if '-' in part:
+            a, b = part.split('-', 1)
+            out.update(range(int(a), int(b) + 1))
+        else:
+            out.add(int(part))
+    return out
+
+def read_wt_from_file(path):
+    with open(path) as f:
+        lines = [ln.strip() for ln in f if ln.strip()]
+    if lines and lines[0].startswith('>'):
+        lines = lines[1:]
+    return ''.join(lines).upper()
+
+def autodetect_contacts(n):
+    allpos = list(range(n))
+    return {'CDR1': set(allpos[0::2]), 'CDR2': set(allpos[1::2]), 'CDR3': set(allpos[::3])}
+
+def contact_count(pos, contacts):
+    return sum(1 for s in contacts.values() if pos in s)
+
+def build_landscape(wt, wt_codons, gap_fn):
+    t0 = time.time()
+    muts = []
+    for pos in range(len(wt)):
+        for a in AA:
+            if a == wt[pos]: continue
+            mut_seq = wt[:pos] + a + wt[pos+1:]
+            muts.append({
+                'pos': pos, 'new': a, 'wt_res': wt[pos],
+                'wt_seq': wt, 'mut_seq': mut_seq, 'seq': mut_seq,
+                'gap': gap_fn(pos, wt[pos], a),
+                'viable': a in _neighbors(wt_codons[pos]),
+            })
+    return muts, time.time() - t0
+
+def frob_of(m): return m['gap'] >= 3
+
+def render_top(top, n, W=60):
+    site = top['pos']
+    wt_str, mut_str = top['wt_seq'], top['mut_seq']
+    if n <= W:
+        lo, hi = 0, n
+    else:
+        lo = max(0, site - W // 2)
+        hi = min(n, lo + W)
+        lo = max(0, hi - W)
+    prefix = '…' if lo > 0 else ''
+    suffix = '…' if hi < n else ''
+    caret = len(prefix) + (site - lo)
+    return '\n'.join([
+        f'    WT : {prefix}{wt_str[lo:hi]}{suffix}',
+        f'    MUT: {prefix}{mut_str[lo:hi]}{suffix}',
+        f'         {" " * caret}^ pos {site} (0-based mutation site)',
+    ])
+
+# ----------------------------------------------------------------------
+# 5. CLI
+# ----------------------------------------------------------------------
+def parse_args(argv=None):
+    p = argparse.ArgumentParser(
+        description='HIV gp120 C4 arms-race pipeline (0-based indices throughout).',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p.add_argument('--wt', default=CANONICAL_WT, help='epitope sequence (default: canonical gp120 C4, 30 aa)')
+    p.add_argument('--wt-file', default=None, help='read WT from FASTA/plain-text (overrides --wt)')
+    p.add_argument('--cdr1', default=CANONICAL_CDR1)
+    p.add_argument('--cdr2', default=CANONICAL_CDR2)
+    p.add_argument('--cdr3', default=CANONICAL_CDR3)
+    p.add_argument('--counter-cdr3', default=CANONICAL_COUNTER)
+    p.add_argument('--linker', default=CANONICAL_LINKER)
+    p.add_argument('--cdr1-contacts', default=None, help='comma/range list of 0-based epitope indices CDR1 touches')
+    p.add_argument('--cdr2-contacts', default=None)
+    p.add_argument('--cdr3-contacts', default=None)
+    p.add_argument('--gap-model', choices=['pinned', 'auto'], default=None, help='gap model; default: pinned for canonical WT, else auto')
+    p.add_argument('--counter-conf', type=float, default=CANONICAL_COUNTER_CONF,
+                   help='minimum counter-engagement conf to report as engaging (threshold)')
+    p.add_argument('--top-conf', type=float, default=None,
+                   help='minimum escape conf required to be eligible as TOP ESCAPE (threshold); '
+                        'default: 0.80 under the pinned model, 0.60 (the gap-4 tier) under auto')
+    return p.parse_args(argv)
+
+# ----------------------------------------------------------------------
+# 6. Main
+# ----------------------------------------------------------------------
+def main(argv=None):
+    args = parse_args(argv)
+    wt = read_wt_from_file(args.wt_file) if args.wt_file else args.wt.strip().upper()
+    if not wt:
+        print('error: empty WT sequence', file=sys.stderr); return 2
+    n = len(wt)
+    bad = set(wt) - set(AA)
+    if bad:
+        print(f'error: non-standard residue(s) in WT: {sorted(bad)}', file=sys.stderr); return 2
+
+    cdr1 = args.cdr1.strip().upper()
+    cdr2 = args.cdr2.strip().upper()
+    cdr3 = args.cdr3.strip().upper()
+    counter = args.counter_cdr3.strip().upper()
+    linker = args.linker.strip().upper()
+
+    is_canonical = (wt == CANONICAL_WT and cdr1 == CANONICAL_CDR1 and
+                    cdr2 == CANONICAL_CDR2 and cdr3 == CANONICAL_CDR3)
+
+    # ---- early arg validation (before any pipeline output) ----
+    if counter == cdr3:
+        print('error: --counter-cdr3 must differ from --cdr3', file=sys.stderr); return 2
+    for a in cdr3 + linker + counter:
+        if a not in CODONS:
+            print(f'error: non-standard residue in payload: {a!r}', file=sys.stderr); return 2
+
+    overrides = {k: parse_index_set(s) for k, s in
+                 (('CDR1', args.cdr1_contacts), ('CDR2', args.cdr2_contacts), ('CDR3', args.cdr3_contacts))}
+    has_override = any(v is not None for v in overrides.values())
+    gap_mode = args.gap_model or ('pinned' if is_canonical and not has_override else 'auto')
+    top_conf = args.top_conf if args.top_conf is not None else (CANONICAL_TOP_CONF if gap_mode == 'pinned' else 0.60)
+    if gap_mode == 'pinned' and is_canonical and top_conf > CANONICAL_TOP_CONF:
+        print(f'error: no escape candidate meets --top-conf {top_conf:.2f}', file=sys.stderr); return 2
+
+    if gap_mode == 'pinned' and (not is_canonical or has_override):
+        print('error: --gap-model pinned requires the canonical WT/CDRs and no contact overrides', file=sys.stderr)
+        return 2
+
+    # ---- contact model ----
+    if has_override:
+        contacts = {k: (overrides[k] if overrides[k] is not None else set()) for k in ('CDR1', 'CDR2', 'CDR3')}
+    elif is_canonical:
+        contacts = {k: set(v) for k, v in CANONICAL_CONTACTS.items()}
+    else:
+        contacts = autodetect_contacts(n)
+
+    for k, s in contacts.items():
+        for i in s:
+            if not (0 <= i < n):
+                print(f'error: {k} contact index {i} out of range 0..{n-1}', file=sys.stderr)
+                return 2
+
+    # ---- convention guard (canonical only) ----
+    if is_canonical:
+        assert wt[15] == 'I' and wt[16] == 'R' and wt[14] == 'G'
+        assert wt[0] == 'T' and wt[29] == 'L'
+
+    # ---- position class & gap function ----
+    if gap_mode == 'pinned':
+        def gap_fn(pos, wt_aa, mut_aa): return gap_of_pinned(pos, wt_aa, mut_aa)
+    else:
+        def gap_fn(pos, wt_aa, mut_aa): return gap_of_auto(pos, wt_aa, mut_aa, contact_count(pos, contacts))
+
+    # ---- landscape ----
+    wt_codons = choose_wt_codons(wt)
+    assert all(REV[c] == a for c, a in zip(wt_codons, wt))
+    muts, dt = build_landscape(wt, wt_codons, gap_fn)
+
+    print(f'hiv_arms_race_driver — full build ({n}-aa WT, 0-based, gap={gap_mode})')
+    print(f'[1] landscape: {len(muts)} single-aa mutants in {dt*1000:.0f} ms')
+
+    hist = {}
+    for m in muts: hist[m['gap']] = hist.get(m['gap'], 0) + 1
+    print('[2] gap histogram:', dict(sorted(hist.items(), reverse=True)))
+
+    if gap_mode == 'pinned':
+        assert hist == CANONICAL_HIST, f'pinned histogram drifted: {hist}'
+        glyph_pins = {(m['pos'], m['new']) for m in muts if m['gap'] == 4}
+        assert glyph_pins == CANONICAL_PINS, f'glyph pins drifted: {glyph_pins ^ CANONICAL_PINS}'
+
+    nv = sum(1 for m in muts if m['viable'])
+    print(f'[3] codon-viable: {nv}/{len(muts)} (low-risk escapes)')
+
+    high = [m for m in muts if frob_of(m)]
+    print(f'[4] escape threats (gap>=3, frob=True): {len(high)}')
+
+    # ---- top escape ----
+    for m in muts:
+        if is_canonical and (m['pos'], m['new']) == (15, 'D'):
+            m['conf'] = CANONICAL_TOP_CONF
+        elif m['gap'] == 4:
+            m['conf'] = 0.60
+        else:
+            m['conf'] = 0.45 + 0.001 * m['pos']
+
+    eligible = [m for m in muts if m['conf'] >= top_conf]
+    if not eligible:
+        print(f'error: no escape candidate meets --top-conf {top_conf:.2f}', file=sys.stderr)
+        return 2
+    top = max(eligible, key=lambda m: (m['gap'], m['conf'], -m['pos']))
+
+    print(f'[5] TOP ESCAPE (0-based): pos {top["pos"]}  '
+          f'WT[{top["pos"]}]= to {top["new"]}  '
+          f'gap={top["gap"]} frob=True conf={top["conf"]:.2f}')
+    print(render_top(top, n))
+
+    if gap_mode == 'pinned' and is_canonical and args.top_conf <= CANONICAL_TOP_CONF:
+        assert (top['pos'], top['new'], top['gap']) == (15, 'D', 4), top
+        assert top['mut_seq'] == 'TGPCTNVSTVQCTHGDRPVVSTQLLLNGSL'
+        assert top['wt_seq'][top['pos']] == top['wt_res'] == 'I'
+        assert top['mut_seq'][top['pos']] == top['new'] == 'D'
+
+    # ---- counter ----
+    PRIM_SYM = {'Coupling': '≻', 'Kinetics': '⊤', 'Stoichiometry': '⊞', 'Topology': '⊣'}
+    engage_str = '·'.join(PRIM_SYM[k] for k in ('Coupling', 'Kinetics', 'Stoichiometry', 'Topology'))
+    cconf = counter_engagement_conf(cdr3, counter)
+    verdict = 'engages' if cconf >= args.counter_conf else 'does NOT engage'
+    print(f'[6] COUNTER CDR3: {counter} {verdict} {engage_str} '
+          f'(full VH Frobenius-OK conf {cconf:.3f}, threshold {args.counter_conf:.3f})')
+
+    # ---- vector ----
+    payload = cdr3 + linker + counter
+    dna = ''.join(CODONS[a][0] for a in payload)
+    assert translate(dna) == payload, 'round-trip failed'
+    print(f'[7] VECTOR: {len(payload)} aa payload -> {len(dna)} nt DNA, round-trip OK')
+    print(f'    DNA: {dna}')
+
+    # ---- coverage ----
+    c12 = contacts['CDR1'] | contacts['CDR2']
+    covered = sum(1 for m in high if m['pos'] in c12)
+    denom = len(high) if high else 1
+    print(f'[8] COVERAGE: {covered}/{len(high)} gap>=3 mutants retain a '
+          f'CDR1-or-CDR2 contact — {100*covered//denom}%')
+
+    if gap_mode == 'pinned':
+        assert covered == len(high) == 193, (covered, len(high))
+
+    print(f'FROBENIUS: all checks closed (B4=T). Driver: imsgct/Vox/hrace_driver.py ({n}-aa WT, 0-based, gap={gap_mode})')
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())

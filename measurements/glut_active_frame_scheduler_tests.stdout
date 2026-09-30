@@ -1,0 +1,37 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.27s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 29 tests
+test glut_system::fold::correlation::parity::tests::parity_folds_equal_inputs_into_the_shared_sum_cell ... ok
+test glut_system::fold::correlation::parity::tests::parity_closes_an_unassigned_odd_not_cycle ... ok
+test glut_system::fold::correlation::transport::tests::equality_transport_identifies_distant_products ... ok
+test glut_system::fold::correlation::transport::tests::complement_transport_closes_even_loops_without_pinning_them ... ok
+test glut_system::fold::correlation::transport::tests::odd_complement_holonomy_rejects_an_unpinned_loop ... ok
+test glut_system::fold::correlation::transport::tests::transported_complement_product_folds_without_choosing_its_input ... ok
+test glut_system::fold::correlation::transport::tests::equality_loop_rejects_inconsistent_root_transport ... ok
+test glut_system::fold::correlation::tests::folded_gate_explanations_are_valid_for_every_partial_assignment ... ok
+test glut_system::fold::tests::terminal_carry_forces_high_cells_across_unresolved_low_diagonals ... ok
+test glut_system::tests::carry_folds_beyond_machine_width ... ok
+test glut_system::tests::corrupt_carry_prefix_and_position_are_rejected ... ok
+test glut_system::fold::correlation::tests::local_support_masks_preserve_every_partial_gate_assignment ... ok
+test glut_system::tests::executed_trace_survives_certificate_transport_and_rejects_mutations ... ok
+test glut_system::tests::folded_sweep_rejects_mutated_materialized_ancestry ... ok
+test glut_system::fold::correlation::tests::shared_multiplier_matches_every_small_balanced_product ... ok
+test glut_system::tests::test_glut_crystal_rejects_alias ... ok
+test glut_system::tests::test_glut_factor_35 ... ok
+test glut_system::tests::test_glut_factor_8051 ... ok
+test glut_system::tests::test_glut_factor_even_56 ... ok
+test glut_system::tests::resumed_sparse_frame_uses_the_same_folded_source_relation ... ok
+test glut_system::tests::test_glut_invariant_holds ... ok
+test glut_system::fold::square_fold::tests::correlated_square_support_matches_small_odd_product_census ... ok
+test glut_system::fold::tests::interval_fold_keeps_every_assignment_across_fixed_cell_holes ... ok
+test glut_system::tests::wide_execution_payload_crosses_trace_records_losslessly ... ok
+test glut_system::fold::tests::folded_relation_matches_small_exact_product_census ... ok
+test glut_system::fold::correlation::midpoint::tests::shared_square_coordinates_match_their_entire_small_domain ... ok
+test glut_system::tests::test_glut_state_count_is_exact_at_each_level ... ok
+test glut_system::tests::live_frames_preserve_every_exact_product_and_reject_overflow_aliases ... ok
+test glut_system::fold::tests::terminal_carry_envelope_preserves_every_small_product_assignment ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 242 filtered out; finished in 1.79s
+

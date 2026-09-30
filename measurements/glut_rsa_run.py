@@ -15,12 +15,12 @@ import sympy
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/('membranes/glut_rsa_'+os.environ.get('GLUT_RSA_RUN','2026-09-29_baseline'))
 OUT.mkdir(exist_ok=True)
-SECONDS=float(os.environ.get('GLUT_RSA_SECONDS','8'))
+SECONDS=min(60.0, float(os.environ.get('GLUT_RSA_SECONDS','8')))
 WIDTHS=[16,24,32,40,48,56,64,96,128,256,512,1024,2048]
 selected=os.environ.get('GLUT_RSA_CASES')
 selected=set(selected.split(',')) if selected else None
 rows=[]
-SOURCE_FILES=['src/glut_fold.rs','src/glut_system.rs','examples/glut_stress_baked.rs','src/glut_correlation.rs','src/glut_square_fold.rs','src/glut_midpoint.rs']
+SOURCE_FILES=['src/morphism_factor.rs','src/glut_fold.rs','src/glut_system.rs','examples/glut_stress_baked.rs','src/glut_parity.rs', 'src/glut_transport.rs', 'src/glut_correlation.rs','src/glut_square_fold.rs','src/glut_midpoint.rs']
 sources={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCE_FILES}
 snapshot=OUT/'source'
 snapshot.mkdir(exist_ok=True)
@@ -63,13 +63,13 @@ for bits in WIDTHS:
         word=subprocess.check_output([str(ROOT/'target/release/vox'),'numeral',row['n']],text=True).strip()
         (folder/'input.imasm').write_text(word+'\n')
         (folder/'fixture.json').write_text(json.dumps(row,indent=2)+'\n')
-        env=dict(os.environ,GLUT_STRESS_WORD=word,RUSTFLAGS='-C target-feature=+crt-static -C relocation-model=static')
+        env=dict(os.environ,GLUT_STRESS_WORD=word,RUSTFLAGS='-D warnings -C target-feature=+crt-static -C relocation-model=static')
         binary=folder/'glut_stress_baked'
         with (ROOT/'measurements/glut_bake.lock').open('a') as lock:
             fcntl.flock(lock,fcntl.LOCK_EX)
             assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest for name,digest in sources.items()), 'Runtime source changed during campaign.'
             with (folder/'build.stdout').open('w') as log:
-                subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--example','glut_stress_baked'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True)
+                subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--example','glut_stress_baked'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
             shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked',binary)
         row['source_hashes']=sources
         row['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()

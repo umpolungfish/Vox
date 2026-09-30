@@ -1,0 +1,16 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.72s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 8 tests
+test glut_system::fold::tests::terminal_carry_forces_high_cells_across_unresolved_low_diagonals ... ok
+test glut_system::fold::correlation::tests::local_support_masks_preserve_every_partial_gate_assignment ... ok
+test glut_system::fold::correlation::tests::shared_multiplier_matches_every_small_balanced_product ... ok
+test glut_system::fold::square_fold::tests::correlated_square_support_matches_small_odd_product_census ... ok
+test glut_system::fold::tests::interval_fold_keeps_every_assignment_across_fixed_cell_holes ... ok
+test glut_system::fold::correlation::midpoint::tests::shared_square_coordinates_match_their_entire_small_domain ... ok
+test glut_system::fold::tests::folded_relation_matches_small_exact_product_census ... ok
+test glut_system::fold::tests::terminal_carry_envelope_preserves_every_small_product_assignment ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 255 filtered out; finished in 1.43s
+

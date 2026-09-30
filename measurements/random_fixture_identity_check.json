@@ -1,0 +1,9 @@
+{
+  "unique_fixture_ids": [
+    "b37daa6235b94ed7b9095829d42418df",
+    "8f416e24a96140f2b412031121fca855"
+  ],
+  "distinct_random_inputs": true,
+  "exact_replay": true,
+  "bits": 2048
+}

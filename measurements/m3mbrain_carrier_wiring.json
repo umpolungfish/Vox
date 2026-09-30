@@ -1,0 +1,51 @@
+{
+  "scope": "Carrier construction, nesting, boundary dissolution, register lifetime and payload ports",
+  "sources": [
+    "/home/mrnob0dy666/imsgct/IMSCRIBERS_GUIDE_TO_IMASM.md",
+    "/home/mrnob0dy666/imsgct/ig-docs/tex/prepared_membranes_and_resident_circuits.tex",
+    "/home/mrnob0dy666/imsgct/ig-docs/momonadOS/membrane_tower_collapse_education_2026.md",
+    "/home/mrnob0dy666/imsgct/ig-docs/imasm/tower_imasm_vox_gpu_closure.md",
+    "/home/mrnob0dy666/imsgct/ig-docs/imasm/dissolution_as_boundary_imscription.md",
+    "/home/mrnob0dy666/imsgct/ig-docs/membrane/factoring_membrane_nesting_technique.md",
+    "/home/mrnob0dy666/imsgct/ig-docs/cs/oneshot_nested_prime_factorization_productive_fix.md",
+    "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/word_nesting.rs",
+    "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/runtime_nesting.rs"
+  ],
+  "construction_rules": [
+    "Build operator topology from actual component operations and bound payloads; the supplied glyph sequence is illustrative.",
+    "A word supplies nodes. Protocol edges supply reconnection; split/fuse ancestry is checked on those edges.",
+    "Compose through available ports. Consume payload source and terminal interfaces and retain its work and interior dyads.",
+    "Place payload work on the enclosing arm before its fuse. Defer terminal fixation to the parent fixation after fusion.",
+    "Open the region retaining deposits before the region doing work; bank results across reversal and restore them on fusion.",
+    "Dissolve matched interior boundaries into the outer boundary while retaining work order, bound payloads, registers and connection identity.",
+    "Prepare shared structures at their enclosing lifetime. Keep their state resident and roll back only branch additions.",
+    "Connect adjacent forward transformation and reverse verification maps. Compose longer connections from those maps.",
+    "Return constraints and checked results through defined ports. Select the first verified closure and retain unfinished arm state.",
+    "Retain output inside the vessel until terminal readout; emit source, factors and certificate together."
+  ],
+  "current_wiring": {
+    "emitter": "src/bin/m3mbrain.rs",
+    "component_ports": "Frames, Square, Admission, Correlation, Masks, Verify in glut_fold::Port::ORDER",
+    "construction": "glut_carrier assembles the component protocols under GLUT and the skin, consumes their source and terminal interfaces, and binds each trigger by its component slot.",
+    "dissolution": "Matched interior split/fuse boundaries dissolve. The assembled work and slot bindings retain their order under one enclosing dyad.",
+    "state_lifetime": "fold::Resident owns source, frame register, square phase, geometry frontier, correlation graph and masks across carrier return passes.",
+    "return_edge": "CarrierWalk repeats the connected component body inside the same open frame until the verification port completes.",
+    "banking": "phase_word assigns stable deposit identities to bound register slots and lanes. Repeated passes retain those identities; reversal preserves banked payload references.",
+    "verification": "The Verify port materializes and checks checkpoint ancestry before CarrierWalk releases the enclosing fuse and fixation.",
+    "output": "m3mbrain reads the already verified execution and emits source, factors and reentry certificate together."
+  },
+  "checks": [
+    {
+      "instrument": "release library test",
+      "case": "glut_system::carrier::tests::random_2048_source_is_resident_in_the_component_derived_carrier",
+      "result": "passed",
+      "scope": "component slots, dissolved body, repeated return edge and resident identity"
+    },
+    {
+      "instrument": "release library test",
+      "case": "phase_word::tests::resident_slots_fold_return_passes_and_restore_the_random_2048_payload",
+      "result": "passed",
+      "scope": "stable deposit identities and restoration through repeated reversal"
+    }
+  ]
+}

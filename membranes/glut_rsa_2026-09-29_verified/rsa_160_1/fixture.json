@@ -1,0 +1,15 @@
+{
+  "name": "rsa_160_1",
+  "seed": "853b6b29a44841f362400b75763460b5703980a7c69e8326fb848a582c107868",
+  "p": "754471849655700390857213",
+  "q": "1031800286664896519065033",
+  "n": "778464270755346371385416264749477513260164133029",
+  "bits": 160,
+  "factor_bits": 80,
+  "factor_gap_bits": 78,
+  "public_exponent": 65537,
+  "primality": "probable prime",
+  "primality_instrument": "SymPy 1.14.0",
+  "generated_on": "2026-09-30",
+  "generator": "measurements/glut_rsa_run.py:fixture"
+}

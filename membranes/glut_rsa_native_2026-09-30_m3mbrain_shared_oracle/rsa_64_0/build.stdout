@@ -1,0 +1,25 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+error[E0624]: method `reduce_columns` is private
+   --> src/glut_quantum.rs:30:28
+    |
+ 30 |         let product = self.reduce_columns(columns);
+    |                            ^^^^^^^^^^^^^^ private method
+    |
+   ::: src/glut_midpoint.rs:164:5
+    |
+164 |     fn reduce_columns(&mut self, mut columns: Vec<Vec<usize>>) -> Vec<usize> {
+    |     ------------------------------------------------------------------------ private method defined here
+
+error[E0624]: method `equal_cells` is private
+   --> src/glut_quantum.rs:32:18
+    |
+ 32 |             self.equal_cells(cell, usize::from(bit(n, i) == 1));
+    |                  ^^^^^^^^^^^ private method
+    |
+   ::: src/glut_midpoint.rs:112:5
+    |
+112 |     fn equal_cells(&mut self, left: usize, right: usize) {
+    |     ---------------------------------------------------- private method defined here
+
+For more information about this error, try `rustc --explain E0624`.
+error: could not compile `vox` (lib) due to 2 previous errors

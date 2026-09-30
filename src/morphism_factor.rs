@@ -406,8 +406,51 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     (l_trim(q), l_trim(r))
 }
 
+/// A retained fold of an IMASM numeral. Its extent follows the tape; callers
+/// reuse the limbs across modular views instead of folding for every view.
+pub(crate) struct FoldedTape(Limbs);
+impl FoldedTape {
+    pub(crate) fn new(tape:&[char])->Self {Self(fold(tape))}
+    pub(crate) fn remainder_word(&self,modulus:u64)->u64 {
+        assert!(modulus!=0);
+        let mut remainder=0u128;
+        for &limb in self.0.iter().rev() {
+            remainder=((remainder<<64)|u128::from(limb))%u128::from(modulus);
+        }
+        remainder as u64
+    }
+}
+
+/// Extended Euclid within a folded residue word. Products have a double-width
+/// carry; the source numeral retains its unrestricted enclosing tape extent.
+pub(crate) fn inverse_residue_word(value:u64,modulus:u64)->Option<u64> {
+    if modulus<2 {return None;}
+    let (mut r0,mut r1)=(modulus,value%modulus);
+    let (mut t0,mut t1)=(0u64,1u64);
+    while r1!=0 {
+        let quotient=r0/r1;
+        (r0,r1)=(r1,r0%r1);
+        let product=(u128::from(quotient)*u128::from(t1))%u128::from(modulus);
+        let next=(u128::from(t0)+u128::from(modulus)-product)%u128::from(modulus);
+        (t0,t1)=(t1,next as u64);
+    }
+    (r0==1).then_some(t0)
+}
+
 pub fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
-    l_cmp(&fold(a), &fold(b))
+    let extent = |tape: &[char]| tape.iter().rposition(|&mark| mark == EVALF).map_or(0, |i| i + 1);
+    let left = extent(a);
+    let right = extent(b);
+    match left.cmp(&right) {
+        core::cmp::Ordering::Equal => {
+            for i in (0..left).rev() {
+                let ordering = (a[i] == EVALF).cmp(&(b[i] == EVALF));
+                if ordering != core::cmp::Ordering::Equal { return ordering; }
+            }
+            core::cmp::Ordering::Equal
+        }
+        ordering => ordering,
+    }
 }
 
 pub fn add(a: &[char], b: &[char]) -> Tape {
@@ -908,7 +951,7 @@ fn mod_sub(a: &[char], b: &[char], n: &[char]) -> Tape {
 /// coefficients kept reduced mod n so every tape stays non-negative. Ok is the
 /// inverse; Err is a nontrivial gcd, which is a factor of n. This Err is exactly
 /// the elliptic-curve method's factor-discovery event.
-fn mod_inv(a: &[char], n: &[char]) -> Result<Tape, Tape> {
+pub(crate) fn mod_inv(a: &[char], n: &[char]) -> Result<Tape, Tape> {
     let a = modulo(a, n);
     if zero(&a) {
         return Err(n.to_vec());
@@ -2382,6 +2425,24 @@ mod tests {
     use super::*;
 
     #[test]
+    fn retained_modular_views_match_the_random_2048_tape() {
+        let source=parse_numeral(include_str!("../tests/fixtures/random_rsa_2048.imasm").trim()).unwrap();
+        let folded=FoldedTape::new(&source);
+        for chunk in source.chunks(64) {
+            let modulus=tape_to_u64(chunk)|1;
+            if modulus==1 {continue;}
+            let divisor=tape_u64(modulus);
+            let residue=folded.remainder_word(modulus);
+            assert_eq!(tape_u64(residue),modulo(&source,&divisor));
+            let inverse=inverse_residue_word(residue,modulus);
+            match mod_inv(&tape_u64(residue),&divisor) {
+                Ok(expected)=>assert_eq!(inverse.map(tape_u64),Some(expected)),
+                Err(_)=>assert!(inverse.is_none()),
+            }
+        }
+    }
+
+    #[test]
     fn normalized_limb_division_closes_quotient_and_remainder() {
         let numerators = [
             vec![u64::MAX, 0, 1],
@@ -3035,4 +3096,69 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         "no factor in reach within {} tower steps",
         max_steps
     ))
+}
+
+#[cfg(test)]
+mod direct_comparison_tests {
+    use super::*;
+    #[test]
+    fn glyph_order_matches_limb_order_for_padded_and_wide_tapes() {
+        let mut tapes = vec![Vec::new(), vec![EVALT; 130]];
+        for value in 0..128 {
+            let mut tape = tape_u64(value);
+            tape.extend([EVALT; 3]);
+            tapes.push(tape);
+        }
+        for width in [65, 129, 257, 1025, 2049] {
+            let mut tape = vec![EVALT; width];
+            tape[width - 1] = EVALF;
+            tape[0] = EVALF;
+            tapes.push(tape);
+        }
+        for a in &tapes {
+            for b in &tapes { assert_eq!(cmp(a, b), l_cmp(&fold(a), &fold(b))); }
+        }
+    }
+}
+
+/// Number of 32-bit device limbs required by an arbitrary tape width.
+pub fn limb_count_for_bits(bit_count: usize) -> usize {
+    bit_count.div_ceil(32)
+}
+
+/// Convert a tape to device limbs. The requested count is minimum padding;
+/// every source cell survives when the source requires a larger buffer.
+pub fn tape_to_limbs(tape: &[char], limb_count: usize) -> Vec<u32> {
+    let mut limbs = vec![0u32; limb_count.max(limb_count_for_bits(tape.len()))];
+    for (i, &bit) in tape.iter().enumerate() {
+        if bit == EVALF {
+            limbs[i / 32] |= 1u32 << (i % 32);
+        }
+    }
+    limbs
+}
+
+/// Recover the complete IMASM numeral from a device limb buffer.
+pub fn limbs_to_tape(limbs: &[u32]) -> Vec<char> {
+    let mut tape = Vec::new();
+    for &limb in limbs {
+        for bit in 0..32 {
+            tape.push(if (limb >> bit) & 1 == 1 { EVALF } else { EVALT });
+        }
+    }
+    trim(tape)
+}
+
+#[cfg(test)]
+mod device_limb_tests {
+    use super::*;
+    #[test]
+    fn minimum_device_padding_never_truncates_a_wider_source() {
+        let mut tape = vec![EVALT; 2051];
+        for i in [0, 31, 32, 63, 64, 2048, 2050] { tape[i] = EVALF; }
+        let limbs = tape_to_limbs(&tape, 1);
+        assert_eq!(limbs.len(), 65);
+        assert_eq!(limbs_to_tape(&limbs), tape);
+        assert_eq!(limb_count_for_bits(usize::MAX), usize::MAX / 32 + 1);
+    }
 }

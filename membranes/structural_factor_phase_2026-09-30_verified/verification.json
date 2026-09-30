@@ -1,0 +1,15 @@
+{
+  "instrument": "baked factor-phase basis controls",
+  "source_n": "15",
+  "branches": [
+    "3*5 marked",
+    "3*4 unmarked",
+    "1*15 trivial unmarked"
+  ],
+  "factor_search_performed": false,
+  "phase_and_workspace_round_trip": true,
+  "native_seconds": 0.0016523100202903152,
+  "complete_imasm_recovery": true,
+  "glyph_alphabet_only": true,
+  "binary_sha256": "d6432f2765115dec4f5136a463cfd4fecb27ee273c2963ce3e19a665bf17eb24"
+}

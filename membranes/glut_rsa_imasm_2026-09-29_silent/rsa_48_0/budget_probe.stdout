@@ -1,0 +1,82 @@
+entry(...) halted: step budget 5000000 reached, still running at 0x47382e
+  previous 12:
+  4742cd: ⋈ mov r:rbp m:r13:rax:8:0x50:8
+  4742d2: ⊤ test r:rbp r:rbp
+  4742d5: ∈ ne i:0x474331
+  474331: ⊞ xor r:eax r:eax
+  474333: ⊤ test r:rbp r:rbp
+  474336: ∈ e i:0x474341
+  474338: ⋈ mov r:eax m:rbp::1:0x18:4
+  47433b: ≺ jmp i:0x474341
+  474341: ⋈ mov r:edx r:eax
+  474343: ⊞ neg r:edx
+  474345: ⊞ and r:edx r:eax
+  474347: ∈ e i:0x47436b
+  474349: ⊞ sub r:eax r:edx
+  47434b: ⋈ mov m:rbp::1:0x18:4 r:eax
+  47434e: ⋈ mov r:eax r:edx
+  474350: ⊞ neg r:eax
+  474352: ⊞ and r:eax r:edx
+  474354: ⊞ lea r:rdx m:rip::1:0x13c85:8
+  47435b: ⊞ imul r:eax r:eax i:0x76be629
+  474361: ⊞ shr r:eax i:0x1b
+  474364: ⋈ movsx r:r14d m:rdx:rax:1:0x0:1
+  474369: ≺ jmp i:0x474392
+  474392: ⋈ mov r:r13d m:rip::1:0x23093:4
+  474399: ⊞ lea r:rdi m:rip::1:0x236a8:8
+  4743a0: ≻ call i:0x47735a
+  47735a: ⋈ mov r:eax m:rdi::1:0x0:4
+  47735c: ⊤ test r:eax r:eax
+  47735e: ∈ ns i:0x477393
+  477393: ⊣ ret
+  4743a5: ⋈ pop r:rbx
+  4743a6: ⋈ mov r:rdx r:r12
+  4743a9: ⋈ mov r:esi r:r14d
+  4743ac: ⋈ mov r:ecx r:r13d
+  4743af: ⋈ mov r:rdi r:rbp
+  4743b2: ⋈ pop r:rbp
+  4743b3: ⋈ pop r:r12
+  4743b5: ⋈ pop r:r13
+  4743b7: ⋈ pop r:r14
+  4743b9: ≺ jmp i:0x4737c4
+  4737c4: ⋈ mov r:r9 r:rdx
+  4737c7: ≻ call i:0x47378c
+  47378c: ⊤ test m:rdi::1:0x20:1 i:0x1f
+  473790: ∈ ne i:0x4737a9
+  4737a9: ⋈ mov r:eax m:rdi::1:0x20:4
+  4737ac: ⊞ lea r:rdx m:rip::1:0x1488d:8
+  4737b3: ⊞ shr r:ax i:0x6
+  4737b7: ⊞ and r:eax i:0x3f
+  4737ba: ⋈ movzx r:eax m:rdx:rax:2:0x0:2
+  4737be: ⊞ shl r:eax i:0x4
+  4737c1: ⊞ cdqe
+  4737c3: ⊣ ret
+  4737cc: ⋈ mov r:r10 r:rax
+  4737cf: ⊞ sub r:rax r:r9
+  4737d2: ⋈ mov r:r11 m:rdi::1:0x10:8
+  4737d6: ⋈ movzx r:ecx r:cl
+  4737d9: ⊞ lea r:r8 m:rax::1:-0x4:8
+  4737dd: ⋈ movsxd r:rax r:esi
+  4737e0: ⊞ imul r:rax r:r10
+  4737e4: ⋈ mov r:rdx r:r8
+  4737e7: ⊞ shr r:rdx i:0x4
+  4737eb: ⊞ lea r:rax m:r11:rax:1:0x10:8
+  4737f0: ⊤ cmp m:rax::1:-0x3:1 i:0x0
+  4737f4: ⊞ lea r:r10 m:rax:r10:1:-0x4:8
+  4737f9: ∈ e i:0x473804
+  4737fb: ⋈ movzx r:ecx m:rax::1:-0x2:2
+  4737ff: ⊞ inc r:ecx
+  473801: ⋈ movzx r:ecx r:cl
+  473804: ⊤ cmp m:rax::1:-0x4:1 i:0x0
+  473808: ∈ e i:0x47380b
+  47380b: ⋈ movsxd r:r11 r:ecx
+  47380e: ⊤ cmp r:r11 r:rdx
+  473811: ∈ be i:0x47384b
+  473813: ⊞ shr r:r8 i:0x5
+  473817: ⊞ or r:r8 r:rdx
+  47381a: ⋈ mov r:r11 r:r8
+  47381d: ⊞ shr r:r11 i:0x2
+  473821: ⊞ or r:r11 r:r8
+  473824: ⋈ mov r:r8 r:r11
+  473827: ⊞ shr r:r8 i:0x4
+  47382b: ⊞ or r:r8 r:r11   [5000001 steps]

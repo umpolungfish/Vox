@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/mrnob0dy666/imsgct/Vox/measurements/glut_rsa_native_run.py", line 32, in <module>
+    subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','m3mbrain'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True, timeout=60)
+  File "/home/mrnob0dy666/.local/share/uv/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['cargo', 'build', '--release', '--target', 'x86_64-unknown-linux-musl', '--bin', 'm3mbrain']' returned non-zero exit status 101.

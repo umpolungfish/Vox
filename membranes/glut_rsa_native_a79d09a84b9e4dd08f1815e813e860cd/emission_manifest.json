@@ -1,0 +1,12 @@
+[
+  {
+    "name": "rsa_2048_0_ef8a120f36034c45bc6fa0014fa87602",
+    "native_closed": false,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "dbf67401e58fdbba877fe567e9d30a822cc15e41fb466e09102294e3d26c275e",
+    "artifact_sha256": "c949ecc984b0e5358daa90895e2c516501d581a264a06f1843327b4e1b24f1b6"
+  }
+]

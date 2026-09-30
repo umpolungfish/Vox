@@ -36,7 +36,7 @@ CASES = [
     ('unbalanced_5_259', 5*((1<<256)+1), 'unbalanced', 5, (1<<256)+1),
     ('unbalanced_17_261', 17*((1<<256)+1), 'unbalanced', 17, (1<<256)+1),
 ]
-SECONDS = float(os.environ.get('GLUT_STRESS_SECONDS', '8'))
+SECONDS = min(60.0, float(os.environ.get('GLUT_STRESS_SECONDS', '8')))
 ADDRESS_BYTES = 768*1024*1024
 
 def limits():
@@ -87,13 +87,13 @@ for name, n, shape, p, q in CASES:
     word = subprocess.check_output([str(ROOT/'target/release/vox'), 'numeral', str(n)], text=True).strip()
     (folder/'input.imasm').write_text(word+'\n')
     env = dict(os.environ, GLUT_STRESS_WORD=word,
-        RUSTFLAGS='-C target-feature=+crt-static -C relocation-model=static')
+        RUSTFLAGS='-D warnings -C target-feature=+crt-static -C relocation-model=static')
     binary = folder/'glut_stress_baked'
     with (ROOT/'measurements/glut_bake.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         with (folder/'build.stdout').open('w') as log:
             subprocess.run(['cargo', 'build', '--release', '--target', 'x86_64-unknown-linux-musl',
-                '--example', 'glut_stress_baked'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True)
+                '--example', 'glut_stress_baked'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True,timeout=60)
         shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked', binary)
     measured = measure(binary, folder)
     row = dict(name=name, n=str(n), bits=n.bit_length(), popcount=n.bit_count(),

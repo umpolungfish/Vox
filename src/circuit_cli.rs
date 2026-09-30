@@ -76,7 +76,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let activate = resolve("membrane_activate")?;
     let metadata = resolve("membrane_info")?;
     let ports = info(&mut machine, metadata, 0)? as usize;
-    if !ports.is_power_of_two() || ports > 4096 { return Err("direct-transform control supports power-of-two port counts through 4096".into()); }
+    if !ports.is_power_of_two() || ports > 1048576 { return Err("direct-transform control supports power-of-two port counts through 1048576".into()); }
     let output = info(&mut machine, metadata, 1)?;
     let loaded = start.elapsed();
     let start = Instant::now();

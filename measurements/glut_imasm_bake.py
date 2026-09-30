@@ -23,9 +23,9 @@ for name,n in CASES:
     if glyph_path.exists(): raise RuntimeError('Choose a fresh GLUT_IMASM_RUN to preserve existing executable words.')
     word=subprocess.check_output([str(VOX),'numeral',str(n)],text=True).strip()
     (folder/'input.imasm').write_text(word+'\n')
-    env=dict(os.environ,GLUT_SOURCE_WORD=word,RUSTFLAGS='-C target-feature=+crt-static -C relocation-model=static')
+    env=dict(os.environ,GLUT_SOURCE_WORD=word,RUSTFLAGS='-D warnings -C target-feature=+crt-static -C relocation-model=static')
     with (folder/'build.stdout').open('w') as log:
-        subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','glut_one'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True)
+        subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','glut_one'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
     elf=folder/'payload.elf'
     shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/glut_one',elf)
     native=subprocess.check_output([str(elf)],text=True)
@@ -33,17 +33,17 @@ for name,n in CASES:
     assert len(native.splitlines())==4
     assert set(native.replace('\n','')) <= ALPHABET
     with (folder/'emission.stdout').open('w') as log:
-        subprocess.run([str(VOX),'imasm',str(elf)],stdout=subprocess.DEVNULL,stderr=log,check=True)
+        subprocess.run([str(VOX),'imasm',str(elf)],stdout=subprocess.DEVNULL,stderr=log,check=True,timeout=60)
         module=folder/'payload.elf.imasm'
-        subprocess.run([str(VOX),'glyphs',str(module),str(glyph_path)],stdout=log,stderr=log,check=True)
+        subprocess.run([str(VOX),'glyphs',str(module),str(glyph_path)],stdout=log,stderr=log,check=True,timeout=60)
         recovered=folder/'recovered.imasm'
-        subprocess.run([str(VOX),'unglyphs',str(glyph_path),str(recovered)],stdout=log,stderr=log,check=True)
+        subprocess.run([str(VOX),'unglyphs',str(glyph_path),str(recovered)],stdout=log,stderr=log,check=True,timeout=60)
     assert module.read_bytes()==recovered.read_bytes()
     artifact=glyph_path.read_text()
     assert set(artifact) <= ALPHABET
     start=time.monotonic()
     with (folder/'imasm.stdout').open('w') as stdout,(folder/'imasm.stderr').open('w') as stderr:
-        proc=subprocess.run([str(VOX),'run',str(glyph_path)],stdout=stdout,stderr=stderr,timeout=120)
+        proc=subprocess.run([str(VOX),'run',str(glyph_path)],stdout=stdout,stderr=stderr,timeout=60)
     assert proc.returncode == 0, proc.returncode
     executed=(folder/'imasm.stdout').read_text()
     footer=next(line for line in executed.splitlines() if line.startswith('entry('))

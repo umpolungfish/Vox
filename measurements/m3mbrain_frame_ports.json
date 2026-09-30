@@ -1,0 +1,40 @@
+{
+  "destination": "src/glut_frames.rs",
+  "entry": "m3mbrain -> glut_factor_execution -> GLUT frame sweep",
+  "methods": {
+    "src/dialectic_reentry.rs": {
+      "sha256": "29e9bb380c38ae4166d8259e9f4075ac35e543d163621147bf051c5ce03bd20c",
+      "methods": [
+        "fermat_origin",
+        "fermat_lattice_from",
+        "lehman_multiplier"
+      ]
+    },
+    "src/shor_braid.rs": {
+      "sha256": "c7f6d5e79f04da205331e60b56b11596ad48828cbdfb7c30eea6b96d1940cf27",
+      "methods": [
+        "factor_close_from_phase_halves",
+        "phase_factor_register_seeds"
+      ]
+    },
+    "src/factor_2adic.rs": {
+      "sha256": "e90ff25ba3cc82e6a219aa9a71de1c02fa1a2faa60fec5e4be31605b6e0a93f0",
+      "methods": [
+        "factor_2adic_phase_support_frames",
+        "meet_factor_nestings"
+      ]
+    },
+    "src/morphism_factor.rs": {
+      "sha256": "bc710b1b9bc3a2550d0a7fd8bfce39c6c2f8a2d5fb3fd11f42ba097ba6398aca",
+      "methods": [
+        "eval_binary_support_frame"
+      ]
+    }
+  },
+  "records": [
+    "larger-close-battery.jsonl",
+    "larger-multiplier-battery-next.jsonl",
+    "measurements/frame_factor_scaling_2026-09-24.md"
+  ],
+  "implementation": "Resident source boundary, growing multiplier, support polynomial and banked half-step residues; tape counters; no fixed span or phase-count cutoff."
+}

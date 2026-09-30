@@ -1,0 +1,27 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+error[E0599]: no method named `ok_or` found for enum `Result<T, E>` in the current scope
+  --> examples/../measurements/gm_factor_phase.rs:23:51
+   |
+23 |     let decoded=decode_reentry_certificate(&wire).ok_or("malformed measured certificate")?;
+   |                                                   ^^^^^ method not found in `Result<ReentryCertificate, String>`
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> examples/../measurements/gm_factor_phase.rs:24:5
+    |
+ 24 |     verify_reentry_certificate(&decoded,&carrier).map_err(|_| "measured certificate failed verification")?;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^          -------- unexpected argument #2 of type `&FactorCarrier`
+    |
+note: function defined here
+   --> /home/mrnob0dy666/imsgct/Vox/src/reentry_certificate.rs:129:8
+    |
+129 | pub fn verify_reentry_certificate(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+ 24 -     verify_reentry_certificate(&decoded,&carrier).map_err(|_| "measured certificate failed verification")?;
+ 24 +     verify_reentry_certificate(&decoded).map_err(|_| "measured certificate failed verification")?;
+    |
+
+Some errors have detailed explanations: E0061, E0599.
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `vox` (example "factor_phase_baked") due to 2 previous errors

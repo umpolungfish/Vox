@@ -1,0 +1,12 @@
+{
+  "profile": "debug",
+  "kernel_command": "factor_phase",
+  "measured_pair": [
+    "3",
+    "5"
+  ],
+  "source": "15",
+  "prepared_quantile": "1/2",
+  "quantum_menu_entry": true,
+  "empty_stderr": true
+}

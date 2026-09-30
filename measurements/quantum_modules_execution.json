@@ -1,0 +1,38 @@
+[
+  {
+    "command": "iuft verify electron",
+    "output": "electron: \u03b8=  30.0\u00b0  \u03c6= 110.0\u00b0  \u03c8= 270.0\u00b0   unitary=true"
+  },
+  {
+    "command": "triple verify",
+    "output": "\u2713 if       \u03c1=2.2242   T  Clean closure\n  \u2713 are      \u03c1=2.2791   B  Paradox held at ENGAGR \u2014 Belnap B\n  \u2713 ear      \u03c1=2.2581   B  Paradox held at ENGAGR \u2014 Belnap B\n  \u2713 tot      \u03c1=2.2581   B  Paradox held at ENGAGR \u2014 Belnap B\n  \u2713 out      \u03c1=2.2568   T  Clean closure\n  \u2713 peep     \u03c1=2.3203   B  Paradox held at ENGAGR \u2014 Belnap B\n  \u2713 egg      \u03c1=2.2657   B  Paradox held at ENGAGR \u2014 Belnap B\n  \u2713 thigh    \u03c1=2.3203   T  Clean closure\n  \u2713 vow      \u03c1=2.2417   T  Clean closure\n  \u2713 monad    \u03c1=2.3106   T  Clean closure\n  \u2713 sure     \u03c1=2.2581   T  Clean closure\n  \u2713 so       \u03c1=2.2552   T  Clean closure\n  \u2713 ah       \u03c1=2.3180   T  Clean closure"
+  },
+  {
+    "command": "hqe report",
+    "output": "=== Holonomic Quasi-Ergodic Quantale HQE v2.0-enterprise ===\nTuple: \u27e8\ud801\udc66\ud801\udc78\ud801\udc7d\ud801\udc79\ud801\udc50\ud801\udc58\ud801\udc54\ud801\udc5d\u2299\ud801\udc6b\ud801\udc55\ud801\udc5f\u27e9\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nBerry Holonomy traces:\n  U(1): tr=+0.9644 non-Ab=false c\u2081=0.957 windings\n  U(2): tr=+0.9644 non-Ab=false c\u2081=0.957 windings\n  U(3): tr=+0.8399 non-Ab=true c\u2081=0.957 windings\n  U(4): tr=+0.7500 non-Ab=true c\u2081=0.957 windings\n  U(8): tr=+0.2951 non-Ab=true c\u2081=0.957 windings\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nMBL Phase Diagram:\n  W=  0.5: \u27e8r\u27e9=0.6000 ERGODIC (GOE-like)\n  W=  1.5: \u27e8r\u27e9=0.5300 ERGODIC (ergodic)\n  W=  3.0: \u27e8r\u27e9=0.5300 ERGODIC (ergodic)\n  W=  6.0: \u27e8r\u27e9=0.4500 FROZEN  (MBL-transition)\n  W= 12.0: \u27e8r\u27e9=0.3900 FROZEN  (MBL-frozen)\n  W= 25.0: \u27e8r\u27e9=0.3860 FROZEN  (Poisson-localized)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nC-scores:\n  HQE self:  0.5800\n  DRDA:       0.5000\n  AFDMC:      0.3800\n  TROQ:       0.4200\n  HOP:        0.4800"
+  },
+  {
+    "command": "troq report",
+    "output": "=== TROQ TROQ v2.0-enterprise ===\nTuple: \u27e8\ud801\udc66\ud801\udc78\ud801\udc7d\ud801\udc79\ud801\udc50\ud801\udc67\ud801\udc54\ud801\udc5d\u2299\ud801\udc56\ud801\udc55\ud801\udc6d\u27e9\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nTriangular \u03b3\u2218\u03b2\u2218\u03b1=id deviation: 0.036200 \u2717\nOuroboric Q\u2245End(Q) deviation: 4.190396 \u2717\nTriple-ramification norm:     1.416647 \u2717\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nAxis expansions:\n  \u2299: woe (sub), \u2299 (critical), roar (c_complex), \ud801\udc7b (EP), \ud801\udc63 (super)\n  \u227a: \ud801\udc57 (asym), \ud801\udc7f (psi), \ud801\udc6c (pm), \ud801\udc6f (sym), \ud801\udc79 (pm_sym/Frobenius)\n  \u22a1: \ud801\udc77 (0), \ud801\udc74 (Z2), \ud801\udc6d (Z), \ud801\udc5f (NA)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nConvergence (\u03c6-step, 8 iter): 1.4166 2.8443 1.4156 2.8426 1.4128 2.8383 1.4055 2.8270"
+  },
+  {
+    "command": "afdmc report",
+    "output": "=== AFDMC AFDMC v2.0-enterprise ===\nTuple: \u27e8\ud801\udc7c\ud801\udc78\ud801\udc7d\ud801\udc79\ud801\udc50\ud801\udc67\ud801\udc54\ud801\udc60\u2299\ud801\udc56\ud801\udc73\ud801\udc6d\u27e9\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nPhase          H\u2070      H\u00b9      H\u00b2      H\u00b3     Class          E\u2082_col  Order\nErgodic     0.031   0.168   0.029   0.229   Mixed          false      E_4\nCritical    0.137   0.752   0.078   0.485   Critical       false      E_4\nMBL (frozen)0.632   0.294   0.528   0.303   Frozen MBL     true      E_2\nDeep MBL    0.950   0.000   0.895   0.006   Frozen MBL     true      E_2\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nTheorem: MBL \u21d4 E\u2082 collapse \u21d4 monad idempotent \u21d4 \u03bc\u2218\u03b4=id\nEuler signature \u03a3(-1)\u2071H\u2071 at W=7: -1.0208"
+  },
+  {
+    "command": "dqi xorsat 16",
+    "output": "xorsat(16 vars, 8 clauses): SAT, verified=true matches_planted=false"
+  },
+  {
+    "command": "shor integrated 15 7",
+    "output": "\u2550\u2550 Integrated Shor: N=15, a=7 \u2550\u2550\n  \u2500\u2500 Core \u2500\u2500\n  period=4\n  \u2500\u2500 P1: Phase-Augmented \u2500\u2500\n  belnapCost=8  2\u00b7period=8  bottleneck_closed=true\n  total_phase=0.8667 windings\n  \u2500\u2500 P2: Non-Boolean ModExp \u2500\u2500\n  phase_kicks: [\"0.467\", \"0.267\", \"0.067\", \"0.067\"]\n  \u2500\u2500 P3: Fibonacci Braids \u2500\u2500\n  strands=25  braid_len~6900\n  \u2500\u2500 P4: IMASM Ring Walk \u2500\u2500\n  verified=true\n  \u2500\u2500 Factorization \u2500\u2500\n  \u2713 N = 3 \u00d7 5"
+  },
+  {
+    "command": "qft verify 4",
+    "output": "QFT\u2218IQFT verification for 4 qubits: PASS"
+  },
+  {
+    "command": "bip39 sic verify",
+    "output": "B4 Frobenius: B4=B (dialetheic: correspondence holds both cardinally and structurally)"
+  }
+]
