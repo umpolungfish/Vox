@@ -560,11 +560,19 @@ pub fn eval_binary_support_frame(bits: &[char], x: &[char], n: &[char], width: u
 }
 
 fn mod_add(a: &[char], b: &[char], n: &[char]) -> Tape {
-    modulo(&add(a, b), n)
+    let left = fold(a);
+    let right = fold(b);
+    let modulus = fold(n);
+    if left.len() == 1 && right.len() == 1 && modulus.len() == 1 && modulus[0] != 0 {
+        return unfold(&[((u128::from(left[0]) + u128::from(right[0]))
+            % u128::from(modulus[0])) as u64]);
+    }
+    let sum = l_add(&left, &right);
+    unfold(&l_divmod(&sum, &modulus).1)
 }
 
 fn mod_mul(a: &[char], b: &[char], n: &[char]) -> Tape {
-    modulo(&mul(a, b), n)
+    mul_mod(a, b, n)
 }
 
 fn abs_diff(a: &[char], b: &[char]) -> Tape {
@@ -943,8 +951,24 @@ fn tape_to_u64(t: &[char]) -> u64 {
 
 /// (a - b) mod n, for a and b already reduced into [0, n).
 fn mod_sub(a: &[char], b: &[char], n: &[char]) -> Tape {
-    let br = modulo(b, n);
-    modulo(&add(a, &sub(n, &br)), n)
+    let left = l_divmod(&fold(a), &fold(n)).1;
+    let right = l_divmod(&fold(b), &fold(n)).1;
+    let modulus = fold(n);
+    if modulus.len() == 1 {
+        let m = u128::from(modulus[0]);
+        let lhs = u128::from(left[0]);
+        let rhs = u128::from(right[0]);
+        return unfold(&[if lhs >= rhs {
+            (lhs - rhs) as u64
+        } else {
+            (m + lhs - rhs) as u64
+        }]);
+    }
+    if l_cmp(&left, &right) != core::cmp::Ordering::Less {
+        unfold(&l_sub(&left, &right))
+    } else {
+        unfold(&l_sub(&modulus, &l_sub(&right, &left)))
+    }
 }
 
 /// Modular inverse of a mod n by the extended Euclidean algorithm, the
@@ -2239,6 +2263,11 @@ pub fn scout_semiprime(n_in: &[char]) -> (Option<(Tape, Tape, &'static str)>, St
     scout_factor_with_primality(n_in, false)
 }
 
+/// Keep the cheap Fermat frontier's work fixed as source width grows. Wider
+/// balanced inputs move promptly to the sub-exponential sieve instead of
+/// multiplying a low-yield square-gap scan at every increase in bit width.
+const NEAR_ROOT_FRONTIER_STEPS: u64 = 16_384;
+
 /// Scout a composite already rejected by the caller's primality frame.
 /// Keeping the witness pass at the membrane boundary avoids running the same
 /// modular exponentiation twice on every composite input.
@@ -2263,21 +2292,14 @@ fn scout_factor_with_primality(
     }
     // short frontier first: closes at once iff the factors sit near the root, so
     // a near-root N never pays the width-heavy rho below.
-    // Adaptive bound: for k-bit N, factors within ~2^(k/4) of sqrt(N) are "near-root".
+    // The near-root probe has a fixed work budget; wider residual shapes belong
+    // to the folded sieve rather than an exponentially growing Fermat scan.
     {
         let mut a = isqrt(&n);
         if cmp(&mul(&a, &a), &n) == Less {
             a = add(&a, &one());
         }
-        let bits = n.len();
-        // Near-root window: factors within 2^(bits/4) of sqrt(N)
-        // For 330-bit RSA-100: 2^82 ≈ 4.8e24 steps
-        // Cap at 2^20 for practicality
-        let bound = if bits <= 128 {
-            1 << (bits / 4)
-        } else {
-            1 << 20  // ~1M iterations for larger numbers
-        };
+        let bound = NEAR_ROOT_FRONTIER_STEPS;
         let mut i = 0u64;
         while i < bound {
             let a2 = mul(&a, &a);
