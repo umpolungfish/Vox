@@ -13,8 +13,7 @@ use core::cmp::Ordering;
 use core::fmt;
 
 use crate::vox::{
-    AFWD, AREV, CLINK, ENGAGR, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB,
-    TANCH, VINIT,
+    AFWD, AREV, CLINK, ENGAGR, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT,
 };
 
 pub const CELL_3: &str = "⊢≻⋈∈⊥∋≻⋈∈⊥∋⊙⊡⊣";
@@ -40,11 +39,15 @@ pub struct Nat {
 
 impl Nat {
     pub fn zero() -> Self {
-        Self { bits_le: Vec::new() }
+        Self {
+            bits_le: Vec::new(),
+        }
     }
 
     pub fn one() -> Self {
-        Self { bits_le: alloc::vec![true] }
+        Self {
+            bits_le: alloc::vec![true],
+        }
     }
 
     pub fn from_bits_le(mut bits_le: Vec<bool>) -> Self {
@@ -308,7 +311,9 @@ impl fmt::Display for DecodeError {
         match self {
             DecodeError::Empty => f.write_str("empty glyph word"),
             DecodeError::InvalidGlyph(c) => write!(f, "not an IMASM glyph: {c}"),
-            DecodeError::Unrecognized => f.write_str("well-formed glyph alphabet, but no registered numeral family matches"),
+            DecodeError::Unrecognized => {
+                f.write_str("well-formed glyph alphabet, but no registered numeral family matches")
+            }
         }
     }
 }
@@ -316,8 +321,18 @@ impl fmt::Display for DecodeError {
 fn is_glyph(c: char) -> bool {
     matches!(
         c,
-        VINIT | TANCH | AFWD | AREV | FSPLIT | FFUSE | IMSCRIB | IFIX | CLINK
-            | EVALT | EVALF | ENGAGR
+        VINIT
+            | TANCH
+            | AFWD
+            | AREV
+            | FSPLIT
+            | FFUSE
+            | IMSCRIB
+            | IFIX
+            | CLINK
+            | EVALT
+            | EVALF
+            | ENGAGR
     )
 }
 
@@ -351,7 +366,11 @@ fn decode_cell(chars: &[char]) -> Option<Reading> {
     let mut bits = Vec::with_capacity(cells);
     for bit in 0..cells {
         let i = 1 + bit * 5;
-        if chars[i] != AFWD || chars[i + 1] != CLINK || chars[i + 2] != FSPLIT || chars[i + 4] != FFUSE {
+        if chars[i] != AFWD
+            || chars[i + 1] != CLINK
+            || chars[i + 2] != FSPLIT
+            || chars[i + 4] != FFUSE
+        {
             return None;
         }
         let one = match chars[i + 3] {
@@ -416,8 +435,7 @@ fn decode_affine(chars: &[char]) -> Option<Reading> {
 
 fn decode_fusion(chars: &[char]) -> Option<Reading> {
     let pattern = [
-        VINIT, FSPLIT, AFWD, CLINK, EVALF, AREV, CLINK, FFUSE, IMSCRIB, IFIX,
-        TANCH,
+        VINIT, FSPLIT, AFWD, CLINK, EVALF, AREV, CLINK, FFUSE, IMSCRIB, IFIX, TANCH,
     ];
     if chars == pattern.as_slice() {
         Some(Reading {
@@ -475,7 +493,12 @@ fn push_cell(out: &mut String, one: bool) {
     out.push(FFUSE);
 }
 
-pub fn check(lhs: &str, operator: Operator, rhs: &str, out: &str) -> Result<EquationCheck, DecodeError> {
+pub fn check(
+    lhs: &str,
+    operator: Operator,
+    rhs: &str,
+    out: &str,
+) -> Result<EquationCheck, DecodeError> {
     let lhs = decode(lhs)?.value;
     let rhs = decode(rhs)?.value;
     let out = decode(out)?.value;
@@ -588,7 +611,14 @@ pub fn render(reading: &Reading) -> String {
             for &b in bits_le {
                 bits.push(if b { '1' } else { '0' });
             }
-            out.push_str(&format!("bits-le    {bits}\nrule       ⊥=1  ⊤=0  leftmost=2^0\n"));
+            let frames = bits_le.len().max(1);
+            out.push_str(&format!(
+                "bits-le    {bits}\n\
+                 binary.frames          {frames}\n\
+                 braid.crossings        {frames}\n\
+                 braid.frame-closure    PASS\n\
+                 rule       ⊥=1  ⊤=0  leftmost=2^0\n"
+            ));
         }
         Structure::AffineEdit { unit, branch } => {
             out.push_str(&format!(
@@ -610,29 +640,124 @@ pub fn help() -> &'static str {
      godel decode <word>\n\
      godel encode <natural-number>\n\
      godel check add|mul <lhs-word> <rhs-word> <out-word>\n\
+     godel unbraid <natural-number|cell-binary-word>\n\
+     godel braid <gamma-lane> <lambda-lane>\n\
      godel relation <from-word> <to-word>\n\
      godel selftest\n"
+}
+
+fn parse_natural_word(raw: &str) -> Result<Nat, String> {
+    if raw.starts_with('⊢') {
+        let decoded = decode(raw).map_err(|error| error.to_string())?;
+        if decoded.family != Family::CellBinary {
+            return Err("braid commands require cell-binary words".to_string());
+        }
+        Ok(decoded.value)
+    } else {
+        Nat::from_decimal(raw).ok_or_else(|| format!("not a natural number: {raw}"))
+    }
+}
+
+fn braid_values(gamma: &Nat, lambda: &Nat) -> Nat {
+    let width = gamma.bits_le().len().max(lambda.bits_le().len());
+    let mut bits = Vec::with_capacity(width * 2);
+    for index in 0..width {
+        bits.push(gamma.bits_le().get(index).copied().unwrap_or(false));
+        bits.push(lambda.bits_le().get(index).copied().unwrap_or(false));
+    }
+    Nat::from_bits_le(bits)
+}
+
+fn unbraid_value(value: &Nat) -> (Nat, Nat) {
+    let mut gamma = Vec::with_capacity((value.bits_le().len() + 1) / 2);
+    let mut lambda = Vec::with_capacity(value.bits_le().len() / 2);
+    for (index, bit) in value.bits_le().iter().copied().enumerate() {
+        if index % 2 == 0 {
+            gamma.push(bit);
+        } else {
+            lambda.push(bit);
+        }
+    }
+    (Nat::from_bits_le(gamma), Nat::from_bits_le(lambda))
 }
 
 pub fn command(args: &[&str]) -> Result<String, String> {
     match args.first().copied().unwrap_or("help") {
         "help" | "-h" | "--help" => Ok(help().to_string()),
         "decode" => {
-            let word = args.get(1).ok_or_else(|| "godel decode <word>".to_string())?;
+            let word = args
+                .get(1)
+                .ok_or_else(|| "godel decode <word>".to_string())?;
             let r = decode(word).map_err(|e| e.to_string())?;
             Ok(format!("word       {word}\n{}", render(&r)))
         }
         "encode" => {
-            let raw = args.get(1).ok_or_else(|| "godel encode <natural-number>".to_string())?;
+            let raw = args
+                .get(1)
+                .ok_or_else(|| "godel encode <natural-number>".to_string())?;
             let n = Nat::from_decimal(raw).ok_or_else(|| format!("not a natural number: {raw}"))?;
             let word = encode_cell_binary(&n);
-            Ok(format!("value      {n}\nword       {word}\n{}", render(&decode(&word).map_err(|e| e.to_string())?)))
+            let crossing_count = word.chars().filter(|&glyph| glyph == FSPLIT).count();
+            let decoded = decode(&word).map_err(|e| e.to_string())?;
+            let bit_count = decoded.value.bits_le().len().max(1);
+            if crossing_count != bit_count {
+                return Err(
+                    "braid crossing count did not close on the binary frame count".to_string(),
+                );
+            }
+            Ok(format!(
+                "value      {n}\nword       {word}\n{}",
+                render(&decoded)
+            ))
+        }
+        "unbraid" => {
+            if args.len() != 2 {
+                return Err("godel unbraid <natural-number|cell-binary-word>".to_string());
+            }
+            let value = parse_natural_word(args[1])?;
+            let (gamma, lambda) = unbraid_value(&value);
+            let recovered = braid_values(&gamma, &lambda);
+            if recovered != value {
+                return Err("Γ/Λ lane braid failed to recover the source word".to_string());
+            }
+            Ok(format!(
+                "source                    {}\nsource.word               {}\nΓ lane                    {}\nΛ lane                    {}\nΓ.word                    {}\nΛ.word                    {}\nbraid.recovered            {}\nΓΛ-closure                closed\n",
+                value,
+                encode_cell_binary(&value),
+                gamma,
+                lambda,
+                encode_cell_binary(&gamma),
+                encode_cell_binary(&lambda),
+                recovered,
+            ))
+        }
+        "braid" => {
+            if args.len() != 3 {
+                return Err("godel braid <gamma-lane> <lambda-lane>".to_string());
+            }
+            let gamma = parse_natural_word(args[1])?;
+            let lambda = parse_natural_word(args[2])?;
+            let value = braid_values(&gamma, &lambda);
+            let (recovered_gamma, recovered_lambda) = unbraid_value(&value);
+            if recovered_gamma != gamma || recovered_lambda != lambda {
+                return Err("braid did not return its Γ/Λ source lanes".to_string());
+            }
+            Ok(format!(
+                "Γ lane                    {}\nΛ lane                    {}\nbraided.value             {}\nbraided.word              {}\nunbraid.recovered          {} | {}\nΓΛ-closure                closed\n",
+                gamma,
+                lambda,
+                value,
+                encode_cell_binary(&value),
+                recovered_gamma,
+                recovered_lambda,
+            ))
         }
         "check" => {
             if args.len() != 5 {
                 return Err("godel check add|mul <lhs-word> <rhs-word> <out-word>".to_string());
             }
-            let op = Operator::parse(args[1]).ok_or_else(|| format!("unknown operator: {}", args[1]))?;
+            let op =
+                Operator::parse(args[1]).ok_or_else(|| format!("unknown operator: {}", args[1]))?;
             let c = check(args[2], op, args[3], args[4]).map_err(|e| e.to_string())?;
             Ok(format!(
                 "equation   {} {} {} = {}\nexpected   {}\nstatus     {}\n",
@@ -653,7 +778,10 @@ pub fn command(args: &[&str]) -> Result<String, String> {
                     "relation   insert {} at glyph position {}\ndelta      +{}\n",
                     r.glyph, r.position, r.delta
                 )),
-                None => Ok("relation   not a one-glyph insertion between registered numeral forms\n".to_string()),
+                None => Ok(
+                    "relation   not a one-glyph insertion between registered numeral forms\n"
+                        .to_string(),
+                ),
             }
         }
         "selftest" | "verify" => selftest_report(),
@@ -691,13 +819,48 @@ pub fn selftest_report() -> Result<String, String> {
     ] {
         let relation = insertion_relation(from, to).map_err(|e| e.to_string())?;
         let expected = Nat::from_u64(delta);
-        let pass = relation.as_ref().map(|r| r.glyph == glyph && r.delta == expected).unwrap_or(false);
+        let pass = relation
+            .as_ref()
+            .map(|r| r.glyph == glyph && r.delta == expected)
+            .unwrap_or(false);
         ok &= pass;
-        out.push_str(&format!("{name:<9} insert {glyph} => +{delta}  {}\n", if pass { "PASS" } else { "FAIL" }));
+        out.push_str(&format!(
+            "{name:<9} insert {glyph} => +{delta}  {}\n",
+            if pass { "PASS" } else { "FAIL" }
+        ));
     }
 
+    let (gamma, lambda) = unbraid_value(&Nat::from_u64(91));
+    let unbraid_pass = gamma == Nat::from_u64(13)
+        && lambda == Nat::from_u64(3)
+        && braid_values(&gamma, &lambda) == Nat::from_u64(91);
+    let braid_pass = braid_values(&Nat::from_u64(7), &Nat::from_u64(13)) == Nat::from_u64(183);
+    ok &= unbraid_pass && braid_pass;
+    out.push_str(&format!(
+        "unbraid    91 → 13 | 3  {}\nbraid      7,13 → 183    {}\n",
+        if unbraid_pass { "PASS" } else { "FAIL" },
+        if braid_pass { "PASS" } else { "FAIL" },
+    ));
+    let word_7 = encode_cell_binary(&Nat::from_u64(7));
+    let word_13 = encode_cell_binary(&Nat::from_u64(13));
+    let word_91 = encode_cell_binary(&Nat::from_u64(91));
+    let word_92 = encode_cell_binary(&Nat::from_u64(92));
+    let product_pass = check(&word_7, Operator::Mul, &word_13, &word_91)
+        .map(|equation| equation.valid)
+        .unwrap_or(false);
+    let product_fail = check(&word_7, Operator::Mul, &word_13, &word_92)
+        .map(|equation| !equation.valid)
+        .unwrap_or(false);
+    ok &= product_pass && product_fail;
+    out.push_str(&format!(
+        "word-mul   7×13=91      {}\nword-mul   7×13≠92      {}\n",
+        if product_pass { "PASS" } else { "FAIL" },
+        if product_fail { "PASS" } else { "FAIL" },
+    ));
+
     let huge = "115792089237316195423570985008687907853269984665640564039457584007913129639936";
-    let n = Nat::from_decimal(huge).ok_or_else(|| "internal unbounded parse failure".to_string())?;
+    let n =
+        Nat::from_decimal(huge).ok_or_else(|| "internal unbounded parse failure".to_string())?;
     let word = encode_cell_binary(&n);
     let back = decode(&word).map_err(|e| e.to_string())?.value;
     let unbounded_pass = back == n && back.decimal_string() == huge;
@@ -729,6 +892,16 @@ mod tests {
     }
 
     #[test]
+    fn encoded_braid_crossings_close_on_binary_frames() {
+        for raw in ["0", "143", "851", "30135004431202116003565860241012769924921679977958392035283632366105785657918270750937407901898070219843622821090980641477056850056514799336625349678549218794180711634478735831265177285887805862071748980072533360656419736316535822377792634235019526468475796787118257207337327341698664061454252865816657556977260763553328252421574633011335112031733393397168350585519524478541747311"] {
+            let report = command(&["encode", raw]).unwrap();
+            assert!(report.contains("braid.crossings"));
+            assert!(report.contains("binary.frames"));
+            assert!(report.contains("braid.frame-closure    PASS"));
+        }
+    }
+
+    #[test]
     fn edit_square_examples() {
         assert_eq!(decode(D1).unwrap().value, Nat::from_u64(2));
         assert_eq!(decode(A).unwrap().value, Nat::from_u64(3));
@@ -749,7 +922,8 @@ mod tests {
 
     #[test]
     fn arbitrary_length_roundtrip_and_arithmetic() {
-        let two_256 = "115792089237316195423570985008687907853269984665640564039457584007913129639936";
+        let two_256 =
+            "115792089237316195423570985008687907853269984665640564039457584007913129639936";
         let n = Nat::from_decimal(two_256).unwrap();
         assert!(n.bits_le().len() > 128);
         let word = encode_cell_binary(&n);

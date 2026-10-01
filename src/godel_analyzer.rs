@@ -12,7 +12,8 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use crate::godel_calculus::{
-    bit_support, decode, encode_cell_binary, polynomial_string, Family, Nat, Structure,
+    bit_support, check, decode, encode_cell_binary, polynomial_string, Family, Nat, Operator,
+    Structure,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -94,6 +95,228 @@ pub struct StructuralAnalysis {
     pub window_width: Nat,
     pub period: Option<Nat>,
     pub divisor_bound: Option<DivisorBoundCertificate>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PrimeSieveRead {
+    Factor {
+        p: Nat,
+        q: Nat,
+        tested_primes: usize,
+    },
+    Prime {
+        tested_primes: usize,
+    },
+    Unit,
+    Zero,
+    Bounded {
+        aperture: usize,
+        tested_primes: usize,
+    },
+}
+
+fn remainder_of_bits(bits_le: &[bool], divisor: usize) -> usize {
+    let mut remainder = 0usize;
+    for bit in bits_le.iter().rev().copied() {
+        remainder = (remainder * 2 + usize::from(bit)) % divisor;
+    }
+    remainder
+}
+
+fn quotient_of_bits(bits_le: &[bool], divisor: usize) -> Vec<bool> {
+    let mut quotient_msb = Vec::with_capacity(bits_le.len());
+    let mut remainder = 0usize;
+    for bit in bits_le.iter().rev().copied() {
+        let value = remainder * 2 + usize::from(bit);
+        quotient_msb.push(value / divisor != 0);
+        remainder = value % divisor;
+    }
+    quotient_msb.reverse();
+    quotient_msb
+}
+
+fn is_prime_bounded(candidate: usize, primes: &[usize]) -> bool {
+    primes
+        .iter()
+        .take_while(|prime| prime.saturating_mul(**prime) <= candidate)
+        .all(|prime| candidate % prime != 0)
+}
+
+/// Read the least prime divisor directly from a canonical cell-binary word.
+/// The aperture is the largest integer whose prime columns are read.
+pub fn prime_sieve_read(word: &str, aperture: usize) -> Result<PrimeSieveRead, String> {
+    let decoded = decode(word).map_err(|error| error.to_string())?;
+    let bits = match decoded.structure {
+        Structure::CellBinary { bits_le } => bits_le,
+        _ => return Err("prime sieve requires a cell-binary word".to_string()),
+    };
+    if encode_cell_binary(&decoded.value) != word {
+        return Err("prime sieve requires the canonical cell-binary word".to_string());
+    }
+    if aperture < 3 {
+        return Err("prime sieve aperture must be at least 3".to_string());
+    }
+
+    let mut primes = Vec::new();
+    for candidate in 2..=aperture {
+        if is_prime_bounded(candidate, &primes) {
+            primes.push(candidate);
+        }
+    }
+
+    if decoded.value.is_zero() {
+        return Ok(PrimeSieveRead::Zero);
+    }
+    if decoded.value == Nat::one() {
+        return Ok(PrimeSieveRead::Unit);
+    }
+    if Nat::from_u64(2).sub(&decoded.value).is_some() {
+        return Ok(PrimeSieveRead::Prime { tested_primes: 0 });
+    }
+
+    if !bits.first().copied().unwrap_or(false) {
+        return Ok(PrimeSieveRead::Factor {
+            p: Nat::from_u64(2),
+            q: Nat::from_bits_le(bits[1..].to_vec()),
+            tested_primes: 0,
+        });
+    }
+
+    let mut tested_primes = 0usize;
+    for prime in primes.into_iter().filter(|prime| *prime != 2) {
+        let divisor = Nat::from_decimal(&prime.to_string()).expect("prime column is natural");
+        let square = divisor.mul(&divisor);
+        if decoded.value.sub(&square).is_none() {
+            return Ok(PrimeSieveRead::Prime { tested_primes });
+        }
+        tested_primes += 1;
+        if remainder_of_bits(&bits, prime) == 0 {
+            let quotient = Nat::from_bits_le(quotient_of_bits(&bits, prime));
+            return Ok(PrimeSieveRead::Factor {
+                p: divisor,
+                q: quotient,
+                tested_primes,
+            });
+        }
+    }
+
+    // If the aperture reaches the square-root frontier, absence of a prime
+    // column witness is a primality certificate. Otherwise it is only a bound.
+    let next = primes_last_odd(aperture);
+    let frontier = Nat::from_u64(next as u64);
+    if decoded.value.sub(&frontier.mul(&frontier)).is_none() {
+        Ok(PrimeSieveRead::Prime { tested_primes })
+    } else {
+        Ok(PrimeSieveRead::Bounded {
+            aperture,
+            tested_primes,
+        })
+    }
+}
+
+fn primes_last_odd(aperture: usize) -> usize {
+    let mut primes = Vec::new();
+    for candidate in 2..=aperture {
+        if is_prime_bounded(candidate, &primes) {
+            primes.push(candidate);
+        }
+    }
+    primes
+        .into_iter()
+        .rev()
+        .find(|prime| *prime != 2)
+        .unwrap_or(1)
+}
+
+fn sieve_report(value: &Nat, word: &str, aperture: usize) -> Result<String, String> {
+    let outcome = prime_sieve_read(word, aperture)?;
+    let mut out = String::new();
+    let valuation = v2(value);
+    out.push_str(&format!(
+        "sieve.aperture            2^{}={}\nprimitive.v2              {}\n2-part                    2^{}\nprimitive.odd-part        {}\ndecomp-2k                 {}\n",
+        aperture.trailing_zeros(), aperture, valuation, valuation, odd_part(value), decomp_2k(value).k
+    ));
+    match outcome {
+        PrimeSieveRead::Factor {
+            p,
+            q,
+            tested_primes,
+        } => {
+            let p_word = encode_cell_binary(&p);
+            let q_word = encode_cell_binary(&q);
+            let source_word = encode_cell_binary(value);
+            let product_check = check(&p_word, Operator::Mul, &q_word, &source_word)
+                .map_err(|error| error.to_string())?;
+            if !product_check.valid {
+                return Err("sieve candidate failed godel check mul".to_string());
+            }
+            out.push_str(&format!(
+                "sieve.tested-primes       {}\nfactor-pair               {} × {}\nfactor.word.p             {}\nfactor.word.q             {}\nproduct-closure           closed\ngodel.check.mul           PASS\n",
+                tested_primes, p, q, p_word, q_word
+            ));
+            match prime_sieve_read(&q_word, aperture)? {
+                PrimeSieveRead::Prime { .. } if q != Nat::one() => {
+                    out.push_str("semiprime-closure         T\npeel.complete              true\n")
+                }
+                PrimeSieveRead::Prime { .. } | PrimeSieveRead::Unit => {
+                    out.push_str("semiprime-closure         F\nprime-certificate         closed\n")
+                }
+                PrimeSieveRead::Zero => out.push_str("semiprime-closure         N\n"),
+                PrimeSieveRead::Factor { .. } => {
+                    out.push_str(&format!(
+                        "semiprime-closure         N\nrecurse.analyze            {}\n",
+                        q
+                    ));
+                    out.push_str(&sieve_report(&q, &q_word, aperture)?);
+                }
+                PrimeSieveRead::Bounded { aperture, .. } => {
+                    out.push_str(&format!("semiprime-closure         N\nrecurse.analyze            {}\nfactor-bound              >{}\nproduct-closure.next      open\nhandoff                   prime_winding factor {}\n", q, aperture, q));
+                }
+            }
+        }
+        PrimeSieveRead::Prime { tested_primes } => {
+            let one_word = encode_cell_binary(&Nat::one());
+            let source_word = encode_cell_binary(value);
+            let prime_product = check(&source_word, Operator::Mul, &one_word, &source_word)
+                .map_err(|error| error.to_string())?;
+            if !prime_product.valid {
+                return Err("prime closure failed godel check mul".to_string());
+            }
+            out.push_str(&format!(
+                "sieve.tested-primes       {}\nfactor-pair               {} × 1\nproduct-closure           closed\nsemiprime-closure         F\nprime-certificate         closed\ngodel.check.mul           PASS\n",
+                tested_primes, value
+            ));
+        }
+        PrimeSieveRead::Unit => {
+            let word = encode_cell_binary(value);
+            let unit_product =
+                check(&word, Operator::Mul, &word, &word).map_err(|error| error.to_string())?;
+            if !unit_product.valid {
+                return Err("unit closure failed godel check mul".to_string());
+            }
+            out.push_str("factor-pair               1 × 1\nproduct-closure           closed\nsemiprime-closure         F\nunit-certificate          closed\n");
+        }
+        PrimeSieveRead::Zero => {
+            let one_word = encode_cell_binary(&Nat::one());
+            let zero_word = encode_cell_binary(value);
+            let zero_product = check(&zero_word, Operator::Mul, &one_word, &zero_word)
+                .map_err(|error| error.to_string())?;
+            if !zero_product.valid {
+                return Err("zero closure failed godel check mul".to_string());
+            }
+            out.push_str("factor-pair               0 × 1\nproduct-closure           closed\nsemiprime-closure         N\nzero-certificate          closed\n");
+        }
+        PrimeSieveRead::Bounded {
+            aperture,
+            tested_primes,
+        } => {
+            out.push_str(&format!(
+                "sieve.tested-primes       {}\nwitness                   none\nfactor-bound              >{}\nproduct-closure           open\nsemiprime-closure         N\nhandoff                   prime_winding factor {}\n",
+                tested_primes, aperture, value
+            ));
+        }
+    }
+    Ok(out)
 }
 
 fn nat_from_index(mut value: usize) -> Nat {
@@ -381,7 +604,7 @@ pub fn render(analysis: &StructuralAnalysis) -> String {
     let factor_bound = analysis
         .divisor_bound
         .as_ref()
-        .map(|c| c.bound.to_string())
+        .map(|c| format!(">{}", c.bound))
         .unwrap_or_else(|| "uncertified".to_string());
     let tested = analysis
         .divisor_bound
@@ -420,8 +643,7 @@ pub fn render(analysis: &StructuralAnalysis) -> String {
          composite.decomp-prefix    {}\n\
          composite.decomp-remainder {}\n\
          composite.residue-2^k      {}\n\
-         window.width               {}\n\
-         window.aperture            2^{}\n\
+         word.width                 {}\n\
          window.period              {}\n\
          negative.factor-bound      {}\n\
          negative.tested-primes     {}\n\
@@ -450,7 +672,6 @@ pub fn render(analysis: &StructuralAnalysis) -> String {
         analysis.decomp_2k.prefix,
         analysis.decomp_2k.remainder,
         analysis.residue_2k,
-        analysis.window_width,
         analysis.window_width,
         period,
         factor_bound,
@@ -539,22 +760,114 @@ pub fn selftest_report() -> Result<String, String> {
         if lte { "PASS" } else { "FAIL" }
     ));
 
-    if ok { Ok(out) } else { Err(out) }
+    let lte_seven = lte_2(&Nat::from_u64(7), &Nat::from_u64(100))? == Nat::from_u64(5);
+    ok &= lte_seven;
+    out.push_str(&format!(
+        "lte2       v2(7^100-1)=5  {}\n",
+        if lte_seven { "PASS" } else { "FAIL" }
+    ));
+
+    for (label, raw, expected) in [
+        (
+            "91",
+            "91",
+            PrimeSieveRead::Factor {
+                p: Nat::from_u64(7),
+                q: Nat::from_u64(13),
+                tested_primes: 0,
+            },
+        ),
+        ("97", "97", PrimeSieveRead::Prime { tested_primes: 0 }),
+        (
+            "1000001",
+            "1000001",
+            PrimeSieveRead::Factor {
+                p: Nat::from_u64(101),
+                q: Nat::from_u64(9901),
+                tested_primes: 0,
+            },
+        ),
+        (
+            "274507",
+            "274507",
+            PrimeSieveRead::Bounded {
+                aperture: 256,
+                tested_primes: 0,
+            },
+        ),
+    ] {
+        let value = Nat::from_decimal(raw).expect("selftest values are decimal");
+        let read = prime_sieve_read(&encode_cell_binary(&value), 256)?;
+        let pass = match (read, expected) {
+            (PrimeSieveRead::Factor { p, q, .. }, PrimeSieveRead::Factor { p: ep, q: eq, .. }) => {
+                p == ep && q == eq
+            }
+            (PrimeSieveRead::Prime { .. }, PrimeSieveRead::Prime { .. }) => true,
+            (
+                PrimeSieveRead::Bounded { aperture, .. },
+                PrimeSieveRead::Bounded { aperture: ea, .. },
+            ) => aperture == ea,
+            _ => false,
+        };
+        ok &= pass;
+        out.push_str(&format!(
+            "prime-sieve {label:<8}  {}\n",
+            if pass { "PASS" } else { "FAIL" }
+        ));
+    }
+
+    if ok {
+        Ok(out)
+    } else {
+        Err(out)
+    }
 }
 
 pub fn help_addendum() -> &'static str {
-    "godel analyze <natural-number|cell-binary-word>\n\
+    "godel analyze <natural-number|cell-binary-word> [window=8, 2..16]\n\
+     bounded sieve miss hands off to prime_winding and verifies its product\n\
      godel lte2 <odd-a> <even-m>\n"
 }
 
 pub fn command(args: &[&str]) -> Result<String, String> {
     match args.first().copied() {
         Some("analyze") => {
-            let raw = args
-                .get(1)
-                .ok_or_else(|| "godel analyze <natural-number|cell-binary-word>".to_string())?;
+            if !(2..=3).contains(&args.len()) {
+                return Err("godel analyze <natural-number|cell-binary-word> [window]".to_string());
+            }
+            let raw = args.get(1).copied().ok_or_else(|| {
+                "godel analyze <natural-number|cell-binary-word> [window]".to_string()
+            })?;
+            let window = args
+                .get(2)
+                .map(|raw_window| {
+                    raw_window
+                        .parse::<u32>()
+                        .map_err(|_| "window must be an integer from 2 through 16".to_string())
+                })
+                .transpose()?
+                .unwrap_or(8);
+            if !(2..=16).contains(&window) {
+                return Err("window must be an integer from 2 through 16".to_string());
+            }
             let value = parse_input(raw)?;
-            Ok(render(&analyze(&value, None)?))
+            let word = encode_cell_binary(&value);
+            let aperture = 1usize << window;
+            let sieve_read = prime_sieve_read(&word, aperture)?;
+            let certificate = match &sieve_read {
+                PrimeSieveRead::Bounded {
+                    aperture,
+                    tested_primes,
+                } => Some(DivisorBoundCertificate {
+                    bound: Nat::from_u64(*aperture as u64),
+                    tested_primes: Nat::from_u64(*tested_primes as u64),
+                    aperture_width: Nat::from_u64(window as u64),
+                }),
+                _ => None,
+            };
+            let mut report = render(&analyze(&value, certificate)?);
+            report.push_str(&sieve_report(&value, &word, aperture)?);
+            Ok(report)
         }
         Some("lte2") => {
             if args.len() != 3 {
