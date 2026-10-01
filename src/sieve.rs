@@ -8,7 +8,9 @@
 //! gcd(X - Y, N). Value-sized arithmetic (a^2 mod N, the gcd) runs on the shared
 //! folded kernel; the base primes and the GF(2) matrix are machine words.
 
-use crate::morphism_factor::{add, cmp, divmod, gcd, isqrt, modulo, mul, one, sub, tape_u64, trim, zero};
+use crate::morphism_factor::{
+    add, cmp, divmod, gcd, isqrt, modulo, mul, mul_mod, mul_mod_add, one, sub, tape_u64, trim, zero,
+};
 use crate::vox::EVALF;
 use alloc::format;
 use alloc::string::String;
@@ -160,7 +162,7 @@ pub fn dixon(n: &Tape, base_bound: usize, extra: usize, max_candidates: u64) -> 
     let need = width + extra;
     while a_of.len() < need && tried < max_candidates {
         tried += 1;
-        let q = modulo(&mul(&a, &a), n); // a^2 mod N
+        let q = mul_mod(&a, &a, n); // a^2 mod N
         if let Some(exps) = smooth_over(&q, &base) {
             a_of.push(a.clone());
             exp_of.push(exps);
@@ -280,7 +282,7 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
             }
             let mut x = one();
             for &i in &sel {
-                x = modulo(&mul(&x, &a_of[i]), n);
+                x = mul_mod(&x, &a_of[i], n);
             }
             let mut total = vec![0u32; width];
             for &i in &sel {
@@ -291,7 +293,7 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
             let mut y = one();
             for c in 0..width {
                 for _ in 0..total[c] / 2 {
-                    y = modulo(&mul(&y, &tape_u64(base[c])), n);
+                    y = mul_mod(&y, &tape_u64(base[c]), n);
                 }
             }
             let diff = if cmp(&x, &y) != core::cmp::Ordering::Less {
@@ -649,13 +651,13 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     'outer: while a_of.len() < need && a_count < max_a {
         // rho arm: 2048 steps with a batched gcd, fused first-close with the sieve
         for _ in 0..2048 {
-            rx = modulo(&add(&mul(&rx, &rx), &rc), &n);
-            let y1 = modulo(&add(&mul(&ry, &ry), &rc), &n);
-            ry = modulo(&add(&mul(&y1, &y1), &rc), &n);
+            rx = mul_mod_add(&rx, &rx, &rc, &n);
+            let y1 = mul_mod_add(&ry, &ry, &rc, &n);
+            ry = mul_mod_add(&y1, &y1, &rc, &n);
             let d = if cmp(&rx, &ry) != core::cmp::Ordering::Less { sub(&rx, &ry) } else { sub(&ry, &rx) };
             let dt = trim(d);
             if !zero(&dt) {
-                rprod = modulo(&mul(&rprod, &dt), &n);
+                rprod = mul_mod(&rprod, &dt, &n);
             }
         }
         let g = gcd(trim(rprod.clone()), n.clone());
