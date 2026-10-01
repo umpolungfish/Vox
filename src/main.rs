@@ -5,6 +5,7 @@
 
 use ::vox::vox;
 mod circuit_cli;
+mod native_profile;
 use ::vox::vox_decode;
 use ::vox::lanes;
 use ::vox::genetic;
@@ -22,6 +23,7 @@ fn usage() {
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
+    eprintln!("  vox profile-native <ELF> <report-prefix>   sample native instruction addresses; capture target output");
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
     eprintln!("  vox glyphs <module.imasm> <output.glyphs>   encode complete module as glyphs");
     eprintln!("  vox unglyphs <word.glyphs> <output.imasm>  restore exact executable module");
@@ -29,6 +31,7 @@ fn usage() {
     eprintln!("  vox word <file>           emit the structure word per function");
     eprintln!("  vox verdict <glyph-word>  verdict one word (T/B/N/F)");
     eprintln!("  vox morphism-factor <native-numeral-word>   factor entirely over IMASM tapes");
+    eprintln!("  vox prime-check <decimal>   read primality through the resident IMASM numeral lane");
     eprintln!("  vox coprime <base> <N>   validate that a phase base is a unit modulo N");
     eprintln!("  vox extract-factor <factor-carrier-word>    passive ≡c extraction from an already factor-bearing trace");
     eprintln!("  vox construct-carrier <operator-word>        decompose factoring morphisms and EML frame transport");
@@ -1156,6 +1159,14 @@ fn main() {
             std::process::exit(0); }
         Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
             let raw=read_or_exit(&args[1]); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
+        Some("profile-native") => {
+            if args.len() != 3 { eprintln!("vox profile-native <ELF> <report-prefix>"); return; }
+            if let Err(error) = native_profile::run(&args[1], &args[2]) {
+                eprintln!("native profile: {error}");
+                std::process::exit(1);
+            }
+            std::process::exit(0);
+        }
         Some("disasm") => {
             if args.len() < 2 { eprintln!("vox disasm <file> [symbol]"); return; }
             let raw = read_or_exit(&args[1]);
@@ -1183,6 +1194,20 @@ fn main() {
         Some("morphism-factor") => {
             if args.len() != 2 { eprintln!("vox morphism-factor <native-numeral-word>"); 1 }
             else { match ::vox::morphism_factor::factor(&args[1]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
+        }
+        Some("prime-check") => {
+            if args.len() != 2 {
+                eprintln!("vox prime-check <decimal>");
+                1
+            } else {
+                match ::vox::morphism_factor::decimal_to_tape(&args[1]) {
+                    Some(n) => {
+                        println!("{}", if ::vox::morphism_factor::miller_rabin(&n) { "prime" } else { "composite" });
+                        0
+                    }
+                    None => { eprintln!("vox prime-check: invalid decimal numeral"); 2 }
+                }
+            }
         }
         Some("extract-factor") => {
             if args.len() != 2 {

@@ -19,11 +19,70 @@ use alloc::vec::Vec;
 
 type Tape = Vec<char>;
 
+#[cfg(test)]
+mod threshold_tests {
+    use super::*;
+    #[test]
+    fn vector_threshold_matches_signed_scalar_at_every_tail() {
+        let scores = [i32::MIN, -10, -1, 0, 1, 4, 15, 16, 17, 100, i32::MAX];
+        let mut positions = vec![usize::MAX];
+        for length in 0..=scores.len() {
+            for threshold in [i32::MIN, -10, -1, 0, 1, 15, 16, 17, i32::MAX] {
+                threshold_positions(&scores[..length], threshold, &mut positions);
+                let expected: Vec<_> = scores[..length].iter().enumerate()
+                    .filter_map(|(i, &score)| (score >= threshold).then_some(i)).collect();
+                assert_eq!(positions, expected);
+            }
+        }
+    }
+}
+
 // ---- machine-word number theory for the base and the roots ----
 
 fn mulmod(a: u64, b: u64, m: u64) -> u64 {
     ((a as u128 * b as u128) % m as u128) as u64
 }
+
+/// Exact remainder for a 32-bit candidate and a fixed 32-bit sieve prime.
+/// The reciprocal quotient is at most one below the exact quotient.
+fn remainder_u32(n: u32, modulus: u32, reciprocal: u64) -> u32 {
+    let quotient = (u64::from(n) * reciprocal) >> 32;
+    let mut remainder = u64::from(n) - quotient * u64::from(modulus);
+    if remainder >= u64::from(modulus) {
+        remainder -= u64::from(modulus);
+    }
+    remainder as u32
+}
+
+/// Collect exactly the positions whose sieve score meets the threshold.
+/// SSE2 compares four scores per instruction on x86-64; the tail stays scalar.
+fn threshold_positions(scores: &[i32], threshold: i32, positions: &mut Vec<usize>) {
+    positions.clear();
+    let mut offset = 0;
+    #[cfg(target_arch = "x86_64")]
+    unsafe {
+        use core::arch::x86_64::*;
+        let boundary = _mm_set1_epi32(threshold);
+        while offset + 4 <= scores.len() {
+            let values = _mm_loadu_si128(scores.as_ptr().add(offset).cast());
+            let below = _mm_cmpgt_epi32(boundary, values);
+            let mut mask = (!_mm_movemask_epi8(below) as u32) & 0x1111;
+            while mask != 0 {
+                let lane = (mask.trailing_zeros() / 4) as usize;
+                positions.push(offset + lane);
+                mask &= mask - 1;
+            }
+            offset += 4;
+        }
+    }
+    for (index, &score) in scores[offset..].iter().enumerate() {
+        if score >= threshold {
+            positions.push(offset + index);
+        }
+    }
+}
+
+
 fn powmod(mut a: u64, mut e: u64, m: u64) -> u64 {
     let mut r = 1u64 % m;
     a %= m;
@@ -541,7 +600,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let m_half = m_half.max(match bits {
         0..=120 => 32_768,
         121..=150 => 131_072,
-        _ => 524_288,
+        _ => 1_048_576,
     });
     // N stays on the tape. The polynomial coefficients A and B fit a machine word
     // (they are near sqrt(N)); C, g(x) and A x + B are carried on the tapes, so the
@@ -600,6 +659,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     if width < 4 {
         return None;
     }
+    let reciprocal32: Vec<u64> = base
+        .iter()
+        .map(|&prime| (1u64 << 32) / prime)
+        .collect();
     let need = width + extra;
     // A is a product of k distinct QR primes each near a_target^(1/k), so their
     // product lands close to the optimal A that keeps the polynomial values small.
@@ -632,55 +695,56 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
     let n_tape = n.clone();
     let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
-    let thresh_slack = (2 * (flog2(base_bound as u128) + 1) + 6) as i32;
+    let thresh_slack = (flog2(base_bound as u128) + flog2(width as u128)) as i32;
 
     // A owns the inverses and sieve storage. Its B siblings prepare window
     // offsets, which their candidates consume without repeating that setup.
     // Distinct A sets come from lexicographic combinations of the prime pool.
     let mut combo: Vec<usize> = (0..k).collect();
     let mut _poly = 0usize;
-    let max_a = 100_000usize;
     let mut a_count = 0usize;
-    // Fork the rho arm into the sieve's own loop: a batch of rho advances each A
-    // iteration, and whichever arm closes first returns. rho wins the unbalanced
-    // shape (a small factor found in few steps), the sieve wins the balanced shape;
-    // fused here, the membrane's time is the minimum of the two, by the wiring.
+    // Check the rho arm at amortized checkpoints while the sieve advances. A
+    // complete rho batch per polynomial repeats orbit work on balanced inputs.
     let two = tape_u64(2);
     let (mut rx, mut ry, mut rc, mut rprod) = (two.clone(), two.clone(), one(), one());
     let rho_close = |g: &Tape| cmp(g, &one()) == core::cmp::Ordering::Greater && cmp(g, &n) == core::cmp::Ordering::Less;
-    'outer: while a_of.len() < need && a_count < max_a {
-        // rho arm: 2048 steps with a batched gcd, fused first-close with the sieve
-        for _ in 0..2048 {
-            rx = mul_mod_add(&rx, &rx, &rc, &n);
-            let y1 = mul_mod_add(&ry, &ry, &rc, &n);
-            ry = mul_mod_add(&y1, &y1, &rc, &n);
-            let d = if cmp(&rx, &ry) != core::cmp::Ordering::Less { sub(&rx, &ry) } else { sub(&ry, &rx) };
-            let dt = trim(d);
-            if !zero(&dt) {
-                rprod = mul_mod(&rprod, &dt, &n);
+    'outer: while a_of.len() < need {
+        // The current factor-base width sets both the orbit batch and its
+        // checkpoint spacing, so rho's work scales with the live sieve shape.
+        if a_count % width == 0 {
+            for _ in 0..width {
+                rx = mul_mod_add(&rx, &rx, &rc, &n);
+                let y1 = mul_mod_add(&ry, &ry, &rc, &n);
+                ry = mul_mod_add(&y1, &y1, &rc, &n);
+                let d = if cmp(&rx, &ry) != core::cmp::Ordering::Less { sub(&rx, &ry) } else { sub(&ry, &rx) };
+                let dt = trim(d);
+                if !zero(&dt) {
+                    rprod = mul_mod(&rprod, &dt, &n);
+                }
             }
+            let g = gcd(trim(rprod.clone()), n.clone());
+            if rho_close(&g) {
+                return Some(g);
+            }
+            if cmp(&g, &n) == core::cmp::Ordering::Equal {
+                rc = add(&rc, &one());
+                rx = two.clone();
+                ry = two.clone();
+            }
+            rprod = one();
         }
-        let g = gcd(trim(rprod.clone()), n.clone());
-        if rho_close(&g) {
-            return Some(g);
-        }
-        if cmp(&g, &n) == core::cmp::Ordering::Equal {
-            rc = add(&rc, &one());
-            rx = two.clone();
-            ry = two.clone();
-        }
-        rprod = one();
         let ks: Vec<usize> = combo.iter().map(|&c| a_pool[c]).collect();
         let mut a_val: u128 = 1;
         for &kk in &ks {
             a_val *= base[kk] as u128;
         }
         a_count += 1;
-        if !next_combination(&mut combo, npool) {
-            combo = (0..k).collect();
-        }
+        let combinations_exhausted = !next_combination(&mut combo, npool);
         let kk = ks.len();
         if kk < 3 {
+            if combinations_exhausted {
+                break 'outer;
+            }
             continue;
         }
 
@@ -697,9 +761,9 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         // skip[j] marks a prime left out of the sieve (2, or a divisor of A),
         // handled in the factor step instead.
         let mut ainv = vec![0i64; width];
-        let mut skip = vec![true; width];
-        for j in 1..width {
-            let p = base[j];
+            let mut skip = vec![true; width];
+            for j in 1..width {
+                let p = base[j];
             if p == 2 || a_val % p as u128 == 0 {
                 continue;
             }
@@ -721,8 +785,9 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         // next1/next2 carry each prime's running mark position across blocks so no
         // hit is recomputed. Blocking keeps the working set in cache, which is what
         // the bandwidth-bound span sieve was thrashing.
-        const BLOCK: usize = 1 << 15;
+        const BLOCK: usize = 1 << 16;
         let mut blk = vec![0i32; BLOCK];
+        let mut candidates = Vec::new();
         let mut next1 = vec![0i64; width];
         let mut next2 = vec![0i64; width];
         for pat in 0..nb {
@@ -755,14 +820,14 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                 }
                 let p = base[j];
                 let pi = p as i64;
-                let t = sqrt_n[j] as i64;
+            let t = sqrt_n[j] as i64;
                 let bmod = b_i.rem_euclid(pi as i128) as i64;
-                soln1[j] = (((ainv[j] * (((t - bmod) % pi) + pi)) % pi) + pi) % pi;
-                soln2[j] = (((ainv[j] * ((((pi - t) - bmod) % pi) + pi)) % pi) + pi) % pi;
+                soln1[j] = (ainv[j] * (t - bmod)).rem_euclid(pi);
+                soln2[j] = (ainv[j] * ((pi - t) - bmod)).rem_euclid(pi);
                 // Store window coordinates once per sibling. Both sieving and
                 // candidate division consume these same prepared offsets.
-                soln1[j] = (soln1[j] + m as i64).rem_euclid(pi);
-                soln2[j] = (soln2[j] + m as i64).rem_euclid(pi);
+                soln1[j] = (soln1[j] + m as i64) % pi;
+                soln2[j] = (soln2[j] + m as i64) % pi;
             }
             // C = (B^2 - N)/A on the tapes; C < 0 since B^2 < N. Kept as magnitude.
             let b_abs = b_i.unsigned_abs();
@@ -792,33 +857,30 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     let l = lp[j];
                     let mut idx = next1[j] as usize;
                     while idx < bend {
-                        blk[idx - bstart] += l;
+                        // Running positions are >= bstart. The loop guard puts
+                        // idx-bstart below blen, and blen is at most blk.len().
+                        unsafe { *blk.get_unchecked_mut(idx - bstart) += l; }
                         idx += pi;
                     }
                     next1[j] = idx as i64;
                     let mut idx2 = next2[j] as usize;
                     while idx2 < bend {
-                        blk[idx2 - bstart] += l;
+                        // The same carried-position invariant applies to lane 2.
+                        unsafe { *blk.get_unchecked_mut(idx2 - bstart) += l; }
                         idx2 += pi;
                     }
                     next2[j] = idx2 as i64;
                 }
-                for off in 0..blen {
-                    if a_of.len() >= need {
-                        break 'outer;
-                    }
-                    if blk[off] < thresh {
-                        continue;
-                    }
+                threshold_positions(&blk[..blen], thresh, &mut candidates);
+                for &off in &candidates {
                     let xi = bstart + off;
-                    let xi64 = xi as i64;
                     // hit test: which base primes land on this position
                     let hit = |j: usize| -> bool {
                         if soln1[j] < 0 {
                             skip[j]
                         } else {
-                            let xr = xi64 % base[j] as i64;
-                            xr == soln1[j] || xr == soln2[j]
+                            let xr = remainder_u32(xi as u32, base[j] as u32, reciprocal32[j]);
+                            i64::from(xr) == soln1[j] || i64::from(xr) == soln2[j]
                         }
                     };
                     // Produce the smooth relation (g_neg, exps, |Ax+B|) or skip.
@@ -929,9 +991,15 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     }
                     a_of.push(axb_t);
                     exp_of.push(exps);
+                    if a_of.len() >= need {
+                        break 'outer;
+                    }
                 }
                 bstart += BLOCK;
             }
+        }
+        if combinations_exhausted {
+            break 'outer;
         }
     }
     #[cfg(feature = "mpqs_debug")]
