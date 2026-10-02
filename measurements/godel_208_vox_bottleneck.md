@@ -267,3 +267,40 @@ Result: `../membranes/godel_random_semiprime_baked_20261001_shared_residual_208/
 ELF SHA256: `18977ad20804a4393b7f2012a0e3b162fa698ab51683486051246a6f0e619123`.
 Vox decoding: `godel_208_shared_residual.vox.disasm`.
 Full follow-up reading: `godel_208_shared_residual_profile_20261001.*`.
+
+The rebuilt Gödel `analyze` handoff on the same input closes in **160.988
+seconds**. Stage 4 reports word multiplication PASS, word-primality PASS and
+semiprime closure T. The factor pair matches the separate fixture, with empty
+stderr. All three existing sieve tests also pass after the repair.
+Gödel reading: `godel_208_shared_residual_analyze_20261001.*`.
+
+## Polynomial coefficient order
+
+Vox's coefficient-size reading on the same input records a 72-bit A against
+an 81-bit target, with 136-bit candidate magnitudes. The final polynomial has
+a 73-bit A. The reading closes in 171.818 seconds with the verified factor
+pair and empty stderr: `godel_208_polysize_profile_20261002.*`.
+
+The prime pool previously visited combinations from the low edge of its
+allowed band. It now orders the same primes by distance from the computed
+per-prime target. All combinations remain available. The factor base, sieve
+window, score threshold and shared-residual closure are retained.
+
+The same input closes in **56.465 seconds**, with **56.348 seconds** of process
+CPU time. Both factor lanes, Gödel word multiplication and complete IMASM
+recovery pass. All twelve sieve tests pass. This is one input and one direct
+execution; arbitrary-width extraction under one minute remains unverified.
+
+Result: `../membranes/godel_random_semiprime_baked_20261002_target_order_208/results.jsonl`.
+ELF SHA256: `67cb031fe82e9b5afb210478eb9750346a635c92529a12a2ecac2b31714a14da`.
+Vox decoding: `godel_208_target_order.vox.disasm`.
+
+The complete Vox follow-up closes in **46.123 seconds**, with the same factor
+equation and empty stderr. Actual A and target A both have **81 bits**; the
+latest candidate has **125 bits**. The run collects its 10,989 relations in
+**590 polynomials**, scanning 14,138,425,421 positions and checking 24,081
+candidates. Root marking at `75f95..76016` accounts for **60.957%** of the
+4,495 samples. Matrix reconstruction now accounts for **20.245%**. These
+shares identify the remaining work after the coefficient repair.
+Full reading: `godel_208_target_order_profile_20261002.*`.
+Decoded instruction reading: `godel_208_target_order_hotspots_20261002.txt`.
