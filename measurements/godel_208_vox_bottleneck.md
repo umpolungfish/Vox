@@ -102,3 +102,24 @@ Decoded instructions: `godel_208_wordpivot.vox.disasm`.
 Vox's `profile-native` also accepts `--registers` to preserve the live general
 registers with each address sample. The hotspot reader reports source register
 values at hot additions, allowing the remaining prime strides to be measured.
+
+## Register trace and rejected root pairing
+
+The retained implementation completed a full Vox register profile in 360.034
+seconds (35,361 samples). Its factor output matches the verified 360.475-second
+binary, with empty stderr. Remaining root marking at `713ed..71454` accounts
+for 63.940% of samples. The two stride additions at `71433` and `7144c`
+account for 24.620% and 23.763%. Live strides include 37, 43, 53 and 61.
+These are factor-base primes, independently read from the running registers.
+
+An exact paired-root recurrence preserved every score and both carried root
+positions in reference checks, but the same input took 399.382 seconds.
+That is 10.793% slower than 360.475 seconds. The paired-root source change
+was removed; the measured faster implementation remains canonical. Its
+experimental result and Vox disassembly are retained for reproducibility.
+This experiment demonstrates that reducing loop branches alone does not
+establish a speedup. No larger input was used.
+
+Register profile: `godel_208_native_folded_wordpivot.*`.
+Rejected experiment: `../membranes/godel_random_semiprime_baked_20261001_score_period_wordpivot_rootpair_208/results.jsonl`.
+Rejected instruction stream: `godel_208_rootpair.vox.disasm`.
