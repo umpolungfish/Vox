@@ -1,0 +1,8 @@
+{
+  "n": "266175155279792434973506259190185380993589458872977057421959357",
+  "elapsed_seconds": 160.98843905702233,
+  "stage4_word_product": "PASS",
+  "stage4_word_primality": "PASS",
+  "semiprime_closure": "T",
+  "exit_code": 0
+}

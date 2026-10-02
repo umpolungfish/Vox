@@ -1,11 +1,13 @@
 //! trace_word.rs — the trace is only a word. A trace record is
 //!
 //! ```text
-//!     ∈ <repr> <judgment> <recognised> <next> ∈ <len8> ∋ <applied-word> ∋
+//!     ∈ <repr> <judgment> <recognised> <next> ∈ <length> ∋ <applied-word> ∋
 //! ```
 //!
-//! and TRACE := RECORD*. The applied word travels BY COUNT (8 marks over {⊤=1,⊥=0}),
-//! so an applied word that itself contains ∈/∋ is read unambiguously and the whole
+//! and TRACE := RECORD*. The applied word travels BY COUNT over {⊤=1,⊥=0}.
+//! The length frame grows with the payload; existing eight-mark frames retain
+//! their byte representation.
+//! An applied word that itself contains ∈/∋ is read unambiguously and the whole
 //! trace round-trips byte-for-byte. `GStep` is a reader/view over positions — the
 //! production representation is the word.
 
@@ -14,21 +16,44 @@ use crate::router_marks::{GStep, M_T, M_F, M_B, M_N, M_FIX};
 
 pub type Mark = char;
 
-/// Encode one record: ∈ repr judgment recognised next ∈ <8 len> ∋ <applied:L> ∋
+/// Encode one record with its complete payload length.
 pub fn encode_step(s: &GStep) -> Vec<Mark> {
-    let mut v: Vec<Mark> = Vec::with_capacity(8 + s.applied_word.len());
+    let n = s.applied_word.len();
+    let width = ((usize::BITS - n.leading_zeros()) as usize).max(8);
+    let mut v: Vec<Mark> = Vec::with_capacity(8 + width + n);
     v.push('∈');
     v.push(s.repr);
     v.push(s.judgment);
     v.push(s.recognised);
     v.push(s.next);
     v.push('∈');
-    let n = s.applied_word.len();
-    for bit in (0..8).rev() { v.push(if (n >> bit) & 1 == 1 { M_T } else { M_F }); }
+    for bit in (0..width).rev() { v.push(if (n >> bit) & 1 == 1 { M_T } else { M_F }); }
     v.push('∋');
     v.extend_from_slice(&s.applied_word);
     v.push('∋');
     v
+}
+
+/// Read the delimited length and payload without allocating from an unchecked
+/// count. Both the trace reader and resident editor use this framing rule.
+pub(crate) fn read_payload<'a>(w: &'a [Mark], i: &mut usize) -> Option<&'a [Mark]> {
+    if *w.get(*i)? != '∈' { return None; }
+    *i += 1;
+    let start = *i;
+    let mut len = 0usize;
+    loop {
+        let mark = *w.get(*i)?;
+        if mark == '∋' { break; }
+        let bit = match mark { '⊤' => 1usize, '⊥' => 0usize, _ => return None };
+        len = len.checked_mul(2)?.checked_add(bit)?;
+        *i += 1;
+    }
+    if *i == start { return None; }
+    *i += 1;
+    let end = i.checked_add(len)?;
+    let payload = w.get(*i..end)?;
+    *i = end;
+    Some(payload)
 }
 
 /// Encode a whole trajectory: concatenated record words.
@@ -49,17 +74,7 @@ pub fn decode_trace(w: &[Mark]) -> Option<Vec<GStep>> {
         let judgment = *w.get(i)?; i += 1;
         let recognised = *w.get(i)?; i += 1;
         let next = *w.get(i)?; i += 1;
-        if *w.get(i)? != '∈' { return None; }
-        i += 1;
-        let mut len = 0usize;
-        for _ in 0..8 {
-            let b = *w.get(i)?; i += 1;
-            len = (len << 1) | match b { '⊤' => 1usize, '⊥' => 0usize, _ => return None };
-        }
-        if *w.get(i)? != '∋' { return None; }
-        i += 1;
-        let mut aw = Vec::with_capacity(len);
-        for _ in 0..len { aw.push(*w.get(i)?); i += 1; }
+        let aw = read_payload(w, &mut i)?.to_vec();
         if *w.get(i)? != '∋' { return None; }
         i += 1;
         out.push(GStep { repr, judgment, recognised, next, applied_word: aw });

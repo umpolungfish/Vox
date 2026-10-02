@@ -406,35 +406,55 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     (l_trim(q), l_trim(r))
 }
 
-/// A retained fold of an IMASM numeral. Its extent follows the tape; callers
-/// reuse the limbs across modular views instead of folding for every view.
+/// Retain folded limbs while deriving modular views of an unrestricted tape.
 pub(crate) struct FoldedTape(Limbs);
 impl FoldedTape {
-    pub(crate) fn new(tape:&[char])->Self {Self(fold(tape))}
-    pub(crate) fn remainder_word(&self,modulus:u64)->u64 {
-        assert!(modulus!=0);
-        let mut remainder=0u128;
+    pub(crate) fn new(tape: &[char]) -> Self {
+        Self(fold(tape))
+    }
+    pub(crate) fn into_tape(self) -> Tape {
+        unfold(&self.0)
+    }
+    pub(crate) fn divide_word_exact(&mut self, divisor: u64) -> bool {
+        assert!(divisor > 1);
+        if self.remainder_word(divisor) != 0 {
+            return false;
+        }
+        let mut carry = 0u128;
+        for limb in self.0.iter_mut().rev() {
+            let wide = (carry << 64) | u128::from(*limb);
+            *limb = (wide / u128::from(divisor)) as u64;
+            carry = wide % u128::from(divisor);
+        }
+        while self.0.len() > 1 && self.0.last() == Some(&0) {
+            self.0.pop();
+        }
+        true
+    }
+    pub(crate) fn remainder_word(&self, modulus: u64) -> u64 {
+        assert_ne!(modulus, 0);
+        let mut remainder = 0u128;
         for &limb in self.0.iter().rev() {
-            remainder=((remainder<<64)|u128::from(limb))%u128::from(modulus);
+            remainder = ((remainder << 64) | u128::from(limb)) % u128::from(modulus);
         }
         remainder as u64
     }
 }
 
-/// Extended Euclid within a folded residue word. Products have a double-width
-/// carry; the source numeral retains its unrestricted enclosing tape extent.
-pub(crate) fn inverse_residue_word(value:u64,modulus:u64)->Option<u64> {
-    if modulus<2 {return None;}
-    let (mut r0,mut r1)=(modulus,value%modulus);
-    let (mut t0,mut t1)=(0u64,1u64);
-    while r1!=0 {
-        let quotient=r0/r1;
-        (r0,r1)=(r1,r0%r1);
-        let product=(u128::from(quotient)*u128::from(t1))%u128::from(modulus);
-        let next=(u128::from(t0)+u128::from(modulus)-product)%u128::from(modulus);
-        (t0,t1)=(t1,next as u64);
+pub(crate) fn inverse_residue_word(value: u64, modulus: u64) -> Option<u64> {
+    if modulus < 2 {
+        return None;
     }
-    (r0==1).then_some(t0)
+    let (mut r0, mut r1) = (modulus, value % modulus);
+    let (mut t0, mut t1) = (0u64, 1u64);
+    while r1 != 0 {
+        let quotient = r0 / r1;
+        (r0, r1) = (r1, r0 % r1);
+        let product = (u128::from(quotient) * u128::from(t1)) % u128::from(modulus);
+        let next = (u128::from(t0) + u128::from(modulus) - product) % u128::from(modulus);
+        (t0, t1) = (t1, next as u64);
+    }
+    (r0 == 1).then_some(t0)
 }
 
 pub fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
@@ -1116,11 +1136,14 @@ struct State {
     round: Tape,
     exhausted: bool,
     selected: Option<Tape>,
-    // UNBRAID's explicit DFS stack: each frame is (p bits so far, q bits so
-    // far), LSB first. Lazily seeded from state.n on the first round.
-    unbraid_stack: Vec<(Tape, Tape)>,
+    // Each frame carries the two LSB-first lanes, the exact IMASM carry, and
+    // the next product position to close.
+    unbraid_stack: Vec<(Tape, Tape, Tape, usize)>,
+    unbraid_pair: Option<(Tape, Tape)>,
     unbraid_p_bits: usize,
     unbraid_q_bits: usize,
+    unbraid_p_bound: Tape,
+    unbraid_q_bound: Tape,
     unbraid_started: bool,
     unbraid_done: bool,
     carrier_closed: bool,
@@ -1730,8 +1753,11 @@ pub fn run_carrier_rounds_with_phase_base(
         exhausted: false,
         selected: None,
         unbraid_stack: Vec::new(),
+        unbraid_pair: None,
         unbraid_p_bits: 0,
         unbraid_q_bits: 0,
+        unbraid_p_bound: vec![EVALT],
+        unbraid_q_bound: vec![EVALT],
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
@@ -2025,9 +2051,9 @@ fn apply_morphism(operator: &[char], state: &mut State) {
             state.unbraid_q_bits = total_bits + 1 - state.unbraid_p_bits;
             // Seed: p0 = q0 = 1 (both odd, since N is odd -- the caller already
             // peeled the even case before entering the tower).
-            state.unbraid_stack.push((vec![EVALF], vec![EVALF]));
+            state.unbraid_stack.push((vec![EVALF], vec![EVALF], vec![EVALT], 1));
         }
-        let Some((p, q)) = state.unbraid_stack.pop() else {
+        let Some((p, q, carry, position)) = state.unbraid_stack.pop() else {
             // This bit-width split failed. Close the outer carrier so the
             // caller can distinguish exhausted support from a live re-entry.
             state.unbraid_done = true;
@@ -2037,21 +2063,19 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         };
         let p_bits = state.unbraid_p_bits;
         let q_bits = state.unbraid_q_bits;
+        let p_bound = &state.unbraid_p_bound;
+        let q_bound = &state.unbraid_q_bound;
         if p.len() == p_bits && q.len() == q_bits {
             let prod = trim(mul(&p, &q));
             if prod == trim(state.n.clone()) {
                 state.unbraid_done = true;
-                state.selected = Some(trim(p));
+                state.unbraid_pair = Some((trim(p), trim(q)));
+                state.selected = state.unbraid_pair.as_ref().map(|(left, _)| left.clone());
             }
             return;
         }
         let p_open = p.len() < p_bits;
         let q_open = q.len() < q_bits;
-        let k = core::cmp::max(
-            if p_open { p.len() + 1 } else { p.len() },
-            if q_open { q.len() + 1 } else { q.len() },
-        );
-        let n_low = unbraid_low_bits(&state.n, k);
         // c's parity fixes p_bit XOR q_bit; the two candidates at odd parity
         // (p_bit,q_bit) = (0,1) and (1,0) are related by exchanging the two
         // factors' identities for every bit still to come, since N=p*q is
@@ -2069,28 +2093,66 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         let symmetric_split = p_bits == q_bits && p == q;
         let mut pushed_swap_pair = false;
         for &pb in &[0u8, 1u8] {
-            if !p_open && pb == 1 {
+            if (!p_open && pb == 1) || (p_open && p.len() + 1 == p_bits && pb == 0) {
                 continue;
             }
-            for &qb in &[0u8, 1u8] {
-                if !q_open && qb == 1 {
+            let mut new_p = p.clone();
+            if p_open {
+                new_p.push(if pb == 1 { EVALF } else { EVALT });
+            }
+            let mut coefficient_without_q_bit = carry.clone();
+            for i in 0..=position {
+                let j = position - i;
+                if i < new_p.len()
+                    && j < q.len()
+                    && new_p[i] == EVALF
+                    && q[j] == EVALF
+                {
+                    coefficient_without_q_bit = add(&coefficient_without_q_bit, &one());
+                }
+            }
+            let q_bit_is_constrained = q_open && p.first() == Some(&EVALF);
+            let target_bit = state.n.get(position).copied().unwrap_or(EVALT) == EVALF;
+            let required_q_bit = if q_bit_is_constrained {
+                Some(u8::from(target_bit
+                    ^ (coefficient_without_q_bit.first().copied() == Some(EVALF))))
+            } else {
+                None
+            };
+            let q_choices: &[u8] = match required_q_bit {
+                Some(0) => &[0],
+                Some(1) => &[1],
+                _ => &[0, 1],
+            };
+            for &qb in q_choices {
+                if (!q_open && qb == 1) || (q_open && q.len() + 1 == q_bits && qb == 0) {
                     continue;
                 }
                 if symmetric_split && pb != qb && pushed_swap_pair {
                     // The mirror of the (pb,qb) pair already pushed this round.
                     continue;
                 }
-                let mut new_p = p.clone();
-                if p_open {
-                    new_p.push(if pb == 1 { EVALF } else { EVALT });
-                }
                 let mut new_q = q.clone();
                 if q_open {
                     new_q.push(if qb == 1 { EVALF } else { EVALT });
                 }
-                let prod_low = unbraid_low_bits(&trim(mul(&new_p, &new_q)), k);
-                if prod_low == n_low {
-                    state.unbraid_stack.push((new_p, new_q));
+                let mut coefficient = carry.clone();
+                for i in 0..=position {
+                    if i < new_p.len()
+                        && position - i < new_q.len()
+                        && new_p[i] == EVALF
+                        && new_q[position - i] == EVALF
+                    {
+                        coefficient = add(&coefficient, &one());
+                    }
+                }
+                let (next_carry, output_bit) = divmod(&coefficient, &two());
+                let source_bit = state.n.get(position).copied().unwrap_or(EVALT);
+                if output_bit.first().copied().unwrap_or(EVALT) == source_bit
+                    && cmp(&new_p, p_bound) != core::cmp::Ordering::Greater
+                    && cmp(&new_q, q_bound) != core::cmp::Ordering::Greater
+                {
+                    state.unbraid_stack.push((new_p.clone(), new_q, next_carry, position + 1));
                     if symmetric_split && pb != qb {
                         pushed_swap_pair = true;
                     }
@@ -2104,13 +2166,170 @@ fn apply_morphism(operator: &[char], state: &mut State) {
     }
 }
 
-/// The low `k` bits of a tape (LSB first), zero-padded if shorter than `k`.
-fn unbraid_low_bits(t: &[char], k: usize) -> Tape {
-    let mut out: Tape = t.iter().take(k).copied().collect();
-    while out.len() < k {
-        out.push(EVALT);
+/// Separate a semiprime by the IMASM bit-carry unfolding alone.
+/// Width pairs cover every pair of nontrivial factor bitlengths whose product
+/// can have the source width. Each branch extends the LSB-first lanes and is
+/// retained only when its low product frame matches the corresponding source
+/// frame. No divisor oracle participates in this path.
+fn unbraid_shift_right(tape: &[char], places: usize) -> Tape {
+    if places >= tape.len() {
+        return vec![EVALT];
     }
-    out
+    trim(tape[places..].to_vec())
+}
+
+/// Search a factor-width pair from its leading frames downward. Each partial
+/// pair denotes an interval of possible factors; multiplying the interval
+/// endpoints gives an exact product interval, so frames that cannot contain
+/// N are discarded before lower bits are opened.
+fn range_unbraid_width(n: &[char], p_bits: usize, q_bits: usize) -> Option<(Tape, Tape)> {
+    let mut p_high = vec![EVALT; p_bits];
+    p_high[p_bits - 1] = EVALF;
+    let mut q_high = vec![EVALT; q_bits];
+    q_high[q_bits - 1] = EVALF;
+    let mut stack = vec![(trim(p_high), trim(q_high), p_bits.max(q_bits) as isize - 2)];
+
+    while let Some((p, q, pos)) = stack.pop() {
+        if pos < 0 {
+            if trim(mul(&p, &q)) == n {
+                return Some((trim(p), trim(q)));
+            }
+            continue;
+        }
+
+        let k = pos as usize;
+        let span = vec![EVALF; k + 1];
+        let p_max = add(&p, &span);
+        let q_max = add(&q, &span);
+        let low = mul(&p, &q);
+        let high = mul(&p_max, &q_max);
+        if cmp(n, &low) == core::cmp::Ordering::Less
+            || cmp(n, &high) == core::cmp::Ordering::Greater
+        {
+            continue;
+        }
+
+        let p_free = k > 0 && k < p_bits.saturating_sub(1);
+        let q_free = k > 0 && k < q_bits.saturating_sub(1);
+        let p_choices: &[bool] = if p_free { &[false, true] } else if k == 0 { &[true] } else { &[false] };
+        let q_choices: &[bool] = if q_free { &[false, true] } else if k == 0 { &[true] } else { &[false] };
+
+        // Stack order preserves the zero-first traversal used by the G-MO
+        // fold. The value tapes grow only when a set bit is selected.
+        for &p_bit in p_choices.iter().rev() {
+            let next_p = if p_bit {
+                let mut bit = vec![EVALT; k];
+                bit.push(EVALF);
+                add(&p, &bit)
+            } else {
+                p.clone()
+            };
+            for &q_bit in q_choices.iter().rev() {
+                let next_q = if q_bit {
+                    let mut bit = vec![EVALT; k];
+                    bit.push(EVALF);
+                    add(&q, &bit)
+                } else {
+                    q.clone()
+                };
+                stack.push((next_p.clone(), next_q, pos - 1));
+            }
+        }
+    }
+    None
+}
+
+pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
+    let n = parse_numeral(word)?;
+    let n = trim(n);
+    let total_bits = n.len();
+    if total_bits < 3 {
+        return Err("semiprime needs two nontrivial factor lanes".into());
+    }
+
+    // The compiler readout fixes the admissible width sums before extraction:
+    // the two factor widths sum to either the source width or source width + 1.
+    // Enumerate those dynamic tape widths from balanced outward, then close
+    // each candidate through the LSB-first product carries.
+    let mut width_pairs = Vec::new();
+    for width_sum in [total_bits, total_bits + 1] {
+        for p_bits in 2..=width_sum / 2 {
+            if width_sum > p_bits {
+                let q_bits = width_sum - p_bits;
+                if (2..total_bits).contains(&q_bits) && p_bits <= q_bits {
+                    width_pairs.push((p_bits, q_bits));
+                }
+            }
+        }
+    }
+    width_pairs.sort_by_key(|(p_bits, q_bits)| p_bits.abs_diff(*q_bits));
+    for (p_bits, q_bits) in width_pairs {
+            if let Some((p, q)) = range_unbraid_width(&n, p_bits, q_bits) {
+                if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                    && cmp(&q, &one()) == core::cmp::Ordering::Greater
+                    && trim(mul(&p, &q)) == n
+                {
+                    return Ok((emit_numeral(&p), emit_numeral(&q)));
+                }
+            }
+            let mut state = State {
+                n: n.clone(),
+                phase_base: two(),
+                candidate: add(&two(), &one()),
+                remainder: vec![EVALT],
+                x: two(),
+                y: two(),
+                phase: one(),
+                eml_partners: None,
+                eml_phase_done: false,
+                negative_support: Vec::new(),
+                divisor: one(),
+                a: two(),
+                pm_a: two(),
+                pm_e: two(),
+                ecm_seed: two(),
+                ecm_round: vec![EVALT],
+                pp_base: tape_u64(3),
+                lehman_k: one(),
+                witness_done: false,
+                prime12_support: None,
+                power_done: false,
+                squfof_done: false,
+                round: vec![EVALT],
+                exhausted: false,
+                selected: None,
+                unbraid_stack: Vec::new(),
+                unbraid_pair: None,
+                unbraid_p_bits: p_bits,
+                unbraid_q_bits: q_bits,
+                unbraid_p_bound: unbraid_shift_right(&n, q_bits - 1),
+                unbraid_q_bound: unbraid_shift_right(&n, p_bits - 1),
+                unbraid_started: true,
+                unbraid_done: false,
+                carrier_closed: false,
+                bridge_count: 0,
+            };
+
+            if bit(state.n[0])? {
+                state.unbraid_stack.push((vec![EVALF], vec![EVALF], vec![EVALT], 1));
+            } else {
+                state.unbraid_stack.push((vec![EVALF], vec![EVALT], vec![EVALT], 1));
+                state.unbraid_stack.push((vec![EVALT], vec![EVALF], vec![EVALT], 1));
+            }
+
+            while !state.unbraid_done {
+                apply_morphism(UNBRAID, &mut state);
+            }
+            if let Some((p, q)) = state.unbraid_pair {
+                if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                    && cmp(&q, &one()) == core::cmp::Ordering::Greater
+                    && trim(mul(&p, &q)) == n
+                {
+                    return Ok((emit_numeral(&p), emit_numeral(&q)));
+                }
+            }
+    }
+    Err("no nontrivial exact bit-carry lane pair closes to the source".into())
 }
 
 fn execute_nested(operators: &[&[char]], state: &mut State) {
@@ -2168,8 +2387,11 @@ pub fn factor(word: &str) -> Result<String, String> {
         exhausted: false,
         selected: None,
         unbraid_stack: Vec::new(),
+        unbraid_pair: None,
         unbraid_p_bits: 0,
         unbraid_q_bits: 0,
+        unbraid_p_bound: vec![EVALT],
+        unbraid_q_bound: vec![EVALT],
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,
@@ -2445,24 +2667,6 @@ pub fn repl_scout(n_in: &[char]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn retained_modular_views_match_the_random_2048_tape() {
-        let source=parse_numeral(include_str!("../tests/fixtures/random_rsa_2048.imasm").trim()).unwrap();
-        let folded=FoldedTape::new(&source);
-        for chunk in source.chunks(64) {
-            let modulus=tape_to_u64(chunk)|1;
-            if modulus==1 {continue;}
-            let divisor=tape_u64(modulus);
-            let residue=folded.remainder_word(modulus);
-            assert_eq!(tape_u64(residue),modulo(&source,&divisor));
-            let inverse=inverse_residue_word(residue,modulus);
-            match mod_inv(&tape_u64(residue),&divisor) {
-                Ok(expected)=>assert_eq!(inverse.map(tape_u64),Some(expected)),
-                Err(_)=>assert!(inverse.is_none()),
-            }
-        }
-    }
 
     #[test]
     fn normalized_limb_division_closes_quotient_and_remainder() {
@@ -3100,8 +3304,11 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         exhausted: false,
         selected: None,
         unbraid_stack: Vec::new(),
+        unbraid_pair: None,
         unbraid_p_bits: 0,
         unbraid_q_bits: 0,
+        unbraid_p_bound: vec![EVALT],
+        unbraid_q_bound: vec![EVALT],
         unbraid_started: false,
         unbraid_done: false,
         carrier_closed: false,

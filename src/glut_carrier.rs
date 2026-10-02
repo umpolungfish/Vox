@@ -110,6 +110,9 @@ impl PreparedGlutMembrane {
         if !resident.finished() {
             return Err("GLUT fused before its verification return".into());
         }
+        if !resident.quantum_phase_closed() {
+            return Err("GLUT fused before its quantum factor-phase return".into());
+        }
         Ok(resident.take_execution())
     }
 }

@@ -1,0 +1,4 @@
+{"bits": 64, "closed": true, "elapsed_seconds": 0.039, "exit": 0, "expected_factors": ["4226628391", "4243387219"], "n": "17935220893831934629", "seed": "56fcf625e252b46ffc98d52674c598bccfaa9c4ab2c94009b96dffaf3b89ac0c"}
+{"bits": 72, "closed": true, "elapsed_seconds": 0.12, "exit": 0, "expected_factors": ["46525766017", "65487906833"], "n": "3046875030255253494161", "seed": "1c47851d4ae787f7715255fa091eecfba1a66cda01e2fada0a4d8bea77068d9e"}
+{"bits": 80, "closed": true, "elapsed_seconds": 0.176, "exit": 0, "expected_factors": ["580154139359", "1081599510083"], "n": "627494432903318907656797", "seed": "301bc1bfb7ab667b01af1004126fbdf6b178fef70eceaa42673b67d385136aac"}
+{"bits": 88, "closed": true, "elapsed_seconds": 0.268, "exit": 0, "expected_factors": ["11647973100971", "16638885156209"], "n": "193809286729668087464578939", "seed": "9035d666ded8aab2628450cabb56e8096fa4f290fe7793de1f67a379c42f7dca"}

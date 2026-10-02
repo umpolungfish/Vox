@@ -21,7 +21,7 @@
 
 use alloc::vec::Vec;
 use crate::router_marks::GStep;
-use crate::trace_word::{decode_trace, encode_step};
+use crate::trace_word::{decode_trace, encode_step, read_payload};
 
 pub type Mark = char;
 
@@ -39,7 +39,7 @@ pub struct TStore {
     pub structure: Vec<Mark>,
     pub cursor: usize,
     pub out: Vec<Mark>,
-    pub depth: i32,
+    pub depth: usize,
     pub seen: usize,           // top-level groups opened so far
     pub target: usize,         // the span begins at the target-th top-level group
     pub groups: usize,         // how many consecutive top-level groups the span covers
@@ -53,7 +53,7 @@ pub struct TStore {
 
 /// Build the structural view of a TRACE word without materialising `GStep`s.
 ///
-/// RECORD := ∈ repr judgment recognised next ∈ <len8> ∋ <applied:len> ∋
+/// RECORD := ∈ repr judgment recognised next ∈ <length> ∋ <applied:len> ∋
 ///
 /// Only the first and last marks of each record are structural for the tape
 /// editor.  The inner ∈/∋ around the length and every ∈/∋ inside applied_word
@@ -73,29 +73,10 @@ fn trace_structure(trace: &[Mark]) -> Option<Vec<Mark>> {
         i = i.checked_add(4)?;
         if i > trace.len() { return None; }
 
-        // inner length frame
-        if *trace.get(i)? != '∈' { return None; }
-        i += 1;
-
-        let mut payload_len = 0usize;
-        for _ in 0..8 {
-            let bit = *trace.get(i)?;
-            i += 1;
-            payload_len = (payload_len << 1) | match bit {
-                '⊤' => 1usize,
-                '⊥' => 0usize,
-                _ => return None,
-            };
-        }
-
-        if *trace.get(i)? != '∋' { return None; }
-        i += 1;
-
-        i = i.checked_add(payload_len)?;
-        if i >= trace.len() { return None; }
+        read_payload(trace, &mut i)?;
 
         // outer record close
-        if trace[i] != '∋' { return None; }
+        if *trace.get(i)? != '∋' { return None; }
         structure[i] = '∋';
         i += 1;
     }
@@ -133,9 +114,8 @@ impl TStore {
 fn run(s: &mut TStore) {
     let op: Vec<Mark> = EDIT_WORD.chars().collect();
     let mut ip = 0usize;
-    let mut budget = 1usize << 20;
-    while budget > 0 && !s.committed {
-        if ip >= op.len() { ip = 0; budget -= 1; continue; }
+    while !s.committed {
+        if ip >= op.len() { ip = 0; continue; }
         match op[ip] {
             // ∈ — a group open. A depth-0 open is a span boundary.
             '\u{2208}' => {
@@ -156,9 +136,8 @@ fn run(s: &mut TStore) {
             '\u{220B}' => {
                 if s.at('\u{220B}') {
                     let was_skipping = s.skipping;
-                    s.depth -= 1;
-                    if s.depth <= 0 {
-                        s.depth = 0;
+                    s.depth = s.depth.saturating_sub(1);
+                    if s.depth == 0 {
                         if s.skipping {
                             s.skip_remaining -= 1;
                             if s.skip_remaining == 0 {
@@ -190,7 +169,6 @@ fn run(s: &mut TStore) {
             _ => {}
         }
         ip += 1;
-        budget -= 1;
     }
 }
 
@@ -198,9 +176,10 @@ fn run(s: &mut TStore) {
 /// at group `target`, and commit the complement with `replacement` spliced at the span
 /// boundary. None iff the span does not fit.
 pub fn tape_edit(trace: &[Mark], target: usize, groups: usize, replacement: Vec<Mark>) -> Option<Vec<Mark>> {
+    if groups == 0 { return None; }
     let mut s = TStore::new(trace, target, groups, replacement);
     run(&mut s);
-    if !s.skipped { return None; }
+    if !s.skipped || s.skip_remaining != 0 { return None; }
     Some(s.out)
 }
 
@@ -223,7 +202,7 @@ pub fn fuse_records(a: &GStep, b: &GStep) -> GStep {
 /// in. None iff `i+1` is out of range.
 pub fn fuse_word(trace: &[Mark], i: usize) -> Option<Vec<Mark>> {
     let t = decode_trace(trace)?;
-    if i + 1 >= t.len() { return None; }
+    if i.checked_add(1)? >= t.len() { return None; }
     let fused = encode_step(&fuse_records(&t[i], &t[i + 1]));
     tape_edit(trace, i, 2, fused)
 }
@@ -240,7 +219,7 @@ pub fn cancel_word(trace: &[Mark], i: usize, k: usize) -> Option<Vec<Mark>> {
 pub fn inline_word(trace: &[Mark], i: usize, k: usize) -> Option<Vec<Mark>> {
     if k < 2 { return None; }
     let t = decode_trace(trace)?;
-    if i + k > t.len() { return None; }
+    if i.checked_add(k)? > t.len() { return None; }
     let mut comp = t[i].clone();
     for j in i + 1..i + k { comp = fuse_records(&comp, &t[j]); }
     tape_edit(trace, i, k, encode_step(&comp))
@@ -253,6 +232,43 @@ mod tests {
     use crate::router_marks::{M_B, M_T, M_FIX};
     use crate::trace_algebra::delete_record;
     use crate::trace_word::encode_trace;
+
+    #[test]
+    fn resident_edits_preserve_the_long_random_2048_payload() {
+        let source: Vec<_> = include_str!("../tests/fixtures/random_rsa_2048.imasm")
+            .trim().chars().collect();
+        let payload = source.repeat(2 * u64::BITS as usize);
+        let steps = [
+            GStep { repr: '⋈', judgment: M_B, recognised: M_T, next: '⋈',
+                applied_word: payload.clone() },
+            GStep { repr: '⋈', judgment: M_T, recognised: M_T, next: M_FIX,
+                applied_word: source },
+        ];
+        let trace = encode_trace(&steps);
+        assert!(trace.len() * 6 > 1usize << 20);
+        let decoded = decode_trace(&trace).unwrap();
+        assert_eq!(decoded[0].applied_word, payload);
+        for i in 0..steps.len() {
+            assert_eq!(delete_word(&trace, i), delete_record(&trace, i));
+        }
+        let fused = fuse_word(&trace, 0).unwrap();
+        let decoded = decode_trace(&fused).unwrap();
+        let mut expected = steps[0].applied_word.clone();
+        expected.extend_from_slice(&steps[1].applied_word);
+        assert_eq!(decoded.len(), 1);
+        assert_eq!(decoded[0].applied_word, expected);
+        assert_eq!(decoded[0].judgment, M_T);
+        assert!(tape_edit(&trace, 1, 2, Vec::new()).is_none());
+        assert!(tape_edit(&trace, 0, 0, Vec::new()).is_none());
+        let mut truncated = trace.clone();
+        truncated.pop();
+        assert!(decode_trace(&truncated).is_none());
+        let mut overflowing = trace[..6].to_vec();
+        overflowing.extend(core::iter::repeat_n('⊤', usize::BITS as usize + 1));
+        overflowing.push('∋');
+        overflowing.push('∋');
+        assert!(decode_trace(&overflowing).is_none());
+    }
 
     #[test]
     fn delete_word_treats_length_delimited_payload_brackets_as_data() {

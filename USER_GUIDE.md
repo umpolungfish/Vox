@@ -472,6 +472,10 @@ exit status and hardware counters into `PREFIX.samples.tsv`, `.profile.tsv`,
 address sampling remains available. Counter counts are raw; `enabled_ns` and
 `running_ns` expose multiplexing. `--registers` adds the live general registers
 to each sample. Native tracing may require ptrace permission on the host.
+When the ELF contains `VOX_SIEVE_COUNTERS`, Vox also reads its object storage
+and records relation progress, surviving matrix dimensions and residual
+cofactor counts in `PREFIX.sieve.tsv`. These observations come from program
+memory and are written by the tracer.
 
 After `vox imasm ELF` writes `ELF.imasm`, sampled addresses can be joined to
 Vox's decoded instructions and symbol boundaries:
@@ -495,7 +499,7 @@ Gödel's commands read cell-binary words and check closure:
 factor words' product and primality before releasing its report. `lte2` requires
 odd A and even K. `braid` combines representation lanes; its value need not equal
 the lanes' arithmetic product. The under-one-minute goal remains unverified:
-the retained 208-bit example currently closes in about six minutes.
+the retained 208-bit example currently closes in about three minutes.
 
 ## Baked membranes
 

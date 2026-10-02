@@ -266,3 +266,41 @@ fn cstr(raw: &[u8], mut p: usize) -> String {
     while let Some(&b) = raw.get(p) { if b == 0 { break; } s.push(b as char); p += 1; }
     s
 }
+
+
+/// Read a defined ELF64 little-endian object symbol without treating it as code.
+pub fn elf_object_symbol(raw: &[u8], requested: &str) -> Option<(u64, u64)> {
+    if raw.get(..6)? != b"\x7fELF\x02\x01" { return None; }
+    let shoff = usize::try_from(le(raw, 40, 8)).ok()?;
+    let shsize = le(raw, 58, 2) as usize;
+    let shcount = le(raw, 60, 2) as usize;
+    if shsize < 64 { return None; }
+    let section = |index: usize| -> Option<&[u8]> {
+        if index >= shcount { return None; }
+        let start = shoff.checked_add(index.checked_mul(shsize)?)?;
+        raw.get(start..start.checked_add(64)?)
+    };
+    let contents = |header: &[u8]| -> Option<&[u8]> {
+        let start = usize::try_from(le(header, 24, 8)).ok()?;
+        let size = usize::try_from(le(header, 32, 8)).ok()?;
+        raw.get(start..start.checked_add(size)?)
+    };
+    for index in 0..shcount {
+        let header = section(index)?;
+        if !matches!(le(header, 4, 4), 2 | 11) { continue; }
+        let strings = contents(section(le(header, 40, 4) as usize)?)?;
+        let symbols = contents(header)?;
+        let entry_size = usize::try_from(le(header, 56, 8)).ok()?;
+        if entry_size < 24 { continue; }
+        for entry in symbols.chunks_exact(entry_size) {
+            if entry[4] & 15 != 1 || le(entry, 6, 2) == 0 { continue; }
+            let start = le(entry, 0, 4) as usize;
+            let Some(tail) = strings.get(start..) else { continue; };
+            let Some(end) = tail.iter().position(|&byte| byte == 0) else { continue; };
+            if &tail[..end] == requested.as_bytes() {
+                return Some((le(entry, 8, 8), le(entry, 16, 8)));
+            }
+        }
+    }
+    None
+}

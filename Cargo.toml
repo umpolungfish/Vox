@@ -30,6 +30,10 @@ path = "src/bin/factor_eml_one.rs"
 name = "godel"
 path = "src/bin/godel.rs"
 
+[[bin]]
+name = "godel_frame_separator"
+path = "src/bin/godel_frame_separator.rs"
+
 [lib]
 name = "vox"
 path = "src/lib.rs"
@@ -38,6 +42,7 @@ path = "src/lib.rs"
 default = []
 resident = []
 mpqs_debug = []
+root-work-profile = []
 
 [profile.release]
 opt-level = 3

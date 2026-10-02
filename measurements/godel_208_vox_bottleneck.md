@@ -167,3 +167,103 @@ Hardware profile: `godel_208_native_hardware.*`.
 Counter controls: `vox_native_counter_control_20261001.*` and
 `vox_native_counter_loop_control_20261001.*`.
 Rejected second-period instructions: `godel_208_two_periods.vox.disasm`.
+
+## Silent program-state reading
+
+Vox can now read the prepared ELF's `VOX_SIEVE_COUNTERS` object symbol while
+the child is stopped for sampling. The function-symbol table retains its
+function-only meaning. A bounded ELF object-symbol reader finds the data
+address and validates its storage size before the tracer reads nine words.
+The silent control records the expected constants and advancing values, with
+empty target stdout and stderr. The target does not write a diagnostic file.
+
+The complete gauged baseline closes in 384.241 seconds. Its terminal factor
+equation matches the verified retained binary and stderr is empty. The final
+observed fields are:
+
+| Field | Value |
+| --- | ---: |
+| Input bits | 208 |
+| Factor-base columns | 10,925 |
+| Relation target | 10,989 |
+| Polynomials | 5,741 |
+| Scanned positions | 137,780,125,292 |
+| Candidate positions | 1,658,297 |
+| Accepted relations | 10,989 |
+| Surviving matrix rows | 9,896 |
+| Surviving matrix columns | 9,463 |
+
+Only 0.663% of candidate positions produce accepted relations. Matrix closure
+was first attempted at the width-based relation target. The matrix remains
+large after singleton removal on this input. Source commentary now describes
+the observed dimensions instead of assuming the residual is a few hundred.
+
+This execution includes tracing and program-state observation. It is a
+diagnostic run, not an isolated wall-time comparison against the untraced
+360.475-second result. A short test build overlapped part of the execution.
+Profile and observed fields: `godel_208_silent_gauge_profile_20261001.*`.
+Prepared baseline: `../membranes/godel_208_silent_gauges_20261001/factor_one`.
+
+A controlled dependency with two valid rows and sixteen base columns returns
+a factor and passes the word product check before a width-based relation
+target would be reached. The tested candidate now attempts the existing matrix
+solver at doubling relation counts; its exhaustive final gate remains present.
+No sieve window, score threshold or factor-base parameter is changed. Its full
+208-bit execution is being measured through Vox before deciding whether to
+retain that gate.
+
+The doubling-checkpoint execution closed in 390.837 seconds, with the identical
+5,741 polynomials, scanned positions, candidates and 10,989 accepted relations.
+At 4,096 rows its singleton-pruned matrix was empty. At 8,192 rows it had
+5,725 surviving rows and 7,606 columns; no factor returned. Final dimensions
+were the same 9,896 by 9,463 as the measured baseline. Terminal factors match
+exactly and stderr is empty. The extra gate did not reduce sieve work and
+was removed. Its profile and prepared binary are retained.
+
+This observation redirects the next diagnosis to rejected residual cofactors.
+The silent gauges now classify these against the live base bound squared and
+its fourth power, preserving exact equality at both boundaries. The wide
+classification uses the residual word and word-level bounds. The extraction
+algorithm and original final relation gate remain intact.
+
+Rejected gate: `godel_208_early_matrix_profile_20261001.*`.
+Prepared experiment: `../membranes/godel_208_early_matrix_20261001/factor_one`.
+
+## Shared residual word closure
+
+The complete residual reading closed in 373.538 seconds. It records 1,318,757
+non-unit residuals at or below the live base bound squared, and 324,859 above
+that bound but at or below its fourth power. None exceeded the fourth power
+in this reading. The terminal factor pair matches the verified baseline and
+stderr is empty. This identifies a large discarded extraction surface.
+
+The repair retains the first partial relation for each residual word. Later
+relations with that exact word multiply their left lanes modulo N and add
+their factor-base exponents. The common residual contributes its exact square;
+the matrix reconstruction carries its square root into Y before the final
+gcd. Partial exponents are stored sparsely. A residual need not be declared
+prime for this identity to hold. The cap is derived from the live factor base.
+
+Controls cover the required square contribution, reuse of the first anchor,
+signed parity and a composite shared residual. Omitting the square contribution
+fails the factor-producing controls. All nine sieve kernel controls pass.
+The original sieve window, score threshold and factor base are retained.
+
+The same separately generated 208-bit input closes in **193.083 seconds**,
+with **201.001 seconds** reported process CPU time. That is **46.436%** below
+the retained 360.475-second untraced result. Both factor lanes, Gödel word
+multiplication and complete IMASM recovery pass. These are individual runs;
+CPU time and wall time are separate instrument readings.
+
+Vox's complete follow-up execution closes in **159.197 seconds** with
+15,675 samples and the same factor equation. It records **2,103 polynomials**
+and **50,464,779,318 scanned positions**, compared with 5,741 polynomials and
+137,780,125,292 positions before the repair. Root marking at `93e7d..93ee4`
+still accounts for **59.030%** of samples. Matrix reconstruction accounts
+for **7.305%**. The remaining measurements direct further work at the sieve
+window and its score-selection rule. The under-one-minute objective is active.
+
+Result: `../membranes/godel_random_semiprime_baked_20261001_shared_residual_208/results.jsonl`.
+ELF SHA256: `18977ad20804a4393b7f2012a0e3b162fa698ab51683486051246a6f0e619123`.
+Vox decoding: `godel_208_shared_residual.vox.disasm`.
+Full follow-up reading: `godel_208_shared_residual_profile_20261001.*`.

@@ -1,9 +1,11 @@
-I add quick dynamic baking and document the executable commands
+I repair the discarded residual-word closure surface
 
-I emit retained no-input factor binaries through bake_factor.sh, accepting a decimal or one separately generated JSONL case. I preserve build diagnostics and refuse existing output directories. I give the independent random semiprime generator a command-line interface.
+I make Vox read defined ELF object symbols as data and collect silent sieve gauges. Controls verify the address, memory layout, advancing values and both supported gauge layouts. The full 208-bit reading identifies the target matrix dimensions and more than a million rejected residuals within the factor-base bound squared.
 
-I verify both builder forms on different independently generated inputs. Changing the compile-time word rebuilds the executable, and both retained binaries still close their own factors through Vox primality and Gödel multiplication checks. I verify the batch runner records process CPU time and complete IMASM recovery.
+I test doubling matrix checkpoints and remove them when Vox proves they reduce no sieve work. I preserve that negative result.
 
-I add native user-space hardware counters to Vox, check the ABI size, and preserve enabled and running times. A silent loop control confirms the instruction count against its decoded loop. I record the complete 364.872-second hardware profile of the retained 208-bit binary and preserve the slower 401.288-second second-period experiment after reverting its source change.
+I fold relations carrying the same residual word and carry its exact square contribution through matrix reconstruction. I store partial exponents sparsely and preserve the first anchor. Controls verify signed parity, composite residuals and the word multiplication gate; omitting the square contribution does not close the controls. All nine kernel checks pass.
 
-I update USER_GUIDE.md and the canonical ig-docs commands guide with generation, baking, captured execution, word closure, native registers and hardware-counter commands. The arbitrary under-one-minute objective remains active.
+I close the same independently generated 208-bit input in 193.083 seconds with both prime lanes, Gödel multiplication and complete IMASM recovery verified. The complete follow-up Vox execution closes in 159.197 seconds and identifies root marking as the remaining 59.030 percent hot range. The arbitrary under-one-minute objective remains active.
+
+I update the command guides with silent program-state reading and preserve the measured prepared binaries, instruction streams and complete profiles.

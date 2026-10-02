@@ -1,0 +1,32 @@
+[
+  {
+    "name": "rsa_192_0_6e6707a59d2246b2b84df88743d27d11",
+    "native_closed": false,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "9b843476344ff6a8a1de1d9e395fb3a435259e00f5a5292a584dd8c94af046ed",
+    "artifact_sha256": "3c8f09a151bef4d5b91928c00f3bedfe0a100224edd48b1edb1a64e0dbd7ec9d"
+  },
+  {
+    "name": "rsa_160_0_48a113e74a444083af982f7f00af4c82",
+    "native_closed": true,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "e229f5dd17af0be9982c6f02f1397accfc6a16d7d40708192f6a24a0fdf008df",
+    "artifact_sha256": "89f3dc4b470340233b390f5b31f799568ac73de1b75b08b954d62d2d2c1b92a7"
+  },
+  {
+    "name": "rsa_128_0_e1436ba7eb4247b2becaf63940a136b9",
+    "native_closed": true,
+    "complete_module_recovery": true,
+    "artifact_alphabet_only": true,
+    "native_output_alphabet_only": true,
+    "vm_execution_performed": false,
+    "binary_sha256": "b3444f19c7646160a05e0b94df3341b5189c4ace7e1615ea18c33e5236f11a2c",
+    "artifact_sha256": "3230915ad34430b3c5bc3cda134937a1f4cb8673da792fa2c7b97db659bfa776"
+  }
+]

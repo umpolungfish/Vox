@@ -1,0 +1,19 @@
+{
+  "name": "rsa_192_0_6e6707a59d2246b2b84df88743d27d11",
+  "fixture_id": "6e6707a59d2246b2b84df88743d27d11",
+  "generator": "glut-rsa-independent-v2",
+  "seed": "e976bb5f8c5830c3ec6429ab11c53d21e0c73683f04906357e1b42da50146060",
+  "p": "54850375965963233585256636059",
+  "q": "63077056432465354136833674037",
+  "n": "3459800260147004245457073836231374709236097273488346300183",
+  "bits": 192,
+  "factor_bits": 96,
+  "factor_bit_widths": [
+    96,
+    96
+  ],
+  "factor_gap_bits": 93,
+  "public_exponent": 65537,
+  "primality": "probable prime",
+  "primality_instrument": "SymPy 1.14.0"
+}

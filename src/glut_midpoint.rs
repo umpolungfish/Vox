@@ -3,15 +3,27 @@
 use super::*;
 pub(super) const EQUAL: &[&[char]] = &[&[ZERO, ZERO], &[ONE, ONE]];
 impl Correlation {
-    fn midpoint_cells(n: &[char], width: usize, root: &[char], squares: bool, observe: &mut impl FnMut(char, usize, usize)) -> Self {
+    fn midpoint_cells(
+        n: &[char],
+        width: usize,
+        root: &[char],
+        squares: bool,
+        observe: &mut impl FnMut(char, usize, usize),
+    ) -> Self {
         let mut s = Self::blank(width < 2);
         s.conjugate = true;
         // Difference support has the same dynamic extent as the midpoint.
         // a²=N+b² supplies its bound, rather than discarding high gap cells.
         let gap_width = width;
-        s.q = (0..gap_width).map(|i| {
-            if i == 0 { usize::from(bit(n, 1) == 1) } else { s.cell() }
-        }).collect();
+        s.q = (0..gap_width)
+            .map(|i| {
+                if i == 0 {
+                    usize::from(bit(n, 1) == 1)
+                } else {
+                    s.cell()
+                }
+            })
+            .collect();
         s.p = (0..width)
             .map(|i| {
                 if i == 0 {
@@ -29,46 +41,46 @@ impl Correlation {
         let a = s.p.clone();
         let b = s.q.clone();
         if squares {
-        observe('∈', s.gate_count(), s.cell_count());
-        let left = s.square_columns(&a, width * 2 + 1);
-        let mut right = s.square_columns(&b, width * 2 + 1);
-        for (k, &mark) in n.iter().enumerate() {
-            if mark == ONE {
-                right[k].push(1);
-            }
-        }
-        observe('⊞', s.gate_count(), s.cell_count());
-        let left = s.reduce_columns(left);
-        let right = s.reduce_columns(right);
-        observe('⋈', s.gate_count(), s.cell_count());
-        for (&a, &b) in left.iter().zip(&right) {
-            if a == b {
-                continue;
-            }
-            if a <= 1 {
-                if !s.assign(
-                    Literal {
-                        cell: b,
-                        mark: if a == 1 { ONE } else { ZERO },
-                    },
-                    None,
-                ) {
-                    s.empty = true;
+            observe('∈', s.gate_count(), s.cell_count());
+            let left = s.square_columns(&a, width * 2 + 1);
+            let mut right = s.square_columns(&b, width * 2 + 1);
+            for (k, &mark) in n.iter().enumerate() {
+                if mark == ONE {
+                    right[k].push(1);
                 }
-            } else if b <= 1 {
-                if !s.assign(
-                    Literal {
-                        cell: a,
-                        mark: if b == 1 { ONE } else { ZERO },
-                    },
-                    None,
-                ) {
-                    s.empty = true;
-                }
-            } else {
-                s.gate(vec![a, b], EQUAL);
             }
-        }
+            observe('⊞', s.gate_count(), s.cell_count());
+            let left = s.reduce_columns(left);
+            let right = s.reduce_columns(right);
+            observe('⋈', s.gate_count(), s.cell_count());
+            for (&a, &b) in left.iter().zip(&right) {
+                if a == b {
+                    continue;
+                }
+                if a <= 1 {
+                    if !s.assign(
+                        Literal {
+                            cell: b,
+                            mark: if a == 1 { ONE } else { ZERO },
+                        },
+                        None,
+                    ) {
+                        s.empty = true;
+                    }
+                } else if b <= 1 {
+                    if !s.assign(
+                        Literal {
+                            cell: a,
+                            mark: if b == 1 { ONE } else { ZERO },
+                        },
+                        None,
+                    ) {
+                        s.empty = true;
+                    }
+                } else {
+                    s.gate(vec![a, b], EQUAL);
+                }
+            }
         }
         let lower = if mf::mul(root, root) == n {
             root.to_vec()
@@ -90,7 +102,12 @@ impl Correlation {
     pub fn new_nested(n: &[char], width: usize, root: &[char]) -> Self {
         Self::new_nested_observed(n, width, root, |_, _, _| {})
     }
-    pub fn new_nested_observed(n: &[char], width: usize, root: &[char], mut observe: impl FnMut(char, usize, usize)) -> Self {
+    pub fn new_nested_observed(
+        n: &[char],
+        width: usize,
+        root: &[char],
+        mut observe: impl FnMut(char, usize, usize),
+    ) -> Self {
         // All nested constraints share one root preparation. Building the
         // midpoint basis first and rebuilding it after product binding repeats
         // the wide elimination without adding a constraint.
@@ -218,57 +235,122 @@ mod tests {
     use super::*;
     #[test]
     fn conflict_analysis_discards_newer_irrelevant_decisions() {
-        let mut graph=Correlation::blank(false);
-        let a=graph.cell(); let newer=graph.cell();
-        graph.p=vec![a,newer]; graph.q=vec![1]; graph.connect();
-        let a=graph.p[0]; let newer=graph.p[1];
+        let mut graph = Correlation::blank(false);
+        let a = graph.cell();
+        let newer = graph.cell();
+        graph.p = vec![a, newer];
+        graph.q = vec![1];
+        graph.connect();
+        let a = graph.p[0];
+        let newer = graph.p[1];
         graph.boundaries.push(graph.trail.len());
-        graph.assign(Literal {cell:a,mark:ONE},None);
+        graph.assign(Literal { cell: a, mark: ONE }, None);
         graph.boundaries.push(graph.trail.len());
-        graph.assign(Literal {cell:newer,mark:ONE},None);
-        let clause=vec![Literal {cell:a,mark:ZERO},Literal {cell:1,mark:ZERO}];
-        for lit in &clause { graph.watches.entry(lit.slot()).or_default().push(0); }
+        graph.assign(
+            Literal {
+                cell: newer,
+                mark: ONE,
+            },
+            None,
+        );
+        let clause = vec![
+            Literal {
+                cell: a,
+                mark: ZERO,
+            },
+            Literal {
+                cell: 1,
+                mark: ZERO,
+            },
+        ];
+        for lit in &clause {
+            graph.watches.entry(lit.slot()).or_default().push(0);
+        }
         graph.learned.push(clause);
-        assert!(matches!(graph.advance(),Step::Running));
-        assert_eq!(graph.values[a],Some(ZERO)); assert_eq!(graph.levels[a],0);
-        assert_eq!(graph.boundaries.len(),1);
+        assert!(matches!(graph.advance(), Step::Running));
+        assert_eq!(graph.values[a], Some(ZERO));
+        assert_eq!(graph.levels[a], 0);
+        assert_eq!(graph.boundaries.len(), 1);
     }
     #[test]
     fn support_fold_clauses_hold_for_independent_factor_witnesses() {
         for n in (9..=255u64).step_by(2) {
-            let tape=mf::tape_u64(n); let width=tape.len().div_ceil(2);
-            let witnesses: Vec<_> = (3..=n).step_by(2).filter_map(|p| {
-                if n%p!=0 { return None; }
-                let q=n/p;
-                let a=(p+q)/2; let b=q.saturating_sub(p)/2;
-                (p<=q && a>=1<<(width-1) && a<1<<width && b<1<<width.saturating_sub(2))
-                    .then_some((p,q))
-            }).collect();
-            if witnesses.is_empty() { continue; }
-            for i in 0..width { for j in 0..=width { for pattern in 0..4 {
-                let mut graph=Correlation::new_nested(&tape,width,&mf::isqrt(&tape));
-                graph.boundaries.push(graph.trail.len());
-                if !graph.assign(Literal {cell:graph.p[i],mark:if pattern&1==0 {ZERO}else{ONE}},None)
-                    || !graph.assign(Literal {cell:graph.q[j],mark:if pattern&2==0 {ZERO}else{ONE}},None) {
-                    continue;
-                }
-                let before=graph.trail.len();
-                let mut clauses=Vec::new();
-                if let Err(clause)=graph.fold_support() { clauses.push(clause); }
-                for lit in &graph.trail[before..] {
-                    if let Some(reason)=&graph.reasons[lit.cell] { clauses.push(reason.clone()); }
-                }
-                for &(p,q) in &witnesses {
-                    let mut row=BTreeMap::from([(0,ZERO),(1,ONE)]);
-                    for (&cell,mark) in graph.p.iter().enumerate().map(|(k,cell)|(cell,if p>>k&1==0 {ZERO}else{ONE}))
-                        .chain(graph.q.iter().enumerate().map(|(k,cell)|(cell,if q>>k&1==0 {ZERO}else{ONE}))) {
-                        if let Some(old)=row.insert(cell,mark) { assert_eq!(old,mark); }
+            let tape = mf::tape_u64(n);
+            let width = tape.len().div_ceil(2);
+            let witnesses: Vec<_> = (3..=n)
+                .step_by(2)
+                .filter_map(|p| {
+                    if n % p != 0 {
+                        return None;
                     }
-                    for clause in &clauses {
-                        assert!(clause.iter().any(|lit| row[&lit.cell]==lit.mark),"n={n}, p={p}, q={q}");
+                    let q = n / p;
+                    let a = (p + q) / 2;
+                    let b = q.saturating_sub(p) / 2;
+                    (p <= q
+                        && a >= 1 << (width - 1)
+                        && a < 1 << width
+                        && b < 1 << width.saturating_sub(2))
+                    .then_some((p, q))
+                })
+                .collect();
+            if witnesses.is_empty() {
+                continue;
+            }
+            for i in 0..width {
+                for j in 0..=width {
+                    for pattern in 0..4 {
+                        let mut graph = Correlation::new_nested(&tape, width, &mf::isqrt(&tape));
+                        graph.boundaries.push(graph.trail.len());
+                        if !graph.assign(
+                            Literal {
+                                cell: graph.p[i],
+                                mark: if pattern & 1 == 0 { ZERO } else { ONE },
+                            },
+                            None,
+                        ) || !graph.assign(
+                            Literal {
+                                cell: graph.q[j],
+                                mark: if pattern & 2 == 0 { ZERO } else { ONE },
+                            },
+                            None,
+                        ) {
+                            continue;
+                        }
+                        let before = graph.trail.len();
+                        let mut clauses = Vec::new();
+                        if let Err(clause) = graph.fold_support() {
+                            clauses.push(clause);
+                        }
+                        for lit in &graph.trail[before..] {
+                            if let Some(reason) = &graph.reasons[lit.cell] {
+                                clauses.push(reason.clone());
+                            }
+                        }
+                        for &(p, q) in &witnesses {
+                            let mut row = BTreeMap::from([(0, ZERO), (1, ONE)]);
+                            for (&cell, mark) in graph
+                                .p
+                                .iter()
+                                .enumerate()
+                                .map(|(k, cell)| (cell, if p >> k & 1 == 0 { ZERO } else { ONE }))
+                                .chain(graph.q.iter().enumerate().map(|(k, cell)| {
+                                    (cell, if q >> k & 1 == 0 { ZERO } else { ONE })
+                                }))
+                            {
+                                if let Some(old) = row.insert(cell, mark) {
+                                    assert_eq!(old, mark);
+                                }
+                            }
+                            for clause in &clauses {
+                                assert!(
+                                    clause.iter().any(|lit| row[&lit.cell] == lit.mark),
+                                    "n={n}, p={p}, q={q}"
+                                );
+                            }
+                        }
                     }
                 }
-            }}}
+            }
         }
     }
     #[test]

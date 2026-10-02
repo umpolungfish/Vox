@@ -23,12 +23,20 @@ membranes/my_case/factor_one > membranes/my_case/run.stdout 2> membranes/my_case
 
 The executable receives no numeric argument. N is supplied to the builder.
 """
-if old not in s:
+if old in s:
+    s = s.replace(old, new, 1)
+elif new not in s:
     sys.exit('Expected factor_one section missing; inspect the current commands guide.')
-s = s.replace(old, new, 1)
 section = (root / 'measurements/vox_dynamic_baking_commands.md').read_text()
 anchor = '## Factorization Commands\n'
-s = s.replace(anchor, section + anchor, 1)
-s = s.replace('10. [Utility Commands](#utility-commands)', '10. [Utility Commands](#utility-commands)\n11. [Dynamic baking and Vox diagnosis](#dynamic-baking-and-vox-diagnosis)', 1)
+heading = '## Dynamic baking and Vox diagnosis\n'
+if heading in s:
+    start = s.index(heading)
+    end = s.index(anchor, start)
+    s = s[:start] + section + s[end:]
+else:
+    s = s.replace(anchor, section + anchor, 1)
+if '11. [Dynamic baking and Vox diagnosis]' not in s:
+    s = s.replace('10. [Utility Commands](#utility-commands)', '10. [Utility Commands](#utility-commands)\n11. [Dynamic baking and Vox diagnosis](#dynamic-baking-and-vox-diagnosis)', 1)
 path.write_text(s)
-(path.parent / 'commit.txt').write_text('I document dynamic Vox baking and native diagnosis\n\nI replace the stale factor_one runtime argument example with the prepared binary builder. I document independent semiprime generation, baking without execution, captured execution, Gödel closure commands, native register profiling and hardware counters. I retain the current measured limit while the under-one-minute objective remains active.\n')
+(path.parent / 'commit.txt').write_text('I document silent native program-state sampling\n\nI document the sieve progress, matrix dimensions and residual cofactor readings produced by Vox from prepared ELF object storage. I refresh the existing dynamic baking section without duplicating it. The under-one-minute objective remains active.\n')

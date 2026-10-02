@@ -5,6 +5,7 @@ use super::{bit, mf, trim, ONE, ZERO};
 mod midpoint;
 #[path = "glut_quantum.rs"]
 mod quantum;
+pub(super) use quantum::factor_phase_closes;
 #[path = "glut_parity.rs"]
 mod parity;
 #[path = "glut_transport.rs"]
@@ -255,7 +256,7 @@ impl Correlation {
         let q = s.q.clone();
         s.bound(&p, upper, false);
         s.bound(&q, lower, true);
-        s.connect();
+        s.connect_observed(&mut |_, _, _| {});
         s
     }
     #[cfg(test)]
@@ -304,9 +305,10 @@ impl Correlation {
             observe('⊥', self.gate_count(), self.cell_count());
             self.connect_parity_observed(observe);
             observe('⋈', self.gate_count(), self.cell_count());
-            if self.propagate().is_err() { self.empty = true; }
+            if self.propagate().is_err() {
+                self.empty = true;
+            }
         }
-
     }
     pub fn gate_count(&self) -> usize {
         self.gates.len()
@@ -551,7 +553,9 @@ impl Correlation {
                 self.gate_step(gate)?;
             }
             if !self.parity_offsets.is_empty() {
-                for slot in self.parity_offsets[assigned.cell]..self.parity_offsets[assigned.cell+1] {
+                for slot in
+                    self.parity_offsets[assigned.cell]..self.parity_offsets[assigned.cell + 1]
+                {
                     let row = self.parity_incidence[slot];
                     self.parity_step(row)?;
                 }
@@ -658,57 +662,92 @@ impl Correlation {
         self.cursor = self.trail.len();
     }
     fn interval_rejects(&self, premise: &[Literal], work: &mut usize) -> bool {
-        let mut included: Vec<_> = premise.iter().map(|lit|lit.cell).collect();
+        let mut included: Vec<_> = premise.iter().map(|lit| lit.cell).collect();
         included.sort_unstable();
-        let read = |cells: &[usize]| cells.iter().map(|&cell| {
-            if self.levels[cell]==0 || included.binary_search(&cell).is_ok() { self.values[cell] }
-            else { None }
-        }).collect::<Vec<_>>();
-        let p=read(&self.p); let q=read(&self.q);
-        *work += (p.len()+q.len())*(included.len().max(1).ilog2() as usize+1);
-        let Some((pmin,pmax))=super::extrema(&p,&[ONE,ONE],&self.factor_root) else { return true; };
-        let Some((qmin,qmax))=super::extrema(&q,&self.cofactor_floor,&super::bounds(&q).1) else { return true; };
-        *work += pmin.len()*qmin.len()+pmax.len()*qmax.len();
-        mf::cmp(&mf::mul(&pmin,&qmin),&self.source)==core::cmp::Ordering::Greater
-            || mf::cmp(&mf::mul(&pmax,&qmax),&self.source)==core::cmp::Ordering::Less
-            || mf::cmp(&pmin,&qmax)==core::cmp::Ordering::Greater
+        let read = |cells: &[usize]| {
+            cells
+                .iter()
+                .map(|&cell| {
+                    if self.levels[cell] == 0 || included.binary_search(&cell).is_ok() {
+                        self.values[cell]
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>()
+        };
+        let p = read(&self.p);
+        let q = read(&self.q);
+        *work += (p.len() + q.len()) * (included.len().max(1).ilog2() as usize + 1);
+        let Some((pmin, pmax)) = super::extrema(&p, &[ONE, ONE], &self.factor_root) else {
+            return true;
+        };
+        let Some((qmin, qmax)) = super::extrema(&q, &self.cofactor_floor, &super::bounds(&q).1)
+        else {
+            return true;
+        };
+        *work += pmin.len() * qmin.len() + pmax.len() * qmax.len();
+        mf::cmp(&mf::mul(&pmin, &qmin), &self.source) == core::cmp::Ordering::Greater
+            || mf::cmp(&mf::mul(&pmax, &qmax), &self.source) == core::cmp::Ordering::Less
+            || mf::cmp(&pmin, &qmax) == core::cmp::Ordering::Greater
     }
     fn support_rejects(&self, premise: &[Literal], work: &mut usize) -> bool {
-        let mut included: Vec<_> = premise.iter().map(|lit|lit.cell).collect();
+        let mut included: Vec<_> = premise.iter().map(|lit| lit.cell).collect();
         included.sort_unstable();
-        let read = |cells: &[usize]| cells.iter().map(|&cell| {
-            if self.levels[cell]==0 || included.binary_search(&cell).is_ok() { self.values[cell] }
-            else { None }
-        }).collect::<Vec<_>>();
-        let p=read(&self.p); let q=read(&self.q);
-        let mut frame=super::Fold {
-            p_range:(vec![ONE,ONE],self.factor_root.clone()),
-            q_range:(self.cofactor_floor.clone(),super::bounds(&q).1),p,q,
+        let read = |cells: &[usize]| {
+            cells
+                .iter()
+                .map(|&cell| {
+                    if self.levels[cell] == 0 || included.binary_search(&cell).is_ok() {
+                        self.values[cell]
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>()
         };
-        frame.propagate(&self.source,work).is_none()
+        let p = read(&self.p);
+        let q = read(&self.q);
+        let mut frame = super::Fold {
+            p_range: (vec![ONE, ONE], self.factor_root.clone()),
+            q_range: (self.cofactor_floor.clone(), super::bounds(&q).1),
+            p,
+            q,
+        };
+        frame.propagate(&self.source, work).is_none()
     }
     fn fold_conflict_reason(&mut self, mut premise: Vec<Literal>) -> Vec<Literal> {
         self.reason_original += premise.len();
-        let mut work=0;
-        let interval=self.interval_rejects(&premise,&mut work);
-        if interval || option_env!("GLUT_CARRY_REASON_FOLD_WORD")==Some("⊤") {
-            if interval { self.interval_rejected += 1; }
-            else { self.carry_rejected += 1; }
+        let mut work = 0;
+        let interval = self.interval_rejects(&premise, &mut work);
+        if interval || option_env!("GLUT_CARRY_REASON_FOLD_WORD") == Some("⊤") {
+            if interval {
+                self.interval_rejected += 1;
+            } else {
+                self.carry_rejected += 1;
+            }
             // Fold whole assumption blocks first, then their smaller pieces.
             // Every deletion is accepted only after the source interval proves
             // that the remaining assumptions still exclude every product.
-            let mut width=premise.len();
-            while width!=0 {
-                let mut position=0;
-                while position<premise.len() {
-                    let end=(position+width).min(premise.len());
-                    let mut candidate=premise.clone(); candidate.drain(position..end);
-                    let rejected=if interval { self.interval_rejects(&candidate,&mut work) }
-                        else { self.support_rejects(&candidate,&mut work) };
-                    if rejected { premise=candidate; }
-                    else { position=end; }
+            let mut width = premise.len();
+            while width != 0 {
+                let mut position = 0;
+                while position < premise.len() {
+                    let end = (position + width).min(premise.len());
+                    let mut candidate = premise.clone();
+                    candidate.drain(position..end);
+                    let rejected = if interval {
+                        self.interval_rejects(&candidate, &mut work)
+                    } else {
+                        self.support_rejects(&candidate, &mut work)
+                    };
+                    if rejected {
+                        premise = candidate;
+                    } else {
+                        position = end;
+                    }
                 }
-                width/=2;
+                width /= 2;
             }
         }
         self.work += work;
@@ -716,39 +755,67 @@ impl Correlation {
         premise
     }
     fn fold_support(&mut self) -> Result<(), Vec<Literal>> {
-        if self.source.is_empty() { return Ok(()); }
+        if self.source.is_empty() {
+            return Ok(());
+        }
         let p: Vec<_> = self.p.iter().map(|&cell| self.values[cell]).collect();
         let q: Vec<_> = self.q.iter().map(|&cell| self.values[cell]).collect();
-        if self.support_p == p && self.support_q == q { return Ok(()); }
+        if self.support_p == p && self.support_q == q {
+            return Ok(());
+        }
         self.fold_calls += 1;
         let mut premise = Vec::new();
         for &cell in self.p.iter().chain(&self.q) {
-            if self.levels[cell] == 0 { continue; }
+            if self.levels[cell] == 0 {
+                continue;
+            }
             if let Some(mark) = self.values[cell] {
-                let lit = Literal {cell,mark}.opposite();
-                if !premise.contains(&lit) { premise.push(lit); }
+                let lit = Literal { cell, mark }.opposite();
+                if !premise.contains(&lit) {
+                    premise.push(lit);
+                }
             }
         }
         let mut frame = super::Fold {
-            p_range: (vec![ONE,ONE], self.factor_root.clone()),
+            p_range: (vec![ONE, ONE], self.factor_root.clone()),
             q_range: (self.cofactor_floor.clone(), super::bounds(&q).1),
-            p, q,
+            p,
+            q,
         };
         let mut work = 0;
         let supported = frame.propagate(&self.source, &mut work).is_some()
-            && super::frame_elimination::eliminate(&self.source, &mut frame.p, &mut frame.q, self.fold_calls-1, &mut self.frame_bank).is_some();
+            && super::frame_elimination::eliminate(
+                &self.source,
+                &mut frame.p,
+                &mut frame.q,
+                self.fold_calls - 1,
+                &mut self.frame_bank,
+            )
+            .is_some();
         self.work += work;
         if !supported {
             self.fold_rejected += 1;
             return Err(self.fold_conflict_reason(premise));
         }
-        let forced: Vec<_> = self.p.iter().zip(&frame.p).chain(self.q.iter().zip(&frame.q))
-            .filter_map(|(&cell,&mark)| mark.filter(|_| self.values[cell].is_none())
-                .map(|mark| Literal {cell,mark})).collect();
+        let forced: Vec<_> = self
+            .p
+            .iter()
+            .zip(&frame.p)
+            .chain(self.q.iter().zip(&frame.q))
+            .filter_map(|(&cell, &mark)| {
+                mark.filter(|_| self.values[cell].is_none())
+                    .map(|mark| Literal { cell, mark })
+            })
+            .collect();
         for lit in forced {
-            if self.values[lit.cell].is_none() { self.fold_forced += 1; }
-            let mut reason = premise.clone(); reason.push(lit);
-            if !self.assign(lit,Some(reason.clone())) { return Err(reason); }
+            if self.values[lit.cell].is_none() {
+                self.fold_forced += 1;
+            }
+            let mut reason = premise.clone();
+            reason.push(lit);
+            if !self.assign(lit, Some(reason.clone())) {
+                return Err(reason);
+            }
         }
         self.support_p = frame.p;
         self.support_q = frame.q;
@@ -760,20 +827,34 @@ impl Correlation {
         }
         loop {
             let settled = loop {
-                if let Err(conflict) = self.propagate() { break Err(conflict); }
-                if let Err(conflict) = self.parity_holonomy() { break Err(conflict); }
+                if let Err(conflict) = self.propagate() {
+                    break Err(conflict);
+                }
+                if let Err(conflict) = self.parity_holonomy() {
+                    break Err(conflict);
+                }
                 let before = self.trail.len();
-                if let Err(conflict) = self.fold_support() { break Err(conflict); }
-                if self.trail.len() == before { break Ok(()); }
+                if let Err(conflict) = self.fold_support() {
+                    break Err(conflict);
+                }
+                if self.trail.len() == before {
+                    break Ok(());
+                }
             };
             if let Err(conflict) = settled {
                 self.conflicts += 1;
-                let conflict_level=conflict.iter().map(|lit|self.levels[lit.cell]).max().unwrap_or(0);
-                if conflict_level==0 {
+                let conflict_level = conflict
+                    .iter()
+                    .map(|lit| self.levels[lit.cell])
+                    .max()
+                    .unwrap_or(0);
+                if conflict_level == 0 {
                     self.empty = true;
                     return Step::Empty;
                 }
-                if conflict_level<self.boundaries.len() { self.retreat(conflict_level); }
+                if conflict_level < self.boundaries.len() {
+                    self.retreat(conflict_level);
+                }
                 let (learned, target) = self.analyze(conflict);
                 self.retreat(target);
                 let forced = learned[0];

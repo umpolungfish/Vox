@@ -9,7 +9,8 @@
     "/home/mrnob0dy666/imsgct/ig-docs/membrane/factoring_membrane_nesting_technique.md",
     "/home/mrnob0dy666/imsgct/ig-docs/cs/oneshot_nested_prime_factorization_productive_fix.md",
     "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/word_nesting.rs",
-    "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/runtime_nesting.rs"
+    "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/runtime_nesting.rs",
+    "/home/mrnob0dy666/imsgct/Vox/src/meta_router.rs"
   ],
   "construction_rules": [
     "Build operator topology from actual component operations and bound payloads; the supplied glyph sequence is illustrative.",
@@ -32,7 +33,15 @@
     "return_edge": "CarrierWalk repeats the connected component body inside the same open frame until the verification port completes.",
     "banking": "phase_word assigns stable deposit identities to bound register slots and lanes. Repeated passes retain those identities; reversal preserves banked payload references.",
     "verification": "The Verify port materializes and checks checkpoint ancestry before CarrierWalk releases the enclosing fuse and fixation.",
-    "output": "m3mbrain reads the already verified execution and emits source, factors and reentry certificate together."
+    "output": "m3mbrain reads the already verified execution and emits source, factors and reentry certificate together.",
+    "scheduling": "Square activations are charged by the active preparation slice or sieve window. Prepared batches follow both the source folded-limb extent and the dynamic column-address frame; field preparation retains incremental turns. Every enclosing pass returns through all live component ports.",
+    "folded_fields": "Polynomial A/B tapes are folded once per window. Root coordinates carry across source-sized blocks. One contiguous address stream fills a dynamically sized weight register. Candidate weights fold at the source-derived threshold, and surviving hit addresses fold in place into candidate chains.",
+    "phase_families": "A source-derived product of distinct resident primes supplies the enclosing coefficient. Root CRT terms share one dynamically sized sign register. Siblings reuse the coefficient and inverse fields. The coefficient prime columns enter each witness parity register and cancel with candidate columns. Exhausting prime subsets expands the field.",
+    "storage_accounting": "Retained column, witness and relation cell totals update on insertion and removal. Candidate residuals remain folded across exact prime-column divisions and unfold at the witness boundary.",
+    "dynamic_field_extent": "Field growth expands the sieve window with its prime extent, recomputes the source-derived coefficient target, and retains existing witness ancestry. Root words and inverse residue views select arithmetic width from the field modulus and preserve the wider path.",
+    "residual_connections": "Residual factors receive shared identities. Their sparse parity basis closes overlapping residual cycles before returning rows to the main prime-column basis. Folded-word multiplicative orbits from meta_router supply exact factor views; wider residual tapes retain their complete symbolic identity. Witness materialization checks the full residual product and cancels each factor through the retained ancestry.",
+    "trace_transport": "Applied payload lengths grow to their complete address extent. The trace reader and resident editor share one delimited length reader; GLUT trace records follow the source frame. The edit word traverses until its actual terminal commit, with no operation budget.",
+    "folded_support": "Prime, residual and ancestry supports share dynamically retained 64-bit parity blocks. Equal blocks cancel; complete addresses survive. Window root positions carry across local hit buffers until the entire growing window is consumed."
   },
   "checks": [
     {
@@ -46,6 +55,42 @@
       "case": "phase_word::tests::resident_slots_fold_return_passes_and_restore_the_random_2048_payload",
       "result": "passed",
       "scope": "stable deposit identities and restoration through repeated reversal"
+    },
+    {
+      "instrument": "release library test",
+      "case": "morphism_factor::tests::retained_modular_views_match_the_random_2048_tape",
+      "result": "passed",
+      "scope": "retained modular views, exact folded division and unchanged rejected numerators"
+    },
+    {
+      "instrument": "release library test",
+      "case": "glut_system::fold::square_fold::phase::tests::sibling_fields_retain_the_random_192_source_congruence",
+      "result": "passed",
+      "scope": "distinct phase siblings, coefficient product, source congruences, cached inverse fields and candidate witness identities"
+    },
+    {
+      "instrument": "release library test",
+      "case": "glut_system::fold::square_fold::phase::residual::tests::residual_views_reconstruct_all_words_of_the_random_2048_source",
+      "result": "passed",
+      "scope": "each folded-word factor product, primality views, and complete retention of the wider source tape"
+    },
+    {
+      "instrument": "release library test",
+      "case": "tape_delete::tests::resident_edits_preserve_the_long_random_2048_payload",
+      "result": "passed",
+      "scope": "complete length, nested payload boundaries, edit beyond the former operation budget, fused payload, truncated and overflowing length rejection"
+    },
+    {
+      "instrument": "release library test",
+      "case": "glut_system::tests::wide_execution_payload_crosses_trace_records_losslessly",
+      "result": "passed",
+      "scope": "random 2048-bit fixture witness replay, growing record lengths and complete reentry certificate transport; factors supplied solely for transport verification"
+    },
+    {
+      "instrument": "prepared native runner and complete IMASM recovery",
+      "case": "17882a05a657452fab4c75c4ad28d12e",
+      "result": "passed",
+      "scope": "random 128-, 129-, 160- and 192-bit source closure below 60 seconds, all component ports active, exact factors and verified certificates, silent execution, warning-free builds and byte-identical module recovery"
     }
   ]
 }
