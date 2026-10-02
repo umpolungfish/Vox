@@ -1,0 +1,50 @@
+4495 native samples
+Hot instructions: samples percent address decoded
+1084	24.116	75fed	add r:rdx r:rax
+903	20.089	7600e	add r:rdx r:rax
+237	5.273	70afb	mov r:r12 m:rbx::1:0x8:8
+229	5.095	-1	[external]
+158	3.515	70a94	mov r:rbp m:rcx::1:0x8:8
+155	3.448	76073	pmovmskb r:eax r:xmm1
+88	1.958	70b03	inc r:r11
+87	1.935	75fad	js i:0x75f99
+84	1.869	76060	movdqu r:xmm0 m:rax:r13:4:0x0:16
+79	1.758	70a9d	inc r:r14
+78	1.735	76001	mov r:rdx m:r10:rdi:8:0x0:8
+78	1.735	75fe9	add m:r11:rdx:4:0x0:4 r:ecx
+57	1.268	75f99	inc r:rdi
+55	1.224	76066	movdqa r:xmm1 m:rsp::1:0x770:16
+55	1.224	7600a	add m:r11:rdx:4:0x0:4 r:ecx
+Hot loop ranges: samples percent start end (nested ranges can overlap)
+3291	73.215	73359	799ac
+3291	73.215	7334b	799a6
+3251	72.325	75356	7953e
+3251	72.325	74d0f	79654
+3251	72.325	741a2	7976d
+3251	72.325	741a2	79680
+3251	72.325	73a1d	79b00
+3251	72.325	73a0f	79afa
+3226	71.769	75d65	7946f
+3226	71.769	75ac4	79585
+3226	71.769	75a54	7957f
+2740	60.957	75f95	76016
+1740	38.710	75f95	76008
+1197	26.630	75fe9	75ff3
+996	22.158	7600a	76014
+Sampled source registers at hot additions: address register decimal-value samples
+75fed	rax	43	30
+75fed	rax	53	23
+75fed	rax	37	23
+75fed	rax	61	21
+75fed	rax	67	19
+75fed	rax	73	18
+75fed	rax	71	18
+75fed	rax	79	17
+7600e	rax	67	29
+7600e	rax	53	25
+7600e	rax	37	23
+7600e	rax	43	21
+7600e	rax	71	18
+7600e	rax	73	17
+7600e	rax	79	16
+7600e	rax	61	14

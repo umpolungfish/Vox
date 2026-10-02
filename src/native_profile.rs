@@ -87,12 +87,12 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     let sieve_object = vox::loader::elf_object_symbol(&raw, "VOX_SIEVE_COUNTERS")
         .filter(|&(_, size)| size >= 9 * 8);
     let sieve_address = sieve_object.map(|(address, _)| base + address);
-    let sieve_fields = sieve_object.map(|(_, size)| (size / 8).min(12)).unwrap_or(0);
+    let sieve_fields = sieve_object.map(|(_, size)| (size / 8).min(15)).unwrap_or(0);
     let mut sieve_samples = if sieve_address.is_some() {
         let mut output = BufWriter::new(File::create(format!("{prefix}.sieve.tsv"))?);
         let fields = ["bits", "base_width", "relation_target", "polynomials", "scanned_positions",
             "candidates", "relations", "core_rows", "core_columns", "cofactor_le_base2",
-            "cofactor_le_base4", "cofactor_larger"];
+            "cofactor_le_base4", "cofactor_larger", "a_bits", "target_a_bits", "candidate_bits"];
         writeln!(output, "seconds\t{}", fields[..sieve_fields as usize].join("\t"))?;
         Some(output)
     } else { None };

@@ -22,10 +22,11 @@ type Tape = Vec<char>;
 // Silent gauges for Vox's native debugger. Only the tracer reads these fields.
 // bits, base width, relation target, polynomials, scanned positions, candidates,
 // accepted relations, surviving matrix rows, surviving matrix columns,
-// non-unit cofactors <= base bound squared, <= its fourth power, and larger.
+// non-unit cofactors <= base bound squared, <= its fourth power, and larger;
+// polynomial A bits, target A bits, and the latest candidate magnitude bits.
 #[unsafe(no_mangle)]
-pub static VOX_SIEVE_COUNTERS: [core::sync::atomic::AtomicU64; 12] =
-    [const { core::sync::atomic::AtomicU64::new(0) }; 12];
+pub static VOX_SIEVE_COUNTERS: [core::sync::atomic::AtomicU64; 15] =
+    [const { core::sync::atomic::AtomicU64::new(0) }; 15];
 fn sieve_gauge(index: usize, value: usize) {
     VOX_SIEVE_COUNTERS[index].store(value as u64, core::sync::atomic::Ordering::Relaxed);
 }
@@ -859,6 +860,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     };
     // Target A ~ sqrt(2N)/M.
     let a_target = (sqrt2n_u / (m_half as u128).max(1)).max(8);
+    sieve_gauge(13, (128 - a_target.leading_zeros()) as usize);
     // Factor-base bound near the sieve optimum exp(0.5*sqrt(ln N ln ln N)), which
     // grows slowly with N. Too small a base makes smooth values too rare to
     // collect; this table tracks the optimum by width (no float in no_std).
@@ -927,12 +929,16 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     // repeat before a dependency forms.
     let lo = (s * 2 / 5).max(3);
     let hi = (s * 3).max(8);
-    let a_pool: Vec<usize> = (1..width)
+    let mut a_pool: Vec<usize> = (1..width)
         .filter(|&i| base[i] > 2 && base[i] as u128 >= lo && base[i] as u128 <= hi)
         .collect();
     if a_pool.len() < k {
         return None;
     }
+    // Visit the same prime combinations in order of distance from the live
+    // per-prime target. Starting at the band's low edge makes A far too small,
+    // which enlarges N/A and makes the polynomial values harder to close.
+    a_pool.sort_by_key(|&index| ((base[index] as u128).abs_diff(s), base[index]));
     let npool = a_pool.len();
     let m = m_half as i128;
     let span = (2 * m_half + 1) as usize;
@@ -1055,6 +1061,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     b_cur = (b_cur + blm) % a_val;
                 }
             }
+            sieve_gauge(12, (128 - a_val.leading_zeros()) as usize);
             let a_i = a_val as i128;
             // Center the representative consistently for roots and coefficients.
             // Subtracting A translates the polynomial by one x position.
@@ -1140,6 +1147,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     let relation: Option<(Vec<u32>, Tape, Tape)> = if !wide {
                         let x = xi as i128 - m;
                         let g = a_i * x * x + 2 * b_i * x + cc_i;
+                        sieve_gauge(14, (128 - g.unsigned_abs().leading_zeros()) as usize);
                         if g == 0 {
                             None
                         } else {
@@ -1181,6 +1189,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                         let term1 = (false, mul(&a_t, &x2_t));
                         let term2 = (b_neg ^ x_neg, mul(&mul(&tape_u64(2), &b_t), &x_t));
                         let (g_neg, mut val) = sadd(sadd(term1, term2), (true, c_mag.clone()));
+                        sieve_gauge(14, val.len());
                         let one_t = vec![EVALF];
                         if zero(&val) {
                             None

@@ -1,0 +1,17 @@
+samples	percent	symbol
+3292	73.237	_ZN3vox5sieve4mpqs17h8af32ab1e67ab060E
+910	20.245	_ZN3vox5sieve27combine_with_square_factors17hfcf880e96a24146bE
+229	5.095	[external]
+22	0.489	_ZN3vox15morphism_factor6unfold17h55a032ea6d6b5c9cE
+17	0.378	_ZN3vox15morphism_factor4fold17h68622aa355e9a8f7E
+8	0.178	_ZN17compiler_builtins3int4sdiv8__modti317h3a3090b89d0b5baaE
+3	0.067	_ZN3vox15morphism_factor8l_divmod17h4ea77af72d224c46E
+3	0.067	__umodti3
+2	0.044	_ZN3vox15morphism_factor5l_mul17h46c6cefd90d4bc92E
+2	0.044	_ZN5alloc7raw_vec11finish_grow17h95bcfecca9a2201aE
+2	0.044	__udivti3
+1	0.022	_ZN3vox15morphism_factor6divmod17h891d39ad403bd513E
+1	0.022	_ZN3vox15morphism_factor8tape_u6417h375db0e669c4df6dE
+1	0.022	_ZN3vox5sieve7tonelli17hb9d499fc5f42cb60E
+1	0.022	_ZN5alloc7raw_vec20RawVecInner$LT$A$GT$7reserve21do_reserve_and_handle17hb460cfdaf3a261ecE
+1	0.022	_ZN99_$LT$alloc..collections..btree..map..BTreeMap$LT$K$C$V$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$4drop17hb239a74c9b1b140eE
