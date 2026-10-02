@@ -1,5 +1,5 @@
 //! Native instruction sampling for silent prepared ELF executions.
-use std::{collections::BTreeMap, ffi::c_void, fs::File, io::Write,
+use std::{collections::BTreeMap, ffi::c_void, fs::File, io::{BufWriter, Write},
     os::unix::process::CommandExt, path::Path, process::Command, time::{Duration, Instant}};
 
 unsafe extern "C" {
@@ -23,14 +23,16 @@ fn wait_child(pid: i32) -> std::io::Result<i32> {
     }
 }
 
-pub fn run(file: &str, prefix: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<dyn std::error::Error>> {
     let path = std::fs::canonicalize(file)?;
     let raw = std::fs::read(&path)?;
     let loaded = vox::loader::load(&raw);
     let mut symbols: Vec<_> = loaded.symbols.iter().map(|(n,a)| (*a,n.clone())).collect();
     symbols.sort();
-    let mut samples = File::create(format!("{prefix}.samples.tsv"))?;
-    writeln!(samples, "seconds\taddress")?;
+    let mut samples = BufWriter::new(File::create(format!("{prefix}.samples.tsv"))?);
+    if register_samples {
+        writeln!(samples, "seconds\taddress\trax\trbx\trcx\trdx\trsi\trdi\trbp\trsp\tr8\tr9\tr10\tr11\tr12\tr13\tr14\tr15")?;
+    } else { writeln!(samples, "seconds\taddress")?; }
     let mut command = Command::new(&path);
     command.stdout(File::create(format!("{prefix}.stdout"))?)
         .stderr(File::create(format!("{prefix}.stderr"))?);
@@ -68,7 +70,13 @@ pub fn run(file: &str, prefix: &str) -> Result<(), Box<dyn std::error::Error>> {
         } else { symbols[index-1].1.clone() };
         *counts.entry(name).or_default() += 1;
         total += 1;
-        writeln!(samples, "{:.6}\t{:x}", started.elapsed().as_secs_f64(), address)?;
+        write!(samples, "{:.6}\t{:x}", started.elapsed().as_secs_f64(), address)?;
+        if register_samples {
+            for index in [10, 5, 11, 12, 13, 14, 4, 19, 9, 8, 7, 6, 3, 2, 1, 0] {
+                write!(samples, "\t{:x}", regs[index])?;
+            }
+        }
+        writeln!(samples)?;
         // The signal used to sample is swallowed; unrelated signals keep their semantics.
         let signal = (status >> 8) & 0xff;
         trace(7, pid, if signal == 19 || signal == 5 { 0 } else { signal as usize })?;

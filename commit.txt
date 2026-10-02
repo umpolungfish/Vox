@@ -1,9 +1,9 @@
-I locate and repair the semiprime sieve bottleneck with Vox
+I fold the measured score lanes and repair matrix pivot search
 
-I add native instruction sampling to Vox while capturing prepared binary output. I record the complete 208-bit profile and locate 75.158% of its samples in score marking and threshold scanning.
+I record the complete Vox follow-up profile: score marking consumes 65.004% of samples, and the bit-at-a-time pivot search consumes 88.068% of matrix samples. I derive a repeating score period from the active primes and seed each block at its actual phase. I search matrix pivots by zero words and trailing zero counts while preserving the lowest column.
 
-I remove repeated bounds checks from the carried root positions and compare signed scores four at a time. I preserve candidate order and terminate when the required relation closes. I verify signed extremes, equality and vector tails against scalar selection.
+I compare every folded score with direct root marks across skipped lanes, coincident roots and rotated partial blocks. I check word pivot selection against the original bit scan through zero words and padding. All four kernel checks pass.
 
-I generate prime pairs independently with Vox, read the saved input for compilation, and bake only its IMASM numeral into each silent factor binary. I preserve the original and repaired binaries and their diagnostic evidence.
+I measure the same independently generated 208-bit input at 429.450 seconds after folding and 360.475 seconds after the pivot repair, compared with its original 837.364 seconds. Both factors, the word multiplication gate and complete IMASM recovery close in every binary.
 
-I close the same 208-bit input in 549.047 seconds compared with the prior 837.364 seconds. Both prime lanes, the word multiplication gate and the complete IMASM recovery pass. I verify that the native profiler handles clean process exit.
+I preserve the measured binaries, instruction streams and profiles. I extend Vox native sampling with optional live register capture so the remaining hot strides can be located directly.

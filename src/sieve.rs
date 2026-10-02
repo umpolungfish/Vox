@@ -23,6 +23,57 @@ type Tape = Vec<char>;
 mod threshold_tests {
     use super::*;
     #[test]
+    fn word_pivot_matches_bit_scan_with_padding_and_zero_words() {
+        for width in [0, 1, 63, 64, 65, 127, 128, 129, 255, 256, 512, 1025] {
+            let mut row = vec![0u64; width / 64 + 2];
+            assert_eq!(first_set_column(&row, width), None);
+            for column in 0..width + 8 {
+                row.fill(0);
+                row[column / 64] |= 1 << (column % 64);
+                let other = (column + 73) % (width + 8);
+                row[other / 64] |= 1 << (other % 64);
+                let expected = (0..width).find(|&c| (row[c / 64] >> (c % 64)) & 1 != 0);
+                assert_eq!(first_set_column(&row, width), expected);
+            }
+        }
+    }
+    #[test]
+    fn folded_period_matches_prime_root_marks_across_block_boundaries() {
+        let base = [1, 2, 3, 5, 7, 11, 13, 17];
+        let roots1 = [-1, -1, 0, 2, 6, -1, 3, 15];
+        let roots2 = [-1, -1, 1, 2, 0, -1, 8, 0];
+        let logs = [0, 1, 1, 2, 2, 3, 3, 4];
+        let mut period = Vec::new();
+        for capacity in [1, 4, 16, 104, 105, 256, 1024, 2048, 65536] {
+            let end = prepare_score_period(&base, &roots1, &roots2, &logs,
+                capacity, &mut period);
+            assert!(period.len() <= capacity);
+            for start in [0, 1, 104, 105, 106, 317, 1023, 23204] {
+                for length in [0, 1, 13, 64, 256] {
+                    let mut block = vec![-1; length];
+                    seed_score_period(&mut block, &period, start);
+                    let expected: Vec<i32> = (start..start + length).map(|position| {
+                        (1..end).filter(|&j| roots1[j] >= 0).map(|j| {
+                            let residue = (position % base[j] as usize) as i64;
+                            logs[j] * (i32::from(residue == roots1[j])
+                                + i32::from(residue == roots2[j]))
+                        }).sum()
+                    }).collect();
+                    assert_eq!(block, expected);
+                }
+            }
+        }
+    }
+    #[test]
+    fn score_period_doubling_preserves_a_large_rotated_partial_tail() {
+        let period: Vec<i32> = (0..23205).map(|i| i % 17).collect();
+        let mut block = vec![-1; 70000];
+        seed_score_period(&mut block, &period, 22000);
+        for (index, score) in block.iter().enumerate() {
+            assert_eq!(*score, period[(22000 + index) % period.len()]);
+        }
+    }
+    #[test]
     fn vector_threshold_matches_signed_scalar_at_every_tail() {
         let scores = [i32::MIN, -10, -1, 0, 1, 4, 15, 16, 17, 100, i32::MAX];
         let mut positions = vec![usize::MAX];
@@ -80,6 +131,61 @@ fn threshold_positions(scores: &[i32], threshold: i32, positions: &mut Vec<usize
             positions.push(offset + index);
         }
     }
+}
+
+/// Fold the first active prime lanes into one common score period. Its length
+/// is chosen from the live primes and must fit the existing block storage.
+fn prepare_score_period(base: &[u64], roots1: &[i64], roots2: &[i64], logs: &[i32],
+    capacity: usize, scores: &mut Vec<i32>) -> usize {
+    let mut period = 1usize;
+    let mut end = 1;
+    for j in 1..base.len() {
+        if roots1[j] < 0 { continue; }
+        let Some(next) = period.checked_mul(base[j] as usize).filter(|&n| n <= capacity)
+            else { break; };
+        period = next;
+        end = j + 1;
+    }
+    scores.resize(period, 0);
+    scores.fill(0);
+    for j in 1..end {
+        if roots1[j] < 0 { continue; }
+        for root in [roots1[j], roots2[j]] {
+            for position in (root as usize..period).step_by(base[j] as usize) {
+                scores[position] += logs[j];
+            }
+        }
+    }
+    end
+}
+
+/// Seed a block at its absolute phase, then double complete periods by copying.
+fn seed_score_period(block: &mut [i32], period: &[i32], start: usize) {
+    if period.len() == 1 { block.fill(period[0]); return; }
+    let phase = start % period.len();
+    let mut filled = (period.len() - phase).min(block.len());
+    block[..filled].copy_from_slice(&period[phase..phase + filled]);
+    if filled < block.len() && phase != 0 {
+        let amount = phase.min(block.len() - filled);
+        block[filled..filled + amount].copy_from_slice(&period[..amount]);
+        filled += amount;
+    }
+    while filled < block.len() {
+        let amount = filled.min(block.len() - filled);
+        block.copy_within(..amount, filled);
+        filled += amount;
+    }
+}
+
+/// Locate the same lowest pivot column while skipping an entire zero word.
+fn first_set_column(row: &[u64], width: usize) -> Option<usize> {
+    for (word, &bits) in row.iter().enumerate() {
+        if bits != 0 {
+            let column = word * 64 + bits.trailing_zeros() as usize;
+            return (column < width).then_some(column);
+        }
+    }
+    None
 }
 
 
@@ -312,7 +418,7 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
     let (mut _deps, mut _trivial) = (0usize, 0usize);
     for r in 0..rrel {
         loop {
-            let col = (0..rwidth).find(|&c| (mat[r][c / 64] >> (c % 64)) & 1 == 1);
+            let col = first_set_column(&mat[r], rwidth);
             match col {
                 None => break,
                 Some(c) => {
@@ -788,6 +894,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         const BLOCK: usize = 1 << 16;
         let mut blk = vec![0i32; BLOCK];
         let mut candidates = Vec::new();
+        let mut folded_scores = Vec::new();
         let mut next1 = vec![0i64; width];
         let mut next2 = vec![0i64; width];
         for pat in 0..nb {
@@ -842,14 +949,14 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             // running mark positions start at the roots and advance across blocks
             next1.copy_from_slice(&soln1);
             next2.copy_from_slice(&soln2);
+            let unfolded_start = prepare_score_period(&base, &soln1, &soln2, &lp,
+                BLOCK, &mut folded_scores);
             let mut bstart = 0usize;
             while bstart < span {
                 let bend = (bstart + BLOCK).min(span);
                 let blen = bend - bstart;
-                for e in blk[..blen].iter_mut() {
-                    *e = 0;
-                }
-                for j in 1..width {
+                seed_score_period(&mut blk[..blen], &folded_scores, bstart);
+                for j in unfolded_start..width {
                     if soln1[j] < 0 {
                         continue;
                     }
