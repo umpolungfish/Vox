@@ -304,3 +304,32 @@ candidates. Root marking at `75f95..76016` accounts for **60.957%** of the
 shares identify the remaining work after the coefficient repair.
 Full reading: `godel_208_target_order_profile_20261002.*`.
 Decoded instruction reading: `godel_208_target_order_hotspots_20261002.txt`.
+
+Three separately generated fresh 208-bit inputs close in **43.268**, **48.328**
+and **66.451 seconds**. Each passes both factor-lane primality checks, word
+multiplication and complete IMASM recovery. Inputs are retained separately in
+`godel_random_semiprime_inputs_208_fresh_20261002.jsonl`; results are in
+`../membranes/godel_random_semiprime_baked_20261002_target_order_fresh_208/results.jsonl`.
+The third input exceeds one minute and is the next Vox measurement target.
+
+Its full Vox reading closes in **59.721 seconds**, with the verified factor
+equation and empty stderr. A and its target both have 81 bits; the latest
+candidate has 125 bits. It collects 11,037 relations in 820 polynomials.
+Matrix elimination occupies **16.729%** of 5,846 samples. Vox decodes repeated
+row-pointer loads and per-word bounds checks in the matrix and history XOR
+loops at `70a69..70b0e`. The next repair takes disjoint row slices once per
+pivot, skips matrix words preceding the pivot and history words beyond the
+visited rows. Word-boundary controls compare its XOR results with full rows.
+Full reading: `godel_208_fresh_slow_profile_20261002.*`.
+Decoding: `godel_208_fresh_slow.vox.disasm`.
+
+The sliced matrix binary closes that same input in **52.137 seconds**, with
+all closure gates passing. All thirteen sieve tests pass. Vox's complete
+follow-up closes in **51.374 seconds** and records the same 820 polynomials,
+45,374 candidates, 11,037 relations and residual matrix dimensions. Matrix
+elimination falls to **9.021%** of 4,977 samples. Vox decodes vectorized XOR
+loads at `6dd86` and `6de85`. The factor equation matches the verified direct
+result and stderr is empty. These are individual execution measurements.
+Result: `../membranes/godel_random_semiprime_baked_20261002_matrix_slices_208/results.jsonl`.
+Full reading: `godel_208_matrix_slices_profile_20261002.*`.
+Decoding: `godel_208_matrix_slices.vox.disasm`.

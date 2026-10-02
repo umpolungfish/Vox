@@ -139,6 +139,36 @@ mod threshold_tests {
         assert_eq!(mul(&factor, &quotient), n);
     }
     #[test]
+    fn sliced_pivot_xor_matches_full_rows_at_word_boundaries() {
+        for width in [1, 63, 64, 65, 127, 128, 129, 255, 1025] {
+            let words = width / 64 + 1;
+            for column in 0..width {
+                let first = column / 64;
+                let mut rows = vec![vec![0; words]; 3];
+                for word in first..words {
+                    rows[0][word] = (word as u64 + 17).wrapping_mul(0x9e3779b97f4a7c15);
+                    rows[2][word] = !(word as u64 + 31);
+                }
+                let source = rows[0].clone();
+                let expected: Vec<u64> = rows[2].iter().zip(&source)
+                    .map(|(&left, &right)| left ^ right).collect();
+                xor_pivot_words(&mut rows, 2, 0, first, words);
+                assert_eq!(rows[2], expected);
+                assert_eq!(rows[0], source);
+            }
+        }
+        for current in [1, 63, 64, 65, 127, 128, 129] {
+            let words = current / 64 + 2;
+            let mut rows = vec![vec![0; words]; current + 1];
+            rows[0][0] = 1;
+            rows[current][current / 64] = 1 << (current % 64);
+            let expected: Vec<u64> = rows[current].iter().zip(&rows[0])
+                .map(|(&left, &right)| left ^ right).collect();
+            xor_pivot_words(&mut rows, current, 0, 0, current / 64 + 1);
+            assert_eq!(rows[current], expected);
+        }
+    }
+    #[test]
     fn word_pivot_matches_bit_scan_with_padding_and_zero_words() {
         for width in [0, 1, 63, 64, 65, 127, 128, 129, 255, 256, 512, 1025] {
             let mut row = vec![0u64; width / 64 + 2];
@@ -302,6 +332,19 @@ fn first_set_column(row: &[u64], width: usize) -> Option<usize> {
         }
     }
     None
+}
+
+/// Earlier pivot rows and the current row occupy disjoint storage. Slice the
+/// rows once so the word loop carries no repeated outer-vector indexing.
+fn xor_pivot_words(rows: &mut [Vec<u64>], current: usize, pivot: usize,
+    start: usize, end: usize) {
+    debug_assert!(pivot < current);
+    let (earlier, remaining) = rows.split_at_mut(current);
+    let source = &earlier[pivot][start..end];
+    let target = &mut remaining[0][start..end];
+    for (left, &right) in target.iter_mut().zip(source) {
+        *left ^= right;
+    }
 }
 
 
@@ -551,12 +594,10 @@ fn combine_with_square_factors(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], bas
                         break;
                     } else {
                         let pr = pivot_row[c];
-                        for w in 0..words {
-                            mat[r][w] ^= mat[pr][w];
-                        }
-                        for w in 0..hwords {
-                            hist[r][w] ^= hist[pr][w];
-                        }
+                        // Both rows have zero bits before their lowest pivot.
+                        xor_pivot_words(&mut mat, r, pr, c / 64, words);
+                        // Histories contain only already-visited row indices.
+                        xor_pivot_words(&mut hist, r, pr, 0, r / 64 + 1);
                     }
                 }
             }
