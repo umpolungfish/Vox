@@ -1,9 +1,5 @@
-I fold the measured score lanes and repair matrix pivot search
+I preserve Vox register evidence and reject a slower root recurrence
 
-I record the complete Vox follow-up profile: score marking consumes 65.004% of samples, and the bit-at-a-time pivot search consumes 88.068% of matrix samples. I derive a repeating score period from the active primes and seed each block at its actual phase. I search matrix pivots by zero words and trailing zero counts while preserving the lowest column.
+I record the complete 360.034-second native register profile. The remaining root marks consume 63.940% of samples, and live stride registers identify the active factor-base primes.
 
-I compare every folded score with direct root marks across skipped lanes, coincident roots and rotated partial blocks. I check word pivot selection against the original bit scan through zero words and padding. All four kernel checks pass.
-
-I measure the same independently generated 208-bit input at 429.450 seconds after folding and 360.475 seconds after the pivot repair, compared with its original 837.364 seconds. Both factors, the word multiplication gate and complete IMASM recovery close in every binary.
-
-I preserve the measured binaries, instruction streams and profiles. I extend Vox native sampling with optional live register capture so the remaining hot strides can be located directly.
+I retain the verified experimental binary and instruction stream. Its paired recurrence closes the same input in 399.382 seconds, so I remove that slower source change and keep the verified 360.475-second implementation. The factor lanes, word product gate and IMASM recovery all pass.
