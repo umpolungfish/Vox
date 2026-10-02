@@ -1,0 +1,50 @@
+4977 native samples
+Hot instructions: samples percent address decoded
+1336	26.843	73519	add r:rdx r:rax
+1151	23.126	7353a	add r:rdx r:rax
+420	8.439	-1	[external]
+147	2.954	73515	add m:r11:rdx:4:0x0:4 r:ecx
+131	2.632	6de85	movdqu r:xmm1 m:rax:rdi:8:0x10:16
+116	2.331	6dd86	movdqu r:xmm1 m:rdx:r14:8:0x0:16
+91	1.828	73540	jb i:0x73536
+88	1.768	7352d	mov r:rdx m:r10:rdi:8:0x0:8
+60	1.206	73536	add m:r11:rdx:4:0x0:4 r:ecx
+59	1.185	734d9	js i:0x734c5
+58	1.165	7359a	pmovmskb r:eax r:xmm1
+56	1.125	734c5	inc r:rdi
+48	0.964	73529	mov m:r9:rdi:8:0x0:8 r:rdx
+48	0.964	7351c	cmp r:rdx r:r13
+43	0.864	734c1	mov m:r10:rdi:8:0x0:8 r:rdx
+Hot loop ranges: samples percent start end (nested ranges can overlap)
+4024	80.852	70879	76ed3
+4024	80.852	7086b	76ecd
+3988	80.129	72886	76a65
+3988	80.129	7223f	76b7b
+3988	80.129	716d1	76c94
+3988	80.129	716d1	76ba7
+3988	80.129	70f3d	77027
+3988	80.129	70f2f	77021
+3959	79.546	72ff1	76aac
+3959	79.546	72f81	76aa6
+3958	79.526	73291	76996
+3474	69.801	734c1	73542
+2150	43.199	734c1	73534
+1531	30.762	73515	7351f
+1310	26.321	73536	73540
+Sampled source registers at hot additions: address register decimal-value samples
+73519	rax	41	47
+73519	rax	47	41
+73519	rax	67	29
+73519	rax	53	20
+73519	rax	149	19
+73519	rax	163	15
+73519	rax	109	13
+73519	rax	97	13
+7353a	rax	41	43
+7353a	rax	53	40
+7353a	rax	47	32
+7353a	rax	67	24
+7353a	rax	107	22
+7353a	rax	109	14
+7353a	rax	131	12
+7353a	rax	173	11

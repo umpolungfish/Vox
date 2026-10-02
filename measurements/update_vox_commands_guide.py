@@ -39,4 +39,4 @@ else:
 if '11. [Dynamic baking and Vox diagnosis]' not in s:
     s = s.replace('10. [Utility Commands](#utility-commands)', '10. [Utility Commands](#utility-commands)\n11. [Dynamic baking and Vox diagnosis](#dynamic-baking-and-vox-diagnosis)', 1)
 path.write_text(s)
-(path.parent / 'commit.txt').write_text('I document silent native program-state sampling\n\nI document the sieve progress, matrix dimensions and residual cofactor readings produced by Vox from prepared ELF object storage. I refresh the existing dynamic baking section without duplicating it. The under-one-minute objective remains active.\n')
+(path.parent / 'commit.txt').write_text('I document measured polynomial coefficient closure\n\nI document the silent polynomial coefficient, target and candidate size readings from Vox. I record the 56.465-second direct closure and 46.123-second native follow-up for the retained 208-bit input. I keep the arbitrary-input objective active.\n')
