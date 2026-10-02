@@ -1,11 +1,35 @@
 //! Native instruction sampling for silent prepared ELF executions.
-use std::{collections::BTreeMap, ffi::c_void, fs::File, io::{BufWriter, Write},
-    os::unix::process::CommandExt, path::Path, process::Command, time::{Duration, Instant}};
+use std::{collections::BTreeMap, ffi::c_void, fs::File, io::{BufWriter, Read, Write},
+    os::{fd::FromRawFd, unix::process::CommandExt}, path::Path, process::Command, time::{Duration, Instant}};
 
 unsafe extern "C" {
     fn ptrace(request: u32, pid: i32, addr: *mut c_void, data: *mut c_void) -> i64;
     fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32;
     fn kill(pid: i32, signal: i32) -> i32;
+    fn syscall(number: i64, ...) -> i64;
+}
+
+// Linux perf_event_attr version 0, as declared in linux/perf_event.h.
+// Counters are user-space task counters; kernel and hypervisor work is excluded.
+#[repr(C)]
+struct PerfAttribute {
+    kind: u32, size: u32, config: u64, sample_period: u64,
+    sample_type: u64, read_format: u64, flags: u64,
+    wakeup_events: u32, breakpoint_type: u32, config1: u64,
+}
+
+const _: [(); 64] = [(); std::mem::size_of::<PerfAttribute>()];
+
+fn open_counter(pid: i32, kind: u32, config: u64) -> std::io::Result<File> {
+    let attribute = PerfAttribute { kind, size: 64, config, sample_period: 0,
+        sample_type: 0, read_format: 3, flags: (1 << 5) | (1 << 6),
+        wakeup_events: 0, breakpoint_type: 0, config1: 0 };
+    // x86-64 syscall table: perf_event_open = 298. The child is stopped at exec,
+    // so an initially enabled task counter cannot count until it is continued.
+    let fd = unsafe { syscall(298, &attribute as *const PerfAttribute,
+        pid, -1i32, -1i32, 8u64) };
+    if fd == -1 { return Err(std::io::Error::last_os_error()); }
+    Ok(unsafe { File::from_raw_fd(fd as i32) })
 }
 
 fn trace(request: u32, pid: i32, data: usize) -> std::io::Result<()> {
@@ -49,6 +73,17 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     let fields: Vec<_> = mapping.split_whitespace().collect();
     let base = u64::from_str_radix(fields[0].split('-').next().unwrap(),16)?
         - u64::from_str_radix(fields[2],16)?;
+    let mut counter_report = File::create(format!("{prefix}.counters.tsv"))?;
+    writeln!(counter_report, "event\tcount\tenabled_ns\trunning_ns\terror")?;
+    let mut counters = Vec::new();
+    for (name, kind, config) in [("cycles", 0, 0), ("instructions", 0, 1),
+        ("cache_references", 0, 2), ("cache_misses", 0, 3),
+        ("branch_misses", 0, 5), ("l1d_read_misses", 3, 1 << 16)] {
+        match open_counter(pid, kind, config) {
+            Ok(counter) => counters.push((name, counter)),
+            Err(error) => writeln!(counter_report, "{name}\t\t\t\t{error}")?,
+        }
+    }
     let started = Instant::now();
     let mut counts = BTreeMap::<String, u64>::new();
     let mut total = 0u64;
@@ -84,6 +119,18 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     let elapsed = started.elapsed().as_secs_f64();
     let _ = child.wait();
     samples.flush()?;
+    for (name, mut counter) in counters {
+        let mut raw = [0u8; 24];
+        match counter.read_exact(&mut raw) {
+            Ok(()) => {
+                let value = u64::from_ne_bytes(raw[0..8].try_into().unwrap());
+                let enabled = u64::from_ne_bytes(raw[8..16].try_into().unwrap());
+                let running = u64::from_ne_bytes(raw[16..24].try_into().unwrap());
+                writeln!(counter_report, "{name}\t{value}\t{enabled}\t{running}\t")?;
+            }
+            Err(error) => writeln!(counter_report, "{name}\t\t\t\t{error}")?,
+        }
+    }
     let mut ranking: Vec<_> = counts.into_iter().collect();
     ranking.sort_by_key(|(_,n)| std::cmp::Reverse(*n));
     let mut report = File::create(format!("{prefix}.profile.tsv"))?;

@@ -91,3 +91,21 @@ def fixture(bits, index, fixture_id=None):
                     factor_gap_bits=(q - p).bit_length(), public_exponent=65537,
                     primality='probable prime',
                     primality_instrument='Vox morphism_factor::miller_rabin')
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--bits', required=True, type=int)
+    parser.add_argument('--count', required=True, type=int)
+    parser.add_argument('--output', required=True, type=Path)
+    args = parser.parse_args()
+    if args.bits < 16 or args.count < 1:
+        parser.error('bits must be at least 16 and count must be positive')
+    if args.output.exists():
+        parser.error('output already exists; preserve the independently generated inputs')
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open('x') as output:
+        for index in range(args.count):
+            output.write(json.dumps(fixture(args.bits, index), sort_keys=True) + '\n')
+    print(args.output)

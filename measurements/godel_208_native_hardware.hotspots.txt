@@ -1,0 +1,50 @@
+35970 native samples
+Hot instructions: samples percent address decoded
+8910	24.771	71433	add r:r8 r:rdx
+8490	23.603	7144c	add r:r8 r:rdx
+2719	7.559	-1	[external]
+725	2.016	71d6c	cmp r:rdx r:r8
+669	1.860	71406	js i:0x713f1
+612	1.701	71448	add m:rbx:r8:4:0x0:4 r:esi
+591	1.643	713f1	inc r:rdi
+543	1.510	7142f	add m:rbx:r8:4:0x0:4 r:esi
+443	1.232	7143f	mov r:r8 m:r11:rdi:8:0x0:8
+375	1.043	71d7e	mov r:rcx m:rsp::1:0xd8:8
+361	1.004	714ac	pmovmskb r:eax r:xmm1
+342	0.951	7144f	cmp r:r8 r:r13
+326	0.906	71436	cmp r:r8 r:r13
+294	0.817	71cdd	lea r:rax m:rbp::1:0x1:8
+281	0.781	71443	cmp r:r8 r:r13
+Hot loop ranges: samples percent start end (nested ranges can overlap)
+30102	83.686	6efb1	739b4
+30102	83.686	6efa3	739ae
+30069	83.595	701d1	73409
+30069	83.595	6fc0a	73703
+30069	83.595	6fc0a	736ef
+30069	83.595	6fbe1	737ea
+30069	83.595	6fbe1	73435
+30069	83.595	6f410	73ae2
+30069	83.595	6f402	73adc
+30062	83.575	7081f	7310b
+29891	83.100	70f41	73152
+29891	83.100	70ecf	7314c
+29882	83.075	71198	7303f
+23025	64.012	713ed	71454
+13552	37.676	713ed	71446
+Sampled source registers at hot additions: address register decimal-value samples
+71433	rdx	37	314
+71433	rdx	43	243
+71433	rdx	53	211
+71433	rdx	61	199
+71433	rdx	73	160
+71433	rdx	71	156
+71433	rdx	67	154
+71433	rdx	79	136
+7144c	rdx	37	306
+7144c	rdx	43	250
+7144c	rdx	53	222
+7144c	rdx	61	181
+7144c	rdx	71	158
+7144c	rdx	67	152
+7144c	rdx	73	151
+7144c	rdx	79	141

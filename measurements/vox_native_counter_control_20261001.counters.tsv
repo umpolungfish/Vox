@@ -1,0 +1,7 @@
+event	count	enabled_ns	running_ns	error
+cycles	437371	10440700	10440700	
+instructions	193168	10440700	10440700	
+cache_references	16319	10440700	10440700	
+cache_misses	8906	10440700	10440700	
+branch_misses	2713	10440700	10440700	
+l1d_read_misses	4771	10440700	10440700	
