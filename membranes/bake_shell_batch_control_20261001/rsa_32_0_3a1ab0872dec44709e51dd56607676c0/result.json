@@ -1,0 +1,19 @@
+{
+  "name": "rsa_32_0_3a1ab0872dec44709e51dd56607676c0",
+  "bits": 32,
+  "n": "2389767559",
+  "factors": [
+    "39607",
+    "60337"
+  ],
+  "elapsed_seconds": 0.005025779944844544,
+  "cpu_seconds": 0.005272999999999861,
+  "build_seconds": 7.700514677911997,
+  "engine": "baked factor_one / Vox IMASM numeral",
+  "factor_binary_sha256": "c2d7b154b26b2f69b6abeb26f0222292889678afb70d6354257c29da3d3acac6",
+  "factor_word_primality": "PASS",
+  "godel_product": "equation   39607 * 60337 = 2389767559\nexpected   2389767559\nstatus     PASS\n",
+  "complete_imasm_recovery": true,
+  "binary_no_runtime_input": true,
+  "closed": true
+}

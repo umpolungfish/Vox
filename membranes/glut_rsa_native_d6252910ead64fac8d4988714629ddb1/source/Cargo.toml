@@ -1,0 +1,372 @@
+[package]
+name = "vox"
+version = "0.1.0"
+edition = "2021"
+description = "Vox — IMASM word, lifts and verdicts"
+license = "Unlicense"
+autobins = false
+
+[[bin]]
+name = "phase_case_encode"
+path = "src/bin/phase_case_encode.rs"
+
+[[bin]]
+name = "phase_baked"
+path = "src/bin/phase_baked.rs"
+
+[[bin]]
+name = "semiprime_probe"
+path = "src/bin/semiprime_probe.rs"
+
+[[bin]]
+name = "factor_2adic"
+path = "src/bin/factor_2adic.rs"
+
+[[bin]]
+name = "factor_eml_one"
+path = "src/bin/factor_eml_one.rs"
+
+[[bin]]
+name = "godel"
+path = "src/bin/godel.rs"
+
+[lib]
+name = "vox"
+path = "src/lib.rs"
+
+[features]
+default = []
+resident = []
+mpqs_debug = []
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[[bin]]
+name = "vox"
+path = "src/main.rs"
+
+[[bin]]
+name = "abc_one"
+path = "src/bin/abc_one.rs"
+
+[[bin]]
+name = "baked_target"
+path = "src/bin/baked_target.rs"
+
+[[bin]]
+name = "binomial_one"
+path = "src/bin/binomial_one.rs"
+
+[[bin]]
+name = "braid_gens"
+path = "src/bin/braid_gens.rs"
+
+[[bin]]
+name = "divisor_one"
+path = "src/bin/divisor_one.rs"
+
+[[bin]]
+name = "factor_bench"
+path = "src/bin/factor_bench.rs"
+
+[[bin]]
+name = "factor_one"
+path = "src/bin/factor_one.rs"
+
+[[bin]]
+name = "frame_factor_one"
+path = "src/bin/frame_factor_one.rs"
+
+[[bin]]
+name = "factorization_31_batch"
+path = "src/bin/factorization_31_batch.rs"
+
+[[bin]]
+name = "factorization_31_one"
+path = "src/bin/factorization_31_one.rs"
+
+[[bin]]
+name = "gpu_bvalsd"
+path = "src/bin/gpu_bvalsd.rs"
+
+[[bin]]
+name = "gpu_shor_one"
+path = "src/bin/gpu_shor_one.rs"
+
+[[bin]]
+name = "landau_one"
+path = "src/bin/landau_one.rs"
+
+[[bin]]
+name = "lcm_one"
+path = "src/bin/lcm_one.rs"
+
+[[bin]]
+name = "membrane"
+path = "src/bin/membrane.rs"
+
+[[bin]]
+name = "m3mbrain"
+path = "src/bin/m3mbrain.rs"
+
+[[bin]]
+name = "multi_quantum_membrane"
+path = "src/bin/multi_quantum_membrane.rs"
+
+[[bin]]
+name = "orbit_uncapped"
+path = "src/bin/orbit_uncapped.rs"
+
+[[bin]]
+name = "perfect_one"
+path = "src/bin/perfect_one.rs"
+
+[[bin]]
+name = "phaseB_fac"
+path = "src/bin/phaseB_fac.rs"
+
+[[bin]]
+name = "qft_circuit"
+path = "src/bin/qft_circuit.rs"
+
+[[bin]]
+name = "reptiling_one"
+path = "src/bin/reptiling_one.rs"
+
+[[bin]]
+name = "schutte_one"
+path = "src/bin/schutte_one.rs"
+
+[[bin]]
+name = "shor_big_batch"
+path = "src/bin/shor_big_batch.rs"
+
+[[bin]]
+name = "shor_big_one"
+path = "src/bin/shor_big_one.rs"
+
+[[bin]]
+name = "shor_bvalsd_one"
+path = "src/bin/shor_bvalsd_one.rs"
+
+[[bin]]
+name = "shor_cli"
+path = "src/bin/shor_cli.rs"
+
+[[bin]]
+name = "shor_one"
+path = "src/bin/shor_one.rs"
+
+[[bin]]
+name = "tripsum_one"
+path = "src/bin/tripsum_one.rs"
+
+[[bin]]
+name = "verify_31_tower"
+path = "src/bin/verify_31_tower.rs"
+
+[[bin]]
+name = "baked_target_bounded"
+path = "src/bin/baked_target_bounded.rs"
+
+[[bin]]
+name = "semiprime_shot_cli"
+path = "src/bin/semiprime_shot_cli.rs"
+
+[[bin]]
+name = "shot_carrier"
+path = "src/bin/shot_carrier.rs"
+
+[[bin]]
+name = "nested_frame_cli"
+path = "src/bin/nested_frame_cli.rs"
+
+[[bin]]
+name = "meta_router_cli"
+path = "src/bin/meta_router_cli.rs"
+
+[[bin]]
+name = "router_self_cli"
+path = "src/bin/router_self_cli.rs"
+
+[[bin]]
+name = "router_rr_cli"
+path = "src/bin/router_rr_cli.rs"
+
+[[bin]]
+name = "trace_measure_cli"
+path = "src/bin/trace_measure_cli.rs"
+
+[[bin]]
+name = "judge_judge_cli"
+path = "src/bin/judge_judge_cli.rs"
+
+[[bin]]
+name = "full_loop_cli"
+path = "src/bin/full_loop_cli.rs"
+
+[[bin]]
+name = "carrier_cli"
+path = "src/bin/carrier_cli.rs"
+
+[[bin]]
+name = "carrier_identity_cli"
+path = "src/bin/carrier_identity_cli.rs"
+
+[[bin]]
+name = "trace_replay_cli"
+path = "src/bin/trace_replay_cli.rs"
+
+[[bin]]
+name = "judge_g_cli"
+path = "src/bin/judge_g_cli.rs"
+
+[[bin]]
+name = "meta_router_g_cli"
+path = "src/bin/meta_router_g_cli.rs"
+
+[[bin]]
+name = "router_g_cli"
+path = "src/bin/router_g_cli.rs"
+
+[[bin]]
+name = "judge_router_g_cli"
+path = "src/bin/judge_router_g_cli.rs"
+
+[[bin]]
+name = "router_marks_cli"
+path = "src/bin/router_marks_cli.rs"
+
+[[bin]]
+name = "router_word_cli"
+path = "src/bin/router_word_cli.rs"
+
+[[bin]]
+name = "self_repair_word_cli"
+path = "src/bin/self_repair_word_cli.rs"
+
+[[bin]]
+name = "trace_word_cli"
+path = "src/bin/trace_word_cli.rs"
+
+[[bin]]
+name = "trace_reentry_cli"
+path = "src/bin/trace_reentry_cli.rs"
+
+[[bin]]
+name = "rewrite_word_cli"
+path = "src/bin/rewrite_word_cli.rs"
+
+[[bin]]
+name = "trace_algebra_cli"
+path = "src/bin/trace_algebra_cli.rs"
+
+[[bin]]
+name = "tape_delete_cli"
+path = "src/bin/tape_delete_cli.rs"
+
+[[bin]]
+name = "tape_fuse_cli"
+path = "src/bin/tape_fuse_cli.rs"
+
+[[bin]]
+name = "tape_algebra_words_cli"
+path = "src/bin/tape_algebra_words_cli.rs"
+
+[[bin]]
+name = "tape_factor_cli"
+path = "src/bin/tape_factor_cli.rs"
+
+[[bin]]
+name = "terminal_fixpoint_cli"
+path = "src/bin/terminal_fixpoint_cli.rs"
+
+[[bin]]
+name = "transform_verdict_cli"
+path = "src/bin/transform_verdict_cli.rs"
+
+[[bin]]
+name = "reduce_resident_cli"
+path = "src/bin/reduce_resident_cli.rs"
+
+[[bin]]
+name = "confluence_cli"
+path = "src/bin/confluence_cli.rs"
+
+[[bin]]
+name = "cluster_factor_cli"
+path = "src/bin/cluster_factor_cli.rs"
+
+[[bin]]
+name = "history_reduce_cli"
+path = "src/bin/history_reduce_cli.rs"
+
+[[bin]]
+name = "frame_work_cli"
+path = "src/bin/frame_work_cli.rs"
+
+[[bin]]
+name = "tower_words_cli"
+path = "src/bin/tower_words_cli.rs"
+
+[[bin]]
+name = "winding_membrane"
+path = "src/bin/winding_membrane.rs"
+
+[[bin]]
+name = "ring_membrane"
+path = "src/bin/ring_membrane.rs"
+
+[[bin]]
+name = "base_mod_membrane"
+path = "src/bin/base_mod_membrane.rs"
+
+[[bin]]
+name = "reduce_delete_membrane"
+path = "src/bin/reduce_delete_membrane.rs"
+
+[[bin]]
+name = "cylinder_membrane"
+path = "src/bin/cylinder_membrane.rs"
+
+[[bin]]
+name = "hyperstack_one"
+path = "src/bin/hyperstack_one.rs"
+
+[[bin]]
+name = "double_arev_membrane"
+path = "src/bin/double_arev_membrane.rs"
+
+[[bin]]
+name = "single_frame_membrane"
+path = "src/bin/single_frame_membrane.rs"
+
+[dependencies]
+num-bigint = "0.4"
+num-integer = "0.1"
+num-traits = "0.2"
+
+[[bin]]
+name = "factor_2adic_bigint"
+path = "src/bin/factor_2adic_bigint.rs"
+
+[[bin]]
+name = "factor_membrane"
+path = "src/bin/factor_membrane.rs"
+
+[[bin]]
+name = "toroidal_shot_cli"
+path = "src/bin/toroidal_shot_cli.rs"
+
+[[bin]]
+name = "toroidal_one"
+path = "src/bin/toroidal_one.rs"
+
+[[bin]]
+name = "glut_one"
+path = "src/bin/glut_one.rs"
+
+[lints.rust]
+warnings = "deny"

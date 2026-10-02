@@ -288,7 +288,14 @@ def parse_args(argv=None):
 # ----------------------------------------------------------------------
 def main(argv=None):
     args = parse_args(argv)
-    wt = read_wt_from_file(args.wt_file) if args.wt_file else args.wt.strip().upper()
+    if args.wt_file:
+        try:
+            wt = read_wt_from_file(args.wt_file)
+        except OSError as e:
+            print(f'error: cannot read --wt-file {args.wt_file}: {e}', file=sys.stderr)
+            return 2
+    else:
+        wt = args.wt.strip().upper()
     if not wt:
         print('error: empty WT sequence', file=sys.stderr); return 2
     n = len(wt)
@@ -312,8 +319,16 @@ def main(argv=None):
         if a not in CODONS:
             print(f'error: non-standard residue in payload: {a!r}', file=sys.stderr); return 2
 
-    overrides = {k: parse_index_set(s) for k, s in
-                 (('CDR1', args.cdr1_contacts), ('CDR2', args.cdr2_contacts), ('CDR3', args.cdr3_contacts))}
+    overrides = {}
+    for k, s in (('CDR1', args.cdr1_contacts), ('CDR2', args.cdr2_contacts), ('CDR3', args.cdr3_contacts)):
+        if s is None:
+            overrides[k] = None
+            continue
+        try:
+            overrides[k] = parse_index_set(s)
+        except ValueError:
+            print(f'error: malformed index list for {k}: {s!r} (expected e.g. 0,2,4-6)', file=sys.stderr)
+            return 2
     has_override = any(v is not None for v in overrides.values())
     gap_mode = args.gap_model or ('pinned' if is_canonical and not has_override else 'auto')
     top_conf = args.top_conf if args.top_conf is not None else (CANONICAL_TOP_CONF if gap_mode == 'pinned' else 0.60)
@@ -389,10 +404,10 @@ def main(argv=None):
 
     print(f'[5] TOP ESCAPE (0-based): pos {top["pos"]}  '
           f'WT[{top["pos"]}]= to {top["new"]}  '
-          f'gap={top["gap"]} frob=True conf={top["conf"]:.2f}')
+          f'gap={top["gap"]} frob={frob_of(top)} conf={top["conf"]:.2f}')
     print(render_top(top, n))
 
-    if gap_mode == 'pinned' and is_canonical and args.top_conf <= CANONICAL_TOP_CONF:
+    if gap_mode == 'pinned' and is_canonical and top_conf <= CANONICAL_TOP_CONF:
         assert (top['pos'], top['new'], top['gap']) == (15, 'D', 4), top
         assert top['mut_seq'] == 'TGPCTNVSTVQCTHGDRPVVSTQLLLNGSL'
         assert top['wt_seq'][top['pos']] == top['wt_res'] == 'I'

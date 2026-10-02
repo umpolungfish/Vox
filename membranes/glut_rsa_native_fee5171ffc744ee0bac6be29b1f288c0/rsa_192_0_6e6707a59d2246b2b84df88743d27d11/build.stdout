@@ -1,0 +1,33 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+error[E0364]: `factor_phase_closes` is private, and cannot be re-exported
+ --> src/glut_correlation.rs:8:16
+  |
+8 | pub(super) use quantum::factor_phase_closes;
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+note: consider marking `factor_phase_closes` as `pub` in the imported module
+ --> src/glut_correlation.rs:8:16
+  |
+8 | pub(super) use quantum::factor_phase_closes;
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: function import `factor_phase_closes` is private
+   --> src/glut_fold.rs:694:30
+    |
+694 |                 correlation::factor_phase_closes(&self.n, &execution.p, &execution.q)
+    |                              ^^^^^^^^^^^^^^^^^^^ private function import
+    |
+note: the function import `factor_phase_closes` is defined here...
+   --> src/glut_correlation.rs:8:16
+    |
+  8 | pub(super) use quantum::factor_phase_closes;
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: ...and refers to the function `factor_phase_closes` which is defined here
+   --> src/glut_quantum.rs:53:1
+    |
+ 53 | pub(super) fn factor_phase_closes(n: &[char], p: &[char], q: &[char]) -> bool {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0364, E0603.
+For more information about an error, try `rustc --explain E0364`.
+error: could not compile `vox` (lib) due to 2 previous errors

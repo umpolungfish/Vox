@@ -19,9 +19,124 @@ use alloc::vec::Vec;
 
 type Tape = Vec<char>;
 
+// Silent gauges for Vox's native debugger. Only the tracer reads these fields.
+// bits, base width, relation target, polynomials, scanned positions, candidates,
+// accepted relations, surviving matrix rows, surviving matrix columns,
+// non-unit cofactors <= base bound squared, <= its fourth power, and larger.
+#[unsafe(no_mangle)]
+pub static VOX_SIEVE_COUNTERS: [core::sync::atomic::AtomicU64; 12] =
+    [const { core::sync::atomic::AtomicU64::new(0) }; 12];
+fn sieve_gauge(index: usize, value: usize) {
+    VOX_SIEVE_COUNTERS[index].store(value as u64, core::sync::atomic::Ordering::Relaxed);
+}
+
+
+type PartialRelations = alloc::collections::BTreeMap<Tape, (Tape, Vec<(usize, u32)>)>;
+
+/// Two relations carrying the same residual contribute its exact square.
+/// The first partial is retained as an anchor for every later matching word.
+fn fold_residual_relation(n: &Tape, axb: Tape, mut exponents: Vec<u32>, residual: Tape,
+    partials: &mut PartialRelations) -> Option<(Vec<u32>, Tape, Tape)> {
+    if residual == one() { return Some((exponents, axb, residual)); }
+    if let Some((prior_x, prior_exponents)) = partials.get(&residual) {
+        for &(column, exponent) in prior_exponents { exponents[column] += exponent; }
+        Some((exponents, mul_mod(prior_x, &axb, n), residual))
+    } else {
+        let sparse = exponents.into_iter().enumerate()
+            .filter(|&(_, exponent)| exponent != 0).collect();
+        partials.insert(residual, (axb, sparse));
+        None
+    }
+}
+
+fn residual_bucket(residual: &Tape, bound2: &Tape, bound4: &Tape) -> usize {
+    if cmp(residual, bound2) != core::cmp::Ordering::Greater { 9 }
+    else if cmp(residual, bound4) != core::cmp::Ordering::Greater { 10 }
+    else { 11 }
+}
+
+
 #[cfg(test)]
 mod threshold_tests {
     use super::*;
+    #[test]
+    fn matching_residuals_close_only_with_their_square_contribution() {
+        let n = tape_u64(91);
+        let base = [1, 2, 3];
+        let mut pool = PartialRelations::new();
+        assert!(fold_residual_relation(&n, tape_u64(19), vec![0, 3, 0], tape_u64(11), &mut pool).is_none());
+        let (exponents, x, root) = fold_residual_relation(&n, tape_u64(33), vec![0, 3, 0], tape_u64(11), &mut pool).unwrap();
+        assert_eq!(exponents, vec![0, 6, 0]);
+        assert_eq!(mul_mod(&x, &x, &n), mul_mod(&mul(&root, &root), &tape_u64(64), &n));
+        let rows = [x, tape_u64(8)];
+        let exponents = [exponents, vec![0, 6, 0]];
+        assert!(combine(&n, &rows, &exponents, &base).is_none());
+        let roots = [root, one()];
+        let factor = combine_with_square_factors(&n, &rows, &exponents, &base, Some(&roots)).unwrap();
+        assert_eq!(factor, tape_u64(7));
+        assert_eq!(mul(&factor, &divmod(&n, &factor).0), n);
+        // A third matching word also uses the first partial as its anchor.
+        assert!(fold_residual_relation(&n, tape_u64(58), vec![0, 3, 0], tape_u64(11), &mut pool).is_some());
+    }
+    #[test]
+    fn shared_residual_rows_preserve_signed_parity() {
+        let n = tape_u64(91);
+        let base = [1, 2, 5];
+        let mut pool = PartialRelations::new();
+        assert!(fold_residual_relation(&n, tape_u64(6), vec![1, 0, 1], tape_u64(11), &mut pool).is_none());
+        let first = fold_residual_relation(&n, tape_u64(19), vec![0, 3, 0], tape_u64(11), &mut pool).unwrap();
+        let second = fold_residual_relation(&n, tape_u64(33), vec![0, 3, 0], tape_u64(11), &mut pool).unwrap();
+        let rows = [first.1, second.1];
+        let exponents = [first.0, second.0];
+        let roots = [first.2, second.2];
+        assert_eq!(exponents[0], vec![1, 3, 1]);
+        assert_eq!(mul_mod(&rows[0], &rows[0], &n), tape_u64(74));
+        assert_eq!(mul_mod(&rows[1], &rows[1], &n), tape_u64(74));
+        assert!(combine(&n, &rows, &exponents, &base).is_none());
+        let factor = combine_with_square_factors(&n, &rows, &exponents, &base, Some(&roots)).unwrap();
+        assert_eq!(factor, tape_u64(13));
+        assert_eq!(mul(&factor, &divmod(&n, &factor).0), n);
+    }
+    #[test]
+    fn a_composite_shared_residual_also_contributes_an_exact_square() {
+        let n = tape_u64(91);
+        let mut pool = PartialRelations::new();
+        assert!(fold_residual_relation(&n, tape_u64(19), vec![0], tape_u64(88), &mut pool).is_none());
+        let paired = fold_residual_relation(&n, tape_u64(33), vec![0], tape_u64(88), &mut pool).unwrap();
+        let rows = [paired.1, one()];
+        let exponents = [paired.0, vec![0]];
+        let roots = [paired.2, one()];
+        assert!(combine(&n, &rows, &exponents, &[1]).is_none());
+        assert_eq!(combine_with_square_factors(&n, &rows, &exponents, &[1], Some(&roots)), Some(tape_u64(7)));
+    }
+    #[test]
+    fn residual_buckets_include_exact_boundaries_and_wide_values() {
+        let b2 = tape_u64(49);
+        let b4 = mul(&b2, &b2);
+        for (value, bucket) in [(48, 9), (49, 9), (50, 10), (2401, 10), (2402, 11)] {
+            assert_eq!(residual_bucket(&tape_u64(value), &b2, &b4), bucket);
+        }
+        let wide = mul(&u128_to_tape(u128::MAX), &u128_to_tape(u128::MAX));
+        assert_eq!(residual_bucket(&wide, &b2, &b4), 11);
+        assert_eq!(residual_bucket(&wide, &wide, &wide), 9);
+    }
+    #[test]
+    fn matrix_closes_with_two_rows_and_many_unused_columns() {
+        let base = [1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+        let n = tape_u64(91);
+        let rows = [tape_u64(10), tape_u64(17)];
+        let mut exponents = vec![vec![0; base.len()]; rows.len()];
+        exponents[0][2] = 2;
+        exponents[1][1] = 4;
+        // 10^2 == 3^2 and 17^2 == 2^4 modulo 91.
+        assert_eq!(mul_mod(&rows[0], &rows[0], &n), tape_u64(9));
+        assert_eq!(mul_mod(&rows[1], &rows[1], &n), tape_u64(16));
+        let factor = combine(&n, &rows, &exponents, &base).unwrap();
+        assert_eq!(factor, tape_u64(7));
+        let (quotient, remainder) = divmod(&n, &factor);
+        assert!(zero(&remainder));
+        assert_eq!(mul(&factor, &quotient), n);
+    }
     #[test]
     fn word_pivot_matches_bit_scan_with_padding_and_zero_words() {
         for width in [0, 1, 63, 64, 65, 127, 128, 129, 255, 256, 512, 1025] {
@@ -342,6 +457,12 @@ pub fn dixon(n: &Tape, base_bound: usize, extra: usize, max_candidates: u64) -> 
 /// X = prod a_i mod N, Y = prod p^(e/2) mod N, then gcd(X - Y, N). Returns the
 /// first nontrivial factor. Shared by Dixon and the quadratic sieve.
 fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option<Tape> {
+    combine_with_square_factors(n, a_of, exp_of, base, None)
+}
+
+fn combine_with_square_factors(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64],
+    square_factors: Option<&[Tape]>) -> Option<Tape> {
+    debug_assert!(square_factors.is_none_or(|factors| factors.len() == a_of.len()));
     let width = base.len();
     let rel = a_of.len();
     if rel < 2 || width == 0 {
@@ -351,8 +472,8 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
     // relation carries (a column of weight one) cannot sit in any dependency, so
     // drop it; that lowers other columns' weights and cascades. What survives keeps
     // every dependency the full set held, over only the heavy columns (weight >= 2).
-    // This collapses the plane, width ~9000 down to a few hundred, before the dense
-    // solve, which then runs on the small residual.
+    // The surviving row and column counts depend on the collected relations;
+    // the dense solve runs on that measured residual.
     let par: Vec<Vec<usize>> = exp_of
         .iter()
         .map(|e| (0..width).filter(|&c| e[c] & 1 == 1).collect())
@@ -382,6 +503,8 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
     let keep_rows: Vec<usize> = (0..rel).filter(|&r| alive[r]).collect();
     let keep_cols: Vec<usize> = (0..width).filter(|&c| colcount[c] >= 2).collect();
     let rrel = keep_rows.len();
+    sieve_gauge(7, rrel);
+    sieve_gauge(8, keep_cols.len());
     if rrel < 2 {
         return None;
     }
@@ -456,6 +579,13 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
                 }
             }
             let mut y = one();
+            if let Some(square_factors) = square_factors {
+                for &i in &sel {
+                    if square_factors[i] != one() {
+                        y = mul_mod(&y, &square_factors[i], n);
+                    }
+                }
+            }
             for c in 0..width {
                 for _ in 0..total[c] / 2 {
                     y = mul_mod(&y, &tape_u64(base[c]), n);
@@ -700,6 +830,9 @@ fn iroot(v: u128, k: u32) -> u128 {
 /// N. The -1 sign of g rides a phantom base column so the GF(2) combine, shared
 /// with Dixon and single-poly QS, needs no change. Returns a factor or None.
 pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<Tape> {
+    for counter in &VOX_SIEVE_COUNTERS {
+        counter.store(0, core::sync::atomic::Ordering::Relaxed);
+    }
     let n = trim(n.clone());
     let bits = n.len();
     // Wider targets amortize polynomial setup across a larger window.
@@ -741,6 +874,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         _ => 250_000,
     };
     let eff_bound = base_bound.max(opt_bound);
+    let residual_bound2_u = (eff_bound as u128) * (eff_bound as u128);
+    let residual_bound4_u = residual_bound2_u.checked_mul(residual_bound2_u).unwrap_or(u128::MAX);
+    let residual_bound2 = u128_to_tape(residual_bound2_u);
+    let residual_bound4 = mul(&residual_bound2, &residual_bound2);
     let primes = small_primes(eff_bound);
     // QR base: primes where N is a residue, each with a root of N. Index 0 is the
     // phantom -1 (sign), value 1 so it contributes nothing to the reconstruction.
@@ -770,6 +907,9 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         .map(|&prime| (1u64 << 32) / prime)
         .collect();
     let need = width + extra;
+    sieve_gauge(0, bits);
+    sieve_gauge(1, width);
+    sieve_gauge(2, need);
     // A is a product of k distinct QR primes each near a_target^(1/k), so their
     // product lands close to the optimal A that keeps the polynomial values small.
     // k grows with N so the per-prime size stays inside the factor base, which is
@@ -798,6 +938,8 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let span = (2 * m_half + 1) as usize;
     let mut a_of: Vec<Tape> = Vec::new();
     let mut exp_of: Vec<Vec<u32>> = Vec::new();
+    let mut square_factors = Vec::new();
+    let mut partials = PartialRelations::new();
     let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
     let n_tape = n.clone();
     let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
@@ -902,6 +1044,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                 break 'outer;
             }
             _poly += 1;
+            sieve_gauge(3, _poly);
             // B = bl[0] + sum_{l>=1} (±bl[l]); pattern bit picks the sign
             let mut b_cur = bl[0] % a_val;
             for l in 1..kk {
@@ -979,6 +1122,8 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     next2[j] = idx2 as i64;
                 }
                 threshold_positions(&blk[..blen], thresh, &mut candidates);
+                VOX_SIEVE_COUNTERS[4].fetch_add(blen as u64, core::sync::atomic::Ordering::Relaxed);
+                VOX_SIEVE_COUNTERS[5].fetch_add(candidates.len() as u64, core::sync::atomic::Ordering::Relaxed);
                 for &off in &candidates {
                     let xi = bstart + off;
                     // hit test: which base primes land on this position
@@ -990,9 +1135,9 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                             i64::from(xr) == soln1[j] || i64::from(xr) == soln2[j]
                         }
                     };
-                    // Produce the smooth relation (g_neg, exps, |Ax+B|) or skip.
+                    // Produce the factor-base exponents, |Ax+B| and residual word.
                     // Machine word while g fits it (fast), tapes when it would not.
-                    let relation: Option<(bool, Vec<u32>, Tape)> = if !wide {
+                    let relation: Option<(Vec<u32>, Tape, Tape)> = if !wide {
                         let x = xi as i128 - m;
                         let g = a_i * x * x + 2 * b_i * x + cc_i;
                         if g == 0 {
@@ -1017,13 +1162,14 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                                 }
                             }
                             if val != 1 {
-                                None
-                            } else {
-                                for &idx in &ks {
-                                    exps[idx] += 1;
-                                }
+                                let bucket = if val <= residual_bound2_u { 9 }
+                                    else if val <= residual_bound4_u { 10 } else { 11 };
+                                VOX_SIEVE_COUNTERS[bucket].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+                            }
+                            if val > residual_bound2_u { None } else {
+                                for &idx in &ks { exps[idx] += 1; }
                                 let axb = a_i * x + b_i;
-                                Some((g < 0, exps, u128_to_tape(axb.unsigned_abs())))
+                                Some((exps, u128_to_tape(axb.unsigned_abs()), u128_to_tape(val)))
                             }
                         }
                     } else {
@@ -1062,42 +1208,45 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                                 }
                             }
                             if val != one_t {
-                                None
-                            } else {
-                                for &idx in &ks {
-                                    exps[idx] += 1;
-                                }
+                                let bucket = residual_bucket(&val, &residual_bound2, &residual_bound4);
+                                VOX_SIEVE_COUNTERS[bucket].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+                            }
+                            if cmp(&val, &residual_bound2) == core::cmp::Ordering::Greater { None } else {
+                                for &idx in &ks { exps[idx] += 1; }
                                 let (_s, axb) = sadd((x_neg, mul(&a_t, &x_t)), (b_neg, b_t.clone()));
-                                Some((g_neg, exps, trim(axb)))
+                                Some((exps, trim(axb), val))
                             }
                         }
                     };
-                    let (_g_neg, exps, axb_t) = match relation {
+                    let (exps, axb_t, residual) = match relation {
                         Some(r) => r,
                         None => continue,
                     };
                     if !seen.insert(axb_t.clone()) {
                         continue;
                     }
+                    let Some((exps, axb_t, square_factor)) = fold_residual_relation(
+                        &n, axb_t, exps, residual, &mut partials) else { continue; };
                     #[cfg(feature = "mpqs_debug")]
                     if a_of.is_empty() {
                         extern crate std;
-                        let lhs = mul(&axb_t, &axb_t);
-                        // A*|g| reconstructed from the exponents (A's primes plus g's)
-                        let mut ag = one();
-                        for c in 0..width {
+                        let lhs = mul_mod(&axb_t, &axb_t, &n_tape);
+                        let mut ag = mul_mod(&square_factor, &square_factor, &n_tape);
+                        for c in 1..width {
                             for _ in 0..exps[c] {
-                                ag = mul(&ag, &u128_to_tape(base[c] as u128));
+                                ag = mul_mod(&ag, &u128_to_tape(base[c] as u128), &n_tape);
                             }
                         }
-                        let rhs = if _g_neg { sub(&n_tape, &ag) } else { add(&ag, &n_tape) };
+                        let rhs = if exps[0] & 1 == 1 && !zero(&ag) { sub(&n_tape, &ag) } else { ag };
                         std::eprintln!(
-                            "[mpqs] identity (Ax+B)^2==A*g+N : {}",
+                            "[mpqs] relation square closes modulo N : {}",
                             if trim(lhs) == trim(rhs) { "PASS" } else { "FAIL" }
                         );
                     }
                     a_of.push(axb_t);
                     exp_of.push(exps);
+                    square_factors.push(square_factor);
+                    sieve_gauge(6, a_of.len());
                     if a_of.len() >= need {
                         break 'outer;
                     }
@@ -1121,12 +1270,12 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     {
         extern crate std;
         let t = std::time::Instant::now();
-        let r = combine(&n, &a_of, &exp_of, &base);
+        let r = combine_with_square_factors(&n, &a_of, &exp_of, &base, Some(&square_factors));
         std::eprintln!("[mpqs] combine took {:?}", t.elapsed());
         return r;
     }
     #[cfg(not(feature = "mpqs_debug"))]
-    combine(&n, &a_of, &exp_of, &base)
+    combine_with_square_factors(&n, &a_of, &exp_of, &base, Some(&square_factors))
 }
 
 /// Base bound and window sized from the width of N: B grows about like the

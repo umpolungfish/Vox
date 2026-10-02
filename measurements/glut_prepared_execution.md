@@ -260,3 +260,211 @@ Narrowed first-column carry intervals now return low-prefix product bounds to
 both factor masks through the existing constraint procedure. Derived bounds
 are intersected with the target mask's actual bit domain. The random 2048-bit
 all-width test verifies those deductions preserve the genuine factors.
+
+### Resident component ports and folded phase fields
+
+The carrier derives its work from the Frames, Square, Admission, Correlation,
+Masks and Verify component protocols. Slot bindings survive boundary dissolution.
+A return edge repeats their work within one enclosing open frame. Verified
+checkpoint ancestry releases fusion, fixation and the single terminal readout.
+
+Polynomial coefficient tapes are folded once per sieve window. Prime-column
+root positions use retained modular views and exact extended Euclid. A shared
+hit-link buffer replaces per-position allocations. Candidate columns return in
+sorted order to sparse phase elimination. The scheduler charges the active
+window or preparation slice; witness history remains resident storage.
+
+For random source 171786028374205744096800748549123039721, the verified factors
+are 11488887858305154889 and 14952363578866691489. Native static-musl execution
+closed in 13.540712509 seconds in campaign 29f17e730343476c89178c722d9d3ae6,
+4.575274789 seconds with retained root fields in ce9b11215498451f8194f44a0f3774b2,
+and 1.769079151 seconds with active-work scheduling in
+faaf3afd7d0c46e5919675cf6b041f0b. Each binary carries only N as its source,
+checks its product and reentry certificate, and emits all four IMASM lines
+at closure. These are executions of the same source and expected factors.
+
+The independent width campaign eee82f68f5704af6aa9bd2abbcbcde9a closed its two
+128-bit samples in 2.221197022 and 1.317038404 seconds, and its 160-bit sample
+in 25.181636202 seconds. Its 192- and 256-bit samples reached their 60-second
+deadlines with empty output. The complete manifest retains inputs, factors,
+source hashes and binary hashes for each case.
+
+The phase-family campaign 65bc58e1767040a9946e0a7cb2a306d2 replays the same
+sources. Its 128-bit control closes in 1.016307204 seconds and its 160-bit
+control in 14.508925279 seconds. Its 192-bit case reaches 60.034656115 seconds
+with empty output. Phase-family construction, retained folded division and
+storage accounting are exercised together in this comparison.
+
+A coefficient family is a product of distinct resident primes.
+Prime roots supply CRT terms, and a dynamic sign register visits their
+phase siblings under the same coefficient and inverse fields. Exhausting
+prime subsets expands the enclosing field. Field expansion grows the sieve
+window and recomputes its source-derived target coefficient. Existing
+relations and witness ancestry remain resident across expansion.
+
+Each coefficient contributes its known prime columns to the same symbolic parity
+register as the candidate residual. Matching columns fold into the retained
+square witness. Prepared-window batches scale with the source folded-limb
+extent; field preparation keeps its incremental turns. Every enclosing pass
+continues through the live mask and correlation ports.
+
+### Shared residual phase columns
+
+Residual factors have shared identities and a retained sparse parity basis.
+A cycle through overlapping residual factors returns its row to the main
+prime-column basis. Each witness retains its exact residual and factor views;
+materialization checks their complete product and cancels factors individually.
+The folded-word multiplicative orbit is adapted from meta_router. Wider
+residual tapes retain their complete symbolic identity. The random 2048-bit
+source check reconstructs every folded word from its factor views and checks
+the complete wider tape remains resident. The 192-bit phase-family check also
+verifies candidate identities and storage totals with the residual basis.
+
+The preceding squarefree-coefficient campaign 33f5f17df3534b388ec5bb3583818c8c
+closed the same 128-bit control in 0.965754569 seconds and the same 160-bit
+control in 10.785086723 seconds. The 192-bit case reached 60.039079961 seconds
+with empty output. Complete IMASM emission and exact module recovery passed
+for every binary in that campaign.
+
+### Dynamic trace lengths and resident edits
+
+The applied-payload length frame grows with its complete glyph count. Existing
+eight-mark length frames retain their representation; larger payloads extend
+the frame. Trace decoding and the resident editor share the same delimited
+reader. It checks the actual slice before allocating the payload. GLUT record
+extents follow twice the source width. No fixed 255-glyph split remains.
+
+The resident edit word traverses the tape until its terminal commit. It has no
+operation budget. Requested spans must close completely before an edit is
+returned. Nested applied-word boundaries remain data under the length frame.
+The random 2048-bit payload control checks round-trip transport, deletion and
+fusion beyond the former operation budget, and rejection of truncated or
+overflowing counts. The random 2048-bit known witness control verifies executed
+convolution checkpoints, growing trace records and reentry certificate transport.
+That control receives fixture factors for transport verification.
+
+Independent fixture generation preserves both factor widths for odd source
+widths. A 129-bit source uses independently sampled 64- and 65-bit prime factors.
+The retained 160-bit fixture regenerates exactly under its existing identifier.
+
+Prime, residual and ancestry support addresses fold into dynamic parity blocks.
+Cancellation dissolves empty blocks while retaining all surviving coordinates.
+Prime-root positions carry across smaller hit buffers until the entire growing
+sieve window has been consumed. The same-input native campaign
+0d7ec1c2a00d4d95aa666caebb2ccb30 closes the 128-bit source in 0.966265312 seconds
+and the 160-bit source in 8.931830898 seconds. Its 192-bit source reaches the
+60-second deadline with empty output.
+
+The dynamic-trace native campaign 5b214d7022104e0fbf956f7b39316186 closes its
+128-, 129- and 160-bit random sources in 0.916122065, 0.715453161, 8.479577276 seconds.
+The 192-bit source reaches 60.051444665 seconds with empty output. Length
+transport and the edit budget repairs are exercised in these prepared binaries;
+the remaining 192-bit deadline is measured by the external lane instrument.
+
+Complete IMASM emission, glyph-alphabet checks and byte-identical module
+recovery pass for all four binaries in that campaign. The combined 192-bit
+external observation attributes 9.922309271 seconds to field marking and
+7.647062708 seconds to mask admission in its 25-second reading. It retains
+6819 phase columns, 3221 reduced rows and 157710 residual basis rows.
+
+Field marking fills the complete weight register before constructing candidate
+hit chains. A contiguous root-address stream folds in place into the factor
+ports selected by that register. Every source position still contributes its
+complete prime weights; witness construction and residual parity use the same
+retained candidate columns. Root coordinates carry into the next block.
+
+The candidate-hit-storage native campaign 5cea8efbc4d84840974892f4f82676fa
+closes its 128-, 129- and 160-bit sources in 0.915545654, 0.715290673 and
+8.830786300 seconds. Its 192-bit source reaches 60.056411962 seconds silently.
+Complete IMASM emission and exact module recovery pass for all four binaries.
+
+The preceding two-walk diagnostic reaches 2697 reduced rows in its combined
+25-second reading and attributes 12.251972899 seconds to field marking. Its
+square-only reading reaches 4230 rows and attributes 16.678698530 seconds to
+marking. The current contiguous address fold consumes root coordinates once
+and avoids the second modular root-position walk.
+
+The static GNU square-selected carrier in campaign
+b5d2a3e7ce6b4f39bdc45a56c6d5367c extracts the random 192-bit source in
+52.819685128 seconds. The same-source musl square-selected reading in campaign
+81c1ed31c36a4f1a9700f8e277d7ec2c reaches 60.053143262 seconds silently.
+The GNU result carries the exact independently expected factors and verified
+certificate. `readelf -d` reports no dynamic section. Complete IMASM emission,
+glyph-alphabet checks and byte-identical module recovery pass.
+
+Native preparation defaults to static GNU and records the selected target.
+The runner rejects build warnings as hard errors and snapshots its own source,
+Cargo configuration and build-time source binder with the membrane modules.
+Prepared square batches follow both the source limb extent and the dynamic
+prime-column address frame before returning through every live component port.
+
+The full-component static native campaign 17882a05a657452fab4c75c4ad28d12e
+closes the matched 128-, 129-, 160- and 192-bit independent random sources in
+0.514996587, 0.465122487, 4.623338797 and 52.968359764 seconds. Every component
+remains active. The prepared executions emit exactly the source, independently
+expected factor pair and verified certificate at closure, with empty stderr.
+The retained 192-bit binary is copied to `target/release/m3mbrain` with its
+binary identity checked against the campaign manifest.
+
+Complete IMASM emission, glyph-alphabet checks and byte-identical recovery pass
+for all four binaries. Current source hashes match the campaign snapshots.
+Every build completes without warnings, and every execution stays below its
+60-second deadline.
+
+The 192-bit source and returned factors are:
+
+```text
+N = 3459800260147004245457073836231374709236097273488346300183
+p = 54850375965963233585256636059
+q = 63077056432465354136833674037
+```
+
+### Threshold-folded candidate weights
+
+Prime-root hits contribute their complete score to each sieve position. The
+candidate gate observes only whether that score reaches its source-derived
+threshold. The resident register therefore saturates at that threshold, using
+the narrowest dynamically selected counter width that holds it. The byte,
+two-byte, four-byte and address-width forms preserve the same threshold result;
+their width transitions are checked against the full integer score.
+
+The random 192-bit source 3459800260147004245457073836231374709236097273488346300183 closes in the complete static GNU `m3mbrain` carrier in 57.695 seconds. It returns 54850375965963233585256636059 and 63077056432465354136833674037 with its verified re-entry certificate, stays silent until closure, and its complete IMASM module recovers byte-for-byte from glyphs. The resident square profile assigns about 15 seconds of a 25-second observation to prime-root weight marking. The current pass scores the full threshold before constructing links only for selected cells.
+
+Random fixture candidates now pass through `vox prime-check`, backed by Vox's tape-based Miller–Rabin module. Replayed identifiers resolve to arithmetic-checked campaign records; new identifiers generate fresh independently sampled factor pairs.
+
+The selected-root linker closes the same random 192-bit source in 59.028 seconds in full static `m3mbrain`. A separate 25-second square profile counted about 2.0 billion scoring root marks, 508 million selected-candidate checks, 1.5 million retained root links and 195 thousand candidate cells. The threshold test compares every resulting cell's factor columns with the full root set across all counter-width boundaries. Full IMASM recovery passes for this exact carrier.
+
+The native-width score accumulator and precomputed address remainders close the same random 192-bit source in 59.388 seconds. The profile separates root scoring (9.203 seconds) from selected-root linking (6.887 seconds) in its 25-second observation. The score fold processes about 2.14 billion root marks; the linker checks about 544 million selected addresses and retains about 1.63 million exact factor links. The arithmetic remainder property test covers address and divisor boundaries. The complete module recovers byte-for-byte from glyphs for this executed carrier.
+
+The one-pass root fold returns the same random 192-bit source in 58.308 seconds in the complete static `m3mbrain` carrier. The split profile attributes 11.761 seconds per 25-second observation to scoring while appending root hits and 1.578 seconds to compacting the contiguous stream into selected factor links. The observed block carries about 2.39 billion root hits, of which about 1.81 million remain as factor links for about 231 thousand selected cells. The threshold-width relation test and full IMASM recovery pass.
+
+### Resident factor-phase port
+
+The collapsed GLUT carrier now nests a factor-phase component after verification
+and before its enclosing fuse. It uses Vox's shared `FactorPhaseOracle`, the
+same implementation imported by G-mOMonadOS through its `vox_core` dependency.
+The oracle marks the returned `(p,q)` basis pair in the relative Hadamard
+phase, then reads that sign as an IMASM bit. It verifies that the product, row,
+carry and nontrivial-factor workspace returns to zero while both inputs remain
+unchanged. The port is part of the carrier word and its return is required
+before the final readout. The sign is folded in the source's Z2 phase field;
+expanding the prepared-basis check to the full `FoldedRegister` crossed the
+execution deadline by 0.065 seconds, so that unneeded register expansion was
+removed.
+
+The random 192-bit source
+3459800260147004245457073836231374709236097273488346300183 returns factors
+54850375965963233585256636059 and 63077056432465354136833674037 in 51.156
+seconds in campaign `resident_folded_phase_b5686476d12c4e90a8e09d6717bd1558`.
+The execution has empty stderr and emits its four IMASM lines only after
+closure. Complete module emission and byte-identical glyph recovery pass for
+the retained binary.
+
+This port currently marks the factor pair after GLUT has found and verified it.
+It establishes the shared oracle boundary inside the collapsed carrier; this
+measurement does not establish a reduction in candidate-search time.
+
+An offline `cargo check --lib` for G-mOMonadOS passes with warnings denied and
+resolves its `vox_core` path dependency to this Vox workspace. The complete
+G-mOMonadOS check currently fails in its `godel` and `g-momonados` binaries on
+duplicate imports, stale Gödel API calls and a denied unused-variable warning.

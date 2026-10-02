@@ -1,0 +1,50 @@
+15675 native samples
+Hot instructions: samples percent address decoded
+3475	22.169	93ec3	add r:r8 r:rdx
+3365	21.467	93edc	add r:r8 r:rdx
+1472	9.391	-1	[external]
+369	2.354	93f3e	pmovmskb r:eax r:xmm1
+325	2.073	93ed8	add m:rbx:r8:4:0x0:4 r:esi
+314	2.003	93ebf	add m:rbx:r8:4:0x0:4 r:esi
+267	1.703	93e98	js i:0x93e81
+219	1.397	8eb9b	mov r:r12 m:rbx::1:0x8:8
+214	1.365	8eb34	mov r:rbp m:rcx::1:0x8:8
+203	1.295	93e81	inc r:rdi
+183	1.167	9550b	add r:r12 i:0x4
+172	1.097	93ecf	mov r:r8 m:r11:rdi:8:0x0:8
+165	1.053	93e8b	mov r:rdx m:rsp::1:0x98:8
+154	0.982	9517e	cmp m:rbp:r10:4:0x0:4 r:r11d
+147	0.938	95388	cmp m:r15:r14:4:0x0:4 r:ebp
+Hot loop ranges: samples percent start end (nested ranges can overlap)
+12291	78.411	92c44	9751d
+12291	78.411	92102	97629
+12291	78.411	92102	97549
+12291	78.411	9189e	97978
+12291	78.411	9189e	9783c
+12291	78.411	91890	97972
+12291	78.411	91890	97836
+12290	78.405	93281	97415
+12224	77.984	939e7	9745c
+12224	77.984	93977	97456
+12222	77.971	93c40	9734b
+9253	59.030	93e7d	93ee4
+5417	34.558	93e7d	93ed6
+3921	25.014	93ebf	93ec9
+3824	24.396	93ed8	93ee2
+Sampled source registers at hot additions: address register decimal-value samples
+93ec3	rdx	37	134
+93ec3	rdx	43	79
+93ec3	rdx	53	76
+93ec3	rdx	71	63
+93ec3	rdx	67	58
+93ec3	rdx	79	51
+93ec3	rdx	61	51
+93ec3	rdx	73	46
+93edc	rdx	37	121
+93edc	rdx	43	100
+93edc	rdx	53	82
+93edc	rdx	61	61
+93edc	rdx	67	58
+93edc	rdx	79	55
+93edc	rdx	73	53
+93edc	rdx	71	49

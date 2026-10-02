@@ -1,0 +1,15 @@
+{
+  "name": "rsa_128_0_e1436ba7eb4247b2becaf63940a136b9",
+  "fixture_id": "e1436ba7eb4247b2becaf63940a136b9",
+  "generator": "glut-rsa-independent-v2",
+  "seed": "6ca20501c333854b2029f14d9ea232880a6bc55bb31e90d40219edc1c21f4d68",
+  "p": "11488887858305154889",
+  "q": "14952363578866691489",
+  "n": "171786028374205744096800748549123039721",
+  "bits": 128,
+  "factor_bits": 64,
+  "factor_gap_bits": 62,
+  "public_exponent": 65537,
+  "primality": "deterministic",
+  "primality_instrument": "SymPy 1.14.0"
+}

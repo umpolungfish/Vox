@@ -400,15 +400,34 @@ fn materialize_fold(n: &[char], p: Vec<char>, q: Vec<char>) -> Result<GlutExecut
 
 /// GLUT p-system factorization.
 pub fn glut_factor(n: &[char]) -> Option<(Vec<char>, Vec<char>)> {
+    glut_factor_with_stats(n).0
+}
+
+/// GLUT factorization with the completed symbolic-fold work record.
+pub fn glut_factor_with_stats(n: &[char]) -> (Option<(Vec<char>, Vec<char>)>, FoldStats) {
     let mut sieve = GlutSieve::new(n);
     sieve.frame_sweep();
-    sieve.readout()
+    (sieve.readout(), sieve.fold_stats)
 }
 
 pub fn glut_factor_execution(n: &[char]) -> Option<GlutExecution> {
     let mut sieve = GlutSieve::new(n);
     sieve.frame_sweep();
     sieve.readout_execution()
+}
+
+pub fn glut_factor_execution_with_stats(
+    n: &[char],
+) -> (Option<GlutExecution>, FoldStats) {
+    let mut sieve = GlutSieve::new(n);
+    sieve.frame_sweep();
+    (sieve.readout_execution(), sieve.fold_stats)
+}
+
+/// Close one nested product-correlation membrane without running the
+/// multi-port frame, square, admission, or mask schedule.
+pub fn glut_correlation_execution(n: &[char]) -> Option<GlutExecution> {
+    fold::correlation_only(n)
 }
 
 impl GlutExecution {
@@ -452,7 +471,8 @@ impl GlutExecution {
     }
 
     /// Actual frame states travel in the applied payload of the routing trace.
-    /// Chunking respects the existing trace record's eight-bit length field.
+    /// Each record follows the resident source frame; its length grows with
+    /// the retained payload instead of truncating to a fixed bit count.
     pub fn trace(&self, n: &[char]) -> Result<Vec<char>, String> {
         use crate::router_marks::{GStep, M_B, M_FIX, M_T};
         self.verify(n)?;
@@ -467,8 +487,9 @@ impl GlutExecution {
             }
         }
         payload.push('⊣');
-        let count = payload.len().div_ceil(255);
-        let steps: Vec<_> = payload.chunks(255).enumerate().map(|(index, chunk)| {
+        let extent = n.len() * 2;
+        let count = payload.len().div_ceil(extent);
+        let steps: Vec<_> = payload.chunks(extent).enumerate().map(|(index, chunk)| {
             let terminal = index + 1 == count;
             GStep { repr: '⋈', judgment: if terminal { M_T } else { M_B },
                 recognised: M_T, next: if terminal { M_FIX } else { '⋈' },
@@ -768,20 +789,21 @@ mod tests {
 
     #[test]
     fn wide_execution_payload_crosses_trace_records_losslessly() {
-        let p = mf::decimal_to_tape("1208925819614629174706179").unwrap();
-        let q = mf::decimal_to_tape("2417851639229258349412361").unwrap();
-        let n = mf::mul(&p, &q);
-        let mut state = GlutState::seed(bit(&n, 0)).into_iter().next().unwrap();
-        let mut checkpoints = vec![state.clone()];
-        for k in 1..n.len() {
-            state = state.advance(bit(&n, k)).into_iter().find(|s| {
-                bit(&s.p_prefix, k) == bit(&p, k) && bit(&s.q_prefix, k) == bit(&q, k)
-            }).unwrap();
-            checkpoints.push(state.clone());
-        }
-        let execution = GlutExecution { p, q, checkpoints };
+        use crate::factor_extract::FactorCarrier;
+        use crate::reentry_certificate::{certify_reentry, decode_reentry_certificate,
+            encode_reentry_certificate};
+        let n = mf::parse_numeral(include_str!("../tests/fixtures/random_rsa_2048.imasm").trim()).unwrap();
+        let p = mf::parse_numeral(include_str!("../tests/fixtures/random_rsa_2048.p.imasm").trim()).unwrap();
+        let q = mf::parse_numeral(include_str!("../tests/fixtures/random_rsa_2048.q.imasm").trim()).unwrap();
+        let execution = materialize_fold(&n, p, q).unwrap();
         let trace = execution.trace(&n).unwrap();
-        assert!(crate::trace_word::decode_trace(&trace).unwrap().len() > 1);
+        let decoded = crate::trace_word::decode_trace(&trace).unwrap();
+        assert!(decoded.len() > 1);
+        assert!(decoded.iter().any(|step| step.applied_word.len() > u8::MAX as usize));
         verify_glut_trace(&n, &execution.p, &execution.q, &trace).unwrap();
+        let carrier = FactorCarrier::new(n, execution.p, execution.q, trace).unwrap();
+        let certificate = certify_reentry(&carrier).unwrap();
+        let decoded = decode_reentry_certificate(&encode_reentry_certificate(&certificate)).unwrap();
+        verify_glut_reentry_certificate(&decoded).unwrap();
     }
 }

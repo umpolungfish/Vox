@@ -101,6 +101,42 @@ pub fn resolve_moat(n: &[char], max_nodes: u64) -> (Option<(Tape, Tape)>, u64, b
     (found, nodes, capped)
 }
 
+/// Unbounded form of the low-bit moat walk for semiprime closure. Each product
+/// check goes through the shared bitregister-folded IMASM arithmetic kernel;
+/// the search extent grows with the source tape and has no node quota.
+pub fn resolve_moat_unbounded(n: &[char]) -> Option<(Tape, Tape)> {
+    let root = isqrt(n);
+    let bits = trim(n.to_vec()).len();
+    let mut stack: Vec<(usize, Tape, Tape)> = vec![(0, vec![EVALT], vec![EVALT])];
+    while let Some((k, plo, qlo)) = stack.pop() {
+        if k >= bits + 1 {
+            continue;
+        }
+        for pk in [false, true] {
+            let p = with_bit(&plo, k, pk);
+            let prod0 = mul(&p, &qlo);
+            let nk = n.get(k).copied().unwrap_or(EVALT) == EVALF;
+            let p0k = prod0.get(k).copied().unwrap_or(EVALT) == EVALF;
+            let q = with_bit(&qlo, k, nk ^ p0k);
+            let prod = mul(&p, &q);
+            if !low_bits_match(&prod, n, k) {
+                continue;
+            }
+            if cmp(&prod, n) == core::cmp::Ordering::Equal && gt_one(&p) && gt_one(&q) {
+                return Some(if cmp(&p, &q) != core::cmp::Ordering::Greater {
+                    (p, q)
+                } else {
+                    (q, p)
+                });
+            }
+            if cmp(&p, &root) != core::cmp::Ordering::Greater {
+                stack.push((k + 1, p, q));
+            }
+        }
+    }
+    None
+}
+
 /// Full factorization: strip the 2-part and small odd primes by the divisor
 /// leg, then cross the moat for the balanced core. Returns the sorted factor
 /// multiset, the total moat-node cost, and whether the budget held.

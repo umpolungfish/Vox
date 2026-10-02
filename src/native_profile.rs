@@ -84,6 +84,18 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             Err(error) => writeln!(counter_report, "{name}\t\t\t\t{error}")?,
         }
     }
+    let sieve_object = vox::loader::elf_object_symbol(&raw, "VOX_SIEVE_COUNTERS")
+        .filter(|&(_, size)| size >= 9 * 8);
+    let sieve_address = sieve_object.map(|(address, _)| base + address);
+    let sieve_fields = sieve_object.map(|(_, size)| (size / 8).min(12)).unwrap_or(0);
+    let mut sieve_samples = if sieve_address.is_some() {
+        let mut output = BufWriter::new(File::create(format!("{prefix}.sieve.tsv"))?);
+        let fields = ["bits", "base_width", "relation_target", "polynomials", "scanned_positions",
+            "candidates", "relations", "core_rows", "core_columns", "cofactor_le_base2",
+            "cofactor_le_base4", "cofactor_larger"];
+        writeln!(output, "seconds\t{}", fields[..sieve_fields as usize].join("\t"))?;
+        Some(output)
+    } else { None };
     let started = Instant::now();
     let mut counts = BTreeMap::<String, u64>::new();
     let mut total = 0u64;
@@ -112,6 +124,16 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             }
         }
         writeln!(samples)?;
+        if let (Some(address), Some(output)) = (sieve_address, sieve_samples.as_mut()) {
+            write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
+            for index in 0..sieve_fields {
+                let value = unsafe { ptrace(2, pid, (address + index * 8) as *mut c_void,
+                    std::ptr::null_mut()) };
+                if value == -1 { return Err(std::io::Error::last_os_error().into()); }
+                write!(output, "\t{}", value as u64)?;
+            }
+            writeln!(output)?;
+        }
         // The signal used to sample is swallowed; unrelated signals keep their semantics.
         let signal = (status >> 8) & 0xff;
         trace(7, pid, if signal == 19 || signal == 5 { 0 } else { signal as usize })?;
@@ -119,6 +141,7 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     let elapsed = started.elapsed().as_secs_f64();
     let _ = child.wait();
     samples.flush()?;
+    if let Some(output) = sieve_samples.as_mut() { output.flush()?; }
     for (name, mut counter) in counters {
         let mut raw = [0u8; 24];
         match counter.read_exact(&mut raw) {

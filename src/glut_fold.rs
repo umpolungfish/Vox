@@ -38,6 +38,10 @@ pub struct FoldStats {
     pub phase_columns: usize,
     pub phase_rows: usize,
     pub phase_partials: usize,
+    pub square_root_marks: usize,
+    pub square_root_link_visits: usize,
+    pub square_root_links: usize,
+    pub square_root_candidates: usize,
     pub mask_work: usize,
     pub correlation_work: usize,
     pub support_calls: usize,
@@ -47,6 +51,34 @@ pub struct FoldStats {
     pub carry_rejected: usize,
     pub reason_original: usize,
     pub reason_folded: usize,
+}
+
+/// Run the nested multiplier correlation as a single resident membrane.
+/// This keeps product, carry, parity-holonomy, and factor-width constraints in
+/// the same bitregister graph without advancing the other GLUT ports.
+pub(super) fn correlation_only(n: &[char]) -> Option<super::GlutExecution> {
+    let source = trim(n.to_vec());
+    if source.len() < 2 || source.iter().any(|mark| !matches!(*mark, ONE | ZERO)) {
+        return None;
+    }
+    let widest = source.len().div_ceil(2);
+    let root = mf::isqrt(&source);
+    let mut graph = correlation::Correlation::new_nested(&source, widest, &root);
+    loop {
+        match graph.advance() {
+            correlation::Step::Running => {}
+            correlation::Step::Empty => return None,
+            correlation::Step::Closed(mut p, mut q) => {
+                if mf::cmp(&p, &q) == Ordering::Greater {
+                    core::mem::swap(&mut p, &mut q);
+                }
+                if !crate::trace_algebra::witness_valid(&source, &p, &q) {
+                    return None;
+                }
+                return super::materialize_fold(&source, p, q).ok();
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -481,15 +513,17 @@ pub(super) enum Port {
     Correlation,
     Masks,
     Verify,
+    Quantum,
 }
 impl Port {
-    pub const ORDER: [Self; 6] = [
+    pub const ORDER: [Self; 7] = [
         Self::Frames,
         Self::Square,
         Self::Admission,
         Self::Correlation,
         Self::Masks,
         Self::Verify,
+        Self::Quantum,
     ];
     pub fn word(self) -> &'static str {
         match self {
@@ -498,6 +532,7 @@ impl Port {
             Self::Admission => "⊢∈≻⊤∋⊣",
             Self::Masks => "⊢∈≻⊥∋⊣",
             Self::Verify => "⊢∈⋈≺∋⊣",
+            Self::Quantum => "⊢∈≻⊙⊥⋈∋⊣",
         }
     }
     pub fn trigger(self) -> char {
@@ -531,6 +566,7 @@ pub(super) struct Resident {
     pub stats: FoldStats,
     pair: Option<(Vec<char>, Vec<char>)>,
     execution: Option<super::GlutExecution>,
+    quantum_phase_closed: bool,
     lanes: Option<Lanes>,
     finished: bool,
 }
@@ -548,6 +584,7 @@ impl Resident {
                 stats,
                 pair: None,
                 execution: None,
+                quantum_phase_closed: false,
                 lanes: None,
                 finished: false,
             };
@@ -581,6 +618,7 @@ impl Resident {
                 stats,
                 pair: proper.then_some((p, q)),
                 execution: None,
+                quantum_phase_closed: false,
                 lanes: None,
                 finished: false,
             };
@@ -657,12 +695,16 @@ impl Resident {
             stats,
             pair: None,
             execution: None,
+            quantum_phase_closed: false,
             lanes: Some(l),
             finished: false,
         }
     }
     pub fn finished(&self) -> bool {
         self.finished
+    }
+    pub fn quantum_phase_closed(&self) -> bool {
+        self.quantum_phase_closed
     }
     pub fn pair(&self) -> Option<(Vec<char>, Vec<char>)> {
         self.pair.clone()
@@ -675,6 +717,17 @@ impl Resident {
         &self.n
     }
     pub fn activate(&mut self, port: Port, mut observe: impl FnMut(&FoldStats)) {
+        if port == Port::Quantum {
+            self.quantum_phase_closed = self.execution.as_ref().is_none_or(|execution| {
+                correlation::factor_phase_closes(&self.n, &execution.p, &execution.q)
+            });
+            assert!(
+                self.quantum_phase_closed,
+                "GLUT pair failed its resident factor-phase oracle"
+            );
+            observe(&self.stats);
+            return;
+        }
         if self.finished {
             return;
         }
@@ -716,7 +769,11 @@ impl Resident {
                     Some("⊥") => l.pending_cells,
                     _ => l.turn_work,
                 };
-                l.square_quantum = (scheduled_work / l.square.cells().max(1)).max(1);
+                // Advance the prepared modular lane across the source's folded
+                // limb extent before returning to full-width mask propagation.
+                // Every enclosing pass still returns through all live ports.
+                l.square_quantum = (scheduled_work / l.square.work_extent().max(1)).max(1)
+                    * l.square.folded_extent();
                 l.turn_work = 0;
                 stats.diagnostic_stage = '⊡';
                 if let Some(pair) = l.frames.advance() {
@@ -739,6 +796,15 @@ impl Resident {
                     });
                     stats.square_advances = l.square.advances;
                     stats.square_cells = l.square.cells();
+                    #[cfg(feature = "root-work-profile")]
+                    {
+                        (
+                            stats.square_root_marks,
+                            stats.square_root_link_visits,
+                            stats.square_root_links,
+                            stats.square_root_candidates,
+                        ) = l.square.root_work();
+                    }
                     if stats.square_advances.is_power_of_two()
                         || !matches!(step, square_fold::Step::Running)
                     {
@@ -866,6 +932,7 @@ impl Resident {
                 }
             }
             Port::Verify => unreachable!(),
+            Port::Quantum => unreachable!(),
         }
     }
 }

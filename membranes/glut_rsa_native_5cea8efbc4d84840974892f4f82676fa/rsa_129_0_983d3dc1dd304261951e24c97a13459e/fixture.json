@@ -1,0 +1,19 @@
+{
+  "name": "rsa_129_0_983d3dc1dd304261951e24c97a13459e",
+  "fixture_id": "983d3dc1dd304261951e24c97a13459e",
+  "generator": "glut-rsa-independent-v2",
+  "seed": "7956133f3597f671f32f49b119b8a495329b72e509d95dd90b3a67b283a52a30",
+  "p": "14529872758941755147",
+  "q": "32060436527695918973",
+  "n": "465834063343550126708592477277717704031",
+  "bits": 129,
+  "factor_bits": 64,
+  "factor_bit_widths": [
+    64,
+    65
+  ],
+  "factor_gap_bits": 64,
+  "public_exponent": 65537,
+  "primality": "probable prime",
+  "primality_instrument": "SymPy 1.14.0"
+}

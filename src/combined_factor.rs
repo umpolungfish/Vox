@@ -266,6 +266,13 @@ pub fn deinterlace_word(w: &str) -> Result<(String, String), String> {
 /// Frame-shift unbraider: rotates D(N) through cyclic cuts ell, deinterlaces
 /// the shifted tape into factor candidates, and tests algebraic closures.
 pub fn frameshift_unbraid_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
+    frameshift_separate_factor(n).map(|(p, q, _, _, _)| (p, q))
+}
+
+/// Return the exact frame and lane witness that separates a factor pair.
+pub fn frameshift_separate_factor(
+    n: &BigUint,
+) -> Option<(BigUint, BigUint, usize, BigUint, i8)> {
     let bits = bits_le(n);
     let k = bits.len();
     if k < 2 { return None; }
@@ -283,7 +290,7 @@ pub fn frameshift_unbraid_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
                     let q_fac = n / &g;
                     let (p_res, q_res) = (g.clone().min(q_fac.clone()), g.max(q_fac));
                     if is_shift_faithful(&p_res) && is_shift_faithful(&q_res) {
-                        return Some((p_res, q_res));
+                        return Some((p_res, q_res, ell, cand.clone(), 0));
                     }
                 }
             }
@@ -293,7 +300,7 @@ pub fn frameshift_unbraid_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
                     let q_fac = n / &g1;
                     let (p_res, q_res) = (g1.clone().min(q_fac.clone()), g1.max(q_fac));
                     if is_shift_faithful(&p_res) && is_shift_faithful(&q_res) {
-                        return Some((p_res, q_res));
+                        return Some((p_res, q_res, ell, cand.clone(), -1));
                     }
                 }
             }
@@ -302,15 +309,15 @@ pub fn frameshift_unbraid_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
                 let q_fac = n / &g2;
                 let (p_res, q_res) = (g2.clone().min(q_fac.clone()), g2.max(q_fac));
                 if is_shift_faithful(&p_res) && is_shift_faithful(&q_res) {
-                    return Some((p_res, q_res));
+                    return Some((p_res, q_res, ell, cand.clone(), 1));
                 }
             }
         }
 
         if &p_val * &q_val == *n {
-            let (p_res, q_res) = (p_val.clone().min(q_val.clone()), p_val.max(q_val));
+            let (p_res, q_res) = (p_val.clone().min(q_val.clone()), p_val.clone().max(q_val));
             if is_shift_faithful(&p_res) && is_shift_faithful(&q_res) {
-                return Some((p_res, q_res));
+                return Some((p_res, q_res, ell, p_val.clone(), 0));
             }
         }
     }
