@@ -23,7 +23,7 @@ fn usage() {
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
-    eprintln!("  vox profile-native <ELF> <report-prefix>   sample native instruction addresses; capture target output");
+    eprintln!("  vox profile-native <ELF> <report-prefix> [--registers]   sample native addresses; capture target output");
     eprintln!("  vox imasm <file>          emit the executable IMASM module");
     eprintln!("  vox glyphs <module.imasm> <output.glyphs>   encode complete module as glyphs");
     eprintln!("  vox unglyphs <word.glyphs> <output.imasm>  restore exact executable module");
@@ -1160,8 +1160,10 @@ fn main() {
         Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
             let raw=read_or_exit(&args[1]); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
         Some("profile-native") => {
-            if args.len() != 3 { eprintln!("vox profile-native <ELF> <report-prefix>"); return; }
-            if let Err(error) = native_profile::run(&args[1], &args[2]) {
+            if args.len() != 3 && !(args.len() == 4 && args[3] == "--registers") {
+                eprintln!("vox profile-native <ELF> <report-prefix> [--registers]"); return;
+            }
+            if let Err(error) = native_profile::run(&args[1], &args[2], args.len() == 4) {
                 eprintln!("native profile: {error}");
                 std::process::exit(1);
             }
