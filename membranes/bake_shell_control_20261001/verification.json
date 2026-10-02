@@ -1,0 +1,11 @@
+{
+  "n": "2389767559",
+  "factors": [
+    "39607",
+    "60337"
+  ],
+  "godel_product": "PASS",
+  "factor_word_primality": "PASS",
+  "binary_no_runtime_input": true,
+  "sha256": "c2d7b154b26b2f69b6abeb26f0222292889678afb70d6354257c29da3d3acac6"
+}

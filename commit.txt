@@ -1,5 +1,9 @@
-I preserve Vox register evidence and reject a slower root recurrence
+I add quick dynamic baking and document the executable commands
 
-I record the complete 360.034-second native register profile. The remaining root marks consume 63.940% of samples, and live stride registers identify the active factor-base primes.
+I emit retained no-input factor binaries through bake_factor.sh, accepting a decimal or one separately generated JSONL case. I preserve build diagnostics and refuse existing output directories. I give the independent random semiprime generator a command-line interface.
 
-I retain the verified experimental binary and instruction stream. Its paired recurrence closes the same input in 399.382 seconds, so I remove that slower source change and keep the verified 360.475-second implementation. The factor lanes, word product gate and IMASM recovery all pass.
+I verify both builder forms on different independently generated inputs. Changing the compile-time word rebuilds the executable, and both retained binaries still close their own factors through Vox primality and Gödel multiplication checks. I verify the batch runner records process CPU time and complete IMASM recovery.
+
+I add native user-space hardware counters to Vox, check the ABI size, and preserve enabled and running times. A silent loop control confirms the instruction count against its decoded loop. I record the complete 364.872-second hardware profile of the retained 208-bit binary and preserve the slower 401.288-second second-period experiment after reverting its source change.
+
+I update USER_GUIDE.md and the canonical ig-docs commands guide with generation, baking, captured execution, word closure, native registers and hardware-counter commands. The arbitrary under-one-minute objective remains active.

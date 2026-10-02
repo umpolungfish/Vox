@@ -123,3 +123,47 @@ establish a speedup. No larger input was used.
 Register profile: `godel_208_native_folded_wordpivot.*`.
 Rejected experiment: `../membranes/godel_random_semiprime_baked_20261001_score_period_wordpivot_rootpair_208/results.jsonl`.
 Rejected instruction stream: `godel_208_rootpair.vox.disasm`.
+
+## Hardware counter reading and independent second period
+
+A second independent score period passed direct-mark equivalence checks and
+closed the same input in 401.288 seconds. Its score addition is decoded as an
+eight-lane `paddd` loop. The source change was removed because it did not improve
+on the retained 360.475-second execution. This execution overlapped a Gödel
+analysis of the same input and a short build; its wall time is not an isolated
+benchmark. The experimental ELF and full closure gates remain available in
+`../membranes/godel_random_semiprime_baked_20261001_two_periods_208/`.
+
+Vox now records user-space task hardware counters alongside native sampling.
+A silent control executes a five-million-iteration loop with ten decoded
+instructions per iteration. Vox records 50,166,894 instructions, compared with
+193,168 for `/usr/bin/true`. Both controls exit zero with empty stdout and stderr.
+The perf ABI comes from the local Linux headers; the size is checked at compile
+time. Unsupported events are recorded as errors, without disabling sampling.
+
+The retained 208-bit binary completed its hardware profile in 364.872 seconds,
+with 35,970 samples. Root marking remains 64.012% of sampled execution. Terminal
+output matches the verified binary exactly; stderr is empty. Hardware counts
+are raw, with enabled and running times preserved. All six events ran without
+multiplexing in this execution. The profile overlapped Gödel analysis; hardware
+counts describe this observed execution.
+
+| Event | Count |
+| --- | ---: |
+| cycles | 1,714,570,934,373 |
+| instructions | 2,722,804,255,735 |
+| cache_references | 226,879,284,243 |
+| cache_misses | 2,107,975,942 |
+| branch_misses | 19,297,303,846 |
+| l1d_read_misses | 215,677,924,105 |
+
+The whole-execution instruction/cycle ratio is 1.588; cache misses/reference is 0.929%. These aggregate readings do not establish a particular instruction
+as the cause of stalls. The register trace continues to identify the remaining
+prime-root recurrence. Future baked result records include process CPU time
+separately from elapsed time. The live Gödel analysis also reached its verified
+Stage 4 factor pair, multiplication gate PASS and word-primality PASS.
+
+Hardware profile: `godel_208_native_hardware.*`.
+Counter controls: `vox_native_counter_control_20261001.*` and
+`vox_native_counter_loop_control_20261001.*`.
+Rejected second-period instructions: `godel_208_two_periods.vox.disasm`.

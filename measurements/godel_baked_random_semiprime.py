@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import resource
 from pathlib import Path
 import shutil
 import subprocess
@@ -88,9 +89,13 @@ def main():
         if module.read_bytes() != recovered.read_bytes():
             raise RuntimeError(f'{name}: ELF-to-IMASM recovery did not close')
 
+        cpu_before = resource.getrusage(resource.RUSAGE_CHILDREN)
         start = time.monotonic()
         execution = run([str(binary)], cwd=case)
         elapsed = time.monotonic() - start
+        cpu_after = resource.getrusage(resource.RUSAGE_CHILDREN)
+        cpu_seconds = (cpu_after.ru_utime + cpu_after.ru_stime
+                       - cpu_before.ru_utime - cpu_before.ru_stime)
         (case / 'run.stdout').write_text(execution.stdout)
         (case / 'run.stderr').write_text(execution.stderr)
         if execution.stderr:
@@ -113,7 +118,8 @@ def main():
             raise RuntimeError(f'{name}: cell-binary product did not close: {product}')
 
         result = dict(name=name, bits=fixture['bits'], n=n, factors=factors,
-                      elapsed_seconds=elapsed, build_seconds=build_seconds,
+                      elapsed_seconds=elapsed, cpu_seconds=cpu_seconds,
+                      build_seconds=build_seconds,
                       engine='baked factor_one / Vox IMASM numeral',
                       factor_binary_sha256=binary_digest,
                       factor_word_primality='PASS', godel_product=product,

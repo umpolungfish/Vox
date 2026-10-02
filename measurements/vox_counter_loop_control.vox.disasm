@@ -1,0 +1,93 @@
+1080	endbr64	
+1084	xor	r:ebp r:ebp
+1086	mov	r:r9 r:rdx
+1089	pop	r:rsi
+108a	mov	r:rdx r:rsp
+108d	and	r:rsp i:-0x10
+1091	push	r:rax
+1092	push	r:rsp
+1093	xor	r:r8d r:r8d
+1096	xor	r:ecx r:ecx
+1098	lea	r:rdi m:rip::1:-0x5f:8
+109f	call	m:rip::1:0x2f33:8
+10a5	hlt	
+1000	endbr64	
+1004	sub	r:rsp i:0x8
+1008	mov	r:rax m:rip::1:0x2fd9:8
+100f	test	r:rax r:rax
+1012	je	i:0x1016
+1014	call	r:rax
+1016	add	r:rsp i:0x8
+101a	ret	
+1040	endbr64	
+1044	mov	m:rsp::1:-0x8:8 i:0x1
+104d	xor	r:edx r:edx
+104f	nop	
+1050	mov	r:rax m:rsp::1:-0x8:8
+1055	mov	r:rcx m:rsp::1:-0x8:8
+105a	add	r:rax r:rax
+105d	shr	r:rcx i:0x3
+1061	xor	r:rax r:rcx
+1064	xor	r:rax r:rdx
+1067	add	r:rdx i:0x1
+106b	mov	m:rsp::1:-0x8:8 r:rax
+1070	cmp	r:rdx i:0x4c4b40
+1077	jne	i:0x1050
+1079	xor	r:eax r:eax
+107b	ret	
+10b0	lea	r:rdi m:rip::1:0x2f59:8
+10b7	lea	r:rax m:rip::1:0x2f52:8
+10be	cmp	r:rax r:rdi
+10c1	je	i:0x10d8
+10c3	mov	r:rax m:rip::1:0x2f16:8
+10ca	test	r:rax r:rax
+10cd	je	i:0x10d8
+10cf	jmp	r:rax
+10d8	ret	
+10e0	lea	r:rdi m:rip::1:0x2f29:8
+10e7	lea	r:rsi m:rip::1:0x2f22:8
+10ee	sub	r:rsi r:rdi
+10f1	mov	r:rax r:rsi
+10f4	shr	r:rsi i:0x3f
+10f8	sar	r:rax i:0x3
+10fc	add	r:rsi r:rax
+10ff	sar	r:rsi i:0x1
+1102	je	i:0x1118
+1104	mov	r:rax m:rip::1:0x2ee5:8
+110b	test	r:rax r:rax
+110e	je	i:0x1118
+1110	jmp	r:rax
+1118	ret	
+1120	endbr64	
+1124	cmp	m:rip::1:0x2ee5:1 i:0x0
+112b	jne	i:0x1158
+112d	push	r:rbp
+112e	cmp	m:rip::1:0x2ec2:8 i:0x0
+1136	mov	r:rbp r:rsp
+1139	je	i:0x1147
+113b	mov	r:rdi m:rip::1:0x2ec6:8
+1142	call	i:0x1030
+1147	call	i:0x10b0
+114c	mov	m:rip::1:0x2ebd:1 i:0x1
+1153	pop	r:rbp
+1154	ret	
+1158	ret	
+1160	endbr64	
+1164	jmp	i:0x10e0
+116c	endbr64	
+1170	sub	r:rsp i:0x8
+1174	add	r:rsp i:0x8
+1178	ret	
+1030	endbr64	
+1034	jmp	m:rip::1:0x2fbd:8
+1020	push	m:rip::1:0x2fa2:8
+1026	jmp	m:rip::1:0x2fa3:8
+103b	nop	
+107c	nop	
+10a6	nop	
+10d1	nop	
+10d9	nop	
+1112	nop	
+1119	nop	
+1155	nop	
+1159	nop	
