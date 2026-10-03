@@ -95,6 +95,7 @@ pub struct StructuralAnalysis {
     pub window_width: Nat,
     pub period: Option<Nat>,
     pub divisor_bound: Option<DivisorBoundCertificate>,
+    pub prime_sieve: Option<crate::godel_calculus::PrimeSieveRead>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -584,7 +585,20 @@ pub fn analyze(
         window_width: nat_from_index(bits.len()),
         period: exact_window_period(&bits),
         divisor_bound,
+        prime_sieve: None,
     })
+}
+
+/// Attach the actual finite sieve read to the same codec and support analysis.
+/// Existing analyzer callers retain their explicit certificate interface.
+pub fn analyze_with_sieve(
+    value: &Nat,
+    divisor_bound: Option<DivisorBoundCertificate>,
+    prime_sieve: Option<crate::godel_calculus::PrimeSieveRead>,
+) -> Result<StructuralAnalysis, String> {
+    let mut analysis = analyze(value, divisor_bound)?;
+    analysis.prime_sieve = prime_sieve;
+    Ok(analysis)
 }
 
 fn optional_v2(value: &Option<V2>) -> String {
@@ -602,19 +616,26 @@ pub fn render(analysis: &StructuralAnalysis) -> String {
         .map(ToString::to_string)
         .unwrap_or_else(|| "none".to_string());
     let factor_bound = analysis
-        .divisor_bound
+        .prime_sieve
         .as_ref()
-        .map(|c| format!(">{}", c.bound))
+        .and_then(|sieve| sieve.lower_bound.as_ref())
+        .map(|bound| format!(">{bound}"))
+        .or_else(|| analysis.divisor_bound.as_ref().map(|c| format!(">{}", c.bound)))
         .unwrap_or_else(|| "uncertified".to_string());
     let tested = analysis
-        .divisor_bound
+        .prime_sieve
         .as_ref()
-        .map(|c| c.tested_primes.to_string())
+        .map(|sieve| sieve.tested_primes.to_string())
+        .or_else(|| analysis.divisor_bound.as_ref().map(|c| c.tested_primes.to_string()))
         .unwrap_or_else(|| "none".to_string());
     let cert_aperture = analysis
-        .divisor_bound
+        .prime_sieve
         .as_ref()
-        .map(|c| format!("2^{}", c.aperture_width))
+        .map(|sieve| format!("2^{}={}", sieve.aperture_width, sieve.aperture))
+        .or_else(|| analysis.divisor_bound.as_ref().map(|c| format!("2^{}", c.aperture_width)))
+        .unwrap_or_else(|| "none".to_string());
+    let factor_witness = analysis.prime_sieve.as_ref()
+        .and_then(|sieve| sieve.divisor.as_ref()).map(ToString::to_string)
         .unwrap_or_else(|| "none".to_string());
 
     format!(
@@ -646,6 +667,7 @@ pub fn render(analysis: &StructuralAnalysis) -> String {
          word.width                 {}\n\
          window.period              {}\n\
          negative.factor-bound      {}\n\
+         negative.factor-witness    {}\n\
          negative.tested-primes     {}\n\
          negative.cert-aperture     {}\n",
         analysis.value,
@@ -675,6 +697,7 @@ pub fn render(analysis: &StructuralAnalysis) -> String {
         analysis.window_width,
         period,
         factor_bound,
+        factor_witness,
         tested,
         cert_aperture,
     )
@@ -713,7 +736,7 @@ pub fn lte_2(a: &Nat, m: &Nat) -> Result<Nat, String> {
         .ok_or_else(|| "lte2 underflow".to_string())
 }
 
-fn parse_input(raw: &str) -> Result<Nat, String> {
+pub fn parse_input(raw: &str) -> Result<Nat, String> {
     if raw.starts_with('⊢') {
         let reading = decode(raw).map_err(|e| e.to_string())?;
         if reading.family != Family::CellBinary {

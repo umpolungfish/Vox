@@ -1,0 +1,4 @@
+seconds	bits	base_width	relation_target	polynomials	scanned_positions	candidates	relations	core_rows	core_columns	cofactor_le_base2	cofactor_le_base4	cofactor_larger	a_bits	target_a_bits	candidate_bits
+0.010919	32	8	9	15464749	30929496	7732374	0	0	0	123	456	789	14	15	16
+0.020823	32	8	9	30319101	60638202	15159550	0	0	0	123	456	789	14	15	16
+0.034062	32	8	9	48959104	97918208	24479552	0	0	0	123	456	789	14	15	16
