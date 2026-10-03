@@ -123,6 +123,23 @@ fn elf(raw: &[u8]) -> Loaded {
             else { out.data.push((sh_addr, bytes)); }
         }
     }
+    if out.code.is_empty() {
+        for k in 0..out.phnum as usize {
+            let p = phoff + k * phent;
+            if p + phent > raw.len() || le(raw, p, 4) != 1 { continue; }
+            let (flags, off, addr, size) = if is64 {
+                (le(raw, p + 4, 4), le(raw, p + 8, 8), le(raw, p + 16, 8), le(raw, p + 32, 8))
+            } else {
+                (le(raw, p + 24, 4), le(raw, p + 4, 4), le(raw, p + 8, 4), le(raw, p + 16, 4))
+            };
+            let (Ok(off), Ok(size)) = (usize::try_from(off), usize::try_from(size)) else { continue; };
+            let Some(end) = off.checked_add(size) else { continue; };
+            if size == 0 || end > raw.len() { continue; }
+            let bytes = raw[off..end].to_vec();
+            if flags & 1 != 0 { out.code.push((addr, bytes)); }
+            else if flags & 4 != 0 { out.data.push((addr, bytes)); }
+        }
+    }
     // function symbols. Elf32_Sym is 16 bytes (name,value,size,info,other,shndx);
     // Elf64_Sym is 24 (name,info,other,shndx,value,size). info and value move.
     for k in 0..shnum {
@@ -303,4 +320,46 @@ pub fn elf_object_symbol(raw: &[u8], requested: &str) -> Option<(u64, u64)> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn put_le(raw: &mut [u8], offset: usize, value: u64, size: usize) {
+        for byte in 0..size {
+            raw[offset + byte] = (value >> (8 * byte)) as u8;
+        }
+    }
+
+    #[test]
+    fn sectionless_elf_loads_program_header_segments() {
+        let mut raw = alloc::vec![0u8; 0x104];
+        raw[..6].copy_from_slice(b"\x7fELF\x02\x01");
+        put_le(&mut raw, 16, 2, 2);
+        put_le(&mut raw, 18, 0x3e, 2);
+        put_le(&mut raw, 24, 0x400080, 8);
+        put_le(&mut raw, 32, 64, 8);
+        put_le(&mut raw, 54, 56, 2);
+        put_le(&mut raw, 56, 2, 2);
+        put_le(&mut raw, 64, 1, 4);
+        put_le(&mut raw, 68, 5, 4);
+        put_le(&mut raw, 72, 0, 8);
+        put_le(&mut raw, 80, 0x400000, 8);
+        put_le(&mut raw, 96, 0x100, 8);
+        put_le(&mut raw, 120, 1, 4);
+        put_le(&mut raw, 124, 6, 4);
+        put_le(&mut raw, 128, 0x100, 8);
+        put_le(&mut raw, 136, 0x600000, 8);
+        put_le(&mut raw, 152, 4, 8);
+        raw[0x100..].copy_from_slice(&[1, 2, 3, 4]);
+
+        let loaded = load(&raw);
+
+        assert_eq!(loaded.entry, 0x400080);
+        assert_eq!(loaded.code, alloc::vec![(0x400000, raw[..0x100].to_vec())]);
+        assert!(loaded.data.iter().any(|(address, bytes)| {
+            *address == 0x600000 && bytes == &[1, 2, 3, 4]
+        }));
+    }
 }

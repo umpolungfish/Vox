@@ -1,0 +1,7 @@
+target/release/godel_224_value_program  elf  entry 0x4000b0  4117 byte(s) of code
+  6 function(s), 662 instruction(s)
+  claimed 99% of the image (4112 of 4117 bytes)
+
+  6 function(s) by descent, 2 more by fallback sweep
+  covered 100% of the image (4117 of 4117 bytes)
+  verdicts  T 0   B 2   N 6   F 0  (F: 0 from descent, 0 from fallback sweep)

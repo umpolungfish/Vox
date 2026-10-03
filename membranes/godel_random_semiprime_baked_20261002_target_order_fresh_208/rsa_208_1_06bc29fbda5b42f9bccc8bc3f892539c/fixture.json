@@ -1,0 +1,19 @@
+{
+  "bits": 208,
+  "factor_bit_widths": [
+    104,
+    104
+  ],
+  "factor_bits": 104,
+  "factor_gap_bits": 101,
+  "fixture_id": "06bc29fbda5b42f9bccc8bc3f892539c",
+  "generator": "glut-rsa-independent-v2",
+  "n": "290175247264314359052293798620785672115804285640305854413248813",
+  "name": "rsa_208_1_06bc29fbda5b42f9bccc8bc3f892539c",
+  "p": "16190277750413515340307726415021",
+  "primality": "probable prime",
+  "primality_instrument": "Vox morphism_factor::miller_rabin",
+  "public_exponent": 65537,
+  "q": "17922808474172285451176169178753",
+  "seed": "445c611d304b5c237ca2652e8fb14974897bb6bf81171bd2f31fd1b85572a0e5"
+}

@@ -279,6 +279,41 @@ fn threshold_positions(scores: &[i32], threshold: i32, positions: &mut Vec<usize
     }
 }
 
+fn score_block_capacity(width: usize) -> usize {
+    #[cfg(target_arch = "x86_64")]
+    {
+        use core::arch::x86_64::__cpuid_count;
+
+        if unsafe { core::arch::x86_64::__cpuid(0) }.eax >= 4 {
+            for subleaf in 0..32 {
+                let cache = unsafe { __cpuid_count(4, subleaf) };
+                let cache_type = cache.eax & 0x1f;
+                if cache_type == 0 {
+                    break;
+                }
+                let level = (cache.eax >> 5) & 0x7;
+                if level == 2 && matches!(cache_type, 1 | 3) {
+                    let line_size = (cache.ebx & 0xfff) + 1;
+                    let partitions = ((cache.ebx >> 12) & 0x3ff) + 1;
+                    let ways = ((cache.ebx >> 22) & 0x3ff) + 1;
+                    let sets = cache.ecx + 1;
+                    return (line_size as usize)
+                        .saturating_mul(partitions as usize)
+                        .saturating_mul(ways as usize)
+                        .saturating_mul(sets as usize)
+                        / core::mem::size_of::<i32>();
+                }
+            }
+        }
+    }
+
+    width
+        .checked_next_power_of_two()
+        .unwrap_or(width)
+        .saturating_mul(core::mem::size_of::<i32>())
+        .max(1)
+}
+
 /// Fold the first active prime lanes into one common score period. Its length
 /// is chosen from the live primes and must fit the existing block storage.
 fn prepare_score_period(base: &[u64], roots1: &[i64], roots2: &[i64], logs: &[i32],
@@ -991,6 +1026,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let n_tape = n.clone();
     let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
     let thresh_slack = (flog2(base_bound as u128) + flog2(width as u128)) as i32;
+    let score_block = span.min(score_block_capacity(width));
 
     // A owns the inverses and sieve storage. Its B siblings prepare window
     // offsets, which their candidates consume without repeating that setup.
@@ -1080,8 +1116,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         // next1/next2 carry each prime's running mark position across blocks so no
         // hit is recomputed. Blocking keeps the working set in cache, which is what
         // the bandwidth-bound span sieve was thrashing.
-        const BLOCK: usize = 1 << 16;
-        let mut blk = vec![0i32; BLOCK];
+        let mut blk = vec![0i32; score_block];
         let mut candidates = Vec::new();
         let mut folded_scores = Vec::new();
         let mut next1 = vec![0i64; width];
@@ -1141,10 +1176,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             next1.copy_from_slice(&soln1);
             next2.copy_from_slice(&soln2);
             let unfolded_start = prepare_score_period(&base, &soln1, &soln2, &lp,
-                BLOCK, &mut folded_scores);
+                score_block, &mut folded_scores);
             let mut bstart = 0usize;
             while bstart < span {
-                let bend = (bstart + BLOCK).min(span);
+                let bend = (bstart + score_block).min(span);
                 let blen = bend - bstart;
                 seed_score_period(&mut blk[..blen], &folded_scores, bstart);
                 for j in unfolded_start..width {
@@ -1301,7 +1336,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                         break 'outer;
                     }
                 }
-                bstart += BLOCK;
+                bstart += score_block;
             }
         }
         if combinations_exhausted {

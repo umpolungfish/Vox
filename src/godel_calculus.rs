@@ -12,6 +12,14 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 use core::fmt;
 
+#[path = "godel_support.rs"]
+mod support;
+pub use support::{
+    factor_pair_read, frame_arithmetic_from_args, frame_arithmetic_read,
+    prime_sieve_read, render_frame_arithmetic, FactorPairRead, FrameArithmeticRead,
+    FrameReturnRead, PrimeSieveRead,
+};
+
 use crate::vox::{
     AFWD, AREV, CLINK, ENGAGR, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT,
 };
