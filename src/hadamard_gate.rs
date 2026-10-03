@@ -24,7 +24,7 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use crate::morphism_factor::{add, divmod, modulo, mul, one, sub, trim, zero};
+use crate::morphism_factor::{add, cmp, divmod, gcd, modulo, mul, one, sub, trim, zero};
 use crate::vox::{EVALF, EVALT};
 
 pub type Tape = Vec<char>;
@@ -299,12 +299,29 @@ impl HadamardCarrier {
     pub fn fixed_point_spectral_construction(
         self,
     ) -> Result<FixedPointSpectralConstruction, &'static str> {
+        self.fixed_point_spectral_construction_with_base(&[EVALT, EVALF])
+    }
+
+    /// Bind the N-only seed to an explicitly selected modular generator.
+    /// The base remains an IMASM numeral and must be a nontrivial unit modulo N.
+    pub fn fixed_point_spectral_construction_with_base(
+        self,
+        base: &[char],
+    ) -> Result<FixedPointSpectralConstruction, &'static str> {
         if zero(&self.n) {
             return Err("fixed-point spectral modulus is zero");
         }
+        validate_numeral_tape(base)?;
+        let base = trim(base.to_vec());
+        if cmp(&base, &one()) != core::cmp::Ordering::Greater
+            || cmp(&base, &self.n) != core::cmp::Ordering::Less
+            || cmp(&gcd(base.clone(), self.n.clone()), &one()) != core::cmp::Ordering::Equal
+        {
+            return Err("fixed-point spectral base must be a nontrivial unit modulo N");
+        }
         Ok(FixedPointSpectralConstruction {
             carrier: self,
-            base: vec![EVALT, EVALF],
+            base,
         })
     }
 

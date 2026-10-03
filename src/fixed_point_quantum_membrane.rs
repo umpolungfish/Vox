@@ -24,7 +24,14 @@ pub struct FixedPointQuantumMembrane {
 
 impl FixedPointQuantumMembrane {
     pub fn from_n(n: &[char]) -> Result<Self, &'static str> {
-        let spectral = HadamardCarrier::new(n)?.fixed_point_spectral_construction()?;
+        Self::from_n_with_base(n, &[crate::vox::EVALT, crate::vox::EVALF])
+    }
+
+    /// Build the resident phase membrane with a selected coprime modular base.
+    /// Both source and base remain numerator tapes through phase execution.
+    pub fn from_n_with_base(n: &[char], base: &[char]) -> Result<Self, &'static str> {
+        let spectral = HadamardCarrier::new(n)?
+            .fixed_point_spectral_construction_with_base(base)?;
         let depth = n.len().saturating_sub(3).max(1);
         let topology = CollapsedHypernest::from_depth(depth)?;
         let audit = topology.audit();
@@ -141,5 +148,21 @@ mod tests {
         assert_eq!(membrane.fixed_point_sign(&tape_u64(0), &tape_u64(16)).unwrap(), Some(1));
         assert_eq!(membrane.fixed_point_sign(&tape_u64(8), &tape_u64(16)).unwrap(), Some(-1));
         assert_eq!(membrane.fixed_point_sign(&tape_u64(5), &tape_u64(16)).unwrap(), None);
+    }
+
+    #[test]
+    fn selected_base_stays_bound_to_a_128_bit_semiprime_phase_program() {
+        let n = crate::morphism_factor::decimal_to_tape(
+            "296650821743515430283258444261036507151",
+        )
+        .unwrap();
+        let base = tape_u64(3);
+        let program = FixedPointQuantumMembrane::from_n_with_base(&n, &base)
+            .unwrap()
+            .prepare_structural_execution()
+            .unwrap();
+        assert_eq!(program.n(), n);
+        assert_eq!(program.base(), base);
+        assert_eq!(program.phase_width(), 256);
     }
 }

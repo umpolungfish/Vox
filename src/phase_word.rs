@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn resident_slots_fold_return_passes_and_restore_the_random_2048_payload() {
-        let payload = crate::morphism_factor::parse_numeral(
+        let payload = vox::morphism_factor::parse_numeral(
             include_str!("../tests/fixtures/random_rsa_2048.imasm").trim(),
         )
         .unwrap();
