@@ -1,3 +1,3 @@
-I remove measured matrix word-loop overhead
+I use radix-four cells in Gödel numeral arithmetic
 
-I replace repeated row indexing with disjoint paired slices and skip proven zero prefixes and unvisited history words. All thirteen sieve tests pass. The fresh 208-bit input closes in 52.137 seconds with complete word closure and recovery. Vox confirms vectorized XOR loops, unchanged relation collection and matrix elimination falling from 16.729 percent to 9.021 percent of samples. I retain the fresh input evidence and refresh the canonical commands guide helper.
+I pair numeral cells for multiplication, division, and modular powering and keep the shared arithmetic aligned with the ququart kernel. I retain the recovered producer observation.
