@@ -195,11 +195,12 @@ pub(crate) fn execute_addressed_iter_with<T: Clone>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::morphism_factor;
     const WORD: &str = "⊢≻∈⊤⊥⊞⋈≺∋⊙⊡⊣";
 
     #[test]
     fn resident_slots_fold_return_passes_and_restore_the_random_2048_payload() {
-        let payload = vox::morphism_factor::parse_numeral(
+        let payload = morphism_factor::parse_numeral(
             include_str!("../tests/fixtures/random_rsa_2048.imasm").trim(),
         )
         .unwrap();
