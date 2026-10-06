@@ -373,5 +373,13 @@ path = "src/bin/toroidal_one.rs"
 name = "glut_one"
 path = "src/bin/glut_one.rs"
 
+[[bin]]
+name = "glut_factor"
+path = "src/bin/glut_factor.rs"
+
+[[bin]]
+name = "hensel_factor"
+path = "src/bin/hensel_factor.rs"
+
 [lints.rust]
 warnings = "deny"
