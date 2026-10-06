@@ -1,3 +1,7 @@
-I use radix-four cells in Gödel numeral arithmetic
+I execute source-baked numeral morphisms over native factor tapes
 
-I pair numeral cells for multiplication, division, and modular powering and keep the shared arithmetic aligned with the ququart kernel. I retain the recovered producer observation.
+I retain source cell frames and banked cells through cursor clearing and
+record actual operator boundaries. I compare the reconstructed tape to the
+independently baked source before factor extraction. I use the existing
+native tape producer and verify the exact nontrivial factor product in a
+separate invocation, identifying native primality screening explicitly.

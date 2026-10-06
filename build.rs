@@ -4,6 +4,8 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=VOX_BAKED_INPUT_FILE");
     println!("cargo:rerun-if-env-changed=VOX_FACTOR_N_FILE");
+    println!("cargo:rerun-if-env-changed=EXCRIBE_NUMERAL_WORD");
+    println!("cargo:rerun-if-env-changed=EXCRIBE_NUMERAL_SOURCE");
     let keys = ["VOX_PHASE_MODULUS_WORD", "VOX_PHASE_BASE_WORD", "VOX_PHASE_WIDTH_WORD"];
     let names = ["BAKED_MODULUS_WORD", "BAKED_BASE_WORD", "BAKED_WIDTH_WORD"];
     let file = env::var("VOX_BAKED_INPUT_FILE").ok().map(|path| {
