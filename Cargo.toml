@@ -7,6 +7,10 @@ license = "Unlicense"
 autobins = false
 
 [[bin]]
+name = "excribe_numeral"
+path = "src/bin/excribe_numeral.rs"
+
+[[bin]]
 name = "phase_case_encode"
 path = "src/bin/phase_case_encode.rs"
 
