@@ -1,0 +1,5 @@
+{
+  "timeout_seconds": 5,
+  "stdout": "baked heterogeneous membrane: N=2112313232131132133113544696487913131 through [semiprime anyon]  (depth 2, \u22a1 winding 3)\n",
+  "stderr": ""
+}

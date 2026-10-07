@@ -1,0 +1,19 @@
+{
+  "function_boundary_regressions": {
+    "passed": 3,
+    "log": "boundary_after.log"
+  },
+  "diagrammer_and_viewer_tests": {
+    "passed": 7,
+    "command": "python3 -m unittest test_render_membrane_diagram -v"
+  },
+  "broad_library_run": {
+    "status": "interrupted",
+    "log": "vox_tests.log",
+    "reason": "extended arithmetic controls exceeded the focused decoder verification window"
+  },
+  "kernel_anyonic_algebra_control": {
+    "command": "G-mOMonadOS/run_cmds.sh \"fibqc verify\"",
+    "result": "all printed checks passed"
+  }
+}

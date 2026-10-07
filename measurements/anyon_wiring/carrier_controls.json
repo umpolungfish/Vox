@@ -1,0 +1,26 @@
+[
+  {
+    "carrier": "anyon",
+    "binary": "/home/mrnob0dy666/imsgct/Vox/measurements/anyon_wiring/control_8051_anyon",
+    "returncode": 0,
+    "stdout": "baked heterogeneous membrane: N=8051 through [anyon]  (depth 1, \u22a1 winding 1)\n8051 = 83 x 97\n",
+    "stderr": "",
+    "seconds": 0.0012955309939570725,
+    "product_verified": true,
+    "binary_sha256": "ce5b7aa4338aaba1da6de5f9921884a0915c79d3c50550fd06816fdcd2aa9bc5",
+    "source_sha256": "db9112af84dedeb4183fe71150be4001ff30e523e832ce9e5350747e032080b0",
+    "vox_rlib_sha256": "dd3a82f09b32cde1c58ef5c6e9fa04040a50f2bc2202a6a5b688a247fd40cc8e"
+  },
+  {
+    "carrier": "branch",
+    "binary": "/home/mrnob0dy666/imsgct/Vox/measurements/anyon_wiring/control_8051_branch",
+    "returncode": 0,
+    "stdout": "baked heterogeneous membrane: N=8051 through [branch]  (depth 1, \u22a1 winding 1)\n8051 = 83 x 97\n",
+    "stderr": "",
+    "seconds": 0.0012196290044812486,
+    "product_verified": true,
+    "binary_sha256": "3c8162adeef49b4ed66fd93ef48591cbdfdf0df7d8e60b6e2e7965e9fdaa001b",
+    "source_sha256": "db9112af84dedeb4183fe71150be4001ff30e523e832ce9e5350747e032080b0",
+    "vox_rlib_sha256": "dd3a82f09b32cde1c58ef5c6e9fa04040a50f2bc2202a6a5b688a247fd40cc8e"
+  }
+]

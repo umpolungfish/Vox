@@ -1,0 +1,34 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.88s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 3 tests
+test vox_decode::function_boundary_tests::local_jump_still_recovers_its_shared_epilogue ... ok
+test vox_decode::function_boundary_tests::seeded_function_survives_a_predecessors_fallthrough ... FAILED
+test vox_decode::function_boundary_tests::tail_jump_keeps_its_target_as_a_separate_function ... FAILED
+
+failures:
+
+---- vox_decode::function_boundary_tests::seeded_function_survives_a_predecessors_fallthrough stdout ----
+
+thread 'vox_decode::function_boundary_tests::seeded_function_survives_a_predecessors_fallthrough' (384) panicked at src/vox_decode.rs:987:9:
+assertion `left == right` failed
+  left: 1
+ right: 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- vox_decode::function_boundary_tests::tail_jump_keeps_its_target_as_a_separate_function stdout ----
+
+thread 'vox_decode::function_boundary_tests::tail_jump_keeps_its_target_as_a_separate_function' (385) panicked at src/vox_decode.rs:999:9:
+assertion `left == right` failed
+  left: 1
+ right: 2
+
+
+failures:
+    vox_decode::function_boundary_tests::seeded_function_survives_a_predecessors_fallthrough
+    vox_decode::function_boundary_tests::tail_jump_keeps_its_target_as_a_separate_function
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 345 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
