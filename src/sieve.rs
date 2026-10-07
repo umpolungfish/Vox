@@ -34,6 +34,18 @@ fn sieve_gauge(index: usize, value: usize) {
 
 type PartialRelations = alloc::collections::BTreeMap<Tape, (Tape, Vec<(usize, u32)>)>;
 
+// The score scale is A*M². Its logarithm must not inherit a machine-word
+// wrap when a larger source places the polynomial above that boundary.
+fn polynomial_score_log(a: u128, window: u128) -> i32 {
+    if let Some(magnitude) = a.checked_mul(window).and_then(|v| v.checked_mul(window)) {
+        return (127 - magnitude.max(2).leading_zeros()) as i32;
+    }
+    let a = u128_to_tape(a);
+    let window = u128_to_tape(window);
+    let magnitude = mul(&a, &mul(&window,&window));
+    (magnitude.len()-1) as i32
+}
+
 /// Two relations carrying the same residual contribute its exact square.
 /// The first partial is retained as an anchor for every later matching word.
 fn fold_residual_relation(n: &Tape, axb: Tape, mut exponents: Vec<u32>, residual: Tape,
@@ -60,6 +72,21 @@ fn residual_bucket(residual: &Tape, bound2: &Tape, bound4: &Tape) -> usize {
 #[cfg(test)]
 mod threshold_tests {
     use super::*;
+    #[test]
+    fn polynomial_score_log_preserves_the_full_product_above_machine_width() {
+        for a in [0,1,3,1u128<<80,1u128<<96,u128::MAX] {
+            for window in [0,1,3,1u128<<24,u128::MAX] {
+                let product = mul(&u128_to_tape(a),
+                    &mul(&u128_to_tape(window),&u128_to_tape(window)));
+                let expected = product.len().saturating_sub(1).max(1) as i32;
+                assert_eq!(polynomial_score_log(a,window),expected);
+            }
+        }
+        assert_eq!(polynomial_score_log(1u128<<80,1u128<<24),128);
+        assert_eq!(polynomial_score_log(1u128<<96,1u128<<24),144);
+        assert!((1u128<<80).checked_mul(1u128<<24)
+            .and_then(|v| v.checked_mul(1u128<<24)).is_none());
+    }
     #[test]
     fn matching_residuals_close_only_with_their_square_contribution() {
         let n = tape_u64(91);
@@ -1101,8 +1128,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             ainv[j] = modinv((a_val % p as u128) as u64, p) as i64;
             skip[j] = false;
         }
-        let thresh =
-            flog2((a_val * (m as u128) * (m as u128)).max(2)) as i32 - thresh_slack;
+        let thresh = polynomial_score_log(a_val,m as u128) - thresh_slack;
 
         // inner: each of the 2^(k-1) sign patterns is a B sibling that reuses the
         // per-A inverse; its two roots per prime are recomputed directly from the

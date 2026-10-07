@@ -54,3 +54,24 @@ The process timer records 30.02 seconds for the 216-bit observation and
 stdout and stderr are retained as `native216_limit.*` and `native224_limit.*`.
 The temporary candidate executable has been removed after both observations;
 the saved fastest membrane's checksum remains unchanged.
+
+## Larger-width score scale
+
+The polynomial score scale uses the full product `A × M²`. Checked
+machine-word multiplication retains the narrow fast path; an overflowing
+product is multiplied on the folded tapes before taking its bit length.
+The regression compares both paths with full tape multiplication, including
+products at and above the 128-bit boundary. All fourteen sieve controls pass.
+
+The corrected 224-bit candidate's Vox trace records 89-bit A and target A,
+candidate magnitudes of 134 to 135 bits, and 960 accepted relations out of
+11,205 at 24.665519 seconds. The root-stride additions at `0x77223` and
+`0x77244` remain the hottest sampled instructions in its regenerated
+disassembly. Bounded sieve-counter traces now flush regularly so interrupted
+profiles retain complete rows.
+
+The saved 208-bit fastest membrane remains unchanged. The next target is
+relation collection on the larger source with the full score scale preserved.
+The standalone corrected execution reaches the 30-second bound with empty
+factor output. Its temporary binary and disassembly have been removed after
+the reading; the native samples and relation-counter trace remain.
