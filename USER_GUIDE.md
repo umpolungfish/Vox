@@ -485,6 +485,22 @@ Vox's decoded instructions and symbol boundaries:
 python3 measurements/vox_native_hotspots.py membranes/my_case/profile.samples.tsv membranes/my_case/vox.disasm membranes/my_case/factor_one.imasm
 ```
 
+`construct-carrier` accepts source-bound operation fragments with optional
+initial and terminal interfaces. A terminal glyph followed by retained identity
+positions is valid. Missing executable motifs are reported at their interior
+positions; source and terminal glyphs are not a global eligibility rule.
+Execution still requires a complete native factoring carrier. Operation words
+and the independently supplied numeral source remain separate inputs.
+
+The native shape-routed factor command closes
+`229513619370652772473594096727489823787` as
+`15058366252086023423 × 15241601613910701269` in a measured 0.19 seconds.
+The membrane product check passes and both resident primality checks return
+`prime`. The scout classifies this source as HARD and hands it to the native
+sieve/carrier route. This reading is separate from the ququart-only baked
+membrane's retained phase-progress measurements. The command output and
+checks are retained in `measurements/ququart_source229513_native_*`.
+
 Gödel's commands read cell-binary words and check closure:
 
 ```bash
