@@ -24,8 +24,8 @@ pub type Word = Vec<char>;
 // ---- executable delta / mu over the bit-tape ----
 // The tape is little-endian bits: index i is bit i, EVALF = 1, EVALT = 0.
 
-/// delta: deinterlace the bits into two lanes. Lane 0 takes the even-index bits,
-/// lane 1 the odd. This is the split the tower forks on.
+/// delta: deinterlace into two width-carrying register lanes. Keep high zero cells:
+/// they are part of the child register's allocated width even when its value is 0.
 fn delta(v: &[char]) -> (Word, Word) {
     let mut a = Word::new();
     let mut b = Word::new();
@@ -36,7 +36,7 @@ fn delta(v: &[char]) -> (Word, Word) {
             b.push(bit);
         }
     }
-    (trim(a), trim(b))
+    (a, b)
 }
 
 /// Width-preserving μ for a transformed register. Canonical numeral trimming can
@@ -274,12 +274,15 @@ pub fn closure_witness(value: &[char], depth: usize) -> ClosureWitness {
     let mut trace = String::new();
     for witness in &levels {
         trace.push_str(&format!(
-            "  L{} register={} transformed={} δ=({}, {}) child-return={} μδ={} local={} child={} composed={} restored={}\n",
+            "  L{} width={} register={} transformed={} δ=({}, {}) arm-widths=({}, {}) child-return={} μδ={} local={} child={} composed={} restored={}\n",
             witness.level,
+            witness.source.len(),
             dec_of(&witness.source),
             dec_of(&witness.transformed),
             dec_of(&witness.lane0),
             dec_of(&witness.lane1),
+            witness.lane0.len(),
+            witness.lane1.len(),
             dec_of(&witness.child_returned),
             dec_of(&witness.fused),
             if witness.local_identity { "id" } else { "LEAK" },
@@ -392,6 +395,53 @@ mod tests {
                 );
                 assert_eq!(witness.fused, witness.transformed);
                 assert_eq!(witness.restored, witness.source);
+            }
+        }
+    }
+
+    #[test]
+    fn width_carrying_closure_scales_with_larger_registers() {
+        for width in [128usize, 256, 512, 1024, 2048, 4096, 8192] {
+            let mut depth = 1usize;
+            let mut child_width = width;
+            while child_width > 1 {
+                child_width = child_width.div_ceil(2);
+                depth += 1;
+            }
+            let value = vec![EVALF; width];
+            let audit = closure_witness(&value, depth);
+            assert!(audit.closed, "width {width}: root closure");
+            assert_eq!(audit.levels.len(), depth);
+            let mut expected_width = width;
+            for witness in audit.levels {
+                assert_eq!(
+                    witness.source.len(),
+                    expected_width,
+                    "width {width}, level {}",
+                    witness.level
+                );
+                assert_eq!(
+                    witness.transformed.len(),
+                    expected_width,
+                    "width {width}, level {}",
+                    witness.level
+                );
+                assert!(
+                    witness.local_identity,
+                    "width {width}, level {}",
+                    witness.level
+                );
+                assert!(
+                    witness.child_return_identity,
+                    "width {width}, level {}",
+                    witness.level
+                );
+                assert!(
+                    witness.composed_identity,
+                    "width {width}, level {}",
+                    witness.level
+                );
+                expected_width = expected_width.div_ceil(2);
             }
         }
     }
