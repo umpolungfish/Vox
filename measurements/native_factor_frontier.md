@@ -75,3 +75,18 @@ relation collection on the larger source with the full score scale preserved.
 The standalone corrected execution reaches the 30-second bound with empty
 factor output. Its temporary binary and disassembly have been removed after
 the reading; the native samples and relation-counter trace remain.
+
+## Live-bound selection experiment
+
+Using the expanded `eff_bound` instead of the requested `base_bound` in
+candidate-score slack passes all fourteen sieve controls, but the standalone
+224-bit execution still times out at 30.00 seconds. Vox records 9,928 candidates
+and 941 relations at 24.769594 seconds, compared with 4,757 candidates and 960
+relations at 24.665519 seconds for the preceding candidate. The extra candidate
+work does not improve relation yield. The experimental change is reverted.
+
+The live-bound run, counter traces and timing records are retained under
+`native224_live_bound*`; its temporary executable and disassembly are removed.
+The saved fastest 208-bit membrane remains unchanged. The next inspection is
+the shared-residual pairing step, where accepted partial candidates wait for
+an identical residual before contributing a complete relation.
