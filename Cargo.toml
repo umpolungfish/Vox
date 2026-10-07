@@ -51,6 +51,7 @@ default = []
 resident = []
 mpqs_debug = []
 root-work-profile = []
+carrier-profile = []
 
 [profile.release]
 opt-level = 3

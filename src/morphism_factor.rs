@@ -19,6 +19,13 @@ use alloc::vec::Vec;
 
 type Tape = Vec<char>;
 
+/// Observational counters for Vox's native sampler; never used for dispatch.
+#[cfg(feature = "carrier-profile")]
+#[used]
+#[no_mangle]
+pub static VOX_FACTOR_COUNTERS: [core::sync::atomic::AtomicU64; 9] =
+    [const { core::sync::atomic::AtomicU64::new(0) }; 9];
+
 const PHASE: &[char] = &[VINIT, FSPLIT, AFWD, EVALT, EVALF, FFUSE, TANCH];
 const ARITHMETIC: &[char] = &[VINIT, FSPLIT, CLINK, EVALT, EVALF, FFUSE, TANCH];
 const BRANCH: &[char] = &[VINIT, FSPLIT, EVALT, EVALF, FFUSE, TANCH];
@@ -2828,6 +2835,12 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
 }
 
 fn execute_nested(operators: &[&[char]], state: &mut State) {
+    #[cfg(feature = "carrier-profile")]
+    {
+        use core::sync::atomic::Ordering::Relaxed;
+        VOX_FACTOR_COUNTERS[0].store(state.n.len() as u64, Relaxed);
+        VOX_FACTOR_COUNTERS[1].store(tape_to_u64(&state.round), Relaxed);
+    }
     let source = state.n.clone();
     execute_nested_preserving_source(operators, state, &source);
 }
@@ -2840,7 +2853,25 @@ fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, so
         return;
     }
     if let Some((operator, continuation)) = operators.split_first() {
+        #[cfg(feature = "carrier-profile")]
+        {
+            use core::sync::atomic::Ordering::Relaxed;
+            let stage = [WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, FIX]
+                .iter().position(|candidate| candidate == operator).map_or(0, |i| i + 1);
+            VOX_FACTOR_COUNTERS[2].store(stage as u64, Relaxed);
+            VOX_FACTOR_COUNTERS[3].fetch_add(1, Relaxed);
+            VOX_FACTOR_COUNTERS[4].store(1, Relaxed);
+        }
         apply_morphism(operator, state);
+        #[cfg(feature = "carrier-profile")]
+        {
+            use core::sync::atomic::Ordering::Relaxed;
+            VOX_FACTOR_COUNTERS[4].store(2, Relaxed);
+            VOX_FACTOR_COUNTERS[5].store(state.selected.as_ref().map_or(0, |v| v.len()) as u64, Relaxed);
+            VOX_FACTOR_COUNTERS[6].store(u64::from(state.n == source), Relaxed);
+            VOX_FACTOR_COUNTERS[7].store(state.squfof_cycle.multiplier as u64, Relaxed);
+            VOX_FACTOR_COUNTERS[8].store(state.squfof_cycle.frame.as_ref().map_or(0, |f| tape_to_u64(&f.steps)), Relaxed);
+        }
         if state.n != source {
             state.selected = None;
             state.carrier_closed = true;
