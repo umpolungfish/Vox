@@ -289,7 +289,7 @@ mod tests {
                     (p <= q
                         && a >= 1 << (width - 1)
                         && a < 1 << width
-                        && b < 1 << width.saturating_sub(2))
+                        && b < 1 << width)
                     .then_some((p, q))
                 })
                 .collect();
@@ -354,12 +354,37 @@ mod tests {
         }
     }
     #[test]
+    fn shared_square_retains_gap_beyond_the_old_quarter_width() {
+        let tape = mf::tape_u64(21);
+        let root = mf::isqrt(&tape);
+        // 5² - 2² = 21. The gap 2 occupies the bit that the old
+        // test oracle discarded, while both carrier lanes retain it.
+        for mut graph in [
+            Correlation::new_midpoint(&tape, 3, &root),
+            Correlation::new_nested(&tape, 3, &root),
+        ] {
+            loop {
+                match graph.advance() {
+                    Step::Running => {}
+                    Step::Empty => panic!("the retained midpoint/gap witness was discarded"),
+                    Step::Closed(p, q) => {
+                        assert_eq!(p, mf::tape_u64(3));
+                        assert_eq!(q, mf::tape_u64(7));
+                        assert!(crate::trace_algebra::witness_valid(&tape, &p, &q));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
     fn shared_square_coordinates_match_their_entire_small_domain() {
         for n in (3..=1023u64).step_by(2) {
             let tape = mf::tape_u64(n);
             let width = tape.len().div_ceil(2);
             let expected = (1u64 << (width - 1)..1u64 << width).any(|a| {
-                (0..1u64 << width.saturating_sub(2))
+                (0..1u64 << width)
                     .any(|b| a * a >= b * b && a * a - b * b == n && a - b > 1)
             });
             for mut graph in [

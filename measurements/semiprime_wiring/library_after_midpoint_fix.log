@@ -1,0 +1,30 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 38.65s
+     Running unittests src/lib.rs (target/release/deps/vox-c34769bf71a71580)
+
+running 334 tests
+test bool_polynomial::tests::cauchy_second_layer_collects_the_carry ... ok
+test bool_polynomial::tests::union_intersect_idempotent ... ok
+test combined_factor::tests::test_combined_factorizer_143 ... ok
+test combined_factor::tests::test_combined_factorizer_small_semiprimes ... ok
+test combined_factor::tests::test_domain_exclusions ... ok
+test combined_factor::tests::test_nested_depth_resolution ... ok
+test complete_membrane::tests::eight_levels_have_every_direct_bidirectional_pair ... ok
+test complete_membrane::tests::level_count_is_arbitrary_above_two ... ok
+test complete_membrane::tests::two_levels_are_rejected ... ok
+test divisor_membrane::tests::membrane_143_closes_over_tapes ... ok
+test divisor_membrane::tests::membrane_35_closes_over_tapes ... ok
+test divisor_membrane::tests::operators_are_imasm_words ... ok
+test factor_2adic::tests::bit_parity_keeps_both_factor_swap_branches_under_equal_length_bounds ... ok
+test factor_2adic::tests::block_lift_matches_single_bit_pair_folding ... ok
+test factor_2adic::tests::cross_width_frame_products_return_at_summed_source_addresses ... ok
+test factor_2adic::tests::factor_pair_is_the_meeting_point_of_both_generator_nestings ... ok
+test factor_2adic::tests::frame_sweep_is_lossless_at_every_window ... ok
+test factor_2adic::tests::framed_block_lift_scales_past_machine_word_width ... ok
+test factor_2adic::tests::multiplication_and_prefix_nestings_meet_at_the_factor_pair ... ok
+test factor_2adic::tests::n_register_block_lift_closes_at_frame_boundary ... ok
+test factor_2adic::tests::n_register_lift_closes_a_three_factor_product ... ok
+test factor_2adic::tests::prefixes_scale_past_machine_word_width ... error: test failed, to rerun pass `--lib`
+
+Caused by:
+  process didn't exit successfully: `/home/mrnob0dy666/imsgct/Vox/target/release/deps/vox-c34769bf71a71580 --test-threads=1` (signal: 9, SIGKILL: kill)
