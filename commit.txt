@@ -1,7 +1,7 @@
-I keep square roots folded and isolate the blocked SQUFOF continuation
+I retain the full-width square-form cycle between nested firings
 
-I follow Vox samples and the native circuit atlas to remove repeated root conversions.
-I verify exact floor roots across limb boundaries and all 38 carrier tests.
-I isolate the SQUFOF stall with matched 256-round prefix controls on RSA-270.
-I record its narrowed cycle bound and retain the next resumable-cycle repair task.
-I regenerate the full wiring atlas from my latest source-baked executable.
+I preserve SQUFOF recurrence registers, cycle phase, counter, and bound across firings.
+I verify matching small-source factors and the retained wide cycle on RSA-270.
+I verify all 39 carrier tests and the formerly blocked 256-round continuation.
+I regenerate the circuit atlas and start the longer source-baked target execution.
+I remove superseded probe executables while retaining their recorded measurements.

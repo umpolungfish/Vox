@@ -710,6 +710,7 @@ fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
 /// reverse cycle until P stabilizes; gcd(P, N) is then a factor. Tries a few
 /// multipliers. The Q recurrence carries a real sign, tracked by branch since the
 /// tapes are unsigned.
+#[cfg(test)]
 fn squfof(n: &[char]) -> Option<Tape> {
     use core::cmp::Ordering::{Equal, Greater, Less};
     for &k in &[1u64, 3, 5, 7, 11, 13, 15] {
@@ -804,6 +805,118 @@ fn squfof(n: &[char]) -> Option<Tape> {
         if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
             return Some(trim(g));
         }
+    }
+    None
+}
+
+const SQUFOF_MULTIPLIERS: [u64; 7] = [1, 3, 5, 7, 11, 13, 15];
+
+#[derive(Default)]
+struct SqufofCycle {
+    multiplier: usize,
+    frame: Option<SqufofFrame>,
+}
+
+struct SqufofFrame {
+    d: Tape,
+    s: Tape,
+    p: Tape,
+    q_prev: Tape,
+    q: Tape,
+    cap: Tape,
+    steps: Tape,
+    reverse: bool,
+}
+
+impl SqufofCycle {
+    fn advance(&mut self) {
+        self.frame = None;
+        self.multiplier += 1;
+    }
+
+    fn done(&self) -> bool {
+        self.multiplier >= SQUFOF_MULTIPLIERS.len()
+    }
+}
+
+fn squfof_resume(n: &[char], cycle: &mut SqufofCycle, budget: usize) -> Option<Tape> {
+    use core::cmp::Ordering::{Equal, Greater, Less};
+    for _ in 0..budget {
+        if cycle.done() {
+            break;
+        }
+        if cycle.frame.is_none() {
+            let d = mul(n, &tape_u64(SQUFOF_MULTIPLIERS[cycle.multiplier]));
+            let s = isqrt(&d);
+            let square = mul(&s, &s);
+            if cmp(&square, &d) == Equal {
+                let g = gcd(s, n.to_vec());
+                cycle.advance();
+                if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
+                    return Some(g);
+                }
+                continue;
+            }
+            let bound = mul(&tape_u64(4), &isqrt(&mul(&two(), &s)));
+            let cap = if cmp(&bound, &tape_u64(64)) == Less { tape_u64(64) } else { bound };
+            cycle.frame = Some(SqufofFrame {
+                q: sub(&d, &square), p: s.clone(), d, s,
+                q_prev: one(), cap, steps: one(), reverse: false,
+            });
+        }
+        let frame = cycle.frame.as_mut().unwrap();
+        if cmp(&frame.steps, &frame.cap) == Greater || zero(&frame.q) {
+            cycle.advance();
+            continue;
+        }
+        if !frame.reverse && frame.steps[0] == EVALT {
+            if let Some(root) = is_square(&frame.q) {
+                if cmp(&frame.s, &frame.p) == Less {
+                    cycle.advance();
+                    continue;
+                }
+                let b = divmod(&sub(&frame.s, &frame.p), &root).0;
+                let p = add(&frame.p, &mul(&b, &root));
+                let square = mul(&p, &p);
+                if cmp(&square, &frame.d) == Greater {
+                    cycle.advance();
+                    continue;
+                }
+                frame.q = divmod(&sub(&frame.d, &square), &root).0;
+                frame.q_prev = root;
+                frame.p = p;
+                frame.steps = vec![EVALT];
+                frame.reverse = true;
+                continue;
+            }
+        }
+        let b = divmod(&add(&frame.s, &frame.p), &frame.q).0;
+        let product = mul(&b, &frame.q);
+        if cmp(&product, &frame.p) == Less {
+            cycle.advance();
+            continue;
+        }
+        let p = sub(&product, &frame.p);
+        if frame.reverse && cmp(&p, &frame.p) == Equal {
+            let g = gcd(p, n.to_vec());
+            cycle.advance();
+            if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
+                return Some(g);
+            }
+            continue;
+        }
+        let term = mul(&b, &abs_diff(&frame.p, &p));
+        let q = if cmp(&frame.p, &p) != Less {
+            add(&frame.q_prev, &term)
+        } else if cmp(&frame.q_prev, &term) != Less {
+            sub(&frame.q_prev, &term)
+        } else {
+            cycle.advance();
+            continue;
+        };
+        frame.q_prev = core::mem::replace(&mut frame.q, q);
+        frame.p = p;
+        frame.steps = add(&frame.steps, &one());
     }
     None
 }
@@ -1173,6 +1286,7 @@ struct State {
     prime12_support: Option<bool>,
     power_done: bool,
     squfof_done: bool,
+    squfof_cycle: SqufofCycle,
     round: Tape,
     exhausted: bool,
     selected: Option<Tape>,
@@ -1867,6 +1981,7 @@ fn initial_carrier_state(n: Tape, phase_base: &[char], a_seed: Tape) -> State {
         prime12_support: None,
         power_done: false,
         squfof_done: false,
+        squfof_cycle: SqufofCycle::default(),
         round: vec![EVALT],
         exhausted: false,
         selected: None,
@@ -2390,14 +2505,14 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         }
     } else if operator == SQUFOF {
         // Heavy fallback: its cycle bound grows like N^(1/4), so it is nested
-        // deep in time. It fires once, and only after the cheap arms have had a
-        // few hundred rounds to close an easy factor first. If they already did,
-        // the loop has returned and this never runs.
+        // deep in time. Begin after the cheap arms have had a few hundred
+        // rounds, then retain each cycle across bounded firings so the later
+        // stages continue to execute while the square forms are searched.
         if !state.squfof_done && tape_to_u64(&state.round) >= 256 {
-            state.squfof_done = true;
-            if let Some(g) = squfof(&state.n) {
+            if let Some(g) = squfof_resume(&state.n, &mut state.squfof_cycle, 16) {
                 state.selected = Some(g);
             }
+            state.squfof_done = state.squfof_cycle.done();
         }
     } else if operator == ECM {
         // ECM is the costly arm, so it sits deeper: it fires one curve only on
@@ -2674,6 +2789,7 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
                 prime12_support: None,
                 power_done: false,
                 squfof_done: false,
+                squfof_cycle: SqufofCycle::default(),
                 round: vec![EVALT],
                 exhausted: false,
                 selected: None,
@@ -2779,6 +2895,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         prime12_support: None,
         power_done: false,
         squfof_done: false,
+        squfof_cycle: SqufofCycle::default(),
         round: vec![EVALT],
         exhausted: false,
         selected: None,
@@ -3716,6 +3833,35 @@ mod tests {
     }
 
     #[test]
+    fn resumable_square_forms_preserve_factors_and_wide_cycle_bound() {
+        for value in [15, 77, 8051, 10403, 1000036000099] {
+            let n = tape_u64(value);
+            let mut cycle = SqufofCycle::default();
+            let expected = squfof(&n);
+            let mut found = None;
+            for _ in 0..100_000 {
+                found = squfof_resume(&n, &mut cycle, 1);
+                if found.is_some() || cycle.done() { break; }
+            }
+            assert_eq!(found, expected, "source {value}");
+            if let Some(p) = found {
+                let (q, remainder) = divmod(&n, &p);
+                assert!(zero(&remainder));
+                verify_pair(&n, &p, &q).unwrap();
+            }
+        }
+        let n = decimal_to_tape("233108530344407544527637656910680524145619812480305449042948611968495918245135782867888369318577116418213919268572658314913060672626911354027609793166341626693946596196427744273886601876896313468704059066746903123910748277606548649151920812699309766587514735456594993207").unwrap();
+        let mut cycle = SqufofCycle::default();
+        assert!(squfof_resume(&n, &mut cycle, 16).is_none());
+        let frame = cycle.frame.as_ref().unwrap();
+        assert!(frame.cap.len() > 64);
+        let steps = frame.steps.clone();
+        assert!(squfof_resume(&n, &mut cycle, 16).is_none());
+        assert!(cmp(&cycle.frame.as_ref().unwrap().steps, &steps).is_gt());
+        assert!(!cycle.done());
+    }
+
+    #[test]
     fn full_membrane_certifies_factors_and_takes_perfect_powers() {
         // WITNESS -> POWER -> EXTRACT -> P_MINUS -> P_PLUS -> ECM -> FIX
         let carrier = "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋∈⊙≺⋈∋∈⊙≻⋈∋⊙⊡⊣";
@@ -3858,6 +4004,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         prime12_support: None,
         power_done: false,
         squfof_done: false,
+        squfof_cycle: SqufofCycle::default(),
         round: vec![EVALT],
         exhausted: false,
         selected: None,
