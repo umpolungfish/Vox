@@ -1,0 +1,6 @@
+{"bits": 200, "carrier": "anyon", "returncode": 2, "product_verified": false, "seconds": 0.0013176239881431684}
+{"bits": 200, "carrier": "mk", "returncode": null, "product_verified": false, "seconds": 10.01085751800565}
+{"bits": 200, "carrier": "semiprime anyon", "returncode": 2, "product_verified": false, "seconds": 0.001642828996409662}
+{"bits": 256, "carrier": "anyon", "returncode": 2, "product_verified": false, "seconds": 0.001306423990172334}
+{"bits": 256, "carrier": "mk", "returncode": null, "product_verified": false, "seconds": 10.011527492999448}
+{"bits": 256, "carrier": "semiprime anyon", "returncode": 2, "product_verified": false, "seconds": 0.0015398279938381165}

@@ -1,4 +1,0 @@
-
-thread 'main' (4) panicked at examples/factor_phase_baked_control.rs:29:37:
-called `Result::unwrap()` on an `Err` value: "expected a native IMASM numeral word"
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

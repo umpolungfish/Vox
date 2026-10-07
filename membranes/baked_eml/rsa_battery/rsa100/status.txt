@@ -1,3 +1,0 @@
-RSA-100 nested EML battery run reached the one-minute wall timeout with the
-current baked carrier. No factor word or carrier-closure output was emitted.
-The zero-byte factor.imasm and time.txt files are retained as the run record.

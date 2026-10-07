@@ -1,4 +1,0 @@
-
-thread '<unnamed>' (72) panicked at src/morphism_factor.rs:418:9:
-assertion failed: divisor > 1
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

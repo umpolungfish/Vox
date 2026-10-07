@@ -1,6 +1,0 @@
-INPUT	35	6	3	34
-FRAME	1	0	1	1	3850
-FRAME	2	1	2	1	85875
-FRAME	3	1	4	1	287562
-RESULT	closed	5	7	391840	864552	2	4	62	163
-entry(...) exited(0)   [1609379 steps in the twelve]

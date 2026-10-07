@@ -2849,10 +2849,16 @@ fn execute_nested(operators: &[&[char]], state: &mut State) {
 // registers may evolve, but every stage must retain the same bound source.
 // This also applies to a single-stage descent without imposing a tower size.
 fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, source: &[char]) {
-    if state.selected.is_some() || state.carrier_closed {
+    if state.carrier_closed {
         return;
     }
     if let Some((operator, continuation)) = operators.split_first() {
+        // A selected arm stops further search, but its enclosing fixation
+        // boundaries still have to execute before the carrier can return.
+        if state.selected.is_some() && *operator != FIX && *operator != FIX_BANKED {
+            execute_nested_preserving_source(continuation,state,source);
+            return;
+        }
         #[cfg(feature = "carrier-profile")]
         {
             use core::sync::atomic::Ordering::Relaxed;
@@ -2877,8 +2883,10 @@ fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, so
             state.carrier_closed = true;
             return;
         }
-        if state.selected.is_none() {
-            execute_nested_preserving_source(continuation, state, source);
+        execute_nested_preserving_source(continuation, state, source);
+        if state.n != source {
+            state.selected = None;
+            state.carrier_closed = true;
         }
     }
 }
@@ -3407,6 +3415,29 @@ mod tests {
             names,
             ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]
         );
+    }
+
+    #[test]
+    fn rsa_200_and_256_bit_selected_arms_execute_the_enclosing_fixations() {
+        for decimal in [
+            "1156514714917773145849996001252587703581994899993461612691909",
+            "101560191607051872909385412079844080615251494997013823952605603214371184345809",
+        ] {
+            let source = decimal_to_tape(decimal).unwrap();
+            assert!(source.len() >= 200);
+            let payload = isqrt(&source);
+            let mut padded = payload.clone();
+            padded.extend([EVALT,EVALT]);
+            let mut state = initial_carrier_state(source.clone(),&two(),payload.clone());
+            // Inject an already-selected resident payload to isolate the
+            // return path. This is a closure check, not a factoring readout.
+            state.selected = Some(padded);
+            let tower: [&[char];5] = [EXTRACT,FIX,PHASE,FIX_BANKED,FIX];
+            execute_nested_preserving_source(&tower,&mut state,&source);
+            assert_eq!(state.n,source);
+            assert_eq!(state.selected,Some(payload));
+            assert!(!state.carrier_closed);
+        }
     }
 
     #[test]

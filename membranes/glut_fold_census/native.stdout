@@ -1,3 +1,0 @@
-source_bits 257 position 14 states 131072 stored_value_cells 3801088
-distinct_carries 1 distinct_valuation_pairs 120 zero_p 16384 zero_q 16384 mirrored 65472
-all_zero_carry_and_reverse_valid true

@@ -1,8 +1,0 @@
-{
-  "name": "rsa_24_0",
-  "status": "VM closure assertion failed",
-  "configured_vm_seconds": 120,
-  "vm_output_bytes": 0,
-  "vm_footer_present": false,
-  "details": "Raw execution files and assertion are retained. The first harness did not persist process status before asserting closure."
-}

@@ -1,4 +1,0 @@
-ports=4096 levels=12 load=64.498101ms prepare=145.385049ms prepare_steps=346136
-gates=0123456789abcdef feedback=1 activate=337.99951ms steps=1052696 max_error=0.000e0
-resident: preparations=1 activations=1 median_activation=337.99951ms
-same_gates_control: cold_parse_prepare_activate=541.376067ms resident_activate=335.685557ms ratio=1.61x samples=5

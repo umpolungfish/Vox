@@ -1,6 +1,0 @@
-{
-  "src/glut_fold.rs": "5a8fc0492daea7665e28668c2cc1e7ad0b18d7d1c16fd5e5783a3105585e4944",
-  "src/glut_system.rs": "69c2d31d1dfdf3a879139fed5aeb10e1094b95f7bc3481a42cd457fb98b9c6ac",
-  "examples/glut_stress_baked.rs": "5c6f204b4e0d4afd821334dcbe6d42ff92b237e4719e080a5f522d74319835f8",
-  "src/glut_correlation.rs": "1d3cad50ea399f7b6cf1e0522c2e2ab2c73333746d5e6f3515348064a9879e7a"
-}
