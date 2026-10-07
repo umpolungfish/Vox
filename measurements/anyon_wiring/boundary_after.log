@@ -1,0 +1,11 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.91s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 3 tests
+test vox_decode::function_boundary_tests::local_jump_still_recovers_its_shared_epilogue ... ok
+test vox_decode::function_boundary_tests::seeded_function_survives_a_predecessors_fallthrough ... ok
+test vox_decode::function_boundary_tests::tail_jump_keeps_its_target_as_a_separate_function ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 345 filtered out; finished in 0.00s
+

@@ -772,6 +772,9 @@ pub fn descend_seeded(
             func_queue.push(*s);
         }
     }
+    // A known function entry owns its body even when a predecessor's
+    // conservative continuation or tail jump reaches that entry first.
+    let function_entries: BTreeSet<u64> = func_queue.iter().copied().collect();
 
     while let Some(fstart) = func_queue.first().copied() {
         func_queue.remove(0);
@@ -789,6 +792,9 @@ pub fn descend_seeded(
 
         while let Some(addr) = queue.first().copied() {
             queue.remove(0);
+            if addr != fstart && function_entries.contains(&addr) {
+                continue;
+            }
             if visited.contains(&addr) || covered.contains_key(&addr) {
                 continue;
             }
@@ -973,5 +979,41 @@ pub fn mark_noreturn(functions: &mut [(u64, Vec<Instruction>)], symbols: &BTreeM
                 ins.fallthrough=None;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod function_boundary_tests {
+    use super::*;
+
+    #[test]
+    fn seeded_function_survives_a_predecessors_fallthrough() {
+        let image = Image { segments: vec![(0x100, vec![0x50, 0xc3])] };
+        let functions = descend_seeded(&image, 0x100, &[0x100, 0x101]);
+        assert_eq!(functions.len(), 2);
+        assert_eq!(functions[0].0, 0x100);
+        assert_eq!(functions[0].1.len(), 1);
+        assert_eq!(functions[0].1[0].fallthrough, Some(0x101));
+        assert_eq!(functions[1].0, 0x101);
+        assert_eq!(functions[1].1[0].mnemonic, "ret");
+    }
+
+    #[test]
+    fn tail_jump_keeps_its_target_as_a_separate_function() {
+        let image = Image { segments: vec![(0x100, vec![0xeb, 0x00, 0xc3])] };
+        let functions = descend_seeded(&image, 0x100, &[0x100, 0x102]);
+        assert_eq!(functions.len(), 2);
+        assert_eq!(functions[0].1.len(), 1);
+        assert_eq!(direct_target(&functions[0].1[0]), Some(0x102));
+        assert_eq!(functions[1].0, 0x102);
+    }
+
+    #[test]
+    fn local_jump_still_recovers_its_shared_epilogue() {
+        let image = Image { segments: vec![(0x100, vec![0xeb, 0x00, 0xc3])] };
+        let functions = descend_seeded(&image, 0x100, &[0x100]);
+        assert_eq!(functions.len(), 1);
+        assert_eq!(functions[0].1.len(), 2);
+        assert_eq!(functions[0].1[1].mnemonic, "ret");
     }
 }

@@ -1,6 +1,6 @@
-I measure live factor stages through Vox's native sampler
+I preserve ELF function boundaries and trace anyon carrier dispatch
 
-I add optional observational stage and cycle counters without changing dispatch.
-I record the ten-minute target timeout and a matched one-minute native profile.
-I verify 39 instrumented carrier tests and measure advancing rounds through fixation.
-I retain the source-baked executable, counter trace, disassembly, and current wiring atlas.
+I keep seeded functions separate across fallthrough and tail jumps, retain
+local epilogues, and verify those boundaries with executable regressions.
+I save native wiring, source-bound carrier controls, product checks, and
+the rebuilt exporter for the semiprime-anyon dispatch diagnosis.
