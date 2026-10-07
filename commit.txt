@@ -1,5 +1,4 @@
-I preserve the full polynomial score scale beyond machine width
+I record and reject the larger live-bound score experiment
 
-I check the narrow product and fall back to folded tape multiplication on overflow.
-I verify fourteen sieve controls and trace the larger source's relation collection.
-I flush bounded sieve traces while preserving the retained fastest membrane.
+I compare candidate and relation yield through Vox native tracing.
+I retain the measured baseline and remove the superseded experimental membrane.
