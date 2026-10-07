@@ -107,6 +107,14 @@ fn transform(register: &[char]) -> Word {
         .collect()
 }
 
+fn trace_register(register: &[char]) -> String {
+    if register.len() <= 512 {
+        dec_of(register)
+    } else {
+        format!("<{}-cell tape>", register.len())
+    }
+}
+
 /// The transformed object at the core: advance, engage the paradox, imscribe. This
 /// is the "transformed" in "mu∘delta = id over a transformed object" — without a
 /// real transform the closure is trivial.
@@ -277,18 +285,18 @@ pub fn closure_witness(value: &[char], depth: usize) -> ClosureWitness {
             "  L{} width={} register={} transformed={} δ=({}, {}) arm-widths=({}, {}) child-return={} μδ={} local={} child={} composed={} restored={}\n",
             witness.level,
             witness.source.len(),
-            dec_of(&witness.source),
-            dec_of(&witness.transformed),
-            dec_of(&witness.lane0),
-            dec_of(&witness.lane1),
+            trace_register(&witness.source),
+            trace_register(&witness.transformed),
+            trace_register(&witness.lane0),
+            trace_register(&witness.lane1),
             witness.lane0.len(),
             witness.lane1.len(),
-            dec_of(&witness.child_returned),
-            dec_of(&witness.fused),
+            trace_register(&witness.child_returned),
+            trace_register(&witness.fused),
             if witness.local_identity { "id" } else { "LEAK" },
             if witness.child_chain_closed { "closed" } else { "LEAK" },
             if witness.composed_identity { "id" } else { "LEAK" },
-            dec_of(&witness.restored)
+            trace_register(&witness.restored)
         ));
     }
     ClosureWitness {
@@ -401,7 +409,10 @@ mod tests {
 
     #[test]
     fn width_carrying_closure_scales_with_larger_registers() {
-        for width in [128usize, 256, 512, 1024, 2048, 4096, 8192] {
+        for width in [
+            128usize, 256, 512, 1024, 2048, 4096, 8192, 16_384, 32_768, 65_536, 131_072, 262_144,
+            1_048_576, 4_194_304,
+        ] {
             let mut depth = 1usize;
             let mut child_width = width;
             while child_width > 1 {

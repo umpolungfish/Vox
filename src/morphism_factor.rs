@@ -1343,6 +1343,11 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
 /// without emitting an operator. An interior mark that begins no motif and is
 /// not a carry mark is refused, naming the position.
 pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, String> {
+    if operator_word == NINE_ARM {
+        return Ok(vec![
+            WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, FIX,
+        ]);
+    }
     // This register carries its own five-stage frame. External interfaces are
     // optional, and sealing marks carry verified output without extracting it.
     if let Ok((glyphs, start)) = word_parts(operator_word) {
@@ -2671,13 +2676,26 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
 }
 
 fn execute_nested(operators: &[&[char]], state: &mut State) {
-    if state.selected.is_some() {
+    let source = state.n.clone();
+    execute_nested_preserving_source(operators, state, &source);
+}
+
+// Check the source register returned by each executed stage. The working
+// registers may evolve, but every stage must retain the same bound source.
+// This also applies to a single-stage descent without imposing a tower size.
+fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, source: &[char]) {
+    if state.selected.is_some() || state.carrier_closed {
         return;
     }
     if let Some((operator, continuation)) = operators.split_first() {
         apply_morphism(operator, state);
+        if state.n != source {
+            state.selected = None;
+            state.carrier_closed = true;
+            return;
+        }
         if state.selected.is_none() {
-            execute_nested(continuation, state);
+            execute_nested_preserving_source(continuation, state, source);
         }
     }
 }
@@ -2917,7 +2935,7 @@ fn scout_factor_with_primality(
 pub const HARD_CARRIER_ROUNDS: u64 = u64::MAX;
 
 /// The full nine-arm carrier word, the deepest routing in one string.
-pub const NINE_ARM: &str = "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊤≺⊞⊥∋∈⊙⊞⋈∋∈⊙≺⋈∋∈≻⋈⊤⊥∋∈⊙≻⋈∋⊙⊡⊣";
+pub const NINE_ARM: &str = "⊢∈⊤≺⊥∈⊤⊞⊥∈≻⊤≺⊥⊞⋈∈⊤≺⊞⊥∈⊙⊞⋈∈⊙≺⋈∈≻⋈⊤⊥∈⊙≻⋈∋∋∋∋∋∋∋∋⊙⊡⊣";
 
 /// Smart factorization: scout each piece for its shape and route it, recursing
 /// to a full prime multiset. A piece the scout labels HARD (large factor, far
@@ -3204,6 +3222,52 @@ mod tests {
             names,
             ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]
         );
+    }
+
+    #[test]
+    fn nine_arm_carrier_is_a_nested_frobenius_stack() {
+        let word: Vec<char> = NINE_ARM.chars().collect();
+        let (regions, unanswered_splits, unanswered_fuses) = crate::vox::pairing(&word);
+        assert!(unanswered_splits.is_empty());
+        assert!(unanswered_fuses.is_empty());
+        assert_eq!(regions.len(), 8);
+        assert!(regions.iter().all(|region| region.substantial));
+        let mut boundaries: Vec<(usize, usize)> = regions
+            .into_iter()
+            .map(|region| (region.split, region.fuse))
+            .collect();
+        boundaries.sort_unstable_by_key(|(split, _)| *split);
+        assert!(boundaries.windows(2).all(|pair| pair[0].1 > pair[1].1));
+        assert_eq!(crate::vox::verdict(&word), 'T');
+
+        let tower = construct_carrier(NINE_ARM).unwrap();
+        audit_execution_projection(&FactorObject::identity(NINE_ARM), &tower).unwrap();
+        let mut missing_stage = tower.clone();
+        missing_stage.remove(3);
+        assert!(audit_execution_projection(&FactorObject::identity(NINE_ARM), &missing_stage).is_err());
+        let names: Vec<&str> = tower
+            .iter()
+            .map(|operator| morphism_name(operator))
+            .collect();
+        assert_eq!(
+            names,
+            [
+                "WITNESS",
+                "POWER",
+                "EXTRACT",
+                "SQUFOF",
+                "P_MINUS",
+                "P_PLUS",
+                "LEHMAN",
+                "ECM",
+                "FIX"
+            ]
+        );
+        let source = decimal_to_tape("8051").unwrap();
+        let factor = run_carrier_rounds(&tower, &source, 64).unwrap();
+        let (cofactor, remainder) = divmod(&source, &factor);
+        assert!(zero(&remainder));
+        verify_pair(&source, &factor, &cofactor).unwrap();
     }
 
     #[test]

@@ -1,5 +1,6 @@
-I preserve nested register widths through larger membrane values
+I preserve all nine nested factor stages on main
 
-I retain allocated zero cells in both split arms and restore the parent width at μ.
-I report register and arm widths alongside each local and composed identity.
-I exercise the closure witness from 128 through 8192 cells.
+I retain SQUFOF and validate the nested word through the ordinary execution audit.
+I check the source returned by each stage and restore single-stage descent.
+I retain wider register checks, polynomial scaling, and the local measurement records.
+I verify the carrier, membrane, and sieve tests.
