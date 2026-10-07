@@ -14,6 +14,7 @@ extern crate alloc;
 
 pub mod vox;
 pub mod godel_calculus;
+pub mod semiprime_descent;
 pub mod godel_analyzer;
 pub mod godel_product;
 pub mod vox_decode;

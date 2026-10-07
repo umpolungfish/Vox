@@ -7,6 +7,10 @@ license = "Unlicense"
 autobins = false
 
 [[bin]]
+name = "semiprime_descent"
+path = "src/bin/semiprime_descent.rs"
+
+[[bin]]
 name = "excribe_numeral"
 path = "src/bin/excribe_numeral.rs"
 

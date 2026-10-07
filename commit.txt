@@ -1,7 +1,5 @@
-I execute source-baked numeral morphisms over native factor tapes
+I execute five-stage semiprime descent over native tapes
 
-I retain source cell frames and banked cells through cursor clearing and
-record actual operator boundaries. I compare the reconstructed tape to the
-independently baked source before factor extraction. I use the existing
-native tape producer and verify the exact nontrivial factor product in a
-separate invocation, identifying native primality screening explicitly.
+I retain recurrence preimages, measure square congruence, sever by GCD,
+join FOUR attempt evidence and verify exact source products at fusion.
+I test seven native controls and retain successful and bounded traces.
