@@ -1,0 +1,34 @@
+5844 native samples
+Hot instructions: samples percent address decoded
+1008	17.248	-1	[external]
+559	9.565	6faf6	cmp r:rbp m:rsp::1:0x18:8
+505	8.641	6fad7	inc r:rbp
+495	8.470	6fadf	cmp r:r13 i:0x40
+176	3.012	6f78b	pcmpeqd r:xmm4 r:xmm10
+172	2.943	6f7c1	movdqa r:xmm4 r:xmm11
+164	2.806	6f7cf	movdqa r:xmm6 r:xmm11
+163	2.789	6f7e4	add r:r9 i:0x4
+155	2.652	6f7bc	orps r:xmm0 r:xmm8
+155	2.652	6f7dc	andps r:xmm6 r:xmm5
+146	2.498	6f774	paddq r:xmm3 r:xmm9
+146	2.498	6f7ad	psllq r:xmm8 r:xmm7
+137	2.344	6f7e0	orps r:xmm1 r:xmm6
+137	2.344	6f79f	psllq r:xmm6 r:xmm2
+130	2.225	a058c	xor r:ecx r:ecx
+Hot loop ranges: samples percent start end (nested ranges can overlap)
+2183	37.355	6f6ca	6f882
+1842	31.520	6f770	6f7f0
+1712	29.295	6fad0	6fb0d
+1712	29.295	6fad0	6fafb
+1206	20.637	6fab0	6fae3
+160	2.738	70850	713f4
+157	2.687	70989	713e1
+153	2.618	70a56	7141e
+149	2.550	6f810	6f838
+139	2.379	70bfb	71434
+139	2.379	70bfb	71400
+128	2.190	70ce8	7143e
+127	2.173	70d70	713ea
+101	1.728	70e56	714b1
+101	1.728	6fb50	6fb65
+Sampled source registers at hot additions: address register decimal-value samples

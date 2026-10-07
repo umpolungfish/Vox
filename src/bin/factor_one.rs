@@ -23,7 +23,10 @@ fn main() {
                         .expect("baked carrier must construct");
                     let rounds = option_env!("FACTOR_DIAG_ROUNDS")
                         .unwrap_or("1").parse::<u64>().expect("baked diagnostic rounds");
-                    for depth in 1..=tower.len() {
+                    let first_depth = option_env!("FACTOR_DIAG_DEPTH")
+                        .unwrap_or("1").parse::<usize>().expect("baked diagnostic depth");
+                    assert!((1..=tower.len()).contains(&first_depth));
+                    for depth in first_depth..=tower.len() {
                         let name = vox::morphism_factor::morphism_name(tower[depth - 1]);
                         eprintln!("prefix_enter depth={depth} last={name}");
                         let start = std::time::Instant::now();
