@@ -1,5 +1,4 @@
-I execute five-stage semiprime descent over native tapes
+I traverse every cyclic parameter pair until semiprime closure
 
-I retain recurrence preimages, measure square congruence, sever by GCD,
-join FOUR attempt evidence and verify exact source products at fusion.
-I test seven native controls and retain successful and bounded traces.
+I retain FOUR evidence across finite attempts with tape-sized counters.
+I stream traces and verify the complete traversal witness in nine controls.
