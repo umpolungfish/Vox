@@ -1,4 +1,5 @@
-I export exact membrane wiring for the circuit atlas
+I witness transformed-register closure at every membrane level
 
-I expose decoded instruction widths, targets, continuations and coverage through Vox.
-I preserve the existing disassembly output and mark unresolved decoder details explicitly.
+I carry each level's transform, width and two split arms through its child return.
+I verify the local μδ identity and compose every return to the root register.
+I print the per-level witnesses in the Vox operculum readout.

@@ -1,17 +1,14 @@
 //! perfect_membrane.rs — the membrane as matched circuitry, not as search.
 //!
-//! A membrane closes when mu∘delta = id: split the object, transform it, fuse it
-//! back, and recover what you started with. The sieve membranes reach that closure
-//! by collecting relations until a dependency appears. A PERFECT membrane reaches
-//! it by construction: every delta (a fork, FSPLIT ∈) is wired to its own mu (a
-//! fuse, FFUSE ∋), so split-then-fuse is the identity by the shape of the circuit.
+//! A membrane closes when μ∘δ = id on the transformed register: transform, split,
+//! fuse, and restore. Here every stack level carries its own transformed tape and
+//! local closure witness. The child return is checked against the parent's lane;
+//! those adjacent equalities compose to the root register.
 //!
-//! The tower has a depth n >= 2 (two is the base Frobenius cell, one split wired to
-//! one fuse) and no maximum. Each level forks down and, through CLINK bridges,
-//! reconnects to every deeper level and back, the all-to-all lattice, so no level
-//! sits on a single path. The closure auditor `vox::verdict` reads this: matched
-//! forks with work in their interior return T, an unmatched fork would return B and
-//! an over-fuse F. A perfect membrane returns T at every depth with zero surplus.
+//! The tower has depth n >= 2 and no maximum. Each level forks to one deeper
+//! register, links that adjacent level, and fuses on the return rail. The closure
+//! auditor `vox::verdict` reads the symbolic word; `closure_witness` independently
+//! evaluates μ∘δ on the actual transformed tapes at every level.
 
 use crate::morphism_factor::{cmp, dec_of, mul, trim};
 use crate::vox::{
@@ -22,7 +19,7 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 
-type Word = Vec<char>;
+pub type Word = Vec<char>;
 
 // ---- executable delta / mu over the bit-tape ----
 // The tape is little-endian bits: index i is bit i, EVALF = 1, EVALT = 0.
@@ -42,33 +39,72 @@ fn delta(v: &[char]) -> (Word, Word) {
     (trim(a), trim(b))
 }
 
-/// mu: interlace the two lanes back, the exact inverse of delta. Bit 2j comes from
-/// lane 0, bit 2j+1 from lane 1. mu(delta(v)) = v on the nose.
-fn mu(a: &[char], b: &[char]) -> Word {
-    let n = a.len().max(b.len());
-    let mut out = Word::new();
-    for j in 0..n {
+/// Width-preserving μ for a transformed register. Canonical numeral trimming can
+/// remove high zero cells from either arm, so the register width travels with the
+/// frame and is restored explicitly at the fuse.
+fn mu_width(a: &[char], b: &[char], width: usize) -> Word {
+    let mut out = Vec::with_capacity(width);
+    for j in 0..width.div_ceil(2) {
         out.push(*a.get(j).unwrap_or(&EVALT));
-        out.push(*b.get(j).unwrap_or(&EVALT));
+        if out.len() < width {
+            out.push(*b.get(j).unwrap_or(&EVALT));
+        }
     }
-    trim(out)
+    out
 }
 
-/// Run a value through a depth-n perfect membrane and report each stage: the split
-/// lanes at every level, the transform carried at the core (here the product of the
-/// two deepest lanes, a real computed quantity), and the fuse back up, with the
-/// mu∘delta = id recovery checked against the input at every level.
+/// Run a value through the nested membrane and report each transformed register's
+/// local split/fuse witness and its composition back to the root.
 pub fn run(value: &[char], depth: usize) -> String {
     let v = trim(value.to_vec());
-    let (recovered, _product, trace) = transit(&v, depth);
-    let closed = cmp(&recovered, &v) == core::cmp::Ordering::Equal;
+    let audit = transit(&v, depth);
     format!(
-        "value in: {}\n{}value out: {}\n  mu∘delta = id : {}\n",
+        "value in: {}\n{}value out: {}\n  composed μ∘δ = id : {}\n  core lane product: {}\n",
         dec_of(&v),
-        trace,
-        dec_of(&recovered),
-        if closed { "CLOSED (identity recovered)" } else { "LEAK" }
+        audit.trace,
+        dec_of(&audit.recovered),
+        if audit.closed {
+            "CLOSED (every level returned to root)"
+        } else {
+            "LEAK"
+        },
+        dec_of(&audit.product)
     )
+}
+
+/// Witness for one register in the nested stack. The child return is checked
+/// against lane0 before this level fuses its two arms.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LevelClosureWitness {
+    pub level: usize,
+    pub source: Word,
+    pub transformed: Word,
+    pub lane0: Word,
+    pub lane1: Word,
+    pub child_returned: Word,
+    pub fused: Word,
+    pub restored: Word,
+    pub local_identity: bool,
+    pub child_return_identity: bool,
+    pub child_chain_closed: bool,
+    pub composed_identity: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ClosureWitness {
+    pub levels: Vec<LevelClosureWitness>,
+    pub recovered: Word,
+    pub product: Word,
+    pub closed: bool,
+    pub trace: String,
+}
+
+/// Apply a cellwise involution to make each level's transformed register explicit.
+fn transform(register: &[char]) -> Word {
+    register
+        .iter()
+        .map(|&cell| if cell == EVALF { EVALT } else { EVALF })
+        .collect()
 }
 
 /// The transformed object at the core: advance, engage the paradox, imscribe. This
@@ -78,20 +114,18 @@ fn core() -> Word {
     vec![AFWD, EVALT, AREV, EVALF, ENGAGR, IMSCRIB]
 }
 
-/// Depth-n perfect membrane word: VINIT, then n forks each bridged to the deeper
-/// levels (delta with its all-to-all cross-link), the transformed core, then n
-/// fuses (mu), latched with IFIX and closed with TANCH. Forks and fuses are equal
-/// in number, so the auditor sees no surplus and the round trip is the identity.
+/// Every level contains its own transformed work region. The nested fuses then
+/// compose the local closures from the deepest register back to the root.
 pub fn perfect_membrane(depth: usize) -> Word {
     let n = depth.max(2);
     let mut w = vec![VINIT];
     for _ in 0..n {
-        w.push(FSPLIT); // delta: fork this level
-        w.push(CLINK); // bridge it to the deeper levels (the lateral link)
+        w.push(FSPLIT);
+        w.push(CLINK);
+        w.extend(core());
     }
-    w.extend(core());
     for _ in 0..n {
-        w.push(FFUSE); // mu: fuse the matching level back
+        w.push(FFUSE);
     }
     w.push(IFIX);
     w.push(TANCH);
@@ -130,6 +164,7 @@ pub struct Operculum {
     payload: Option<Word>,
     recovered: Option<Word>,
     product: Option<Word>,
+    audit: Option<ClosureWitness>,
 }
 
 impl Operculum {
@@ -141,6 +176,7 @@ impl Operculum {
             payload: None,
             recovered: None,
             product: None,
+            audit: None,
         }
     }
 
@@ -165,17 +201,16 @@ impl Operculum {
         Ok(())
     }
 
-    /// Run the closed circuit: split the payload down the tower, transform at the
-    /// core, fuse it back. Split-then-fuse is the identity, so the interior holds
-    /// the recovered value and the transform's product. Only runs while sealed.
+    /// Run the closed circuit while sealed and retain the per-register witnesses.
     pub fn run(&mut self) -> Result<(), &'static str> {
         if self.lid != Lid::Sealed {
             return Err("operculum must be sealed before it runs");
         }
         let v = self.payload.as_ref().unwrap();
-        let (recovered, product, _trace) = transit(v, self.depth);
-        self.recovered = Some(recovered);
-        self.product = Some(product);
+        let audit = transit(v, self.depth);
+        self.recovered = Some(audit.recovered.clone());
+        self.product = Some(audit.product.clone());
+        self.audit = Some(audit);
         Ok(())
     }
 
@@ -186,36 +221,84 @@ impl Operculum {
             return Err("nothing to extract; seal and run first");
         }
         self.lid = Lid::Spent;
-        Ok((
-            self.recovered.take().unwrap(),
-            self.product.take().unwrap(),
-        ))
+        Ok((self.recovered.take().unwrap(), self.product.take().unwrap()))
     }
 }
 
-/// The transit through a sealed depth-n membrane: fork the value down, transform at
-/// the core, fuse back. Returns the recovered value (equal to the input by
-/// mu∘delta = id), the core transform's product, and a stage trace.
-fn transit(value: &[char], depth: usize) -> (Word, Word, String) {
+/// Build and compose one μ∘δ witness per transformed register. Each level applies
+/// the same involution, splits the transformed tape, receives the child's returned
+/// lane, fuses the two lanes, then applies the involution again to restore its input.
+pub fn closure_witness(value: &[char], depth: usize) -> ClosureWitness {
     let n = depth.max(2);
     let v = trim(value.to_vec());
-    let mut trace = String::new();
+    let mut frames: Vec<(usize, Word, Word, Word, Word)> = Vec::new();
     let mut cur = v.clone();
-    let mut siblings: Vec<Word> = Vec::new();
     for level in 1..=n {
-        let (a, b) = delta(&cur);
-        trace.push_str(&format!("  delta L{level}: lane0={} lane1={}\n", dec_of(&a), dec_of(&b)));
-        siblings.push(b);
+        let transformed = transform(&cur);
+        let (a, b) = delta(&transformed);
+        frames.push((level, cur, transformed, a.clone(), b));
         cur = a;
     }
-    let product = mul(&cur, siblings.last().unwrap());
-    trace.push_str(&format!("  core transform: lane product = {}\n", dec_of(&product)));
-    for level in (1..=n).rev() {
-        let b = siblings.pop().unwrap();
-        cur = mu(&cur, &b);
-        trace.push_str(&format!("  mu    L{level}: recombined = {}\n", dec_of(&cur)));
+    let deepest = frames.last().unwrap();
+    let product = mul(&deepest.3, &deepest.4);
+    let mut levels = Vec::with_capacity(n);
+    let mut child_chain_closed = true;
+    for (level, source, transformed, lane0, lane1) in frames.into_iter().rev() {
+        let child_returned = cur.clone();
+        let child_return_identity = child_returned == lane0;
+        let fused = mu_width(&child_returned, &lane1, transformed.len());
+        let local_identity = fused == transformed;
+        let restored = transform(&fused);
+        let source_identity = restored == source;
+        let this_chain_closed =
+            child_chain_closed && child_return_identity && local_identity && source_identity;
+        levels.push(LevelClosureWitness {
+            level,
+            source,
+            transformed,
+            lane0,
+            lane1,
+            child_returned,
+            fused: fused.clone(),
+            restored: restored.clone(),
+            local_identity,
+            child_return_identity,
+            child_chain_closed,
+            composed_identity: this_chain_closed,
+        });
+        cur = restored;
+        child_chain_closed = this_chain_closed;
     }
-    (cur, product, trace)
+    levels.reverse();
+    let closed = child_chain_closed && cur == v;
+    let mut trace = String::new();
+    for witness in &levels {
+        trace.push_str(&format!(
+            "  L{} register={} transformed={} δ=({}, {}) child-return={} μδ={} local={} child={} composed={} restored={}\n",
+            witness.level,
+            dec_of(&witness.source),
+            dec_of(&witness.transformed),
+            dec_of(&witness.lane0),
+            dec_of(&witness.lane1),
+            dec_of(&witness.child_returned),
+            dec_of(&witness.fused),
+            if witness.local_identity { "id" } else { "LEAK" },
+            if witness.child_chain_closed { "closed" } else { "LEAK" },
+            if witness.composed_identity { "id" } else { "LEAK" },
+            dec_of(&witness.restored)
+        ));
+    }
+    ClosureWitness {
+        levels,
+        recovered: cur,
+        product,
+        closed,
+        trace,
+    }
+}
+
+fn transit(value: &[char], depth: usize) -> ClosureWitness {
+    closure_witness(value, depth)
 }
 
 /// Walk the operculum lifecycle on a value and narrate each step, for the CLI.
@@ -228,14 +311,22 @@ pub fn operculum_demo(value: &[char], depth: usize) -> String {
     op.seal().unwrap();
     out.push_str("seal\n");
     op.run().unwrap();
+    let audit_trace = op.audit.as_ref().unwrap().trace.clone();
+    let audit_closed = op.audit.as_ref().unwrap().closed;
     out.push_str("run (sealed)\n");
+    out.push_str(&audit_trace);
     let (recovered, product) = op.extract().unwrap();
-    let closed = cmp(&recovered, &trim(value.to_vec())) == core::cmp::Ordering::Equal;
+    let closed =
+        audit_closed && cmp(&recovered, &trim(value.to_vec())) == core::cmp::Ordering::Equal;
     out.push_str(&format!(
         "open operculum, extract: value {}  transform {}\n  entry wound = exit wound : {}\n",
         dec_of(&recovered),
         dec_of(&product),
-        if closed { "CLOSED (recovered through the one puncture)" } else { "LEAK" }
+        if closed {
+            "CLOSED (recovered through the one puncture)"
+        } else {
+            "LEAK"
+        }
     ));
     out
 }
@@ -256,16 +347,52 @@ mod tests {
         assert!(op.deposit(&v).is_err(), "cannot deposit once sealed");
         op.run().unwrap();
         let (recovered, _product) = op.extract().unwrap();
-        assert_eq!(trim(recovered), trim(v), "the entry must return as the exit");
+        assert_eq!(
+            trim(recovered),
+            trim(v),
+            "the entry must return as the exit"
+        );
     }
 
     #[test]
-    fn closes_with_identity_at_every_depth() {
-        // mu∘delta = id holds by construction: T verdict, zero surplus, 2..=32.
+    fn transformed_register_witnesses_compose_to_root_at_every_depth() {
+        let value = decimal_to_tape("1234567890123456789").unwrap();
         for n in 2..=32 {
             let (v, surplus, _) = report(n);
             assert_eq!(surplus, 0, "depth {n}: forks and fuses must match");
             assert_eq!(v, 'T', "depth {n}: perfect membrane must close with work");
+            let audit = closure_witness(&value, n);
+            assert!(
+                audit.closed,
+                "depth {n}: composed root closure\n{}",
+                audit.trace
+            );
+            assert_eq!(audit.levels.len(), n);
+            assert_eq!(trim(audit.recovered), trim(value.clone()));
+            for witness in audit.levels {
+                assert!(
+                    witness.local_identity,
+                    "depth {n}, level {}: μδ=id",
+                    witness.level
+                );
+                assert!(
+                    witness.child_return_identity,
+                    "depth {n}, level {}: child returns to lane",
+                    witness.level
+                );
+                assert!(
+                    witness.child_chain_closed,
+                    "depth {n}, level {}: child chain composes",
+                    witness.level
+                );
+                assert!(
+                    witness.composed_identity,
+                    "depth {n}, level {}: composed μδ=id",
+                    witness.level
+                );
+                assert_eq!(witness.fused, witness.transformed);
+                assert_eq!(witness.restored, witness.source);
+            }
         }
     }
 }
