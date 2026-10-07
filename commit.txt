@@ -1,4 +1,4 @@
-I expose residual closure paths and retain exact square contributions
+I measure and reject runtime prime-power scoring overhead
 
-I verify immediate square closure and distinguish unmatched partials in Vox traces.
-I preserve the fastest membrane and clean superseded candidate artifacts.
+I retain exact lifted-root and folded-score regressions.
+I compare Vox relation-yield traces and preserve the faster runtime path.
