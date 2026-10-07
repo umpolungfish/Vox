@@ -133,3 +133,22 @@ The source-only baked execution still times out at 30.00 seconds. Vox records
 bits rather than about 135. Closure counts are 1,126 smooth and 123 paired,
 with 4,139 unmatched residuals. This candidate is retained in source for the
 next 208-bit comparison; the fastest saved membrane has not been replaced.
+
+## Faster verified 208-bit membrane
+
+The separate MPQS window produces the full 208-bit factor equation in 26.21
+seconds: `13419294329574030763782528217097` times
+`19835257260375005453724574658581`. Both resident primality checks return
+`prime` and Vox's membrane product check returns `true`. The run takes no
+runtime input and is compiled from the source numeral alone.
+
+This replaces the prior 35.14-second saved executable in
+`native_factor_current/membrane`. Its updated manifest records SHA-256
+`e404d65b9083d62931e8fe4ac78b19d36c92f606fb8ee47793e37cf4fb5f4701`, the
+1,048,576-position MPQS half-window, timing and verification paths. Its Vox
+disassembly is retained alongside it; superseded candidate disassemblies
+are removed. The earlier 35.14-second measurements remain in this history.
+
+The same source-only window policy on the retained 216-bit source reaches
+the 30-second observation bound (timer 30.02 seconds) with empty factor output.
+Its records are `native216_mpqs_window.stdout` and `.stderr`.
