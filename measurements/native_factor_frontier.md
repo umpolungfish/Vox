@@ -119,3 +119,17 @@ but both trail the 997-relation baseline. Runtime prime-power marking is
 removed; its exact scoring regression and traces remain for future work.
 The saved fastest membrane remains unchanged, and superseded experimental
 executables and disassemblies are removed.
+
+## Separate MPQS and QS windows
+
+The native hard route now lets MPQS choose its width-based polynomial window
+instead of passing twice the single-polynomial QS interval. For the 224-bit
+source this changes the half-window from 12,000,000 to 1,048,576 positions.
+The QS fallback retains its original interval. All sixteen sieve controls pass.
+
+The source-only baked execution still times out at 30.00 seconds. Vox records
+1,249 relations at 24.768255 seconds, compared with the previous 997 at
+24.915597 seconds. A and its target have 93 bits; the latest candidate has 131
+bits rather than about 135. Closure counts are 1,126 smooth and 123 paired,
+with 4,139 unmatched residuals. This candidate is retained in source for the
+next 208-bit comparison; the fastest saved membrane has not been replaced.
