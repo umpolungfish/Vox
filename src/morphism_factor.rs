@@ -948,25 +948,27 @@ fn lucas_v(m: &[char], a: &[char], n: &[char]) -> Tape {
 /// membrane for large operands.  Newton's decreasing iteration keeps the
 /// resident value folded and reaches the floor in O(log bits) divisions.
 pub fn isqrt(n: &[char]) -> Tape {
-    if cmp(n, &two()) == core::cmp::Ordering::Less {
-        return trim(n.to_vec());
+    let source = fold(n);
+    if source.len() == 1 && source[0] < 2 {
+        return unfold(&source);
     }
-    let bits = trim(n.to_vec()).len();
-    // Tapes are LSB-first, so this is 2^ceil(bits/2), an upper bound.
-    let mut x = vec![EVALT; (bits + 1) / 2];
-    x.push(EVALF);
+    let bits = (source.len() - 1) * 64
+        + (64 - source.last().unwrap().leading_zeros() as usize);
+    let exponent = (bits + 1) / 2;
+    let mut x = vec![0; exponent / 64 + 1];
+    x[exponent / 64] = 1 << (exponent % 64);
     loop {
-        let q = divmod(n, &x).0;
-        let next = divmod(&add(&x, &q), &two()).0;
-        if cmp(&next, &x) != core::cmp::Ordering::Less {
+        let q = l_divmod(&source, &x).0;
+        let next = l_divmod(&l_add(&x, &q), &[2]).0;
+        if l_cmp(&next, &x) != core::cmp::Ordering::Less {
             break;
         }
         x = next;
     }
-    while cmp(&mul(&x, &x), n) == core::cmp::Ordering::Greater {
-        x = sub(&x, &one());
+    while l_cmp(&l_mul(&x, &x), &source) == core::cmp::Ordering::Greater {
+        x = l_sub(&x, &[1]);
     }
-    trim(x)
+    unfold(&x)
 }
 
 pub fn one() -> Tape {
@@ -3688,6 +3690,29 @@ mod tests {
         state.round = tape_u64(6);
         execute_nested(&[LEHMAN, FIX], &mut state);
         assert!(cmp(&state.lehman_sweep.as_ref().unwrap().a, &cursor).is_gt());
+    }
+
+    #[test]
+    fn folded_square_roots_close_across_limb_boundaries() {
+        for value in 0..1024 {
+            let n = tape_u64(value);
+            let r = isqrt(&n);
+            assert!(cmp(&mul(&r, &r), &n).is_le());
+            let next = add(&r, &one());
+            assert!(cmp(&mul(&next, &next), &n).is_gt());
+        }
+        for width in [63, 64, 65, 127, 128, 129, 447, 448, 449, 895, 1024] {
+            let mut root = vec![EVALT; width];
+            root[0] = EVALF;
+            root[width - 1] = EVALF;
+            let square = mul(&root, &root);
+            assert_eq!(isqrt(&square), root);
+            assert_eq!(isqrt(&sub(&square, &one())), sub(&root, &one()));
+            assert_eq!(isqrt(&add(&square, &one())), root);
+            let mut padded = square.clone();
+            padded.extend([EVALT; 64]);
+            assert_eq!(isqrt(&padded), root);
+        }
     }
 
     #[test]

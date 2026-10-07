@@ -1,7 +1,7 @@
-I retain the Lehman cursor so my nested carrier can continue
+I keep square roots folded and isolate the blocked SQUFOF continuation
 
-I locate the blocked second-round Lehman sweep using Vox samples and prefix controls.
-I preserve its window between bounded firings and verify cursor retention on RSA-270.
-I bake the operation word separately from the source numeral and verify emitted pairs.
-I retain the repaired executable, its full native wiring atlas, and its symbolic diagram.
-I record the target executions and all 37 passing carrier tests.
+I follow Vox samples and the native circuit atlas to remove repeated root conversions.
+I verify exact floor roots across limb boundaries and all 38 carrier tests.
+I isolate the SQUFOF stall with matched 256-round prefix controls on RSA-270.
+I record its narrowed cycle bound and retain the next resumable-cycle repair task.
+I regenerate the full wiring atlas from my latest source-baked executable.
