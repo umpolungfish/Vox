@@ -1,0 +1,2 @@
+regs at halt: rax=0 rbx=0 rcx=0 rdx=7ffefec8 rsi=c rdi=16680 rbp=0 rsp=7ffefea8 r12=0 r13=0 r14=0 r15=0
+call chain:

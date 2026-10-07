@@ -1,5 +1,4 @@
-I lift detected factor collisions into verified square witnesses
+I trace descent wiring through Vox assembly and dispatch controls
 
-I detect hidden orbit collisions and preserve complete cyclic traversal.
-I construct even and odd square witnesses and recompute their severing GCD.
-I retain fixed-size orbit state, FOUR history and exact source verification.
+I retain constructor rejection and the existing extraction-carrier control.
+I compare static lifted execution with native source-product verification.
