@@ -1,0 +1,5 @@
+samples 5888
+last {'seconds': '59.892665', 'bits': '895', 'round_low64': '34261', 'stage': '6', 'entries': '308346', 'boundary': '1', 'selected_bits': '0', 'source_preserved': '1', 'squfof_multiplier': '0', 'squfof_step_low64': '544097'}
+stage_sample_counts {'2': 166, '3': 2431, '4': 581, '5': 627, '6': 1357, '7': 141, '8': 580, '9': 5}
+selected_samples 0
+source_failures_after_return 0

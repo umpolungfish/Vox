@@ -1,0 +1,44 @@
+
+running 39 tests
+test morphism_factor::tests::changed_work_is_rejected_even_when_a_type_is_factoring_complete ... ok
+test morphism_factor::tests::close_frame_object_executes_same_work_after_structural_repair ... ok
+test morphism_factor::tests::constructed_carrier_factors_like_the_fixed_tower ... ok
+test morphism_factor::tests::constructor_accepts_source_bound_fragments_and_retained_terminal_output ... ok
+test morphism_factor::tests::constructor_recognizes_kernel_eml_frame_and_composes_factor_arm ... ok
+test morphism_factor::tests::constructor_recovers_the_full_tower ... ok
+test morphism_factor::tests::descent_carrier_dispatches_standalone_and_sealed_words ... ok
+test morphism_factor::tests::descent_nested_carrier_uses_verified_fusion ... ok
+test morphism_factor::tests::ecm_arm_factors_and_nests ... ok
+test morphism_factor::tests::eml_variants_are_distinct_kernel_arms ... ok
+test morphism_factor::tests::exhausted_nested_arm_closes_the_outer_carrier ... ok
+test morphism_factor::tests::extract_banks_both_deposits_across_its_internal_arev ... ok
+test morphism_factor::tests::factor_object_identity_is_the_legacy_diagonal ... ok
+test morphism_factor::tests::factors_marks_without_numeric_state ... ok
+test morphism_factor::tests::folded_square_roots_close_across_limb_boundaries ... ok
+test morphism_factor::tests::frame_work_object_executes_walk_projection_and_types_with_full_carrier ... ok
+test morphism_factor::tests::frontier_arm_clears_a_balanced_semiprime_fast ... ok
+test morphism_factor::tests::frozen_walk_type_reconciliation_is_first_class ... ok
+test morphism_factor::tests::full_membrane_certifies_factors_and_takes_perfect_powers ... ok
+test morphism_factor::tests::fused_modular_products_match_tape_arithmetic_across_limb_widths ... ok
+test morphism_factor::tests::incomplete_operator_word_is_named_not_run ... ok
+test morphism_factor::tests::instant_extractor_decomposes_and_factors ... ok
+test morphism_factor::tests::lehman_step_finds_a_mid_range_factor ... ok
+test morphism_factor::tests::lehman_sweep_retains_cursor_and_returns_to_continuation ... ok
+test morphism_factor::tests::nested_p_minus_catches_a_far_large_smooth_predecessor_factor ... ok
+test morphism_factor::tests::nine_arm_carrier_is_a_nested_frobenius_stack ... ok
+test morphism_factor::tests::normalized_limb_division_closes_quotient_and_remainder ... ok
+test morphism_factor::tests::phase_base_is_a_baked_imasm_input_not_a_source_literal ... ok
+test morphism_factor::tests::phase_family_reaches_a_forty_bit_semiprime ... ok
+test morphism_factor::tests::phase_family_reaches_a_sixty_bit_semiprime ... ok
+test morphism_factor::tests::power_and_lucas_helpers_are_exact ... ok
+test morphism_factor::tests::prime12_read_is_information_support_not_a_primality_test ... ok
+test morphism_factor::tests::reconciliation_mismatch_is_not_silently_normalized ... ok
+test morphism_factor::tests::repaired_structural_bridge_is_a_closure_marker ... ok
+test morphism_factor::tests::resumable_square_forms_preserve_factors_and_wide_cycle_bound ... ok
+test morphism_factor::tests::scout_reads_the_shape_and_routes ... ok
+test morphism_factor::tests::smart_factor_gives_full_multiset ... ok
+test morphism_factor::tests::squfof_finds_factors ... ok
+test morphism_factor::tests::witness_first_certifies_a_large_prime_without_the_sqrt_walk ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 306 filtered out; finished in 0.17s
+

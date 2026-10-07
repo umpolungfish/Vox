@@ -112,6 +112,13 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
         writeln!(output, "seconds\tcalls\tstage\tentry_nodes\texit_nodes")?;
         Some(output)
     } else { None };
+    let factor_address = vox::loader::elf_object_symbol(&raw, "VOX_FACTOR_COUNTERS")
+        .filter(|&(_, size)| size >= 9 * 8).map(|(address, _)| base + address);
+    let mut factor_samples = if factor_address.is_some() {
+        let mut output = BufWriter::new(File::create(format!("{prefix}.factor.tsv"))?);
+        writeln!(output, "seconds\tbits\tround_low64\tstage\tentries\tboundary\tselected_bits\tsource_preserved\tsqufof_multiplier\tsqufof_step_low64")?;
+        Some(output)
+    } else { None };
     let mut counts = BTreeMap::<String, u64>::new();
     let mut total = 0u64;
     let mut random = pid as u64 | 1;
@@ -139,6 +146,17 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             }
         }
         writeln!(samples)?;
+        if let (Some(address), Some(output)) = (factor_address, factor_samples.as_mut()) {
+            write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
+            for index in 0..9 {
+                let value = unsafe { ptrace(2, pid, (address + index * 8) as *mut c_void,
+                    std::ptr::null_mut()) };
+                if value == -1 { return Err(std::io::Error::last_os_error().into()); }
+                write!(output, "\t{}", value as u64)?;
+            }
+            writeln!(output)?;
+            if total % 64 == 0 { output.flush()?; }
+        }
         if let (Some(address), Some(output)) = (sieve_address, sieve_samples.as_mut()) {
             write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
             for index in 0..sieve_fields {
@@ -184,6 +202,7 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     if let Some(output) = sieve_samples.as_mut() { output.flush()?; }
     if let Some(output) = ququart_samples.as_mut() { output.flush()?; }
     if let Some(output) = modular_samples.as_mut() { output.flush()?; }
+    if let Some(output) = factor_samples.as_mut() { output.flush()?; }
     for (name, mut counter) in counters {
         let mut raw = [0u8; 24];
         match counter.read_exact(&mut raw) {
