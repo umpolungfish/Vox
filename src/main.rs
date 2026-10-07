@@ -1177,7 +1177,17 @@ fn main() {
             let (entry, segments) = vox::parse_elf(&raw);
             let image = vox_decode::Image { segments };
             let seeds = vox::elf_function_symbols(&raw);
-            let w = vox_decode::walk(&image, entry, &seeds);
+            let mut w = vox_decode::walk(&image, entry, &seeds);
+            let wiring = args.get(2).map(String::as_str) == Some("--wiring");
+            if wiring {
+                let loaded = loader::load(&raw);
+                vox_decode::mark_noreturn(&mut w.functions, &loaded.symbols);
+                println!("# vox-wiring-v1\t{:x}\t{}\t{}", entry, w.claimed_bytes, w.total_bytes);
+                for (name,address) in &loaded.symbols {
+                    println!("# symbol\t{:x}\t{}", address, name.replace(['\t','\n'], " "));
+                }
+                println!("function\taddress\tlength\tglyph\tmnemonic\toperands\ttarget\tfallthrough");
+            }
             for (start, f) in &w.functions {
                 if args.len() > 2 { /* filter by address later */ }
                 let _ = start;
@@ -1185,9 +1195,18 @@ fn main() {
                     if let Some(bytes) = image.bytes_at(ins.address) {
                         if let Some(d) = x86::decode(bytes, ins.address) {
                             let ops: Vec<String> = d.ops.iter().map(|o| o.field()).collect();
+                            if wiring {
+                                let target = d.target.map(|v| format!("{:x}",v)).unwrap_or_default();
+                                let next = ins.fallthrough.map(|v| format!("{:x}",v)).unwrap_or_default();
+                                println!("{:x}\t{:x}\t{}\t{}\t{}\t{}\t{}\t{}", start,
+                                    d.addr,d.len,imasm_module::classify(&d),d.mnemonic,ops.join(" "),target,next);
+                                continue;
+                            }
                             println!("{:x}	{}	{}", d.addr, d.mnemonic, ops.join(" "));
                         } else {
-                            println!("{:x}	??? (undecoded)", ins.address);
+                            if wiring {
+                                println!("{:x}\t{:x}\t0\t?\tundecoded\t\t\t",start,ins.address);
+                            } else { println!("{:x}\t??? (undecoded)", ins.address); }
                         }
                     }
                 }

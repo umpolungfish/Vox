@@ -1,4 +1,4 @@
-I retain the verified 26-second 208-bit membrane
+I export exact membrane wiring for the circuit atlas
 
-I verify both primes and the exact source product before replacing the saved binary.
-I measure the next larger source and preserve its bounded execution record.
+I expose decoded instruction widths, targets, continuations and coverage through Vox.
+I preserve the existing disassembly output and mark unresolved decoder details explicitly.
