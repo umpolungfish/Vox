@@ -1,4 +1,4 @@
-I sample source-bound ququart and modular-stage counters
+I remove the remaining mandatory carrier interface rule
 
-I read exported counters while the native target is stopped.
-I retain bounded traces without changing the target's terminal readout.
+I accept independently source-bound operation fragments and retained terminal output.
+I preserve executable motif checks and verify full, partial-interface and nested carriers.

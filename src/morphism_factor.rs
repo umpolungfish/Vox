@@ -1360,9 +1360,6 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
         return Ok(tower);
     }
     let c: Vec<char> = operator_word.chars().collect();
-    if c.first() != Some(&VINIT) || c.last() != Some(&TANCH) {
-        return Err("operator word needs VINIT ⊢ and TANCH ⊣ interfaces".into());
-    }
     if operator_word == "⊢⊙∈≻⊤≺⊥∋⊞⋈⊡⊣" {
         return Ok(vec![EML_EXP_MINUS_LOG]);
     }
@@ -1372,7 +1369,11 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     if operator_word == "⊢∈≻⊤≺⊥∋⊞⋈⊙⊡⊣" {
         return Ok(vec![EML_REVERSE_NEGATIVE]);
     }
-    let body = &c[1..c.len() - 1];
+    // The source is independently bound by the caller. Optional boundary
+    // glyphs do not determine whether the interior has executable morphisms.
+    let start = usize::from(c.first() == Some(&VINIT));
+    let end = c.len() - usize::from(c.last() == Some(&TANCH));
+    let body = &c[start..end.max(start)];
     // Longest interior first so complete phase motifs win over BRANCH, and the
     // two FIX spellings win over a lone IMSCRIB carry.
     let motifs: [(&[char], &[char]); 24] = [
@@ -1404,6 +1405,10 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let mut tower: Vec<&'static [char]> = Vec::new();
     let mut i = 0;
     'scan: while i < body.len() {
+        if body[i] == TANCH && body[i+1..].iter().all(|&glyph| glyph == IMSCRIB) {
+            i += 1;
+            continue;
+        }
         for (interior, operator) in motifs.iter() {
             if body[i..].starts_with(interior) {
                 tower.push(operator);
@@ -3197,6 +3202,22 @@ mod tests {
             names,
             ["PHASE", "ARITHMETIC", "BRANCH", "SELECT", "CONTINUE", "FIX"]
         );
+    }
+
+    #[test]
+    fn constructor_accepts_source_bound_fragments_and_retained_terminal_output() {
+        let expected = construct_carrier(FULL).unwrap();
+        let glyphs: Vec<char> = FULL.chars().collect();
+        for (start,end) in [(0,glyphs.len()-1),(1,glyphs.len()),(1,glyphs.len()-1)] {
+            let fragment: String = glyphs[start..end].iter().collect();
+            assert_eq!(construct_carrier(&fragment).unwrap(),expected);
+        }
+        assert_eq!(construct_carrier(&format!("{FULL}⊙")).unwrap(),expected);
+        assert!(construct_carrier("").unwrap().is_empty());
+        assert!(construct_carrier("⊢").unwrap().is_empty());
+        assert!(construct_carrier("⊣").unwrap().is_empty());
+        let error = construct_carrier("⊢≻⊙∈⊤⋈⊥⊙≻⋈⊤⊥⊞≻⋈⊤≺⊞⊙⊤⊥⊞⊙⊤≻⋈⊥≺⊞≻⋈≺⊙≺⋈∋⊞⊡≺⋈⊣⊙").unwrap_err();
+        assert!(error.contains("begins no factoring morphism"),"{error}");
     }
 
     #[test]
