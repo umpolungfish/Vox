@@ -1,13 +1,12 @@
 //! Register-bound descent ∈⊤⊥⊞∋ over native numeral tapes.
 //!
-//! A recurrence image collision retains both predecessors. Their squares have
-//! the same residue because f(x)=x²+c. The GCD stage reads the hidden factor
-//! collision; no unknown prime is supplied to the cyclic stage.
+//! Two quadratic orbit channels detect a strict hidden-factor collision by
+//! GCD. The square stage lifts that observed divisor into a verified congruence.
+//! No unknown prime or external factor producer is supplied to the search.
 
 use crate::godel_calculus::{check, encode_cell_binary, Nat, Operator};
 use crate::godel_product::normalize_support_product;
 use crate::morphism_factor as arithmetic;
-use alloc::collections::BTreeMap;
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -175,27 +174,74 @@ fn event(
     });
 }
 
-/// Produce preimages of the first repeated recurrence value. The computational
-/// channel advances modulo N; the collision channel retains its other preimage.
-/// A same-preimage collision and a global sign collision are retained as failed
-/// attempts. Only the later GCD stage selects a nontrivial factor.
+fn difference(x: &[char], y: &[char]) -> Tape {
+    if arithmetic::cmp(x, y) == Less {
+        arithmetic::sub(y, x)
+    } else {
+        arithmetic::sub(x, y)
+    }
+}
+
+/// Detect a modulo-factor collision between slow and fast orbit channels.
+/// Repeated-image predecessors are retained as a complete traversal safeguard.
+/// Detection computes a GCD witness; final severing and release remain later.
 fn cyclic_split(
     n: &[char],
     seed: &[char],
     c: &[char],
     budget: usize,
 ) -> (Option<(Tape, Tape)>, usize) {
-    let mut predecessors = BTreeMap::<Tape, Tape>::new();
+    let mut previous_image: Option<(Tape, Tape)> = None;
     let mut x = seed.to_vec();
+    let mut fast = seed.to_vec();
     for step in 1..=budget {
         let next = arithmetic::mul_mod_add(&x, &x, c, n);
-        if let Some(y) = predecessors.get(&next) {
-            return (Some((x, y.clone())), step);
+        if let Some((image, predecessor)) = &previous_image {
+            if image == &next {
+                return (Some((x, predecessor.clone())), step);
+            }
         }
-        predecessors.insert(next.clone(), x);
+        previous_image = Some((next.clone(), x));
         x = next;
+        fast = arithmetic::mul_mod_add(&fast, &fast, c, n);
+        fast = arithmetic::mul_mod_add(&fast, &fast, c, n);
+        let probe = arithmetic::gcd(difference(&x, &fast), n.to_vec());
+        if arithmetic::cmp(&probe, &arithmetic::one()) == Greater
+            && arithmetic::cmp(&probe, n) == Less
+        {
+            return (Some((x, fast)), step);
+        }
+        if x == fast && step >= 2 {
+            return (Some((x, fast)), step);
+        }
     }
     (None, budget)
+}
+
+/// Lift a strict collision divisor into a full-source square congruence.
+/// Odd N: X=(g+N/g)/2, Y=|g-N/g|/2, so X²-Y²=N.
+/// Even N: X=N/2+1, Y=N/2-1, so X²-Y²=2N and gcd(X-Y,N)=2.
+fn square_lift(n: &[char], g: &[char]) -> Result<(Tape, Tape), String> {
+    let (q, rem) = arithmetic::divmod(n, g);
+    if !arithmetic::zero(&rem)
+        || arithmetic::cmp(g, &arithmetic::one()) != Greater
+        || arithmetic::cmp(g, n) != Less
+    {
+        return Err("square lift requires a strict measured divisor".to_string());
+    }
+    let (half, parity) = arithmetic::divmod(n, &arithmetic::two());
+    if arithmetic::zero(&parity) {
+        return Ok((
+            arithmetic::add(&half, &arithmetic::one()),
+            arithmetic::sub(&half, &arithmetic::one()),
+        ));
+    }
+    let (x, rx) = arithmetic::divmod(&arithmetic::add(g, &q), &arithmetic::two());
+    let (y, ry) = arithmetic::divmod(&difference(g, &q), &arithmetic::two());
+    if !arithmetic::zero(&rx) || !arithmetic::zero(&ry) {
+        return Err("odd-source square lift parity failed".to_string());
+    }
+    Ok((x, y))
 }
 
 pub fn run(
@@ -258,10 +304,16 @@ fn run_with_evidence(
             .min(limits.total_steps - report.steps);
         let (collision, steps) = cyclic_split(&source, &seed, &constant, budget);
         report.steps += steps;
+        let probe = collision
+            .as_ref()
+            .map(|(x, y)| arithmetic::gcd(difference(x, y), source.clone()));
+        let strict_probe = probe.as_ref().is_some_and(|g| {
+            arithmetic::cmp(g, &arithmetic::one()) == Greater && arithmetic::cmp(g, &source) == Less
+        });
         let observations = match &collision {
-            Some((x, y)) => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"computational_channel\":\"{}\",\"leakage_channel\":\"{}\",\"collision\":\"recurrence_image\"",
+            Some((x, y)) => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"computational_channel\":\"{}\",\"leakage_channel\":\"{}\",\"collision\":\"{}\",\"collision_gcd\":\"{}\",\"distinct_mod_source\":{}",
                 arithmetic::dec_of(&seed), arithmetic::dec_of(&constant), steps,
-                arithmetic::dec_of(x), arithmetic::dec_of(y)),
+                arithmetic::dec_of(x), arithmetic::dec_of(y), if strict_probe { "hidden_factor" } else { "recurrence_image" }, arithmetic::dec_of(probe.as_ref().unwrap()), x != y),
             None => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"collision\":null",
                 arithmetic::dec_of(&seed), arithmetic::dec_of(&constant), steps),
         };
@@ -269,7 +321,12 @@ fn run_with_evidence(
         if collision.is_none() {
             report.events.last_mut().unwrap().status = "unclosed";
         }
-        let squares = collision.as_ref().map(|(x, y)| {
+        let lifted = if strict_probe {
+            Some(square_lift(&source, probe.as_ref().unwrap())?)
+        } else {
+            collision.clone()
+        };
+        let squares = lifted.as_ref().map(|(x, y)| {
             (
                 arithmetic::mul_mod(x, x, &source),
                 arithmetic::mul_mod(y, y, &source),
@@ -282,7 +339,10 @@ fn run_with_evidence(
             '⊤',
             "square_congruence",
             format!(
-                "\"square_congruence\":{},\"x_squared_mod_n\":{},\"y_squared_mod_n\":{}",
+                "\"lifted_from_collision\":{},\"X\":{},\"Y\":{},\"square_congruence\":{},\"x_squared_mod_n\":{},\"y_squared_mod_n\":{}",
+                strict_probe,
+                lifted.as_ref().map(|(x,_)| format!("\"{}\"", arithmetic::dec_of(x))).unwrap_or("null".to_string()),
+                lifted.as_ref().map(|(_,y)| format!("\"{}\"", arithmetic::dec_of(y))).unwrap_or("null".to_string()),
                 congruent
                     .map(|v| if v { "true" } else { "false" })
                     .unwrap_or("null"),
@@ -299,14 +359,9 @@ fn run_with_evidence(
         if squares.is_none() {
             report.events.last_mut().unwrap().status = "not_run";
         }
-        let g = collision.as_ref().map(|(x, y)| {
-            let diff = if arithmetic::cmp(x, y) == Less {
-                arithmetic::sub(y, x)
-            } else {
-                arithmetic::sub(x, y)
-            };
-            arithmetic::gcd(diff, source.clone())
-        });
+        let g = lifted
+            .as_ref()
+            .map(|(x, y)| arithmetic::gcd(difference(x, y), source.clone()));
         let deposit = match &g {
             Some(g)
                 if congruent == Some(true)
@@ -414,7 +469,7 @@ fn run_with_evidence(
 }
 
 /// Traverse every (seed, constant) residue pair without a fixed attempt limit.
-/// Each finite attempt retains at most `steps_per_attempt` recurrence entries;
+/// Each finite attempt retains only a fixed number of recurrence tapes;
 /// the observer receives its trace before it is dropped. Counters use tapes.
 ///
 /// Completeness for semiprimes: for N=pq != 4 choose an odd cofactor q and
@@ -684,9 +739,13 @@ mod tests {
         let source = tape(8051);
         let (pair, _) = cyclic_split(&source, &tape(2), &tape(1), 10_000);
         let (x, y) = pair.unwrap();
+        let observed = arithmetic::gcd(difference(&x, &y), source.clone());
+        assert!(arithmetic::cmp(&observed, &tape(1)) == Greater);
+        assert!(arithmetic::cmp(&observed, &source) == Less);
+        let (x, y) = square_lift(&source, &observed).unwrap();
         assert_eq!(
-            arithmetic::mul_mod_add(&x, &x, &tape(1), &source),
-            arithmetic::mul_mod_add(&y, &y, &tape(1), &source)
+            arithmetic::mul_mod(&x, &x, &source),
+            arithmetic::mul_mod(&y, &y, &source)
         );
         // A modulo-p collision alone cannot supply the square relation:
         // 1 and 7 coincide modulo 3, but their squares differ modulo 15.
@@ -694,5 +753,80 @@ mod tests {
             arithmetic::mul_mod(&tape(1), &tape(1), &tape(15)),
             arithmetic::mul_mod(&tape(7), &tape(7), &tape(15))
         );
+    }
+
+    #[test]
+    fn early_factor_collision_lifts_the_original_counterexample() {
+        let report = run(
+            tape(15),
+            tape(1),
+            tape(6),
+            DESCENT,
+            Limits {
+                attempts: 1,
+                steps_per_attempt: 1,
+                total_steps: 1,
+            },
+        )
+        .unwrap();
+        assert!(report.pair.is_some());
+        assert_eq!(report.steps, 1);
+        let split = report.events.iter().find(|e| e.symbol == '∈').unwrap();
+        assert!(split.observations.contains("\"collision_gcd\":\"3\""));
+        assert!(split.observations.contains("\"distinct_mod_source\":true"));
+        let square = report.events.iter().find(|e| e.symbol == '⊤').unwrap();
+        assert!(square
+            .observations
+            .contains("\"lifted_from_collision\":true"));
+        assert!(square.observations.contains("\"X\":\"4\",\"Y\":\"1\""));
+        assert!(square.observations.contains("\"square_congruence\":true"));
+    }
+
+    #[test]
+    fn square_lift_covers_even_odd_and_prime_square_sources() {
+        for (n, g) in [(4, 2), (6, 3), (15, 3), (49, 7), (77, 11), (143, 13)] {
+            let (x, y) = square_lift(&tape(n), &tape(g)).unwrap();
+            assert_eq!(
+                arithmetic::mul_mod(&x, &x, &tape(n)),
+                arithmetic::mul_mod(&y, &y, &tape(n))
+            );
+            let severed = arithmetic::gcd(difference(&x, &y), tape(n));
+            assert!(verify_pair(
+                &tape(n),
+                &severed,
+                &arithmetic::divmod(&tape(n), &severed).0
+            )
+            .is_ok());
+        }
+        for g in [1, 4, 15] {
+            assert!(square_lift(&tape(15), &tape(g)).is_err());
+        }
+    }
+
+    #[test]
+    fn lifted_descent_has_no_fixed_source_bit_width() {
+        for bits in [128, 522, 4096] {
+            // 2*(2^(bits-1)-1). Only source and source-derived cycle parameters
+            // enter execution. This control checks width, not primality proof.
+            let mut source = alloc::vec!['⊥'; bits];
+            source[0] = '⊤';
+            let c = arithmetic::sub(&source, &tape(6));
+            let report = run(
+                source.clone(),
+                tape(2),
+                c,
+                DESCENT,
+                Limits {
+                    attempts: 1,
+                    steps_per_attempt: 2,
+                    total_steps: 2,
+                },
+            )
+            .unwrap();
+            let pair = report.pair.unwrap();
+            assert_eq!(pair.p, tape(2));
+            assert_eq!(pair.product, source);
+            assert_eq!(pair.q.len(), bits - 1);
+        }
     }
 }
