@@ -1,5 +1,5 @@
-I retain the fastest membrane and test larger source-bound semiprimes
+I preserve the full polynomial score scale beyond machine width
 
-I preserve the measured 208-bit membrane with its source and checksum.
-I clean superseded executables and test independent 216-bit and 224-bit sources.
-I retain their bounded execution records and remove the temporary candidate binary.
+I check the narrow product and fall back to folded tape multiplication on overflow.
+I verify fourteen sieve controls and trace the larger source's relation collection.
+I flush bounded sieve traces while preserving the retained fastest membrane.

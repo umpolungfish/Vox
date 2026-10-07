@@ -147,6 +147,7 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
                 write!(output, "\t{}", value as u64)?;
             }
             writeln!(output)?;
+            if total % 64 == 0 { output.flush()?; }
         }
         if let (Some(address), Some(output)) = (ququart_address, ququart_samples.as_mut()) {
             write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
