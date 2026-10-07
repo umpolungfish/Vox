@@ -1,0 +1,112 @@
+◇ CIRCUIT  rsa270_nested   49 nodes, 56 wires   open forks 0
+  weight = Belnap register delta: ↑ true  ↓ false  ↑↓ both  · none   «B» paradox held   ⚡ truth flip   ═▶ cross-branch
+
+  0 ⊢ VINIT    ·   
+     └─▶  1 ∈   [o→i]  ·
+  1 ∈ FSPLIT   ·     ┐ fork
+     ├─▶  2 ⊤   [T→i]  ↑
+     └─▶  4 ⊥   [F→i]  ↑↓ «B»
+  2 ⊤ EVALT    ↑   
+     └─▶  3 ≺   [o→i]  ↑→↑↓ «B»
+  3 ≺ AREV     ↑↓  
+     └─▶ 45 ∋   [o→T]  ↑↓→↑ «B»
+  4 ⊥ EVALF    ↑↓  
+     └─▶ 45 ∋   [o→F]  ↑↓→↑ «B»
+  5 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶  6 ⊤   [T→i]  ↑↓→↑↓ «B»
+     └─▶  8 ⊥   [F→i]  ↑↓→↑↓ «B»
+  6 ⊤ EVALT    ↑↓  
+     └─▶  7 ⊞   [o→i]  ↑↓→↑↓ «B»
+  7 ⊞ ENGAGR   ↑↓  
+     └─▶ 44 ∋   [o→T]  ↑↓→↑ «B»
+  8 ⊥ EVALF    ↑↓  
+     └─▶ 44 ∋   [o→F]  ↑↓→↑ «B»
+  9 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶ 10 ≻   [T→i]  ↑↓→↑↓ «B»
+     └─▶ 13 ⊥   [F→i]  ↑↓→↑↓ «B»
+ 10 ≻ AFWD     ↑↓  
+     └─▶ 11 ⊤   [o→i]  ↑↓→↑↓ «B»
+ 11 ⊤ EVALT    ↑↓  
+     └─▶ 12 ≺   [o→i]  ↑↓→↑↓ «B»
+ 12 ≺ AREV     ↑↓  
+     └─▶ 43 ∋   [o→T]  ↑↓→↑ «B»
+ 13 ⊥ EVALF    ↑↓  
+     └─▶ 14 ⊞   [o→i]  ↑↓→↑↓ «B»
+ 14 ⊞ ENGAGR   ↑↓  
+     └─▶ 15 ⋈   [o→i]  ↑↓→↑↓ «B»
+ 15 ⋈ CLINK    ↑↓  
+     └─▶ 43 ∋   [o→F]  ↑↓→↑ «B»
+ 16 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶ 17 ⊤   [T→i]  ↑↓→↑↓ «B»
+     └─▶ 20 ⊥   [F→i]  ↑↓→↑↓ «B»
+ 17 ⊤ EVALT    ↑↓  
+     └─▶ 18 ≺   [o→i]  ↑↓→↑↓ «B»
+ 18 ≺ AREV     ↑↓  
+     └─▶ 19 ⊞   [o→i]  ↑↓→↑↓ «B»
+ 19 ⊞ ENGAGR   ↑↓  
+     └─▶ 42 ∋   [o→T]  ↑↓→↑ «B»
+ 20 ⊥ EVALF    ↑↓  
+     └─▶ 42 ∋   [o→F]  ↑↓→↑ «B»
+ 21 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶ 22 ⊙   [T→i]  ↑↓→↑↓ «B»
+     └─▶ 41 ∋   [F→F]  ↑↓→↑ «B»
+ 22 ⊙ IMSCRIB  ↑↓  
+     └─▶ 23 ⊞   [o→i]  ↑↓→↑↓ «B»
+ 23 ⊞ ENGAGR   ↑↓  
+     └─▶ 24 ⋈   [o→i]  ↑↓→↑↓ «B»
+ 24 ⋈ CLINK    ↑↓  
+     └─▶ 41 ∋   [o→T]  ↑↓→↑ «B»
+ 25 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶ 29 ∈   [T→i]  ↑↓→↑↓ «B»
+     └─▶ 26 ⊙   [F→i]  ↑↓→↑↓ «B»
+ 26 ⊙ IMSCRIB  ↑↓  
+     └─▶ 27 ≺   [o→i]  ↑↓→↑↓ «B»
+ 27 ≺ AREV     ↑↓  
+     └─▶ 28 ⋈   [o→i]  ↑↓→↑↓ «B»
+ 28 ⋈ CLINK    ↑↓  
+     └─▶ 40 ∋   [o→F]  ↑↓→↑ «B»
+ 29 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶ 30 ≻   [T→i]  ↑↓→↑↓ «B»
+     └─▶ 33 ⊥   [F→i]  ↑↓→↑↓ «B»
+ 30 ≻ AFWD     ↑↓  
+     └─▶ 31 ⋈   [o→i]  ↑↓→↑↓ «B»
+ 31 ⋈ CLINK    ↑↓  
+     └─▶ 32 ⊤   [o→i]  ↑↓→↑↓ «B»
+ 32 ⊤ EVALT    ↑↓  
+     └─▶ 39 ∋   [o→T]  ↑↓→↑ «B»
+ 33 ⊥ EVALF    ↑↓  
+     └─▶ 39 ∋   [o→F]  ↑↓→↑ «B»
+ 34 ∈ FSPLIT   ↑↓    ┐ fork
+     ├─▶ 35 ⊙   [T→i]  ↑↓→↑↓ «B»
+     └─▶ 38 ∋   [F→F]  ↑↓→↑ «B»
+ 35 ⊙ IMSCRIB  ↑↓  
+     └─▶ 36 ≻   [o→i]  ↑↓→↑↓ «B»
+ 36 ≻ AFWD     ↑↓  
+     └─▶ 37 ⋈   [o→i]  ↑↓→↑↓ «B»
+ 37 ⋈ CLINK    ↑↓  
+     └─▶ 38 ∋   [o→T]  ↑↓→↑ «B»
+ 38 ∋ FFUSE    ↑     ┘ join
+     └─▶ 39 ∋   [o→T]  ↑→↑
+ 39 ∋ FFUSE    ↑     ┘ join
+     └─▶ 40 ∋   [o→T]  ↑→↑
+ 40 ∋ FFUSE    ↑     ┘ join
+     └─▶ 41 ∋   [o→T]  ↑→↑
+ 41 ∋ FFUSE    ↑     ┘ join
+     └─▶ 42 ∋   [o→T]  ↑→↑
+ 42 ∋ FFUSE    ↑     ┘ join
+     └─▶ 43 ∋   [o→T]  ↑→↑
+ 43 ∋ FFUSE    ↑     ┘ join
+     └─▶ 44 ∋   [o→T]  ↑→↑
+ 44 ∋ FFUSE    ↑     ┘ join
+     └─▶ 45 ∋   [o→T]  ↑→↑
+ 45 ∋ FFUSE    ↑     ┘ join
+     └─▶ 46 ⊙   [o→i]  ↑→↑
+ 46 ⊙ IMSCRIB  ↑   
+     └─▶ 47 ⊡   [o→i]  ↑→↑
+ 47 ⊡ IFIX     ↑   
+     └─▶ 48 ⊣   [o→i]  ↑→↑
+ 48 ⊣ TANCH    ↑   
+
+  walk: CLOSED   final register ↑
+
+wrote measurements/rsa270_corrected/carrier.svg

@@ -1,0 +1,18 @@
+prefix_enter depth=1 last=WITNESS
+prefix_return depth=1 last=WITNESS elapsed_ms=4 selected=false
+prefix_enter depth=2 last=POWER
+prefix_return depth=2 last=POWER elapsed_ms=1454 selected=false
+prefix_enter depth=3 last=EXTRACT
+prefix_return depth=3 last=EXTRACT elapsed_ms=1482 selected=false
+prefix_enter depth=4 last=SQUFOF
+prefix_return depth=4 last=SQUFOF elapsed_ms=1523 selected=false
+prefix_enter depth=5 last=P_MINUS
+prefix_return depth=5 last=P_MINUS elapsed_ms=1471 selected=false
+prefix_enter depth=6 last=P_PLUS
+prefix_return depth=6 last=P_PLUS elapsed_ms=1514 selected=false
+prefix_enter depth=7 last=LEHMAN
+prefix_return depth=7 last=LEHMAN elapsed_ms=2115 selected=false
+prefix_enter depth=8 last=ECM
+prefix_return depth=8 last=ECM elapsed_ms=2372 selected=false
+prefix_enter depth=9 last=FIX
+prefix_return depth=9 last=FIX elapsed_ms=2269 selected=false

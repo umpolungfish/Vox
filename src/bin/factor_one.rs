@@ -15,7 +15,48 @@ fn main() {
     // for 0 so the crate still builds normally when unset; the wrapper sets it.
     let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");
     match ::vox::morphism_factor::parse_numeral(word) {
-        Ok(n) => println!("{}", ::vox::morphism_factor::repl_smart_factor(&n)),
+        Ok(n) => {
+            if let Some(carrier) = option_env!("FACTOR_CARRIER_WORD").filter(|word| !word.is_empty()) {
+                use vox::morphism_factor::{dec_of, divmod, emit_numeral, factor_with, parse_numeral, zero};
+                if option_env!("FACTOR_DIAG_STAGES") == Some("1") {
+                    let tower = vox::morphism_factor::construct_carrier(carrier)
+                        .expect("baked carrier must construct");
+                    let rounds = option_env!("FACTOR_DIAG_ROUNDS")
+                        .unwrap_or("1").parse::<u64>().expect("baked diagnostic rounds");
+                    for depth in 1..=tower.len() {
+                        let name = vox::morphism_factor::morphism_name(tower[depth - 1]);
+                        eprintln!("prefix_enter depth={depth} last={name}");
+                        let start = std::time::Instant::now();
+                        let selected = vox::morphism_factor::run_carrier_rounds(&tower[..depth], &n, rounds);
+                        eprintln!("prefix_return depth={depth} last={name} elapsed_ms={} selected={}",
+                            start.elapsed().as_millis(), selected.is_some());
+                    }
+                    return;
+                }
+                let pair = (|| {
+                    let p = parse_numeral(&factor_with(carrier, word)?)?;
+                    let (q, remainder) = divmod(&n, &p);
+                    if !zero(&remainder) {
+                        return Err("carrier factor leaves a source remainder".to_string());
+                    }
+                    vox::semiprime_descent::verify_pair(&n, &p, &q)?;
+                    Ok::<_, String>((p, q))
+                })();
+                match pair {
+                    Ok((p, q)) => {
+                        println!("{} = {} x {}", dec_of(&n), dec_of(&p), dec_of(&q));
+                        println!("factor_word {}\ncofactor_word {}\nproduct_verified true",
+                            emit_numeral(&p), emit_numeral(&q));
+                    }
+                    Err(error) => {
+                        eprintln!("{error}");
+                        std::process::exit(2);
+                    }
+                }
+            } else {
+                println!("{}", ::vox::morphism_factor::repl_smart_factor(&n));
+            }
+        }
         Err(e) => {
             eprintln!("FACTOR_N_WORD was not an IMASM numeral: {e}");
             std::process::exit(2);
