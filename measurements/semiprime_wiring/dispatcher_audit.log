@@ -1,0 +1,24 @@
+Vox carrier construction
+tower (1 morphisms): SEMIPRIME_DESCENT
+tower (6 morphisms): SEMIPRIME_DESCENT -> FORWARD_PAIR -> LINK_PRODUCT -> RETURN_SOURCE -> LATCH_PAIR -> RELEASE_PAIR
+tower (2 morphisms): SEMIPRIME_DESCENT -> FIX
+
+Vox saved-module symbol and execution readings
+; sym _ZN3vox15morphism_factor20apply_descent_stages17hc9eefa27e0a5ce94E 0x449ab0
+; sym _ZN3vox15morphism_factor23execute_descent_carrier17h158a928938159831E 0x44fac0
+entry(...) exited(0)   [534053 steps in the twelve]
+..................................
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 299 filtered out; finished in 3.28s
+
+............
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 321 filtered out; finished in 1.10s
+
+
+Vox disassembly calls into the shared stage implementation
+4509ea	call	i:0x449ab0
+451191	call	i:0x449ab0
+
+Native JSON and lifted VM JSON compare byte-identically with cmp.
+Frontend regression: 44 tests passed through vox descent.
+Named 128-bit source: two 512-step attempts exhausted, no factors released.
+Broad library run: untouched midpoint test failed at n=21; interrupted with other long-running tests outstanding.

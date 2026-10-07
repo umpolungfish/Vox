@@ -6,6 +6,7 @@
 use ::vox::vox;
 mod circuit_cli;
 mod native_profile;
+mod descent_cli;
 use ::vox::vox_decode;
 use ::vox::lanes;
 use ::vox::genetic;
@@ -35,6 +36,7 @@ fn usage() {
     eprintln!("  vox coprime <base> <N>   validate that a phase base is a unit modulo N");
     eprintln!("  vox extract-factor <factor-carrier-word>    passive ≡c extraction from an already factor-bearing trace");
     eprintln!("  vox construct-carrier <operator-word>        decompose factoring morphisms and EML frame transport");
+    eprintln!("  vox descent <source> [options]              run ∈⊤⊥⊞∋ through the carrier dispatcher");
     eprintln!("  vox factor-with <operator-word> <n-word>     factor N on a carrier built from the operator word");
     eprintln!("  vox factor-operator resolve|full <N>         the CL9NK moat resolver over folded tapes");
     eprintln!("  vox scout <N>                                read the shape of N and hand the factor");
@@ -1371,6 +1373,13 @@ fn main() {
         Some("factor-operator") => {
             let rest: Vec<&str> = args[1..].iter().map(|x| x.as_str()).collect();
             println!("{}", ::vox::factor_operator::repl_factor_operator(&rest)); 0
+        }
+        Some("descent") => {
+            match descent_cli::execute(&args[1..]) {
+                Ok(true) => 0,
+                Ok(false) => 1,
+                Err(error) => { eprintln!("{error}"); 2 }
+            }
         }
         Some("construct-carrier") => {
             if args.len() != 2 { eprintln!("vox construct-carrier <operator-word>   decompose factoring morphisms and EML frame transport"); 1 }

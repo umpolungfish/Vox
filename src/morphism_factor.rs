@@ -5,8 +5,15 @@
 //! and produces those tapes through the full-adder/full-subtractor tables.
 
 use crate::vox::{AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT};
+use crate::morphism_factor as arithmetic;
+use crate::godel_calculus::encode_cell_binary;
+use crate::semiprime_descent::{
+    cyclic_split, difference, event, natural, square_lift, verify_pair, word_parts, Four, Limits,
+    Pair, Report,
+};
+use core::cmp::Ordering::{Greater, Less};
 use alloc::format;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -1108,6 +1115,8 @@ fn ecm_curve(n: &[char], seed: u64, k: &[char]) -> Option<Tape> {
     }
 }
 
+pub const SEMIPRIME_DESCENT: &[char] = &[FSPLIT, EVALT, EVALF, '⊞', FFUSE];
+
 struct State {
     n: Tape,
     phase_base: Tape,
@@ -1121,6 +1130,9 @@ struct State {
     // Negative support is banked at frame apertures instead of being reduced
     // to the old phase-done boolean. Each entry is (phase index, residue).
     negative_support: Vec<(Tape, Tape)>,
+    descent_evidence: Four,
+    descent_request: Option<(Tape, Tape, String, Limits, Four)>,
+    descent_report: Option<Result<Report, String>>,
     divisor: Tape,
     a: Tape,
     pm_a: Tape,
@@ -1263,7 +1275,19 @@ const UNBRAID_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, F
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
-    if operator == PHASE {
+    if operator == SEMIPRIME_DESCENT {
+        "SEMIPRIME_DESCENT"
+    } else if operator == &[AFWD] {
+        "FORWARD_PAIR"
+    } else if operator == &[CLINK] {
+        "LINK_PRODUCT"
+    } else if operator == &[AREV] {
+        "RETURN_SOURCE"
+    } else if operator == &[IFIX] {
+        "LATCH_PAIR"
+    } else if operator == &[TANCH] {
+        "RELEASE_PAIR"
+    } else if operator == PHASE {
         "PHASE"
     } else if operator == ARITHMETIC {
         "ARITHMETIC"
@@ -1319,6 +1343,22 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
 /// without emitting an operator. An interior mark that begins no motif and is
 /// not a carry mark is refused, naming the position.
 pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, String> {
+    // This register carries its own five-stage frame. External interfaces are
+    // optional, and sealing marks carry verified output without extracting it.
+    if let Ok((glyphs, start)) = word_parts(operator_word) {
+        let mut tower = vec![SEMIPRIME_DESCENT];
+        for glyph in &glyphs[start + SEMIPRIME_DESCENT.len()..] {
+            tower.push(match *glyph {
+                AFWD => &[AFWD],
+                CLINK => &[CLINK],
+                AREV => &[AREV],
+                IFIX => &[IFIX],
+                TANCH => &[TANCH],
+                _ => unreachable!(),
+            });
+        }
+        return Ok(tower);
+    }
     let c: Vec<char> = operator_word.chars().collect();
     if c.first() != Some(&VINIT) || c.last() != Some(&TANCH) {
         return Err("operator word needs VINIT ⊢ and TANCH ⊣ interfaces".into());
@@ -1335,7 +1375,7 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
     let body = &c[1..c.len() - 1];
     // Longest interior first so complete phase motifs win over BRANCH, and the
     // two FIX spellings win over a lone IMSCRIB carry.
-    let motifs: [(&[char], &[char]); 23] = [
+    let motifs: [(&[char], &[char]); 24] = [
         (UNBRAID_I, UNBRAID),
         (PHASE_EML_I, PHASE_EML),
         (STRUCTURAL_BRIDGE_I, STRUCTURAL_BRIDGE),
@@ -1345,6 +1385,7 @@ pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, St
         (EML_FRAME_I, EML_FRAME),
         (EXTRACT_BANKED_I, EXTRACT_BANKED),
         (EXTRACT_I, EXTRACT),
+        (SEMIPRIME_DESCENT, SEMIPRIME_DESCENT),
         (P_MINUS_I, P_MINUS),
         (ECM_I, ECM),
         (P_PLUS_I, P_PLUS),
@@ -1513,6 +1554,11 @@ pub fn audit_reconciliation(object: &FactorObject<'_>) -> Result<(), String> {
 /// between a genuine PHASE carrier and a carrier that can actually factor.
 fn require_factoring_complete(tower: &[&[char]]) -> Result<(), String> {
     let has = |op: &[char]| tower.iter().any(|t| *t == op);
+    // Fusion verifies and returns the pair inside this descent. A separate
+    // latch is an optional output boundary, not an extraction prerequisite.
+    if has(SEMIPRIME_DESCENT) {
+        return Ok(());
+    }
     let mut missing = Vec::new();
     // EXTRACT, ECM and UNBRAID each fold advance, decide and continue into one boundary.
     if !has(EXTRACT) && !has(EXTRACT_BANKED) && !has(ECM) && !has(UNBRAID) {
@@ -1655,6 +1701,17 @@ pub fn factor_object_with_phase_base(
     if cmp(&n, &two()) == core::cmp::Ordering::Less {
         return Err("numeral has no non-trivial factor".into());
     }
+    if tower.iter().any(|op| *op == SEMIPRIME_DESCENT) {
+        if word_parts(object.walk).is_err() {
+            return run_carrier_rounds(&tower, &n, u64::MAX)
+                .map(|factor| emit_numeral(&factor))
+                .ok_or_else(|| "carrier exhausted its round budget without latching".into());
+        }
+        let report = crate::semiprime_descent::until_closed(
+            n, two(), one(), object.walk, 100_000, |_, _, _| Ok(()),
+        )?;
+        return Ok(emit_numeral(&report.pair.unwrap().p));
+    }
     let (_, even) = divmod(&n, &two());
     if zero(&even) {
         return Ok(emit_numeral(&two()));
@@ -1719,14 +1776,33 @@ pub fn run_carrier_rounds_with_phase_base(
         return None;
     }
     let (_, even) = divmod(&n, &two());
-    if zero(&even) {
+    if zero(&even) && !tower.iter().any(|op| *op == SEMIPRIME_DESCENT) {
         return Some(two());
     }
     let mut a_seed = isqrt(&n);
     if cmp(&mul(&a_seed, &a_seed), &n) == core::cmp::Ordering::Less {
         a_seed = add(&a_seed, &one());
     }
-    let mut state = State {
+    let mut state = initial_carrier_state(n, phase_base, a_seed);
+    let mut r = 0u64;
+    loop {
+        state.round = add(&state.round, &one());
+        execute_nested(tower, &mut state);
+        if let Some(ref selected) = state.selected {
+            return Some(selected.clone());
+        }
+        if state.carrier_closed {
+            return None;
+        }
+        r += 1;
+        if r >= max_rounds {
+            return None;
+        }
+    }
+}
+
+fn initial_carrier_state(n: Tape, phase_base: &[char], a_seed: Tape) -> State {
+    State {
         n,
         phase_base: trim(phase_base.to_vec()),
         candidate: add(&two(), &one()),
@@ -1737,6 +1813,9 @@ pub fn run_carrier_rounds_with_phase_base(
         eml_partners: None,
         eml_phase_done: false,
         negative_support: Vec::new(),
+        descent_evidence: Four::N,
+        descent_request: None,
+        descent_report: None,
         divisor: one(),
         a: a_seed,
         pm_a: two(),
@@ -1762,28 +1841,279 @@ pub fn run_carrier_rounds_with_phase_base(
         unbraid_done: false,
         carrier_closed: false,
         bridge_count: 0,
+    }
+}
+
+pub(crate) fn execute_descent_carrier(
+    source: Tape,
+    seed: Tape,
+    constant: Tape,
+    word: &str,
+    limits: Limits,
+    evidence: Four,
+) -> Result<Report, String> {
+    let canonical: String = word_parts(word)?.0.iter().collect();
+    let tower = audit_factor_object(&FactorObject::identity(&canonical))?;
+    if !tower.iter().any(|op| *op == SEMIPRIME_DESCENT) {
+        return Err("carrier does not dispatch the five-stage descent".into());
+    }
+    // No pre-frame parity, phase-base GCD, or other factor-producing arm.
+    let mut state = initial_carrier_state(source, &two(), one());
+    state.descent_request = Some((seed, constant, canonical, limits, evidence));
+    apply_morphism(SEMIPRIME_DESCENT, &mut state);
+    state.descent_report.ok_or("descent dispatcher omitted its readout")?
+}
+
+fn apply_descent_stages(
+    source: Tape,
+    seed: Tape,
+    constant: Tape,
+    word: &str,
+    limits: Limits,
+    evidence: Four,
+) -> Result<Report, String> {
+    // The same registered carrier is audited for CLI and nested execution.
+    let tower = audit_factor_object(&FactorObject::identity(word))?;
+    if !tower.iter().any(|op| *op == SEMIPRIME_DESCENT) {
+        return Err("carrier does not dispatch the five-stage descent".into());
+    }
+    if arithmetic::cmp(&source, &arithmetic::two()) == Less {
+        return Err("source must be an integer at least two".to_string());
+    }
+    if limits.attempts == 0 || limits.steps_per_attempt == 0 || limits.total_steps == 0 {
+        return Err("descent budgets must be positive".to_string());
+    }
+    let (glyphs, start) = word_parts(word)?;
+    let mut report = Report {
+        source: source.clone(),
+        word: glyphs.iter().collect(),
+        events: Vec::new(),
+        evidence,
+        attempts: 0,
+        steps: 0,
+        pair: None,
+        reason: "budget_exhausted",
     };
-    let mut r = 0u64;
-    loop {
-        state.round = add(&state.round, &one());
-        execute_nested(tower, &mut state);
-        if let Some(ref selected) = state.selected {
-            return Some(selected.clone());
+    for (i, g) in glyphs[..start].iter().copied().enumerate() {
+        event(
+            &mut report,
+            i,
+            g,
+            if g == '⊢' {
+                "bind_source"
+            } else {
+                "retain_source"
+            },
+            "\"factor_extraction\":false".to_string(),
+        );
+    }
+    let mut seed = arithmetic::modulo(&seed, &source);
+    let mut constant = arithmetic::modulo(&constant, &source);
+    for attempt in 1..=limits.attempts {
+        if report.steps == limits.total_steps {
+            break;
         }
-        if state.carrier_closed {
-            return None;
+        report.attempts = attempt;
+        let budget = limits
+            .steps_per_attempt
+            .min(limits.total_steps - report.steps);
+        let (collision, steps) = cyclic_split(&source, &seed, &constant, budget);
+        report.steps += steps;
+        let probe = collision
+            .as_ref()
+            .map(|(x, y)| arithmetic::gcd(difference(x, y), source.clone()));
+        let strict_probe = probe.as_ref().is_some_and(|g| {
+            arithmetic::cmp(g, &arithmetic::one()) == Greater && arithmetic::cmp(g, &source) == Less
+        });
+        let observations = match &collision {
+            Some((x, y)) => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"computational_channel\":\"{}\",\"leakage_channel\":\"{}\",\"collision\":\"{}\",\"collision_gcd\":\"{}\",\"distinct_mod_source\":{}",
+                arithmetic::dec_of(&seed), arithmetic::dec_of(&constant), steps,
+                arithmetic::dec_of(x), arithmetic::dec_of(y), if strict_probe { "hidden_factor" } else { "recurrence_image" }, arithmetic::dec_of(probe.as_ref().unwrap()), x != y),
+            None => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"collision\":null",
+                arithmetic::dec_of(&seed), arithmetic::dec_of(&constant), steps),
+        };
+        event(&mut report, start, '∈', "cyclic_split", observations);
+        if collision.is_none() {
+            report.events.last_mut().unwrap().status = "unclosed";
         }
-        r += 1;
-        if r >= max_rounds {
-            return None;
+        let lifted = if strict_probe {
+            Some(square_lift(&source, probe.as_ref().unwrap())?)
+        } else {
+            collision.clone()
+        };
+        let squares = lifted.as_ref().map(|(x, y)| {
+            (
+                arithmetic::mul_mod(x, x, &source),
+                arithmetic::mul_mod(y, y, &source),
+            )
+        });
+        let congruent = squares.as_ref().map(|(x2, y2)| x2 == y2);
+        event(
+            &mut report,
+            start + 1,
+            '⊤',
+            "square_congruence",
+            format!(
+                "\"lifted_from_collision\":{},\"X\":{},\"Y\":{},\"square_congruence\":{},\"x_squared_mod_n\":{},\"y_squared_mod_n\":{}",
+                strict_probe,
+                lifted.as_ref().map(|(x,_)| format!("\"{}\"", arithmetic::dec_of(x))).unwrap_or("null".to_string()),
+                lifted.as_ref().map(|(_,y)| format!("\"{}\"", arithmetic::dec_of(y))).unwrap_or("null".to_string()),
+                congruent
+                    .map(|v| if v { "true" } else { "false" })
+                    .unwrap_or("null"),
+                squares
+                    .as_ref()
+                    .map(|(x2, _)| format!("\"{}\"", arithmetic::dec_of(x2)))
+                    .unwrap_or("null".to_string()),
+                squares
+                    .as_ref()
+                    .map(|(_, y2)| format!("\"{}\"", arithmetic::dec_of(y2)))
+                    .unwrap_or("null".to_string())
+            ),
+        );
+        if squares.is_none() {
+            report.events.last_mut().unwrap().status = "not_run";
+        }
+        let g = lifted
+            .as_ref()
+            .map(|(x, y)| arithmetic::gcd(difference(x, y), source.clone()));
+        let deposit = match &g {
+            Some(g)
+                if congruent == Some(true)
+                    && arithmetic::cmp(g, &arithmetic::one()) == Greater
+                    && arithmetic::cmp(g, &source) == Less =>
+            {
+                Four::T
+            }
+            Some(_) => Four::F,
+            None => Four::N,
+        };
+        event(
+            &mut report,
+            start + 2,
+            '⊥',
+            "gcd_severing",
+            format!(
+                "\"gcd\":{},\"deposit\":\"{}\",\"hidden_factor_collision\":{}",
+                g.as_ref()
+                    .map(|g| format!("\"{}\"", arithmetic::dec_of(g)))
+                    .unwrap_or("null".to_string()),
+                deposit.label(),
+                deposit == Four::T
+            ),
+        );
+        if g.is_none() {
+            report.events.last_mut().unwrap().status = "not_run";
+        }
+        let before = report.evidence;
+        report.evidence = report.evidence.join(deposit);
+        let after = report.evidence;
+        event(&mut report, start + 3, '⊞', "knowledge_join",
+            format!("\"proposition\":\"attempt_nontrivial_factor\",\"before\":\"{}\",\"deposit\":\"{}\",\"after\":\"{}\",\"retry\":{}",
+                    before.label(), deposit.label(), after.label(), deposit != Four::T));
+        if deposit == Four::T {
+            let g = g.expect("support requires a measured gcd");
+            let (q, rem) = arithmetic::divmod(&source, &g);
+            if !arithmetic::zero(&rem) {
+                return Err("nonzero cofactor remainder".to_string());
+            }
+            let pair = verify_pair(&source, &g, &q)?;
+            event(&mut report, start + 4, '∋', "verify_and_fuse",
+                format!("\"p\":\"{}\",\"q\":\"{}\",\"product\":\"{}\",\"godel_product_verified\":true,\"support_polynomial_product_verified\":true,\"mu_delta_source_return\":true",
+                    arithmetic::dec_of(&pair.p), arithmetic::dec_of(&pair.q), arithmetic::dec_of(&pair.product)));
+            report.pair = Some(pair);
+            report.reason = "verified";
+            break;
+        }
+        constant = arithmetic::modulo(&arithmetic::add(&constant, &arithmetic::one()), &source);
+        if arithmetic::zero(&constant) {
+            seed = arithmetic::modulo(&arithmetic::add(&seed, &arithmetic::one()), &source);
         }
     }
+    if report.pair.is_some() {
+        let mut forwarded = report.pair.clone();
+        let mut linked = None;
+        let mut latch: Option<(Pair, Four)> = None;
+        for (i, g) in glyphs.iter().copied().enumerate().skip(start + 5) {
+            let operation = match g {
+                '≻' => "advance_verified_pair",
+                '⋈' => "link_product_witness",
+                '≺' => "return_source",
+                '⊡' => "latch_pair",
+                '⊣' => "release_pair",
+                _ => unreachable!(),
+            };
+            match g {
+                '≻' => forwarded = report.pair.clone(),
+                '⋈' => {
+                    let pair = forwarded.as_ref().unwrap();
+                    linked = Some((
+                        encode_cell_binary(&natural(&pair.p)),
+                        encode_cell_binary(&natural(&pair.q)),
+                    ));
+                }
+                '≺' => {
+                    let pair = forwarded.as_ref().unwrap();
+                    verify_pair(&source, &pair.p, &pair.q)?;
+                }
+                '⊡' => latch = Some((forwarded.as_ref().unwrap().clone(), report.evidence)),
+                '⊣' => {
+                    let pair = latch
+                        .as_ref()
+                        .map(|(p, _)| p)
+                        .unwrap_or_else(|| forwarded.as_ref().unwrap());
+                    verify_pair(&source, &pair.p, &pair.q)?;
+                }
+                _ => unreachable!(),
+            }
+            event(
+                &mut report,
+                i,
+                g,
+                operation,
+                format!(
+                    "\"factor_extraction\":false,\"source_return\":{},\"linked\":{},\"latched\":{}",
+                    forwarded.as_ref().unwrap().product == source,
+                    linked.is_some(),
+                    latch.is_some()
+                ),
+            );
+        }
+    }
+    Ok(report)
 }
 
 fn apply_morphism(operator: &[char], state: &mut State) {
     // Dispatch is read from the operator word itself. Each operator therefore
     // remains both the boundary and the action performed at that boundary.
-    if operator == PHASE_EML {
+    if operator == SEMIPRIME_DESCENT {
+        if let Some((seed, constant, word, limits, evidence)) = state.descent_request.take() {
+            state.descent_report = Some(apply_descent_stages(
+                state.n.clone(), seed, constant, &word, limits, evidence,
+            ));
+            return;
+        }
+        match apply_descent_stages(
+            state.n.clone(), state.x.clone(), state.phase.clone(),
+            crate::semiprime_descent::DESCENT,
+            Limits { attempts: 1, steps_per_attempt: 100_000, total_steps: 100_000 },
+            state.descent_evidence,
+        ) {
+            Ok(report) => {
+                state.descent_evidence = report.evidence;
+                if let Some(pair) = report.pair {
+                    state.divisor = pair.p.clone();
+                    state.selected = Some(pair.p);
+                } else {
+                    state.phase = modulo(&add(&state.phase, &one()), &state.n);
+                    if zero(&state.phase) {
+                        state.x = modulo(&add(&state.x, &one()), &state.n);
+                    }
+                }
+            }
+            Err(_) => state.carrier_closed = true,
+        }
+    } else if operator == PHASE_EML {
         apply_morphism(PHASE, state);
         if state.selected.is_none() {
             apply_morphism(EML_FRAME, state);
@@ -2283,6 +2613,9 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
                 eml_partners: None,
                 eml_phase_done: false,
                 negative_support: Vec::new(),
+                descent_evidence: Four::N,
+                descent_request: None,
+                descent_report: None,
                 divisor: one(),
                 a: two(),
                 pm_a: two(),
@@ -2372,7 +2705,10 @@ pub fn factor(word: &str) -> Result<String, String> {
         eml_phase_done: false,
         negative_support: Vec::new(),
         divisor: one(),
+        descent_evidence: Four::N,
         a: a_seed,
+        descent_request: None,
+        descent_report: None,
         pm_a: two(),
         pm_e: two(),
         ecm_seed: two(),
@@ -2667,6 +3003,50 @@ pub fn repl_scout(n_in: &[char]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn descent_carrier_dispatches_standalone_and_sealed_words() {
+        for word in [crate::semiprime_descent::DESCENT, crate::semiprime_descent::PROTOCOL, " ∈⊤⊥⊞∋ "] {
+            let canonical: String = word.chars().filter(|g| !g.is_whitespace()).collect();
+            let tower = audit_factor_object(&FactorObject::identity(&canonical)).unwrap();
+            assert_eq!(tower[0], SEMIPRIME_DESCENT);
+            let n = decimal_to_tape("15").unwrap();
+            let report = execute_descent_carrier(
+                n.clone(), one(), tape_u64(6), word,
+                Limits { attempts: 1, steps_per_attempt: 1, total_steps: 1 }, Four::N,
+            ).unwrap();
+            let pair = report.pair.unwrap();
+            assert_eq!(mul(&pair.p, &pair.q), n);
+            assert_eq!(report.evidence, Four::T);
+            let extraction: Vec<char> = report.events.iter()
+                .filter(|e| matches!(e.operation, "cyclic_split" | "square_congruence" | "gcd_severing" | "knowledge_join" | "verify_and_fuse"))
+                .map(|e| e.symbol).collect();
+            assert_eq!(extraction, SEMIPRIME_DESCENT);
+        }
+    }
+
+    #[test]
+    fn descent_nested_carrier_uses_verified_fusion() {
+        let tower = construct_carrier(crate::semiprime_descent::DESCENT).unwrap();
+        for source in ["15", "14", "49", "8051"] {
+            let n = decimal_to_tape(source).unwrap();
+            let g = run_carrier_rounds(&tower, &n, 64).unwrap();
+            let (q, rem) = divmod(&n, &g);
+            assert!(zero(&rem));
+            verify_pair(&n, &g, &q).unwrap();
+            let factor = factor_with(crate::semiprime_descent::DESCENT, &emit_numeral(&n)).unwrap();
+            let p = parse_numeral(&factor).unwrap();
+            assert!(cmp(&p, &one()) == Greater && cmp(&p, &n) == Less);
+        }
+        let mixed = "⊢∈⊤⊥⊞∋⊙⊡⊣";
+        let tower = audit_factor_object(&FactorObject::identity(mixed)).unwrap();
+        assert_eq!(tower, vec![SEMIPRIME_DESCENT, FIX]);
+        let n = decimal_to_tape("8051").unwrap();
+        let factor = factor_with(mixed, &emit_numeral(&n)).unwrap();
+        let p = parse_numeral(&factor).unwrap();
+        let (q, _) = divmod(&n, &p);
+        verify_pair(&n, &p, &q).unwrap();
+    }
 
     #[test]
     fn normalized_limb_division_closes_quotient_and_remainder() {
@@ -3289,7 +3669,10 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         eml_phase_done: false,
         negative_support: Vec::new(),
         divisor: one(),
+        descent_evidence: Four::N,
         a: a_seed,
+        descent_request: None,
+        descent_report: None,
         pm_a: two(),
         pm_e: two(),
         ecm_seed: two(),
