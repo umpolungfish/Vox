@@ -1,12 +1,12 @@
 #![deny(warnings)]
 use vox::godel_calculus::{decode, Structure};
-use vox::morphism_factor::decimal_to_tape;
-use vox::semiprime_descent::{run, Limits, PROTOCOL};
+use vox::morphism_factor::{dec_of, decimal_to_tape};
+use vox::semiprime_descent::{run, until_closed, Limits, PROTOCOL};
 
 fn execute() -> Result<bool, String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.is_empty() || matches!(args[0].as_str(), "--help" | "-h") {
-        println!("semiprime_descent <decimal-source|cell-binary-word> [--word GLYPHS] [--seed DECIMAL] [--constant DECIMAL] [--attempts COUNT] [--steps COUNT] [--total-steps COUNT]\nRuns ∈⊤⊥⊞∋ using native tape arithmetic; emits JSON and exits 1 on budget exhaustion. Default word: {PROTOCOL}");
+        println!("semiprime_descent <decimal-source|cell-binary-word> [--word GLYPHS] [--seed DECIMAL] [--constant DECIMAL] [--attempts COUNT] [--steps COUNT] [--total-steps COUNT] [--until-closed]\nRuns ∈⊤⊥⊞∋ using native tape arithmetic. Bounded mode emits JSON and exits 1 on exhaustion. --until-closed traverses all cycle parameters, streams JSONL and has no attempt/time limit; --steps must be at least 2. Eventual closure assumes a semiprime and sufficient resources, without a practical runtime guarantee. Default word: {PROTOCOL}");
         return Ok(true);
     }
     let source = if let Some(n) = decimal_to_tape(&args[0]) {
@@ -25,8 +25,14 @@ fn execute() -> Result<bool, String> {
     let mut constant = decimal_to_tape("1").unwrap();
     let mut word = PROTOCOL.to_string();
     let mut limits = Limits::default();
+    let mut complete = false;
     let mut i = 1;
     while i < args.len() {
+        if args[i] == "--until-closed" {
+            complete = true;
+            i += 1;
+            continue;
+        }
         let value = args
             .get(i + 1)
             .ok_or_else(|| format!("missing value for {}", args[i]))?;
@@ -52,6 +58,34 @@ fn execute() -> Result<bool, String> {
             _ => return Err(format!("unknown argument {}", args[i])),
         }
         i += 2;
+    }
+    if complete {
+        if args
+            .iter()
+            .any(|arg| matches!(arg.as_str(), "--attempts" | "--total-steps"))
+        {
+            return Err("until-closed has no attempt/total budget; use only --steps for each finite attempt".to_string());
+        }
+        until_closed(
+            source,
+            seed,
+            constant,
+            &word,
+            limits.steps_per_attempt,
+            |report, attempts, steps| {
+                use std::io::Write;
+                let json = report.json();
+                let status = if report.pair.is_some() {
+                    "verified"
+                } else {
+                    "searching"
+                };
+                let mut out = std::io::stdout().lock();
+                writeln!(out, "{{\"mode\":\"until-closed\",\"status\":\"{status}\",\"search_attempts\":\"{}\",\"search_steps\":\"{}\",\"attempt\":{json}}}", dec_of(attempts), dec_of(steps))
+                .and_then(|_| out.flush()).map_err(|e| e.to_string())
+            },
+        )?;
+        return Ok(true);
     }
     let report = run(source, seed, constant, &word, limits)?;
     println!("{}", report.json());

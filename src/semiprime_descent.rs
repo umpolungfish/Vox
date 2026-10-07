@@ -205,6 +205,17 @@ pub fn run(
     word: &str,
     limits: Limits,
 ) -> Result<Report, String> {
+    run_with_evidence(source, seed, constant, word, limits, Four::N)
+}
+
+fn run_with_evidence(
+    source: Tape,
+    seed: Tape,
+    constant: Tape,
+    word: &str,
+    limits: Limits,
+    evidence: Four,
+) -> Result<Report, String> {
     if arithmetic::cmp(&source, &arithmetic::two()) == Less {
         return Err("source must be an integer at least two".to_string());
     }
@@ -216,7 +227,7 @@ pub fn run(
         source: source.clone(),
         word: glyphs.iter().collect(),
         events: Vec::new(),
-        evidence: Four::N,
+        evidence,
         attempts: 0,
         steps: 0,
         pair: None,
@@ -402,6 +413,69 @@ pub fn run(
     Ok(report)
 }
 
+/// Traverse every (seed, constant) residue pair without a fixed attempt limit.
+/// Each finite attempt retains at most `steps_per_attempt` recurrence entries;
+/// the observer receives its trace before it is dropped. Counters use tapes.
+///
+/// Completeness for semiprimes: for N=pq != 4 choose an odd cofactor q and
+/// seed p, y=N-p, c=y-p² (mod N). Then f(p)=f(y)=y, so the second step yields
+/// gcd(|p-y|,N)=gcd(2p,N)=p. For N=4, seed 0,c=2 yields 0,2 and gcd=2.
+/// Every residue pair is visited within N² attempts. No factors are used to
+/// construct the traversal; p appears only in this termination proof.
+/// No practical runtime bound is implied. Non-semiprime inputs are not covered.
+pub fn until_closed<F>(
+    source: Tape,
+    seed: Tape,
+    constant: Tape,
+    word: &str,
+    steps_per_attempt: usize,
+    mut observe: F,
+) -> Result<Report, String>
+where
+    F: FnMut(&Report, &[char], &[char]) -> Result<(), String>,
+{
+    if steps_per_attempt < 2 {
+        return Err("complete cyclic traversal needs at least two steps per attempt".to_string());
+    }
+    word_parts(word)?;
+    if arithmetic::cmp(&source, &arithmetic::two()) == Less {
+        return Err("source must be at least two".to_string());
+    }
+    let mut seed = arithmetic::modulo(&seed, &source);
+    let mut constant = arithmetic::modulo(&constant, &source);
+    let mut evidence = Four::N;
+    let mut attempts = arithmetic::decimal_to_tape("0").unwrap();
+    let mut steps = attempts.clone();
+    loop {
+        let report = run_with_evidence(
+            source.clone(),
+            seed.clone(),
+            constant.clone(),
+            word,
+            Limits {
+                attempts: 1,
+                steps_per_attempt,
+                total_steps: steps_per_attempt,
+            },
+            evidence,
+        )?;
+        attempts = arithmetic::add(&attempts, &arithmetic::one());
+        steps = arithmetic::add(
+            &steps,
+            &arithmetic::decimal_to_tape(&report.steps.to_string()).unwrap(),
+        );
+        evidence = report.evidence;
+        observe(&report, &attempts, &steps)?;
+        if report.pair.is_some() {
+            return Ok(report);
+        }
+        constant = arithmetic::modulo(&arithmetic::add(&constant, &arithmetic::one()), &source);
+        if arithmetic::zero(&constant) {
+            seed = arithmetic::modulo(&arithmetic::add(&seed, &arithmetic::one()), &source);
+        }
+    }
+}
+
 impl Report {
     pub fn json(&self) -> String {
         let events: Vec<String> = self
@@ -433,6 +507,41 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn complete_parameter_traversal_closes_and_retains_evidence() {
+        for n in [4, 6, 9, 15, 25, 35, 49, 77, 143, 8051] {
+            let report = until_closed(tape(n), tape(0), tape(0), DESCENT, 2, |r, attempts, _| {
+                assert!(arithmetic::cmp(attempts, &tape(n * n)) != Greater);
+                assert!(r.steps <= 2);
+                Ok(())
+            })
+            .unwrap();
+            assert_eq!(report.pair.unwrap().product, tape(n));
+            assert_eq!(report.evidence, Four::B);
+        }
+        assert!(until_closed(tape(15), tape(0), tape(0), DESCENT, 1, |_, _, _| Ok(())).is_err());
+    }
+
+    #[test]
+    fn complete_traversal_witness_proof_controls() {
+        for p in [2, 3, 5, 7, 11, 13] {
+            for q in [3, 5, 7, 11, 13] {
+                let n = tape(p * q);
+                let x = tape(p);
+                let y = arithmetic::sub(&n, &x);
+                let square = arithmetic::mul_mod(&x, &x, &n);
+                let c = arithmetic::modulo(&arithmetic::sub(&arithmetic::add(&y, &n), &square), &n);
+                let (pair, count) = cyclic_split(&n, &x, &c, 2);
+                assert_eq!(count, 2);
+                let (a, b) = pair.unwrap();
+                assert_eq!(a, y);
+                assert_eq!(b, x);
+                let diff = arithmetic::sub(&a, &b);
+                assert_eq!(arithmetic::gcd(diff, n), tape(p));
+            }
+        }
+    }
+
     fn tape(n: u64) -> Tape {
         arithmetic::decimal_to_tape(&n.to_string()).unwrap()
     }
