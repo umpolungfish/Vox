@@ -1,0 +1,21 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 1 test
+test glut_system::fold::correlation::midpoint::tests::shared_square_coordinates_match_their_entire_small_domain ... FAILED
+
+failures:
+
+---- glut_system::fold::correlation::midpoint::tests::shared_square_coordinates_match_their_entire_small_domain stdout ----
+
+thread 'glut_system::fold::correlation::midpoint::tests::shared_square_coordinates_match_their_entire_small_domain' (23) panicked at src/glut_midpoint.rs:377:29:
+n=21
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    glut_system::fold::correlation::midpoint::tests::shared_square_coordinates_match_their_entire_small_domain
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--lib`

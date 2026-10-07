@@ -95,7 +95,7 @@ pub struct Report {
     pub reason: &'static str,
 }
 
-fn natural(tape: &[char]) -> Nat {
+pub(crate) fn natural(tape: &[char]) -> Nat {
     Nat::from_bits_le(tape.iter().map(|g| *g == '⊥').collect())
 }
 
@@ -157,7 +157,7 @@ pub fn word_parts(word: &str) -> Result<(Vec<char>, usize), String> {
     Ok((glyphs, start))
 }
 
-fn event(
+pub(crate) fn event(
     report: &mut Report,
     index: usize,
     symbol: char,
@@ -174,7 +174,7 @@ fn event(
     });
 }
 
-fn difference(x: &[char], y: &[char]) -> Tape {
+pub(crate) fn difference(x: &[char], y: &[char]) -> Tape {
     if arithmetic::cmp(x, y) == Less {
         arithmetic::sub(y, x)
     } else {
@@ -185,7 +185,7 @@ fn difference(x: &[char], y: &[char]) -> Tape {
 /// Detect a modulo-factor collision between slow and fast orbit channels.
 /// Repeated-image predecessors are retained as a complete traversal safeguard.
 /// Detection computes a GCD witness; final severing and release remain later.
-fn cyclic_split(
+pub(crate) fn cyclic_split(
     n: &[char],
     seed: &[char],
     c: &[char],
@@ -221,7 +221,7 @@ fn cyclic_split(
 /// Lift a strict collision divisor into a full-source square congruence.
 /// Odd N: X=(g+N/g)/2, Y=|g-N/g|/2, so X²-Y²=N.
 /// Even N: X=N/2+1, Y=N/2-1, so X²-Y²=2N and gcd(X-Y,N)=2.
-fn square_lift(n: &[char], g: &[char]) -> Result<(Tape, Tape), String> {
+pub(crate) fn square_lift(n: &[char], g: &[char]) -> Result<(Tape, Tape), String> {
     let (q, rem) = arithmetic::divmod(n, g);
     if !arithmetic::zero(&rem)
         || arithmetic::cmp(g, &arithmetic::one()) != Greater
@@ -254,7 +254,7 @@ pub fn run(
     run_with_evidence(source, seed, constant, word, limits, Four::N)
 }
 
-fn run_with_evidence(
+pub(crate) fn run_with_evidence(
     source: Tape,
     seed: Tape,
     constant: Tape,
@@ -262,210 +262,7 @@ fn run_with_evidence(
     limits: Limits,
     evidence: Four,
 ) -> Result<Report, String> {
-    if arithmetic::cmp(&source, &arithmetic::two()) == Less {
-        return Err("source must be an integer at least two".to_string());
-    }
-    if limits.attempts == 0 || limits.steps_per_attempt == 0 || limits.total_steps == 0 {
-        return Err("descent budgets must be positive".to_string());
-    }
-    let (glyphs, start) = word_parts(word)?;
-    let mut report = Report {
-        source: source.clone(),
-        word: glyphs.iter().collect(),
-        events: Vec::new(),
-        evidence,
-        attempts: 0,
-        steps: 0,
-        pair: None,
-        reason: "budget_exhausted",
-    };
-    for (i, g) in glyphs[..start].iter().copied().enumerate() {
-        event(
-            &mut report,
-            i,
-            g,
-            if g == '⊢' {
-                "bind_source"
-            } else {
-                "retain_source"
-            },
-            "\"factor_extraction\":false".to_string(),
-        );
-    }
-    let mut seed = arithmetic::modulo(&seed, &source);
-    let mut constant = arithmetic::modulo(&constant, &source);
-    for attempt in 1..=limits.attempts {
-        if report.steps == limits.total_steps {
-            break;
-        }
-        report.attempts = attempt;
-        let budget = limits
-            .steps_per_attempt
-            .min(limits.total_steps - report.steps);
-        let (collision, steps) = cyclic_split(&source, &seed, &constant, budget);
-        report.steps += steps;
-        let probe = collision
-            .as_ref()
-            .map(|(x, y)| arithmetic::gcd(difference(x, y), source.clone()));
-        let strict_probe = probe.as_ref().is_some_and(|g| {
-            arithmetic::cmp(g, &arithmetic::one()) == Greater && arithmetic::cmp(g, &source) == Less
-        });
-        let observations = match &collision {
-            Some((x, y)) => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"computational_channel\":\"{}\",\"leakage_channel\":\"{}\",\"collision\":\"{}\",\"collision_gcd\":\"{}\",\"distinct_mod_source\":{}",
-                arithmetic::dec_of(&seed), arithmetic::dec_of(&constant), steps,
-                arithmetic::dec_of(x), arithmetic::dec_of(y), if strict_probe { "hidden_factor" } else { "recurrence_image" }, arithmetic::dec_of(probe.as_ref().unwrap()), x != y),
-            None => format!("\"seed\":\"{}\",\"c\":\"{}\",\"steps\":{},\"collision\":null",
-                arithmetic::dec_of(&seed), arithmetic::dec_of(&constant), steps),
-        };
-        event(&mut report, start, '∈', "cyclic_split", observations);
-        if collision.is_none() {
-            report.events.last_mut().unwrap().status = "unclosed";
-        }
-        let lifted = if strict_probe {
-            Some(square_lift(&source, probe.as_ref().unwrap())?)
-        } else {
-            collision.clone()
-        };
-        let squares = lifted.as_ref().map(|(x, y)| {
-            (
-                arithmetic::mul_mod(x, x, &source),
-                arithmetic::mul_mod(y, y, &source),
-            )
-        });
-        let congruent = squares.as_ref().map(|(x2, y2)| x2 == y2);
-        event(
-            &mut report,
-            start + 1,
-            '⊤',
-            "square_congruence",
-            format!(
-                "\"lifted_from_collision\":{},\"X\":{},\"Y\":{},\"square_congruence\":{},\"x_squared_mod_n\":{},\"y_squared_mod_n\":{}",
-                strict_probe,
-                lifted.as_ref().map(|(x,_)| format!("\"{}\"", arithmetic::dec_of(x))).unwrap_or("null".to_string()),
-                lifted.as_ref().map(|(_,y)| format!("\"{}\"", arithmetic::dec_of(y))).unwrap_or("null".to_string()),
-                congruent
-                    .map(|v| if v { "true" } else { "false" })
-                    .unwrap_or("null"),
-                squares
-                    .as_ref()
-                    .map(|(x2, _)| format!("\"{}\"", arithmetic::dec_of(x2)))
-                    .unwrap_or("null".to_string()),
-                squares
-                    .as_ref()
-                    .map(|(_, y2)| format!("\"{}\"", arithmetic::dec_of(y2)))
-                    .unwrap_or("null".to_string())
-            ),
-        );
-        if squares.is_none() {
-            report.events.last_mut().unwrap().status = "not_run";
-        }
-        let g = lifted
-            .as_ref()
-            .map(|(x, y)| arithmetic::gcd(difference(x, y), source.clone()));
-        let deposit = match &g {
-            Some(g)
-                if congruent == Some(true)
-                    && arithmetic::cmp(g, &arithmetic::one()) == Greater
-                    && arithmetic::cmp(g, &source) == Less =>
-            {
-                Four::T
-            }
-            Some(_) => Four::F,
-            None => Four::N,
-        };
-        event(
-            &mut report,
-            start + 2,
-            '⊥',
-            "gcd_severing",
-            format!(
-                "\"gcd\":{},\"deposit\":\"{}\",\"hidden_factor_collision\":{}",
-                g.as_ref()
-                    .map(|g| format!("\"{}\"", arithmetic::dec_of(g)))
-                    .unwrap_or("null".to_string()),
-                deposit.label(),
-                deposit == Four::T
-            ),
-        );
-        if g.is_none() {
-            report.events.last_mut().unwrap().status = "not_run";
-        }
-        let before = report.evidence;
-        report.evidence = report.evidence.join(deposit);
-        let after = report.evidence;
-        event(&mut report, start + 3, '⊞', "knowledge_join",
-            format!("\"proposition\":\"attempt_nontrivial_factor\",\"before\":\"{}\",\"deposit\":\"{}\",\"after\":\"{}\",\"retry\":{}",
-                    before.label(), deposit.label(), after.label(), deposit != Four::T));
-        if deposit == Four::T {
-            let g = g.expect("support requires a measured gcd");
-            let (q, rem) = arithmetic::divmod(&source, &g);
-            if !arithmetic::zero(&rem) {
-                return Err("nonzero cofactor remainder".to_string());
-            }
-            let pair = verify_pair(&source, &g, &q)?;
-            event(&mut report, start + 4, '∋', "verify_and_fuse",
-                format!("\"p\":\"{}\",\"q\":\"{}\",\"product\":\"{}\",\"godel_product_verified\":true,\"support_polynomial_product_verified\":true,\"mu_delta_source_return\":true",
-                    arithmetic::dec_of(&pair.p), arithmetic::dec_of(&pair.q), arithmetic::dec_of(&pair.product)));
-            report.pair = Some(pair);
-            report.reason = "verified";
-            break;
-        }
-        constant = arithmetic::modulo(&arithmetic::add(&constant, &arithmetic::one()), &source);
-        if arithmetic::zero(&constant) {
-            seed = arithmetic::modulo(&arithmetic::add(&seed, &arithmetic::one()), &source);
-        }
-    }
-    if report.pair.is_some() {
-        let mut forwarded = report.pair.clone();
-        let mut linked = None;
-        let mut latch: Option<(Pair, Four)> = None;
-        for (i, g) in glyphs.iter().copied().enumerate().skip(start + 5) {
-            let operation = match g {
-                '≻' => "advance_verified_pair",
-                '⋈' => "link_product_witness",
-                '≺' => "return_source",
-                '⊡' => "latch_pair",
-                '⊣' => "release_pair",
-                _ => unreachable!(),
-            };
-            match g {
-                '≻' => forwarded = report.pair.clone(),
-                '⋈' => {
-                    let pair = forwarded.as_ref().unwrap();
-                    linked = Some((
-                        encode_cell_binary(&natural(&pair.p)),
-                        encode_cell_binary(&natural(&pair.q)),
-                    ));
-                }
-                '≺' => {
-                    let pair = forwarded.as_ref().unwrap();
-                    verify_pair(&source, &pair.p, &pair.q)?;
-                }
-                '⊡' => latch = Some((forwarded.as_ref().unwrap().clone(), report.evidence)),
-                '⊣' => {
-                    let pair = latch
-                        .as_ref()
-                        .map(|(p, _)| p)
-                        .unwrap_or_else(|| forwarded.as_ref().unwrap());
-                    verify_pair(&source, &pair.p, &pair.q)?;
-                }
-                _ => unreachable!(),
-            }
-            event(
-                &mut report,
-                i,
-                g,
-                operation,
-                format!(
-                    "\"factor_extraction\":false,\"source_return\":{},\"linked\":{},\"latched\":{}",
-                    forwarded.as_ref().unwrap().product == source,
-                    linked.is_some(),
-                    latch.is_some()
-                ),
-            );
-        }
-    }
-    Ok(report)
+    arithmetic::execute_descent_carrier(source, seed, constant, word, limits, evidence)
 }
 
 /// Traverse every (seed, constant) residue pair without a fixed attempt limit.
