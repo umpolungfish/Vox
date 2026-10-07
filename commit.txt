@@ -1,5 +1,4 @@
-I align midpoint witness tests with the retained gap width
+I sample source-bound ququart and modular-stage counters
 
-I restore full-width gap enumeration in the independent test oracle.
-I verify that both midpoint carriers retain the 21 = 3 times 7 witness.
-I retain the optimized regression run with its three explicitly filtered controls.
+I read exported counters while the native target is stopped.
+I retain bounded traces without changing the target's terminal readout.

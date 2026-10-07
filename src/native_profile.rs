@@ -96,7 +96,21 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
         writeln!(output, "seconds\t{}", fields[..sieve_fields as usize].join("\t"))?;
         Some(output)
     } else { None };
+    let ququart_address = vox::loader::elf_object_symbol(&raw, "VOX_QUQUART_COUNTERS")
+        .filter(|&(_, size)| size >= 8 * 8).map(|(address, _)| base + address);
+    let mut ququart_samples = if ququart_address.is_some() {
+        let mut output = BufWriter::new(File::create(format!("{prefix}.ququart.tsv"))?);
+        writeln!(output, "seconds\tbits\tphase_digits\tmeasured_digits\tnested_operations\tretained_nodes\tpeak_nodes\tshots_started\tshots_finished")?;
+        Some(output)
+    } else { None };
     let started = Instant::now();
+    let modular_address = vox::loader::elf_object_symbol(&raw, "VOX_MODULAR_COUNTERS")
+        .filter(|&(_, size)| size >= 4 * 8).map(|(address, _)| base + address);
+    let mut modular_samples = if modular_address.is_some() {
+        let mut output = BufWriter::new(File::create(format!("{prefix}.modular.tsv"))?);
+        writeln!(output, "seconds\tcalls\tstage\tentry_nodes\texit_nodes")?;
+        Some(output)
+    } else { None };
     let mut counts = BTreeMap::<String, u64>::new();
     let mut total = 0u64;
     let mut random = pid as u64 | 1;
@@ -134,7 +148,31 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             }
             writeln!(output)?;
         }
+        if let (Some(address), Some(output)) = (ququart_address, ququart_samples.as_mut()) {
+            write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
+            for index in 0..8 {
+                let value = unsafe { ptrace(2, pid, (address + index * 8) as *mut c_void,
+                    std::ptr::null_mut()) };
+                if value == -1 { return Err(std::io::Error::last_os_error().into()); }
+                write!(output, "\t{}", value as u64)?;
+            }
+            writeln!(output)?;
+            // Keep a bounded interrupted profile useful without changing the
+            // target's terminal-only output contract.
+            if total % 64 == 0 { output.flush()?; }
+        }
         // The signal used to sample is swallowed; unrelated signals keep their semantics.
+        if let (Some(address), Some(output)) = (modular_address, modular_samples.as_mut()) {
+            write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
+            for index in 0..4 {
+                let value = unsafe { ptrace(2, pid, (address + index * 8) as *mut c_void,
+                    std::ptr::null_mut()) };
+                if value == -1 { return Err(std::io::Error::last_os_error().into()); }
+                write!(output, "\t{}", value as u64)?;
+            }
+            writeln!(output)?;
+            if total % 64 == 0 { output.flush()?; }
+        }
         let signal = (status >> 8) & 0xff;
         trace(7, pid, if signal == 19 || signal == 5 { 0 } else { signal as usize })?;
     }
@@ -142,6 +180,8 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     let _ = child.wait();
     samples.flush()?;
     if let Some(output) = sieve_samples.as_mut() { output.flush()?; }
+    if let Some(output) = ququart_samples.as_mut() { output.flush()?; }
+    if let Some(output) = modular_samples.as_mut() { output.flush()?; }
     for (name, mut counter) in counters {
         let mut raw = [0u8; 24];
         match counter.read_exact(&mut raw) {
