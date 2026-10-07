@@ -23,10 +23,11 @@ type Tape = Vec<char>;
 // bits, base width, relation target, polynomials, scanned positions, candidates,
 // accepted relations, surviving matrix rows, surviving matrix columns,
 // non-unit cofactors <= base bound squared, <= its fourth power, and larger;
-// polynomial A bits, target A bits, and the latest candidate magnitude bits.
+// polynomial A bits, target A bits, the latest candidate magnitude bits,
+// smooth, square and paired closures, and unmatched residual count.
 #[unsafe(no_mangle)]
-pub static VOX_SIEVE_COUNTERS: [core::sync::atomic::AtomicU64; 15] =
-    [const { core::sync::atomic::AtomicU64::new(0) }; 15];
+pub static VOX_SIEVE_COUNTERS: [core::sync::atomic::AtomicU64; 19] =
+    [const { core::sync::atomic::AtomicU64::new(0) }; 19];
 fn sieve_gauge(index: usize, value: usize) {
     VOX_SIEVE_COUNTERS[index].store(value as u64, core::sync::atomic::Ordering::Relaxed);
 }
@@ -50,14 +51,40 @@ fn polynomial_score_log(a: u128, window: u128) -> i32 {
 /// The first partial is retained as an anchor for every later matching word.
 fn fold_residual_relation(n: &Tape, axb: Tape, mut exponents: Vec<u32>, residual: Tape,
     partials: &mut PartialRelations) -> Option<(Vec<u32>, Tape, Tape)> {
-    if residual == one() { return Some((exponents, axb, residual)); }
+    if zero(&residual) { return None; }
+    if residual == one() {
+        VOX_SIEVE_COUNTERS[15].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+        return Some((exponents, axb, residual));
+    }
+    // A residual that is already a square needs no matching partial. Keep its
+    // exact root as the square contribution consumed by matrix reconstruction.
+    let low = residual.iter().take(4).enumerate().fold(0u8, |v, (i, &bit)|
+        v | if bit == EVALF { 1 << i } else { 0 });
+    if matches!(low, 0 | 1 | 4 | 9) {
+        let root = if let Some(value) = tape_to_u128(&residual) {
+            let bits = 128 - value.leading_zeros();
+            let mut root = 1u128 << ((bits + 1) / 2);
+            loop {
+                let next = (root + value / root) / 2;
+                if next >= root { break; }
+                root = next;
+            }
+            u128_to_tape(root)
+        } else { isqrt(&residual) };
+        if mul(&root, &root) == residual {
+            VOX_SIEVE_COUNTERS[16].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+            return Some((exponents, axb, root));
+        }
+    }
     if let Some((prior_x, prior_exponents)) = partials.get(&residual) {
+        VOX_SIEVE_COUNTERS[17].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
         for &(column, exponent) in prior_exponents { exponents[column] += exponent; }
         Some((exponents, mul_mod(prior_x, &axb, n), residual))
     } else {
         let sparse = exponents.into_iter().enumerate()
             .filter(|&(_, exponent)| exponent != 0).collect();
         partials.insert(residual, (axb, sparse));
+        sieve_gauge(18, partials.len());
         None
     }
 }
@@ -71,6 +98,23 @@ fn residual_bucket(residual: &Tape, bound2: &Tape, bound4: &Tape) -> usize {
 
 #[cfg(test)]
 mod threshold_tests {
+    #[test]
+    fn square_residual_closes_without_waiting_for_a_duplicate() {
+        let n = tape_u64(91);
+        let mut pool = PartialRelations::new();
+        assert!(fold_residual_relation(&n, tape_u64(3), vec![0], tape_u64(0), &mut pool).is_none());
+        let (exponents, x, root) = fold_residual_relation(
+            &n, tape_u64(11), vec![0], tape_u64(121), &mut pool).unwrap();
+        assert!(pool.is_empty());
+        assert_eq!(exponents, vec![0]);
+        assert_eq!(root, tape_u64(11));
+        assert_eq!(mul_mod(&x, &x, &n), mul_mod(&root, &root, &n));
+        for residual in [17, 20, 25, 81, 88] {
+            let result = fold_residual_relation(
+                &n, tape_u64(3), vec![0], tape_u64(residual), &mut pool);
+            assert_eq!(result.is_some(), matches!(residual, 25 | 81));
+        }
+    }
     use super::*;
     #[test]
     fn polynomial_score_log_preserves_the_full_product_above_machine_width() {

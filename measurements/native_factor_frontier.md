@@ -90,3 +90,21 @@ The live-bound run, counter traces and timing records are retained under
 The saved fastest 208-bit membrane remains unchanged. The next inspection is
 the shared-residual pairing step, where accepted partial candidates wait for
 an identical residual before contributing a complete relation.
+
+## Residual closure paths
+
+Exact-square residuals now carry their verified square root directly into
+matrix reconstruction without waiting for a duplicate. All fifteen release
+sieve controls pass. The first tape-root implementation collects 874 relations
+at 24.640455 seconds and the standalone run times out at 30.00 seconds.
+
+The small-residual root check now uses exact integer Newton steps with a tape
+fallback for wider values. Vox's expanded closure counters record, at
+24.915597 seconds on the 224-bit source: 919 smooth closures, zero square
+closures, 78 shared-residual closures, and 3,850 unmatched residuals. The
+complete relation count is 997 of 11,205. Square closure does not improve
+this source; the measurements distinguish it from the unmatched-partial path.
+The counter trace is `native224_closure_paths_profile.sieve.tsv`.
+
+Superseded temporary candidate binaries and disassemblies are removed after
+inspection. The saved fastest 208-bit membrane remains unchanged.
