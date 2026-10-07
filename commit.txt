@@ -1,4 +1,4 @@
-I measure and reject runtime prime-power scoring overhead
+I separate MPQS polynomial sizing from the QS fallback window
 
-I retain exact lifted-root and folded-score regressions.
-I compare Vox relation-yield traces and preserve the faster runtime path.
+I verify sixteen sieve controls and measure improved larger-source relation yield.
+I preserve the saved fastest membrane pending the next complete extraction.

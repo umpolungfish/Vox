@@ -2964,7 +2964,9 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 // everywhere they overlap and reaches to the machine-integer width.
                 // Single-poly QS is the fallback for the narrow N MPQS declines,
                 // then the carrier's rho, then Dixon.
-                let hit = crate::sieve::mpqs(&c, bound, 2 * m, 64)
+                // MPQS sizes its polynomial window by source width. The much
+                // wider single-polynomial QS interval is only for the fallback.
+                let hit = crate::sieve::mpqs(&c, bound, 32_768, 64)
                     .filter(&good)
                     .or_else(|| crate::sieve::qs(&c, bound, m, 64).filter(&good))
                     .or_else(|| {
