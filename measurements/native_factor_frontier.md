@@ -108,3 +108,14 @@ The counter trace is `native224_closure_paths_profile.sieve.tsv`.
 
 Superseded temporary candidate binaries and disassemblies are removed after
 inspection. The saved fastest 208-bit membrane remains unchanged.
+
+## Small prime-power scoring experiment
+
+Lifted roots through modulus 65,536 exactly match repeated polynomial
+divisibility in the regression. All sixteen sieve controls pass. Direct
+prime-power marking collects 808 relations at 24.808560 seconds. Folding the
+dense marks into the score period improves this to 871 at 24.628370 seconds,
+but both trail the 997-relation baseline. Runtime prime-power marking is
+removed; its exact scoring regression and traces remain for future work.
+The saved fastest membrane remains unchanged, and superseded experimental
+executables and disassemblies are removed.

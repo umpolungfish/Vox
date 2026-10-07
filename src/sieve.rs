@@ -35,6 +35,42 @@ fn sieve_gauge(index: usize, value: usize) {
 
 type PartialRelations = alloc::collections::BTreeMap<Tape, (Tape, Vec<(usize, u32)>)>;
 
+// Lift small-prime roots in window coordinates. Each power contributes one
+// additional prime-log mark, matching repeated division in relation extraction.
+#[cfg(test)]
+fn prime_power_marks(a: u128, b: i128, c: &Tape, window: usize,
+    primes: &[u64]) -> Vec<(usize, usize, i32)> {
+    let mut marks = Vec::new();
+    for &prime in primes.iter().filter(|&&p| p >= 2 && p <= 31) {
+        if prime != 2 && a % prime as u128 == 0 { continue; }
+        let p = prime as usize;
+        let weight = (63 - prime.leading_zeros()) as i32;
+        let mut modulus = p;
+        let mut roots: Vec<usize> = (0..p).collect();
+        loop {
+            let cm = n_mod_u64(c, modulus as u64) as u128;
+            let mm = modulus as u128;
+            let am = a % mm;
+            let bm = b.rem_euclid(modulus as i128) as u128;
+            roots.retain(|&offset| {
+                let x = (offset + modulus - window % modulus) % modulus;
+                let x = x as u128;
+                (am*x*x + 2*bm*x + mm - cm) % mm == 0
+            });
+            if roots.is_empty() { break; }
+            if modulus > p || p == 2 {
+                marks.extend(roots.iter().map(|&root| (modulus, root, weight)));
+            }
+            if modulus > 65_536 / p { break; }
+            let previous = modulus;
+            modulus *= p;
+            roots = roots.iter().flat_map(|&root|
+                (0..p).map(move |k| root + k*previous)).collect();
+        }
+    }
+    marks
+}
+
 // The score scale is A*M². Its logarithm must not inherit a machine-word
 // wrap when a larger source places the polynomial above that boundary.
 fn polynomial_score_log(a: u128, window: u128) -> i32 {
@@ -98,6 +134,39 @@ fn residual_bucket(residual: &Tape, bound2: &Tape, bound4: &Tape) -> usize {
 
 #[cfg(test)]
 mod threshold_tests {
+    #[test]
+    fn lifted_prime_power_scores_match_repeated_divisibility() {
+        let window = 128usize;
+        let primes = [2u64, 3, 7];
+        let marks = prime_power_marks(5, 2, &tape_u64(7), window, &primes);
+        let mut period = Vec::new();
+        prepare_score_period_with_powers(&[1], &[-1], &[-1], &[0],
+            65536, &mut period, &marks);
+        let mut folded = vec![0; 2*window+1];
+        seed_score_period(&mut folded, &period, 0);
+        for &(modulus, root, weight) in &marks {
+            if period.len() % modulus == 0 { continue; }
+            for position in (root..folded.len()).step_by(modulus) { folded[position] += weight; }
+        }
+        for offset in 0..=2*window {
+            let x = offset as i128 - window as i128;
+            let value = (5*x*x + 4*x - 7).unsigned_abs();
+            let actual: i32 = marks.iter().filter(|&&(modulus, root, _)|
+                offset % modulus == root).map(|&(_,_,weight)|weight).sum();
+            let mut expected = 0;
+            for prime in primes {
+                let mut power = prime as u128;
+                while power <= 65_536 {
+                    if (power > prime as u128 || prime == 2) && value % power == 0 {
+                        expected += (63-prime.leading_zeros()) as i32;
+                    }
+                    power *= prime as u128;
+                }
+            }
+            assert_eq!(actual, expected, "offset {offset}");
+            assert_eq!(folded[offset], expected, "folded offset {offset}");
+        }
+    }
     #[test]
     fn square_residual_closes_without_waiting_for_a_duplicate() {
         let n = tape_u64(91);
@@ -389,17 +458,37 @@ fn score_block_capacity(width: usize) -> usize {
 /// is chosen from the live primes and must fit the existing block storage.
 fn prepare_score_period(base: &[u64], roots1: &[i64], roots2: &[i64], logs: &[i32],
     capacity: usize, scores: &mut Vec<i32>) -> usize {
+    prepare_score_period_with_powers(base, roots1, roots2, logs, capacity, scores, &[])
+}
+
+fn prepare_score_period_with_powers(base: &[u64], roots1: &[i64], roots2: &[i64], logs: &[i32],
+    capacity: usize, scores: &mut Vec<i32>, powers: &[(usize, usize, i32)]) -> usize {
     let mut period = 1usize;
+    for &(modulus, _, _) in powers.iter().filter(|&&(modulus, _, _)| modulus <= 16) {
+        let mut a = period;
+        let mut b = modulus;
+        while b != 0 { let r = a % b; a = b; b = r; }
+        if let Some(next) = (period/a).checked_mul(modulus).filter(|&n| n <= capacity) {
+            period = next;
+        }
+    }
     let mut end = 1;
     for j in 1..base.len() {
         if roots1[j] < 0 { continue; }
-        let Some(next) = period.checked_mul(base[j] as usize).filter(|&n| n <= capacity)
+        let p = base[j] as usize;
+        let multiplier = if period % p == 0 { 1 } else { p };
+        let Some(next) = period.checked_mul(multiplier).filter(|&n| n <= capacity)
             else { break; };
         period = next;
         end = j + 1;
     }
     scores.resize(period, 0);
     scores.fill(0);
+    for &(modulus, root, weight) in powers {
+        if period % modulus == 0 {
+            for position in (root..period).step_by(modulus) { scores[position] += weight; }
+        }
+    }
     for j in 1..end {
         if roots1[j] < 0 { continue; }
         for root in [roots1[j], roots2[j]] {
