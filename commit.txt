@@ -1,4 +1,4 @@
-I separate MPQS polynomial sizing from the QS fallback window
+I retain the verified 26-second 208-bit membrane
 
-I verify sixteen sieve controls and measure improved larger-source relation yield.
-I preserve the saved fastest membrane pending the next complete extraction.
+I verify both primes and the exact source product before replacing the saved binary.
+I measure the next larger source and preserve its bounded execution record.

@@ -2,11 +2,13 @@
   "source": "266175155279792434973506259190185380993589458872977057421959357",
   "bits": 208,
   "binary": "membrane",
-  "sha256": "2267d2e8522f54cdb46f8a14cb601da51b0fa542dff71c695f1bbbb516167b5a",
+  "sha256": "e404d65b9083d62931e8fe4ac78b19d36c92f606fb8ee47793e37cf4fb5f4701",
   "runtime_inputs": [],
   "route": "native shape-routed factor carrier",
   "score_block": "full per-core L2",
-  "measured_seconds": 35.14,
-  "factor_output": "../native208_full_l2.stdout",
+  "measured_seconds": 26.21,
+  "factor_output": "../native208_mpqs_window.stdout",
+  "verification": "../native208_mpqs_window_verify.stdout",
+  "mpqs_half_window": 1048576,
   "disassembly": "vox.disasm"
 }
