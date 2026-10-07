@@ -1,0 +1,12 @@
+{
+  "source": "266175155279792434973506259190185380993589458872977057421959357",
+  "bits": 208,
+  "binary": "membrane",
+  "sha256": "2267d2e8522f54cdb46f8a14cb601da51b0fa542dff71c695f1bbbb516167b5a",
+  "runtime_inputs": [],
+  "route": "native shape-routed factor carrier",
+  "score_block": "full per-core L2",
+  "measured_seconds": 35.14,
+  "factor_output": "../native208_full_l2.stdout",
+  "disassembly": "vox.disasm"
+}

@@ -31,3 +31,26 @@ Timings are individual executions, not aggregate benchmark estimates.
 The native 208-bit execution remains above the requested 30-second bound.
 Further work targets root marking and relation collection without changing
 the retained product and primality checks.
+
+## Larger retained inputs
+
+The fastest measured 208-bit source-baked executable is retained in
+`native_factor_current/membrane`, with its source, checksum and elapsed reading
+in `native_factor_current/manifest.json`. The superseded ququart debug
+binaries and their generated disassemblies have been removed; measurement
+records and source preparations remain. The rejection-control membrane is
+preserved as a control.
+
+The next independently generated fixtures were compiled from their source
+numeral alone and executed without runtime input or supplied factor witnesses:
+
+| Width | Source | 30-second execution |
+| --- | --- | --- |
+| 216 | 66907153346687236573189133122442567577365561337596755157374226593 | timeout, empty factor output |
+| 224 | 24937384895847894358120264124930833426221437163545452015667815601231 | timeout, empty factor output |
+
+The process timer records 30.02 seconds for the 216-bit observation and
+30.00 seconds for the 224-bit observation. Their
+stdout and stderr are retained as `native216_limit.*` and `native224_limit.*`.
+The temporary candidate executable has been removed after both observations;
+the saved fastest membrane's checksum remains unchanged.
