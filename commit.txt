@@ -1,4 +1,5 @@
-I remove the remaining mandatory carrier interface rule
+I measure the larger native factor frontier and reject a slower cache block
 
-I accept independently source-bound operation fragments and retained terminal output.
-I preserve executable motif checks and verify full, partial-interface and nested carriers.
+I verify both original source pairs and the retained 208-bit pair.
+I compare full and half cache blocks with Vox's live stride trace.
+I preserve the faster full-cache implementation and remove experimental disassembly.

@@ -1,0 +1,33 @@
+# Current native factor frontier
+
+Vox's native shape-routed factor command closes both original sources:
+
+| Source | Factors | Elapsed seconds |
+| --- | --- | --- |
+| 229513619370652772473594096727489823787 | 15058366252086023423 × 15241601613910701269 | 0.19 |
+| 271690685666312585018220346622515128917 | 15726440087894854657 × 17276044937559748181 | 0.22 |
+
+Each pair passes the membrane product check and both resident primality
+checks return `prime`. These are native-route executions, separate from
+the ququart-only phase-progress measurements.
+
+The independently retained 208-bit source
+`266175155279792434973506259190185380993589458872977057421959357`
+closes in 35.14 seconds with the full-L2 score block. Its pair is
+`13419294329574030763782528217097 × 19835257260375005453724574658581`.
+Both primality checks return `prime` and the product check passes.
+
+Vox's bounded native profile identifies the root-stride additions at
+`0x77102` and `0x77123` as the hottest instructions in that source-baked
+ELF. At approximately 24 seconds the sieve has collected 7,298 of its
+10,989 requested relations. Coefficient A and target A both have 81 bits.
+
+A half-L2 score block passes all thirteen sieve controls but closes the
+same source in 41.35 seconds. The two executions emit identical factor
+equations. The smaller block is rejected and the full-L2 implementation
+remains canonical. Its generated experimental disassembly has been removed.
+Timings are individual executions, not aggregate benchmark estimates.
+
+The native 208-bit execution remains above the requested 30-second bound.
+Further work targets root marking and relation collection without changing
+the retained product and primality checks.
