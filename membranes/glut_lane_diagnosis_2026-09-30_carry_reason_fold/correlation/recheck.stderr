@@ -1,4 +1,0 @@
-
-thread '<unnamed>' (5) panicked at src/glut_correlation.rs:618:18:
-shared implication ancestry
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

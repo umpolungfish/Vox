@@ -1,3 +1,0 @@
-[mpqs] identity (Ax+B)^2==A*g+N : PASS
-[mpqs] bits=192 k=6 s=5085 eff_bound=250000 pool=755 width=11034 need=11098 relations=11098 polys=3995
-[mpqs] combine took 48.656426746s

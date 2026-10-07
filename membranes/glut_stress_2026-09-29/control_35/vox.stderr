@@ -1,4 +1,0 @@
-
-thread 'main' (0) panicked at examples/glut_stress_baked.rs:33:67:
-called `Result::unwrap()` on an `Err` value: "malformed glut trace"
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

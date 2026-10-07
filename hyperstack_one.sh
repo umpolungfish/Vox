@@ -6,12 +6,11 @@
 set -euo pipefail
 [ $# -ge 1 ] || { echo "usage: $0 <decimal N> [carrier types...]" >&2; exit 1; }
 cd "$(dirname "$0")"
-cargo build --release --bin vox >/dev/null 2>&1
+cargo +stable build --offline --release --bin vox >/dev/null 2>&1
 N="$1"; shift
 TYPES="${*:-phase shor fib}"
 WORD="$(./target/release/vox numeral "$N")"
-touch src/bin/hyperstack_one.rs
-FACTOR_N_WORD="$WORD" HYPERSTACK_TYPES="$TYPES" cargo build --release --bin hyperstack_one >/dev/null 2>&1
+FACTOR_N_WORD="$WORD" HYPERSTACK_TYPES="$TYPES" cargo +stable build --offline --release --bin hyperstack_one >/dev/null 2>&1
 mkdir -p membranes
 SLUG="$(printf '%s' "$TYPES" | tr ' ' '-')"
 OUT="membranes/factor_${N}_${SLUG}"

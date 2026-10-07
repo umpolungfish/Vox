@@ -1,6 +1,4 @@
-I preserve ELF function boundaries and trace anyon carrier dispatch
+I retain independent 200-bit and 256-bit RSA-style test sources
 
-I keep seeded functions separate across fallthrough and tail jumps, retain
-local epilogues, and verify those boundaries with executable regressions.
-I save native wiring, source-bound carrier controls, product checks, and
-the rebuilt exporter for the semiprime-anyon dispatch diagnosis.
+I keep the balanced, separated prime factors in the external verifier.
+The anyon execution paths receive the modulus and program parameters only.
