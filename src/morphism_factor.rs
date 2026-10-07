@@ -646,8 +646,14 @@ fn is_square(x: &[char]) -> Option<Tape> {
 /// ceil(2*sqrt(k*N)) across a short window; when a*a - 4kN is a perfect square
 /// b*b, gcd(a+b, N) is a factor. Small factors are left to the trial arm; Lehman
 /// covers the mid-range factor between N^(1/3) and N^(2/3).
-fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
-    use core::cmp::Ordering::{Greater, Less};
+struct LehmanSweep {
+    kn4: Tape,
+    a: Tape,
+    limit: Tape,
+}
+
+fn lehman_sweep(n: &[char], k: &[char]) -> LehmanSweep {
+    use core::cmp::Ordering::Less;
     let kn4 = mul(&tape_u64(4), &mul(k, n));
     let mut a = isqrt(&kn4);
     if cmp(&mul(&a, &a), &kn4) == Less {
@@ -664,18 +670,37 @@ fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
     };
     let width = divmod(&sixth, &mul(&tape_u64(4), &sk)).0;
     let limit = add(&add(&a, &width), &one());
-    while cmp(&a, &limit) != Greater {
-        let asq = mul(&a, &a);
-        if cmp(&asq, &kn4) != Less {
-            let c = sub(&asq, &kn4);
+    LehmanSweep { kn4, a, limit }
+}
+
+fn lehman_resume(n: &[char], sweep: &mut LehmanSweep, budget: usize) -> Option<Tape> {
+    use core::cmp::Ordering::{Greater, Less};
+    for _ in 0..budget {
+        if cmp(&sweep.a, &sweep.limit) == Greater {
+            break;
+        }
+        let asq = mul(&sweep.a, &sweep.a);
+        if cmp(&asq, &sweep.kn4) != Less {
+            let c = sub(&asq, &sweep.kn4);
             if let Some(b) = is_square(&c) {
-                let g = gcd(add(&a, &b), n.to_vec());
+                let g = gcd(add(&sweep.a, &b), n.to_vec());
                 if cmp(&g, &one()) == Greater && cmp(&g, n) == Less {
                     return Some(trim(g));
                 }
             }
         }
-        a = add(&a, &one());
+        sweep.a = add(&sweep.a, &one());
+    }
+    None
+}
+
+#[cfg(test)]
+fn lehman_step(n: &[char], k: &[char]) -> Option<Tape> {
+    let mut sweep = lehman_sweep(n, k);
+    while cmp(&sweep.a, &sweep.limit) != core::cmp::Ordering::Greater {
+        if let Some(g) = lehman_resume(n, &mut sweep, 16) {
+            return Some(g);
+        }
     }
     None
 }
@@ -1141,6 +1166,7 @@ struct State {
     ecm_round: Tape,
     pp_base: Tape,
     lehman_k: Tape,
+    lehman_sweep: Option<LehmanSweep>,
     witness_done: bool,
     prime12_support: Option<bool>,
     power_done: bool,
@@ -1834,6 +1860,7 @@ fn initial_carrier_state(n: Tape, phase_base: &[char], a_seed: Tape) -> State {
         ecm_round: vec![EVALT],
         pp_base: tape_u64(3),
         lehman_k: one(),
+        lehman_sweep: None,
         witness_done: false,
         prime12_support: None,
         power_done: false,
@@ -2348,11 +2375,17 @@ fn apply_morphism(operator: &[char], state: &mut State) {
         if tape_to_u64(&state.round) % 4 != 2 {
             return;
         }
-        // One Lehman multiplier per firing.
-        if let Some(g) = lehman_step(&state.n, &state.lehman_k) {
+        // Retain the sweep between firings so a wide source cannot hold the
+        // nested continuation inside a single multiplier's entire window.
+        let sweep = state.lehman_sweep
+            .get_or_insert_with(|| lehman_sweep(&state.n, &state.lehman_k));
+        if let Some(g) = lehman_resume(&state.n, sweep, 16) {
             state.selected = Some(g);
         }
-        state.lehman_k = add(&state.lehman_k, &one());
+        if cmp(&sweep.a, &sweep.limit) == core::cmp::Ordering::Greater {
+            state.lehman_sweep = None;
+            state.lehman_k = add(&state.lehman_k, &one());
+        }
     } else if operator == SQUFOF {
         // Heavy fallback: its cycle bound grows like N^(1/4), so it is nested
         // deep in time. It fires once, and only after the cheap arms have had a
@@ -2634,6 +2667,7 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
                 ecm_round: vec![EVALT],
                 pp_base: tape_u64(3),
                 lehman_k: one(),
+                lehman_sweep: None,
                 witness_done: false,
                 prime12_support: None,
                 power_done: false,
@@ -2738,6 +2772,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         ecm_round: vec![EVALT],
         pp_base: tape_u64(3),
         lehman_k: one(),
+        lehman_sweep: None,
         witness_done: false,
         prime12_support: None,
         power_done: false,
@@ -3629,6 +3664,33 @@ mod tests {
     }
 
     #[test]
+    fn lehman_sweep_retains_cursor_and_returns_to_continuation() {
+        let n = tape_u64(101);
+        let mut sweep = LehmanSweep {
+            kn4: tape_u64(404), a: tape_u64(21), limit: tape_u64(100),
+        };
+        assert!(lehman_resume(&n, &mut sweep, 1).is_none());
+        assert_eq!(sweep.a, tape_u64(22));
+        assert!(lehman_resume(&n, &mut sweep, 1).is_none());
+        assert_eq!(sweep.a, tape_u64(23));
+
+        let n = tape_u64(8051);
+        let mut sweep = lehman_sweep(&n, &one());
+        assert_eq!(lehman_resume(&n, &mut sweep, 16), lehman_step(&n, &one()));
+
+        let wide = decimal_to_tape("233108530344407544527637656910680524145619812480305449042948611968495918245135782867888369318577116418213919268572658314913060672626911354027609793166341626693946596196427744273886601876896313468704059066746903123910748277606548649151920812699309766587514735456594993207").unwrap();
+        let mut state = initial_carrier_state(wide.clone(), &two(), isqrt(&wide));
+        state.round = tape_u64(2);
+        execute_nested(&[LEHMAN, FIX], &mut state);
+        assert_eq!(state.n, wide);
+        assert!(state.lehman_sweep.is_some());
+        let cursor = state.lehman_sweep.as_ref().unwrap().a.clone();
+        state.round = tape_u64(6);
+        execute_nested(&[LEHMAN, FIX], &mut state);
+        assert!(cmp(&state.lehman_sweep.as_ref().unwrap().a, &cursor).is_gt());
+    }
+
+    #[test]
     fn full_membrane_certifies_factors_and_takes_perfect_powers() {
         // WITNESS -> POWER -> EXTRACT -> P_MINUS -> P_PLUS -> ECM -> FIX
         let carrier = "⊢∈⊤≺⊥∋∈⊤⊞⊥∋∈≻⊤≺⊥⊞⋈∋∈⊙⊞⋈∋∈⊙≺⋈∋∈⊙≻⋈∋⊙⊡⊣";
@@ -3766,6 +3828,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         ecm_round: vec![EVALT],
         pp_base: tape_u64(3),
         lehman_k: one(),
+        lehman_sweep: None,
         witness_done: false,
         prime12_support: None,
         power_done: false,
