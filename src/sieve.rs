@@ -35,6 +35,29 @@ fn sieve_gauge(index: usize, value: usize) {
 
 type PartialRelations = alloc::collections::BTreeMap<Tape, (Tape, Vec<(usize, u32)>)>;
 
+fn polynomial_multiplier(n: &Tape) -> u64 {
+    let primes = small_primes(1000);
+    let residues: Vec<u64> = primes.iter().map(|&p| n_mod_u64(n,p)).collect();
+    let mut best = (i64::MIN, 1u64);
+    for multiplier in (1u64..=97).step_by(2) {
+        if (3u64..=9).any(|p| multiplier % (p*p) == 0) { continue; }
+        let bits = 63-multiplier.leading_zeros();
+        let leading = 1u64 << bits;
+        let log = i64::from(bits)*1024 + ((multiplier-leading)*1024/leading) as i64;
+        let mut score = -log/2;
+        score += match (n_mod_u64(n,8)*multiplier)%8 { 1=>2048, 5=>1024, _=>512 };
+        for (&prime,&residue) in primes.iter().zip(&residues) {
+            if prime == 2 { continue; }
+            let r = (residue*multiplier)%prime;
+            let weight = i64::from(63-prime.leading_zeros())*1024;
+            if r == 0 { score += weight/prime as i64; }
+            else if legendre(r,prime) == 1 { score += 2*weight/(prime-1) as i64; }
+        }
+        if score > best.0 { best = (score,multiplier); }
+    }
+    best.1
+}
+
 // Lift small-prime roots in window coordinates. Each power contributes one
 // additional prime-log mark, matching repeated division in relation extraction.
 #[cfg(test)]
@@ -134,6 +157,17 @@ fn residual_bucket(residual: &Tape, bound2: &Tape, bound4: &Tape) -> usize {
 
 #[cfg(test)]
 mod threshold_tests {
+    #[test]
+    fn polynomial_scaling_retains_the_source_modular_identity() {
+        for value in [91u64,8051,1000036000099] {
+            let n = tape_u64(value);
+            let k = polynomial_multiplier(&n);
+            assert!(k >= 1 && k <= 97 && k % 2 == 1);
+            assert!(!(2u64..=9).any(|p| k%(p*p) == 0));
+            assert_eq!(polynomial_multiplier(&n), k);
+            assert!(zero(&modulo(&mul(&n,&tape_u64(k)),&n)));
+        }
+    }
     #[test]
     fn lifted_prime_power_scores_match_repeated_divisibility() {
         let window = 128usize;
@@ -1081,7 +1115,8 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     // N stays on the tape. The polynomial coefficients A and B fit a machine word
     // (they are near sqrt(N)); C, g(x) and A x + B are carried on the tapes, so the
     // value arithmetic has no bit ceiling. No cap on how large N may be.
-    let sqrt2n = isqrt(&mul(&tape_u64(2), &n));
+    let polynomial_n = mul(&n, &tape_u64(polynomial_multiplier(&n)));
+    let sqrt2n = isqrt(&mul(&tape_u64(2), &polynomial_n));
     let sqrt2n_u = tape_to_u128(&sqrt2n).unwrap_or(u128::MAX);
     // Free lunch, no cap: run the per-x value in a machine word while it fits
     // (g ~ M*sqrt(2N)), and only fall to the tapes when it would overflow. Fast
@@ -1122,9 +1157,12 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let mut base: Vec<u64> = vec![1];
     let mut sqrt_n: Vec<u64> = vec![0];
     for &p in &primes {
-        let np = n_mod_u64(&n, p);
+        let np = n_mod_u64(&polynomial_n, p);
         if np == 0 {
-            return Some(tape_u64(p));
+            if n_mod_u64(&n,p) == 0 { return Some(tape_u64(p)); }
+            base.push(p);
+            sqrt_n.push(0);
+            continue;
         }
         if p == 2 {
             base.push(2);
@@ -1166,7 +1204,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let lo = (s * 2 / 5).max(3);
     let hi = (s * 3).max(8);
     let mut a_pool: Vec<usize> = (1..width)
-        .filter(|&i| base[i] > 2 && base[i] as u128 >= lo && base[i] as u128 <= hi)
+        .filter(|&i| base[i] > 2 && sqrt_n[i] != 0 && base[i] as u128 >= lo && base[i] as u128 <= hi)
         .collect();
     if a_pool.len() < k {
         return None;
@@ -1183,7 +1221,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let mut square_factors = Vec::new();
     let mut partials = PartialRelations::new();
     let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
-    let n_tape = n.clone();
+    let n_tape = polynomial_n;
     let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
     let thresh_slack = (flog2(base_bound as u128) + flog2(width as u128)) as i32;
     let score_block = span.min(score_block_capacity(width));
@@ -1255,7 +1293,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             let mut skip = vec![true; width];
             for j in 1..width {
                 let p = base[j];
-            if p == 2 || a_val % p as u128 == 0 {
+            if p == 2 || sqrt_n[j] == 0 || a_val % p as u128 == 0 {
                 continue;
             }
             ainv[j] = modinv((a_val % p as u128) as u64, p) as i64;

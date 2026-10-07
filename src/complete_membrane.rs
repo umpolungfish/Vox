@@ -81,6 +81,9 @@ impl CompleteMembrane {
 
     /// Apply the direct sidearm and its reverse on an IMASM numeral bit-tape.
     pub fn preserves_tape(&self, from: usize, to: usize, tape: &[char]) -> bool {
+        if tape.iter().any(|cell| !matches!(cell, '⊥' | '⊤')) {
+            return false;
+        }
         let (Some(forward), Some(reverse)) =
             (self.forward_rail(from, to), self.reverse_rail(to, from))
         else {
@@ -171,6 +174,7 @@ mod tests {
         let (closed, pairs) = membrane.evaluate_tower_closure(&tape);
         assert!(closed);
         assert_eq!(pairs, 120);
+        assert!(!membrane.preserves_tape(0, 1, &['x']));
     }
 
     #[test]
