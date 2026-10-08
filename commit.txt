@@ -1,4 +1,4 @@
-I retain independent 200-bit and 256-bit RSA-style test sources
+I add a canonical-word MPQS entry point
 
-I keep the balanced, separated prime factors in the external verifier.
-The anyon execution paths receive the modulus and program parameters only.
+I accept the native numeral word directly, run the existing tape-based MPQS
+engine, and return factor and cofactor words for the balanced hard control.
