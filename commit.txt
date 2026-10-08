@@ -1,4 +1,4 @@
-I add a canonical-word MPQS entry point
+I record the nested carrier factor words at 256, 512, and 1048 bits
 
-I accept the native numeral word directly, run the existing tape-based MPQS
-engine, and return factor and cofactor words for the balanced hard control.
+I retain the canonical-word outputs, elapsed readings, and wiring diagram for
+the WITNESS, POWER, EXTRACT, P_MINUS, P_PLUS, ECM, and FIX carrier.
