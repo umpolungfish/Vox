@@ -1376,6 +1376,28 @@ fn main() {
                 None => { eprintln!("vox mpqs <decimal N>   multiple-polynomial quadratic sieve arm, in isolation"); 1 }
             }
         }
+        Some("mpqs-word") => {
+            if args.len() != 2 {
+                eprintln!("vox mpqs-word <native-numeral-word>");
+                1
+            } else {
+                match ::vox::morphism_factor::parse_numeral(&args[1]) {
+                    Ok(n) => {
+                        let (bound, m) = ::vox::sieve::sieve_params(&n);
+                        match ::vox::sieve::mpqs(&n, bound, m, 32) {
+                            Some(f) => {
+                                let (q, _) = ::vox::morphism_factor::divmod(&n, &f);
+                                println!("factor_word={}", ::vox::morphism_factor::emit_numeral(&f));
+                                println!("cofactor_word={}", ::vox::morphism_factor::emit_numeral(&q));
+                                0
+                            }
+                            None => { eprintln!("mpqs-word: no factor"); 2 }
+                        }
+                    }
+                    Err(e) => { eprintln!("mpqs-word: {e}"); 2 }
+                }
+            }
+        }
         Some("scout") => {
             let parsed: Option<Vec<char>> = if args.len() != 2 {
                 None
