@@ -104,6 +104,13 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
         writeln!(output, "seconds\tbits\tphase_digits\tmeasured_digits\tnested_operations\tretained_nodes\tpeak_nodes\tshots_started\tshots_finished")?;
         Some(output)
     } else { None };
+    let nested_address = vox::loader::elf_object_symbol(&raw, "VOX_NESTED_OPERATION_COUNTERS")
+        .filter(|&(_, size)| size >= 4 * 8).map(|(address, _)| base + address);
+    let mut nested_samples = if nested_address.is_some() {
+        let mut output = BufWriter::new(File::create(format!("{prefix}.nested.tsv"))?);
+        writeln!(output, "seconds\ttoggle\tmodular_add\tadd\tcompare")?;
+        Some(output)
+    } else { None };
     let started = Instant::now();
     let modular_address = vox::loader::elf_object_symbol(&raw, "VOX_MODULAR_COUNTERS")
         .filter(|&(_, size)| size >= 4 * 8).map(|(address, _)| base + address);
@@ -181,6 +188,17 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             // target's terminal-only output contract.
             if total % 64 == 0 { output.flush()?; }
         }
+        if let (Some(address), Some(output)) = (nested_address, nested_samples.as_mut()) {
+            write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
+            for index in 0..4 {
+                let value = unsafe { ptrace(2, pid, (address + index * 8) as *mut c_void,
+                    std::ptr::null_mut()) };
+                if value == -1 { return Err(std::io::Error::last_os_error().into()); }
+                write!(output, "\t{}", value as u64)?;
+            }
+            writeln!(output)?;
+            if total % 64 == 0 { output.flush()?; }
+        }
         // The signal used to sample is swallowed; unrelated signals keep their semantics.
         if let (Some(address), Some(output)) = (modular_address, modular_samples.as_mut()) {
             write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
@@ -201,6 +219,7 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     samples.flush()?;
     if let Some(output) = sieve_samples.as_mut() { output.flush()?; }
     if let Some(output) = ququart_samples.as_mut() { output.flush()?; }
+    if let Some(output) = nested_samples.as_mut() { output.flush()?; }
     if let Some(output) = modular_samples.as_mut() { output.flush()?; }
     if let Some(output) = factor_samples.as_mut() { output.flush()?; }
     for (name, mut counter) in counters {
