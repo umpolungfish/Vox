@@ -1,3 +1,3 @@
-I measure the internal product-cell relation on a baked RSA-style 200-bit source
+I clear older generated membranes and test outputs
 
-I keep reference factors outside the producer and record the shared factor, product and carry cells through closure.
+I remove the older baked membrane binaries, build cache, measurement records, and probe outputs while retaining source files and documentation.
