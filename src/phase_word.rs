@@ -77,11 +77,37 @@ pub(crate) fn execute_iter_with<T: Clone>(
 pub(crate) fn execute_addressed_iter_with<T: Clone>(
     word: impl IntoIterator<Item = char>,
     observation: &T,
+    payload: impl FnMut(char, &T) -> Result<(), String>,
+    address: impl FnMut(u8) -> Option<usize>,
+) -> Result<Readout<T>, String> {
+    execute_seeded_iter_with(word, observation, payload, address, 0)
+}
+
+/// Observe the complete register map without inventing payload deposits for a seed.
+/// The native kernel uses N,T,F,B bits; the runtime uses T,F,t,f bits.
+pub fn native_transition_table(word: &str) -> Result<[u8; 16], String> {
+    execute(word, &())?;
+    let mut table = [0; 16];
+    for native in 0..16u8 {
+        let runtime = ((native & 8) >> 3) | ((native & 4) >> 1)
+            | ((native & 2) << 1) | ((native & 1) << 3);
+        let read = execute_seeded_iter_with(word.chars(), &(), |_, _| Ok(()), |_| None, runtime)?;
+        let r = read.register;
+        table[native as usize] = ((r & 1) << 3) | ((r & 2) << 1)
+            | ((r & 4) >> 1) | ((r & 8) >> 3);
+    }
+    Ok(table)
+}
+
+fn execute_seeded_iter_with<T: Clone>(
+    word: impl IntoIterator<Item = char>,
+    observation: &T,
     mut payload: impl FnMut(char, &T) -> Result<(), String>,
     mut address: impl FnMut(u8) -> Option<usize>,
+    seed: u8,
 ) -> Result<Readout<T>, String> {
     let mut out = Readout {
-        register: 0,
+        register: seed,
         surviving: Vec::new(),
         cleared: 0,
         restored: 0,
@@ -259,5 +285,19 @@ mod tests {
         assert!(execute("⊙⊡", &42).unwrap().surviving.is_empty());
         assert!(execute("⊡?", &42).is_err());
         assert!(execute("", &42).is_err());
+    }
+
+    #[test]
+    fn native_table_preserves_carrier_coordinates_and_default_feedback() {
+        assert_eq!(native_transition_table("⋈").unwrap(), core::array::from_fn(|i| i as u8));
+        for (word, evidence) in [("⊤", 8u8), ("⊥", 4), ("⊞", 3)] {
+            assert_eq!(native_transition_table(word).unwrap(), core::array::from_fn(|i| i as u8 | evidence));
+        }
+        assert_eq!(native_transition_table("∈⊤≺∋").unwrap(), [8; 16]);
+        assert_eq!(native_transition_table("⊢∈≻⋈⊙⊤≻⋈⊥≺⋈⊞∋⊡⋈⊙⊣").unwrap(), [15; 16]);
+        let seed = native_transition_table("⊙").unwrap();
+        assert_eq!(seed[0], 8);
+        assert_eq!(seed[1], 1); // This map is not information monotone.
+        assert!(native_transition_table("⊡?").is_err());
     }
 }
