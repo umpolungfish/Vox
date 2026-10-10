@@ -20,6 +20,7 @@ mod factor_membrane_support;
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
+    eprintln!("  vox reentry help         Lean kernel re-entry, SIXTEEN_3, Y, and certified feedback");
     eprintln!();
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
     eprintln!("  vox lift <file>           same");
@@ -787,9 +788,21 @@ impl imasm_vm::Host for StdHost {
     }
 }
 
+#[path = "../../p4rakernel/bridge/client.rs"]
+mod lean_kernel;
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if let Err(error) = lean_kernel::ensure_default() {
+        eprintln!("Lean kernel admission failed: {error}");
+        std::process::exit(2);
+    }
     let code = match args.first().map(|s| s.as_str()) {
+        Some("reentry") | Some("lean-kernel") => {
+            if args.get(1).map(String::as_str) == Some("word") {
+                lean_kernel::run_word(&args[1..], ::vox::phase_word::native_transition_table)
+            } else { lean_kernel::run(&args[1..]) }
+        },
         None | Some("-h") | Some("--help") | Some("help") => { usage(); 0 }
         Some("--selftest") | Some("--self-test") | Some("selftest") | Some("self-test") => selftest(),
         Some("verdict") => {

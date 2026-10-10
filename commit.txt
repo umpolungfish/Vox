@@ -1,3 +1,3 @@
-I clear older generated membranes and test outputs
+I wire my Vox commands to the native Lean kernel
 
-I remove the older baked membrane binaries, build cache, measurement records, and probe outputs while retaining source files and documentation.
+I require default SIXTEEN_3, kernel re-entry and certified Y admission before primary CLI payload work. I expose reentry and lean-kernel commands and export all sixteen register seeds from my existing phase interpreter in the native carrier coordinates, preserving payload execution. I verify coordinate mapping, frame restoration and nonmonotone seed behavior.
