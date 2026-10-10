@@ -1,4 +1,3 @@
-I record the nested carrier factor words at 256, 512, and 1048 bits
+I measure the internal product-cell relation on a baked RSA-style 200-bit source
 
-I retain the canonical-word outputs, elapsed readings, and wiring diagram for
-the WITNESS, POWER, EXTRACT, P_MINUS, P_PLUS, ECM, and FIX carrier.
+I keep reference factors outside the producer and record the shared factor, product and carry cells through closure.

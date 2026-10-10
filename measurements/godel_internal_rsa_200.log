@@ -1,0 +1,20 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `release` profile [optimized] target(s) in 39.65s
+     Running unittests src/lib.rs (target/release/deps/vox-c34769bf71a71580)
+
+running 1 test
+producer=shared-product-cell-relation source=1199215083673205158356661431646321119743288893586546308999201 bits=200 factor-width=100 source-only=true
+prepared elapsed=0.035 cells=29992 gates=19894
+running elapsed=5.037 decisions=1686 conflicts=1544 work=348965305 assigned=23293 learned=1544
+running elapsed=10.040 decisions=3723 conflicts=2989 work=584821977 assigned=23387 learned=2989
+running elapsed=15.041 decisions=5170 conflicts=4437 work=886664295 assigned=23238 learned=4437
+running elapsed=20.041 decisions=6546 conflicts=5813 work=1178360698 assigned=23012 learned=5813
+running elapsed=25.041 decisions=7873 conflicts=7139 work=1461498167 assigned=20441 learned=7139
+running elapsed=30.046 decisions=9150 conflicts=8418 work=1733483127 assigned=23489 learned=8418
+running elapsed=35.047 decisions=10301 conflicts=9563 work=2002006742 assigned=19333 learned=9563
+running elapsed=40.049 decisions=11431 conflicts=10694 work=2267542934 assigned=22388 learned=10694
+running elapsed=45.052 decisions=12642 conflicts=11895 work=2517332959 assigned=21115 learned=11895
+running elapsed=50.055 decisions=13708 conflicts=12959 work=2748329176 assigned=22896 learned=12959
+running elapsed=55.057 decisions=14792 conflicts=14038 work=2979618217 assigned=20214 learned=14038
+test glut_system::fold::correlation::tests::rsa_200_source_only_product_relation has been running for over 60 seconds
+running elapsed=60.060 decisions=15878 conflicts=15121 work=3209688307 assigned=21642 learned=15121

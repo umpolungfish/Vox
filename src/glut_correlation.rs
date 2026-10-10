@@ -926,6 +926,46 @@ impl Correlation {
 #[cfg(test)]
 mod tests {
     #[test]
+    #[ignore = "explicit RSA-200 internal-relation measurement"]
+    fn rsa_200_source_only_product_relation() {
+        extern crate std;
+        let source = crate::godel_calculus::Nat::from_decimal(
+            "1199215083673205158356661431646321119743288893586546308999201",
+        ).unwrap();
+        let word = crate::godel_calculus::encode_cell_binary(&source);
+        let tape = mf::parse_numeral(&word).unwrap();
+        assert_eq!(tape.len(), 200);
+        let width = tape.len() / 2;
+        let upper = vec![ONE; width];
+        let mut lower = vec![ZERO; width];
+        lower[width - 1] = ONE;
+        let started = std::time::Instant::now();
+        std::println!("producer=shared-product-cell-relation source={} bits={} factor-width={} source-only=true", source, tape.len(), width);
+        let mut graph = Correlation::new(&tape, width, &upper, &lower);
+        std::println!("prepared elapsed={:.3} cells={} gates={}", started.elapsed().as_secs_f64(), graph.cell_count(), graph.gate_count());
+        let mut last = started.elapsed();
+        loop {
+            match graph.advance() {
+                Step::Running => {
+                    let elapsed = started.elapsed();
+                    if elapsed.saturating_sub(last).as_secs() >= 5 {
+                        std::println!("running elapsed={:.3} decisions={} conflicts={} work={} assigned={} learned={}", elapsed.as_secs_f64(), graph.decisions, graph.conflicts, graph.work, graph.trail.len(), graph.learned.len());
+                        last = elapsed;
+                    }
+                }
+                Step::Empty => panic!("the RSA-200 source relation returned empty"),
+                Step::Closed(p, q) => {
+                    let p_word = mf::emit_numeral(&p);
+                    let q_word = mf::emit_numeral(&q);
+                    assert!(crate::godel_calculus::check(&p_word, crate::godel_calculus::Operator::Mul, &q_word, &word).unwrap().valid);
+                    std::println!("closed elapsed={:.3} p={} q={} decisions={} conflicts={}\np.word={}\nq.word={}", started.elapsed().as_secs_f64(), mf::dec_of(&p), mf::dec_of(&q), graph.decisions, graph.conflicts, p_word, q_word);
+                    return;
+                }
+            }
+        }
+    }
+
+    #[test]
     fn folded_gate_explanations_are_valid_for_every_partial_assignment() {
         for rows in [AND, NOT, ADD, midpoint::EQUAL] {
             let width = rows[0].len();
