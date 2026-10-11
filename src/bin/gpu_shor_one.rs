@@ -131,7 +131,10 @@ fn factor_close(a: &[char], n: &[char], r: &[char]) -> (Option<(Vec<char>, Vec<c
     let two = tape_u64(2);
     let (half, rem) = divmod(r, &two);
     if eq(&rem, &one()) { return (None, "order odd -- a^(r/2) undefined, retry with another base"); }
-    let h = pow_tape(a, &half, n);
+    let h = match vox::modular_residue::certified_modular_residue_tape_step(&half, a, n, r) {
+        Ok(value) => value,
+        Err(_) => return (None, "uncertified modular period"),
+    };
     let minus_one = sub(n, &one());
     if eq(&h, &minus_one) { return (None, "a^(r/2) = -1 (mod n) -- retry with another base"); }
     let h_minus = trim(sub(&h, &one()));

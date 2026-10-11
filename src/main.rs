@@ -18,6 +18,30 @@ use ::vox::{imasm_module, imasm_vm, loader, safetensors, divisor_membrane};
 #[path = "bin/factor_membrane_support.rs"]
 mod factor_membrane_support;
 
+fn mark_wiring_interval(occupied: &mut std::collections::BTreeMap<u64, u64>, start: u64, end: u64) {
+    let mut left = start;
+    let mut right = end;
+    if let Some((&range_start, &range_end)) = occupied.range(..=start).next_back() {
+        if range_end >= start {
+            left = range_start;
+            right = right.max(range_end);
+            occupied.remove(&range_start);
+        }
+    }
+    loop {
+        let next = occupied.range(left..=right).next().map(|(&a, &b)| (a, b));
+        match next {
+            Some((range_start, range_end)) if range_end >= left => {
+                left = left.min(range_start);
+                right = right.max(range_end);
+                occupied.remove(&range_start);
+            }
+            _ => break,
+        }
+    }
+    occupied.insert(left, right);
+}
+
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
     eprintln!("  vox reentry help         Lean kernel re-entry, SIXTEEN_3, Y, and certified feedback");
@@ -26,7 +50,7 @@ fn usage() {
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
     eprintln!("  vox profile-native <ELF> <report-prefix> [--registers]   sample native addresses; capture target output");
-    eprintln!("  vox imasm <file>          emit the executable IMASM module");
+    eprintln!("  vox imasm <file> [--output <module.imasm>]   emit the executable IMASM module");
     eprintln!("  vox glyphs <module.imasm> <output.glyphs>   encode complete module as glyphs");
     eprintln!("  vox unglyphs <word.glyphs> <output.imasm>  restore exact executable module");
     eprintln!("  vox circuit <module.imasm> [--stdin | hex-mask[:feedback] ...]   prepare once, switch resident QFT gates");
@@ -736,8 +760,20 @@ fn read_or_exit(path: &str) -> Vec<u8> {
 /// actual `std::fs`/stdio. A guest that opens, reads, or writes a file under
 /// this does so for real, under whatever permission this process already
 /// has — the same access the shell that launched `vox` already had.
-struct StdHost { files: std::collections::BTreeMap<i32, std::fs::File>, next_fd: i32 }
-impl StdHost { fn new() -> Self { StdHost { files: std::collections::BTreeMap::new(), next_fd: 100 } } }
+struct StdHost {
+    files: std::collections::BTreeMap<i32, std::fs::File>,
+    next_fd: i32,
+    stdio: [Option<i32>; 3],
+    fork_stdio: Option<[Option<i32>; 3]>,
+    cwd: std::path::PathBuf,
+    fork_cwd: Option<std::path::PathBuf>,
+    children: std::collections::BTreeMap<i32, std::process::Child>,
+}
+impl StdHost { fn new() -> Self { StdHost {
+    files: std::collections::BTreeMap::new(), next_fd: 100, stdio: [None; 3],
+    fork_stdio: None, cwd: std::env::current_dir().unwrap_or_else(|_| "/".into()), fork_cwd: None,
+    children: std::collections::BTreeMap::new(),
+} } }
 impl imasm_vm::Host for StdHost {
     fn clock_gettime(&mut self, clock: i32) -> Result<(i64,i64),i32> {
         #[cfg(all(target_os="linux",target_pointer_width="64"))]
@@ -758,13 +794,14 @@ impl imasm_vm::Host for StdHost {
         let acc = flags & 0b11;
         opts.read(acc == 0 || acc == 2).write(acc == 1 || acc == 2);
         if flags & 0o100 != 0 { opts.create(true); }
+        if flags & 0o300 == 0o300 { opts.create_new(true); }
         if flags & 0o1000 != 0 { opts.truncate(true); }
         if flags & 0o2000 != 0 { opts.append(true); }
         #[cfg(unix)] { use std::os::unix::fs::OpenOptionsExt; opts.mode(mode as u32); }
         #[cfg(not(unix))] { let _ = mode; }
         match opts.open(path) {
             Ok(f) => { let fd = self.next_fd; self.next_fd += 1; self.files.insert(fd, f); fd }
-            Err(_) => -2, // ENOENT: a precise errno map is a further rung
+            Err(error) => -error.raw_os_error().unwrap_or(5),
         }
     }
     fn read(&mut self, fd: i32, buf: &mut [u8]) -> i64 {
@@ -783,8 +820,95 @@ impl imasm_vm::Host for StdHost {
         }
     }
     fn close(&mut self, fd: i32) -> i32 {
+        for (target, source) in self.stdio.iter_mut().enumerate() {
+            if target as i32 == fd { *source = None; return 0; }
+        }
         if matches!(fd, 0|1|2) { return 0; }
         if self.files.remove(&fd).is_some() { 0 } else { -9 }
+    }
+    fn dup2(&mut self, oldfd: i32, newfd: i32) -> i32 {
+        if oldfd == newfd { return oldfd; }
+        if !self.files.contains_key(&oldfd) && !(0..=2).contains(&oldfd) { return -9; }
+        if (0..=2).contains(&newfd) { self.stdio[newfd as usize] = Some(oldfd); newfd }
+        else { -9 }
+    }
+    fn chdir(&mut self, path: &str) -> i32 {
+        let candidate = std::path::Path::new(path);
+        self.cwd = if candidate.is_absolute() { candidate.to_path_buf() } else { self.cwd.join(candidate) };
+        if self.cwd.is_dir() { 0 } else { -2 }
+    }
+    fn exec(&mut self, path: &str, argv: &[String], envp: &[String]) -> Result<i32,i32> {
+        if std::path::Path::new(path).file_name().and_then(|s| s.to_str()) != Some("lake") {
+            return Err(-13);
+        }
+        let mut command = std::process::Command::new(path);
+        if argv.len() > 1 { command.args(&argv[1..]); }
+        command.env_clear();
+        for entry in envp {
+            if let Some((key, value)) = entry.split_once('=') { command.env(key, value); }
+        }
+        let guest_path = envp.iter().find_map(|entry| entry.strip_prefix("PATH=")).unwrap_or("");
+        let mut paths: Vec<std::path::PathBuf> = std::env::split_paths(guest_path).collect();
+        if let Some(host_path) = std::env::var_os("PATH") {
+            for path in std::env::split_paths(&host_path) {
+                if !paths.contains(&path) { paths.push(path); }
+            }
+        }
+        if let Ok(path) = std::env::join_paths(paths) { command.env("PATH", path); }
+        command.current_dir(&self.cwd);
+        use std::process::Stdio;
+        for (target, stream) in [Stdio::null(), Stdio::inherit(), Stdio::inherit()].into_iter().enumerate() {
+            if let Some(source) = self.stdio[target] {
+                if let Some(file) = self.files.get(&source) {
+                    let clone = file.try_clone().map_err(|_| -5)?;
+                    let stdio = Stdio::from(clone);
+                    match target { 0 => { command.stdin(stdio); }, 1 => { command.stdout(stdio); }, _ => { command.stderr(stdio); } }
+                } else {
+                    match target { 0 => { command.stdin(stream); }, 1 => { command.stdout(stream); }, _ => { command.stderr(stream); } }
+                }
+            } else {
+                match target { 0 => { command.stdin(stream); }, 1 => { command.stdout(stream); }, _ => { command.stderr(stream); } }
+            }
+        }
+        let child = command.spawn().map_err(|error| -(error.raw_os_error().unwrap_or(5)))?;
+        let pid = child.id() as i32;
+        self.children.insert(pid, child);
+        Ok(pid)
+    }
+    fn wait(&mut self, pid: i32) -> Result<(i32,i32),i32> {
+        let child = self.children.get_mut(&pid).ok_or(-10)?;
+        let status = child.wait().map_err(|error| -(error.raw_os_error().unwrap_or(5)))?;
+        self.children.remove(&pid);
+        let encoded = match status.code() { Some(code) => (code & 0xff) << 8, None => 0x7f };
+        Ok((pid, encoded))
+    }
+    fn begin_fork(&mut self) {
+        self.fork_stdio = Some(self.stdio);
+        self.fork_cwd = Some(self.cwd.clone());
+    }
+    fn end_fork(&mut self) {
+        if let Some(saved) = self.fork_stdio.take() { self.stdio = saved; }
+        if let Some(saved) = self.fork_cwd.take() { self.cwd = saved; }
+    }
+}
+
+#[cfg(test)]
+mod host_file_tests {
+    use super::*;
+    use imasm_vm::Host;
+    #[test]
+    fn exclusive_guest_open_preserves_an_existing_capture_and_its_errno() {
+        let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join(format!("measurements/modular_residue_20261010/exclusive-open-{}-{stamp}", std::process::id()));
+        let path = path.to_str().unwrap();
+        let mut host = StdHost::new();
+        let first = host.open(path, 0o301, 0o600);
+        assert!(first >= 3);
+        assert_eq!(host.write(first, b"reserved admission output"), 25);
+        assert_eq!(host.open(path, 0o301, 0o600), -17);
+        assert_eq!(host.close(first), 0);
+        assert_eq!(std::fs::read(path).unwrap(), b"reserved admission output");
     }
 }
 
@@ -1121,9 +1245,15 @@ fn main() {
                     }
                 }
                 match r {
-                    Ok(()) => println!("entry(...) ran off the end with no exit call   [{} steps]", m.steps),
-                    Err(imasm_vm::Stop::SysExit(c)) => println!("entry(...) exited({})   [{} steps in the twelve]", c, m.steps),
-                    Err(imasm_vm::Stop::Halt(e)) => println!("entry(...) halted: {}   [{} steps]", e, m.steps),
+                    Ok(()) => {
+                        eprintln!("entry(...) ran off the end with no exit call   [{} steps]", m.steps);
+                        std::process::exit(2);
+                    }
+                    Err(imasm_vm::Stop::SysExit(c)) => std::process::exit(c),
+                    Err(imasm_vm::Stop::Halt(e)) => {
+                        eprintln!("entry(...) halted: {}   [{} steps]", e, m.steps);
+                        std::process::exit(2);
+                    }
                 }
             } else {
                 let addr = match m.resolve(&sym) {
@@ -1162,16 +1292,27 @@ fn main() {
             println!("saved {} ({} glyphs/characters)",args[2],result.chars().count());
             std::process::exit(0);
         }
-        Some("imasm") => { if args.len()<2 { eprintln!("vox imasm <file>"); return; }
+        Some("imasm") => {
+            if args.len()!=2 && !(args.len()==4 && args[2]=="--output") {
+                eprintln!("vox imasm <file> [--output <module.imasm>]"); return;
+            }
             let raw=read_or_exit(&args[1]);
             let module = imasm_module::emit(&raw);
-            print!("{}", module);
-            let out_path = format!("{}.imasm", args[1]);
-            match std::fs::write(&out_path, &module) {
-                Ok(()) => eprintln!("saved {}", out_path),
-                Err(e) => eprintln!("could not save {}: {}", out_path, e),
+            if args.len()==4 {
+                match std::fs::write(&args[3], &module) {
+                    Ok(()) => eprintln!("saved {}", args[3]),
+                    Err(e) => { eprintln!("could not write {}: {}", args[3], e); std::process::exit(1); }
+                }
+            } else {
+                print!("{}", module);
+                let out_path = format!("{}.imasm", args[1]);
+                match std::fs::write(&out_path, &module) {
+                    Ok(()) => eprintln!("saved {}", out_path),
+                    Err(e) => eprintln!("could not save {}: {}", out_path, e),
+                }
             }
-            std::process::exit(0); }
+            std::process::exit(0);
+        }
         Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
             let raw=read_or_exit(&args[1]); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
         Some("profile-native") => {
@@ -1191,13 +1332,145 @@ fn main() {
             let image = vox_decode::Image { segments };
             let seeds = vox::elf_function_symbols(&raw);
             let mut w = vox_decode::walk(&image, entry, &seeds);
-            let wiring = args.get(2).map(String::as_str) == Some("--wiring");
+            let wiring_complete = args.iter().any(|arg| arg == "--wiring-complete");
+            let wiring = wiring_complete || args.iter().any(|arg| arg == "--wiring");
+            let mut extra_rows = Vec::new();
+            let mut opaque_rows = Vec::new();
+            let mut wiring_covered_bytes = w.claimed_bytes;
+            let mut ranges = Vec::new();
+            let mut symbol_spans: Vec<(u64, u64)> = Vec::new();
+            if wiring_complete {
+                use std::collections::BTreeMap;
+                // Sized STT_FUNC extents are the authority for code phase.
+                // Re-decode those ranges linearly so an earlier incomplete
+                // length walk cannot shift every later instruction boundary.
+                let mut occupied = BTreeMap::<u64, u64>::new();
+                ranges = vox::elf_function_symbol_ranges(&raw);
+                let mut ordered = ranges.clone();
+                ordered.sort_by_key(|(start, end)| (end - start, *start));
+                let mut by_start = ranges.clone();
+                by_start.sort_unstable();
+                for (start, end) in by_start {
+                    if let Some((_, prior_end)) = symbol_spans.last_mut() {
+                        if start <= *prior_end {
+                            *prior_end = (*prior_end).max(end);
+                            continue;
+                        }
+                    }
+                    symbol_spans.push((start, end));
+                }
+                let in_symbol = |address: u64| {
+                    let at = symbol_spans.partition_point(|(start, _)| *start <= address);
+                    at > 0 && address < symbol_spans[at - 1].1
+                };
+                for (_, body) in &w.functions {
+                    for ins in body {
+                        if in_symbol(ins.address) { continue; }
+                        if let Some(bytes) = image.bytes_at(ins.address) {
+                            if let Some(decoded) = x86::decode(bytes, ins.address) {
+                                mark_wiring_interval(&mut occupied, ins.address, ins.address + decoded.len as u64);
+                            }
+                        }
+                    }
+                }
+                for (start, end) in &ordered {
+                    let mut address = *start;
+                    while address < *end {
+                        if let Some((_, &covered_end)) = occupied.range(..=address).next_back() {
+                            if covered_end > address {
+                                address = covered_end.min(*end);
+                                continue;
+                            }
+                        }
+                        let bytes = match image.bytes_at(address) {
+                            Some(bytes) => bytes,
+                            None => break,
+                        };
+                        let decoded = match x86::decode(bytes, address) {
+                            Some(decoded) if decoded.len > 0 && address + decoded.len as u64 <= *end => decoded,
+                            _ => { address += 1; continue; }
+                        };
+                        let decoded_end = address + decoded.len as u64;
+                        if occupied.range(address..decoded_end).any(|(_, &finish)| finish > address) {
+                            address += 1;
+                            continue;
+                        }
+                        let operands = decoded.ops.iter().map(|op| op.field()).collect::<Vec<_>>().join(" ");
+                        let target = decoded.target.map(|value| format!("{:x}", value)).unwrap_or_default();
+                        let fallthrough = if decoded.mnemonic.starts_with("ret") || matches!(decoded.mnemonic.as_str(), "jmp" | "ud2" | "hlt" | "int3" | "iret") {
+                            String::new()
+                        } else {
+                            format!("{:x}", decoded_end)
+                        };
+                        extra_rows.push(format!("{:x}\t{:x}\t{}\t{}\t{}\t{}\t{}\t{}", start,
+                            address, decoded.len, imasm_module::classify(&decoded), decoded.mnemonic,
+                            operands, target, fallthrough));
+                        mark_wiring_interval(&mut occupied, address, decoded_end);
+                        address = decoded_end;
+                    }
+                }
+                // Include symbol-less linker stubs and padding from the
+                // executable sections; undecodable bytes stay explicit.
+                for (base, data) in &image.segments {
+                    let section_end = *base + data.len() as u64;
+                    let mut address = *base;
+                    while address < section_end {
+                        if let Some((_, &covered_end)) = occupied.range(..=address).next_back() {
+                            if covered_end > address {
+                                address = covered_end.min(section_end);
+                                continue;
+                            }
+                        }
+                        let bytes = match image.bytes_at(address) {
+                            Some(bytes) => bytes,
+                            None => break,
+                        };
+                        let decoded = match x86::decode(bytes, address) {
+                            Some(decoded) if decoded.len > 0 && address + decoded.len as u64 <= section_end => decoded,
+                            _ => {
+                                opaque_rows.push(format!("# opaque-byte\t{:x}\t{:02x}", address, bytes[0]));
+                                address += 1;
+                                continue;
+                            }
+                        };
+                        let decoded_end = address + decoded.len as u64;
+                        if occupied.range(address..decoded_end).any(|(_, &finish)| finish > address) {
+                            opaque_rows.push(format!("# opaque-byte\t{:x}\t{:02x}", address, bytes[0]));
+                            address += 1;
+                            continue;
+                        }
+                        let owner = ranges.iter().find(|(start, end)| *start <= address && address < *end)
+                            .map(|(start, _)| *start).unwrap_or(address);
+                        let operands = decoded.ops.iter().map(|op| op.field()).collect::<Vec<_>>().join(" ");
+                        let target = decoded.target.map(|value| format!("{:x}", value)).unwrap_or_default();
+                        let fallthrough = if decoded.mnemonic.starts_with("ret") || matches!(decoded.mnemonic.as_str(), "jmp" | "ud2" | "hlt" | "int3" | "iret") {
+                            String::new()
+                        } else {
+                            format!("{:x}", decoded_end)
+                        };
+                        extra_rows.push(format!("{:x}\t{:x}\t{}\t{}\t{}\t{}\t{}\t{}", owner,
+                            address, decoded.len, imasm_module::classify(&decoded), decoded.mnemonic,
+                            operands, target, fallthrough));
+                        mark_wiring_interval(&mut occupied, address, decoded_end);
+                        address = decoded_end;
+                    }
+                }
+                wiring_covered_bytes = occupied.iter().map(|(start, end)| (end - start) as usize).sum();
+            }
             if wiring {
                 let loaded = loader::load(&raw);
                 vox_decode::mark_noreturn(&mut w.functions, &loaded.symbols);
-                println!("# vox-wiring-v1\t{:x}\t{}\t{}", entry, w.claimed_bytes, w.total_bytes);
+                println!("# vox-wiring-v1\t{:x}\t{}\t{}", entry, wiring_covered_bytes, w.total_bytes);
                 for (name,address) in &loaded.symbols {
                     println!("# symbol\t{:x}\t{}", address, name.replace(['\t','\n'], " "));
+                }
+                if wiring_complete {
+                    for (start, data) in &image.segments {
+                        println!("# executable-range\t{:x}\t{:x}", start, start + data.len() as u64);
+                    }
+                    for (start, end) in &ranges {
+                        println!("# function-range\t{:x}\t{:x}", start, end);
+                    }
                 }
                 println!("function\taddress\tlength\tglyph\tmnemonic\toperands\ttarget\tfallthrough");
             }
@@ -1205,6 +1478,10 @@ fn main() {
                 if args.len() > 2 { /* filter by address later */ }
                 let _ = start;
                 for ins in f {
+                    if wiring_complete {
+                        let at = symbol_spans.partition_point(|(range_start, _)| *range_start <= ins.address);
+                        if at > 0 && ins.address < symbol_spans[at - 1].1 { continue; }
+                    }
                     if let Some(bytes) = image.bytes_at(ins.address) {
                         if let Some(d) = x86::decode(bytes, ins.address) {
                             let ops: Vec<String> = d.ops.iter().map(|o| o.field()).collect();
@@ -1224,6 +1501,8 @@ fn main() {
                     }
                 }
             }
+            for row in extra_rows { println!("{}", row); }
+            for row in opaque_rows { println!("{}", row); }
             std::process::exit(0);
         }
         Some("lift") => { if args.len() < 2 { eprintln!("vox lift <file>"); 1 } else { lift_file(&args[1]) } }

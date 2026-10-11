@@ -281,7 +281,7 @@ pub fn run_shor_register(a: u64, n_val: u64, n_qubits: usize) -> Result<ShorRegi
     let mut factors = None;
     if let Some(r) = extracted_period {
         if r % 2 == 0 {
-            let half = mod_pow_u64(a, r / 2, n_val);
+            let half = ::vox::modular_residue::certified_modular_residue_u64_step(r / 2, a, n_val, r)?;
             if half != n_val - 1 {
                 let f1 = gcd_u64(if half >= 1 { half - 1 } else { n_val - 1 }, n_val);
                 let f2 = gcd_u64(half + 1, n_val);
@@ -656,7 +656,10 @@ fn factor_close_tape(a: &[char], n: &[char], r: &[char]) -> (Option<(Vec<char>, 
     let two = tape_u64(2);
     let (half, rem) = divmod(r, &two);
     if eq_tape(&rem, &one()) { return (None, "order odd -- a^(r/2) undefined, retry with another base"); }
-    let h = pow_tape_exp(a, &half, n);
+    let h = match ::vox::modular_residue::certified_modular_residue_tape_step(&half, a, n, r) {
+        Ok(value) => value,
+        Err(_) => return (None, "uncertified modular period"),
+    };
     let minus_one = sub(n, &one());
     if eq_tape(&h, &minus_one) { return (None, "a^(r/2) = -1 (mod n) -- retry with another base"); }
     let h_minus = trim(sub(&h, &one()));
@@ -828,9 +831,11 @@ pub fn run_shor_big_report(a: Vec<char>, n: Vec<char>, n_qubits: usize) -> Resul
     let spectrum = qft_forward(&state); let mut peaks: Vec<(usize, f64)> = spectrum.iter().map(|c| c.norm_sq()).enumerate().collect();
     peaks.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap()); let mut factors = None;
     for &(k, _) in peaks.iter() { for (_, q) in convergents(k as u64, m as u64) { if q > 0 && mod_pow_tape(&a, &::vox::morphism_factor::tape_u64(q), &n) == one {
-        if q % 2 == 0 { let half = mod_pow_tape(&a, &::vox::morphism_factor::tape_u64(q / 2), &n); let minus = if half == one { n.clone() } else { ::vox::morphism_factor::sub(&half, &one) }; let plus = ::vox::morphism_factor::add(&half, &one); let f = gcd_tape(minus, n.clone()); let g = gcd_tape(plus, n.clone()); let p = if ::vox::morphism_factor::cmp(&f, &one) == core::cmp::Ordering::Greater { f } else { g }; if ::vox::morphism_factor::cmp(&p, &one) == core::cmp::Ordering::Greater && ::vox::morphism_factor::cmp(&p, &n) == core::cmp::Ordering::Less { factors = Some((p.clone(), ::vox::morphism_factor::divmod(&n, &p).0)); } } break; } } if factors.is_some() { break; } }
+        if q % 2 == 0 { let half = ::vox::modular_residue::certified_modular_residue_tape_step(&::vox::morphism_factor::tape_u64(q / 2), &a, &n, &::vox::morphism_factor::tape_u64(q))?; let minus = if half == one { n.clone() } else { ::vox::morphism_factor::sub(&half, &one) }; let plus = ::vox::morphism_factor::add(&half, &one); let f = gcd_tape(minus, n.clone()); let g = gcd_tape(plus, n.clone()); let p = if ::vox::morphism_factor::cmp(&f, &one) == core::cmp::Ordering::Greater { f } else { g }; if ::vox::morphism_factor::cmp(&p, &one) == core::cmp::Ordering::Greater && ::vox::morphism_factor::cmp(&p, &n) == core::cmp::Ordering::Less { factors = Some((p.clone(), ::vox::morphism_factor::divmod(&n, &p).0)); } } break; } } if factors.is_some() { break; } }
     if factors.is_none() && period % 2 == 0 {
-        let half = mod_pow_tape(&a, &::vox::morphism_factor::tape_u64(period / 2), &n);
+        let half = ::vox::modular_residue::certified_modular_residue_tape_step(
+            &::vox::morphism_factor::tape_u64(period / 2), &a, &n,
+            &::vox::morphism_factor::tape_u64(period))?;
         let minus = if half == one { n.clone() } else { ::vox::morphism_factor::sub(&half, &one) };
         let plus = ::vox::morphism_factor::add(&half, &one);
         let f = gcd_tape(minus, n.clone()); let g = gcd_tape(plus, n.clone());

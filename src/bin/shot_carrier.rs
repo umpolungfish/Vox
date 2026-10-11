@@ -93,7 +93,7 @@ fn shot_order(a: u64, n: u64, q: u32) -> Option<u64> {
 
 fn factor_close(a: u64, n: u64, r: u64) -> Option<(u64, u64)> {
     if r == 0 || r % 2 != 0 { return None; }
-    let half = mod_pow(a, r / 2, n);
+    let half = vox::modular_residue::certified_modular_residue_u64_step(r / 2, a, n, r).ok()?;
     if half == n - 1 { return None; }
     let g1 = gcd((half + n - 1) % n, n);
     if g1 > 1 && g1 < n { return Some((g1, n / g1)); }

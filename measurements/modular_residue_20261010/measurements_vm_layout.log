@@ -1,0 +1,518 @@
+warning: Missing auto-load script at offset 0 in section .debug_gdb_scripts
+of file /home/mrnob0dy666/imsgct/Vox/target/debug/deps/vox-766cf675ec3e61db.
+Use `info auto-load python-scripts [REGEXP]' to list them.
+/* offset      |    size */  type = struct vox::imasm_vm::Machine {
+                             private:
+/*    200      |      24 */    struct alloc::collections::btree::map::BTreeMap<u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, alloc::alloc::Global> [with K = u64, V = struct alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, A = struct alloc::alloc::Global] {
+                                 private:
+/*    200      |      16 */        struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>> {
+                                     public:
+/*    200      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>>::None [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>] {
+                                           <no data fields>
+
+                                           /* total size (bytes):   16 */
+                                       } None;
+/*    200      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>>::Some [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>] {
+/*    200      |      16 */                T __0;
+
+                                           /* total size (bytes):   16 */
+                                       } Some;
+
+                                       /* total size (bytes):   16 */
+                                   } root;
+/*    216      |       8 */        usize length;
+                                 protected:
+/*    224      |       0 */        struct core::mem::manually_drop::ManuallyDrop<alloc::alloc::Global> [with T = A] {
+                                     private:
+/*    224      |       0 */            A value;
+
+                                       /* total size (bytes):    0 */
+                                   } alloc;
+                                 private:
+/*    224      |       0 */        struct core::marker::PhantomData<alloc::boxed::Box<(u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>), alloc::alloc::Global>> [with T = struct (u64, alloc::rc::Rc<alloc::vec::Vec<(char, alloc::vec::Vec<alloc::string::String, alloc::alloc::Global>), alloc::alloc::Global>, alloc::alloc::Global>) *] {
+                                       <no data fields>
+
+                                       /* total size (bytes):    0 */
+                                   } _marker;
+
+                                   /* total size (bytes):   24 */
+                               } code;
+/*     96      |      24 */    struct alloc::vec::Vec<u64, alloc::alloc::Global> [with T = u64, A = struct alloc::alloc::Global] {
+                                 private:
+/*     96      |      16 */        struct alloc::raw_vec::RawVec<T, alloc::alloc::Global> [with T = T, A = A] {
+                                     private:
+/*     96      |      16 */            struct alloc::raw_vec::RawVecInner<alloc::alloc::Global> [with A = A] {
+                                         private:
+/*    104      |       8 */                struct core::ptr::unique::Unique<u8> [with T = u8] {
+                                             private:
+/*    104      |       8 */                    struct core::ptr::non_null::NonNull<T> [with T = T] {
+                                                 private:
+/*    104      |       8 */                        T *pointer;
+
+                                                   /* total size (bytes):    8 */
+                                               } pointer;
+/*    112      |       0 */                    struct core::marker::PhantomData<T> [with T = T] {
+                                                   <no data fields>
+
+                                                   /* total size (bytes):    0 */
+                                               } _marker;
+
+                                               /* total size (bytes):    8 */
+                                           } ptr;
+/*     96      |       8 */                struct core::num::niche_types::UsizeNoHighBit {
+                                             private:
+/*     96      |       8 */                    usize __0;
+
+                                               /* total size (bytes):    8 */
+                                           } cap;
+/* XXX  8-byte hole      */
+/*    112      |       0 */                A alloc;
+
+                                           /* total size (bytes):   16 */
+                                       } inner;
+/*    112      |       0 */            struct core::marker::PhantomData<T> [with T = T] {
+                                           <no data fields>
+
+                                           /* total size (bytes):    0 */
+                                       } _marker;
+
+                                       /* total size (bytes):   16 */
+                                   } buf;
+/*    112      |       8 */        usize len;
+
+                                   /* total size (bytes):   24 */
+                               } addrs;
+/* XXX 104-byte hole      */
+/*    224      |      24 */    struct alloc::collections::btree::map::BTreeMap<u64, u64, alloc::alloc::Global> [with K = u64, V = u64, A = struct alloc::alloc::Global] {
+                                 private:
+/*    224      |      16 */        struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, u64, alloc::collections::btree::node::marker::LeafOrInternal>> {
+                                     public:
+/*    224      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, u64, alloc::collections::btree::node::marker::LeafOrInternal>>::None [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, K, K, alloc::collections::btree::node::marker::LeafOrInternal>] {
+                                           <no data fields>
+
+                                           /* total size (bytes):   16 */
+                                       } None;
+/*    224      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, u64, alloc::collections::btree::node::marker::LeafOrInternal>>::Some [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, K, K, alloc::collections::btree::node::marker::LeafOrInternal>] {
+/*    224      |      16 */                T __0;
+
+                                           /* total size (bytes):   16 */
+                                       } Some;
+
+                                       /* total size (bytes):   16 */
+                                   } root;
+/*    240      |       8 */        usize length;
+                                 protected:
+/*    248      |       0 */        struct core::mem::manually_drop::ManuallyDrop<alloc::alloc::Global> [with T = A] {
+                                     private:
+/*    248      |       0 */            A value;
+
+                                       /* total size (bytes):    0 */
+                                   } alloc;
+                                 private:
+/*    248      |       0 */        struct core::marker::PhantomData<alloc::boxed::Box<(u64, u64), alloc::alloc::Global>> [with T = struct (u64, u64) *] {
+                                       <no data fields>
+
+                                       /* total size (bytes):    0 */
+                                   } _marker;
+
+                                   /* total size (bytes):   24 */
+                               } next_of;
+                             public:
+/*    248      |       8 */    u64 entry;
+                             private:
+/*    256      |       8 */    u64 phdr;
+/*    264      |       8 */    u64 phent;
+/*    272      |       8 */    u64 phnum;
+/*    280      |      24 */    struct alloc::collections::btree::map::BTreeMap<&str, u128, alloc::alloc::Global> [with K = struct &str, V = u128, A = struct alloc::alloc::Global] {
+                                 private:
+/*    280      |      16 */        struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, &str, u128, alloc::collections::btree::node::marker::LeafOrInternal>> {
+                                     public:
+/*    280      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, &str, u128, alloc::collections::btree::node::marker::LeafOrInternal>>::None [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, &str, V, alloc::collections::btree::node::marker::LeafOrInternal>] {
+                                           <no data fields>
+
+                                           /* total size (bytes):   16 */
+                                       } None;
+/*    280      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, &str, u128, alloc::collections::btree::node::marker::LeafOrInternal>>::Some [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, &str, V, alloc::collections::btree::node::marker::LeafOrInternal>] {
+/*    280      |      16 */                T __0;
+
+                                           /* total size (bytes):   16 */
+                                       } Some;
+
+                                       /* total size (bytes):   16 */
+                                   } root;
+/*    296      |       8 */        usize length;
+                                 protected:
+/*    304      |       0 */        struct core::mem::manually_drop::ManuallyDrop<alloc::alloc::Global> [with T = A] {
+                                     private:
+/*    304      |       0 */            A value;
+
+                                       /* total size (bytes):    0 */
+                                   } alloc;
+                                 private:
+/*    304      |       0 */        struct core::marker::PhantomData<alloc::boxed::Box<(&str, u128), alloc::alloc::Global>> [with T = struct (&str, u128) *] {
+                                       <no data fields>
+
+                                       /* total size (bytes):    0 */
+                                   } _marker;
+
+                                   /* total size (bytes):   24 */
+                               } reg;
+/*    304      |      24 */    struct vox::imasm_vm::Memory {
+                                 private:
+/*    304      |      24 */        struct alloc::collections::btree::map::BTreeMap<u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>, alloc::alloc::Global> [with K = u64, V = u8 (*)[4096], A = struct alloc::alloc::Global] {
+                                     private:
+/*    304      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>> {
+                                         public:
+/*    304      |      16 */                struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>>::None [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>] {
+                                               <no data fields>
+
+                                               /* total size (bytes):   16 */
+                                           } None;
+/*    304      |      16 */                struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>>::Some [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>, alloc::collections::btree::node::marker::LeafOrInternal>] {
+/*    304      |      16 */                    T __0;
+
+                                               /* total size (bytes):   16 */
+                                           } Some;
+
+                                           /* total size (bytes):   16 */
+                                       } root;
+/*    320      |       8 */            usize length;
+                                     protected:
+/*    328      |       0 */            struct core::mem::manually_drop::ManuallyDrop<alloc::alloc::Global> [with T = A] {
+                                         private:
+/*    328      |       0 */                A value;
+
+                                           /* total size (bytes):    0 */
+                                       } alloc;
+                                     private:
+/*    328      |       0 */            struct core::marker::PhantomData<alloc::boxed::Box<(u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>), alloc::alloc::Global>> [with T = struct (u64, alloc::boxed::Box<[u8; 4096], alloc::alloc::Global>) *] {
+                                           <no data fields>
+
+                                           /* total size (bytes):    0 */
+                                       } _marker;
+
+                                       /* total size (bytes):   24 */
+                                   } pages;
+
+                                   /* total size (bytes):   24 */
+                               } mem;
+/*     32      |      48 */    struct (u128, u128, u8) {
+/*     32      |      16 */        u128 __0;
+/*     48      |      16 */        u128 __1;
+/*     64      |       1 */        u8 __2;
+/* XXX 15-byte padding   */
+
+                                   /* total size (bytes):   48 */
+                               } flags;
+/* XXX 40-byte hole      */
+/*    120      |      24 */    struct alloc::string::String {
+                                 private:
+/*    120      |      24 */        struct alloc::vec::Vec<u8, alloc::alloc::Global> [with T = u8, A = struct alloc::alloc::Global] {
+                                     private:
+/*    120      |      16 */            struct alloc::raw_vec::RawVec<T, alloc::alloc::Global> [with T = T, A = A] {
+                                         private:
+/*    120      |      16 */                struct alloc::raw_vec::RawVecInner<alloc::alloc::Global> [with A = A] {
+                                             private:
+/*    128      |       8 */                    struct core::ptr::unique::Unique<T> [with T = T] {
+                                                 private:
+/*    128      |       8 */                        struct core::ptr::non_null::NonNull<T> [with T = T] {
+                                                     private:
+/*    128      |       8 */                            T *pointer;
+
+                                                       /* total size (bytes):    8 */
+                                                   } pointer;
+/*    136      |       0 */                        struct core::marker::PhantomData<T> [with T = T] {
+                                                       <no data fields>
+
+                                                       /* total size (bytes):    0 */
+                                                   } _marker;
+
+                                                   /* total size (bytes):    8 */
+                                               } ptr;
+/*    120      |       8 */                    struct core::num::niche_types::UsizeNoHighBit {
+                                                 private:
+/*    120      |       8 */                        usize __0;
+
+                                                   /* total size (bytes):    8 */
+                                               } cap;
+/* XXX  8-byte hole      */
+/*    136      |       0 */                    A alloc;
+
+                                               /* total size (bytes):   16 */
+                                           } inner;
+/*    136      |       0 */                struct core::marker::PhantomData<T> [with T = T] {
+                                               <no data fields>
+
+                                               /* total size (bytes):    0 */
+                                           } _marker;
+
+                                           /* total size (bytes):   16 */
+                                       } buf;
+/*    136      |       8 */            usize len;
+
+                                       /* total size (bytes):   24 */
+                                   } vec;
+
+                                   /* total size (bytes):   24 */
+                               } kind;
+                             public:
+/* XXX 184-byte hole      */
+/*    328      |       8 */    u64 steps;
+/* XXX 114-byte hole      */
+/*    450      |       1 */    u8 bits;
+/*    336      |      24 */    struct alloc::collections::btree::map::BTreeMap<alloc::string::String, u64, alloc::alloc::Global> [with K = struct alloc::string::String, V = u64, A = struct alloc::alloc::Global] {
+                                 private:
+/*    336      |      16 */        struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, alloc::string::String, u64, alloc::collections::btree::node::marker::LeafOrInternal>> {
+                                     public:
+/*    336      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, alloc::string::String, u64, alloc::collections::btree::node::marker::LeafOrInternal>>::None [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, alloc::string::String, V, alloc::collections::btree::node::marker::LeafOrInternal>] {
+                                           <no data fields>
+
+                                           /* total size (bytes):   16 */
+                                       } None;
+/*    336      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, alloc::string::String, u64, alloc::collections::btree::node::marker::LeafOrInternal>>::Some [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, alloc::string::String, V, alloc::collections::btree::node::marker::LeafOrInternal>] {
+/*    336      |      16 */                T __0;
+
+                                           /* total size (bytes):   16 */
+                                       } Some;
+
+                                       /* total size (bytes):   16 */
+                                   } root;
+/*    352      |       8 */        usize length;
+                                 protected:
+/*    360      |       0 */        struct core::mem::manually_drop::ManuallyDrop<alloc::alloc::Global> [with T = A] {
+                                     private:
+/*    360      |       0 */            A value;
+
+                                       /* total size (bytes):    0 */
+                                   } alloc;
+                                 private:
+/*    360      |       0 */        struct core::marker::PhantomData<alloc::boxed::Box<(alloc::string::String, u64), alloc::alloc::Global>> [with T = struct (alloc::string::String, u64) *] {
+                                       <no data fields>
+
+                                       /* total size (bytes):    0 */
+                                   } _marker;
+
+                                   /* total size (bytes):   24 */
+                               } symbols;
+                             private:
+/*    360      |       8 */    u64 mmap_next;
+/*    368      |       8 */    u64 brk_cur;
+/*    144      |      24 */    struct alloc::vec::Vec<(u64, u64), alloc::alloc::Global> [with T = struct (u64, u64), A = struct alloc::alloc::Global] {
+                                 private:
+/*    144      |      16 */        struct alloc::raw_vec::RawVec<(u64, u64), alloc::alloc::Global> [with T = T, A = A] {
+                                     private:
+/*    144      |      16 */            struct alloc::raw_vec::RawVecInner<alloc::alloc::Global> [with A = A] {
+                                         private:
+/*    152      |       8 */                struct core::ptr::unique::Unique<u8> [with T = u8] {
+                                             private:
+/*    152      |       8 */                    struct core::ptr::non_null::NonNull<T> [with T = T] {
+                                                 private:
+/*    152      |       8 */                        T *pointer;
+
+                                                   /* total size (bytes):    8 */
+                                               } pointer;
+/*    160      |       0 */                    struct core::marker::PhantomData<T> [with T = T] {
+                                                   <no data fields>
+
+                                                   /* total size (bytes):    0 */
+                                               } _marker;
+
+                                               /* total size (bytes):    8 */
+                                           } ptr;
+/*    144      |       8 */                struct core::num::niche_types::UsizeNoHighBit {
+                                             private:
+/*    144      |       8 */                    usize __0;
+
+                                               /* total size (bytes):    8 */
+                                           } cap;
+/* XXX  8-byte hole      */
+/*    160      |       0 */                A alloc;
+
+                                           /* total size (bytes):   16 */
+                                       } inner;
+/*    160      |       0 */            struct core::marker::PhantomData<(u64, u64)> [with T = T] {
+                                           <no data fields>
+
+                                           /* total size (bytes):    0 */
+                                       } _marker;
+
+                                       /* total size (bytes):   16 */
+                                   } buf;
+/*    160      |       8 */        usize len;
+
+                                   /* total size (bytes):   24 */
+                               } irelative;
+/*    168      |      24 */    struct alloc::vec::Vec<(u64, u64), alloc::alloc::Global> [with T = struct (u64, u64), A = struct alloc::alloc::Global] {
+                                 private:
+/*    168      |      16 */        struct alloc::raw_vec::RawVec<(u64, u64), alloc::alloc::Global> [with T = T, A = A] {
+                                     private:
+/*    168      |      16 */            struct alloc::raw_vec::RawVecInner<alloc::alloc::Global> [with A = A] {
+                                         private:
+/*    176      |       8 */                struct core::ptr::unique::Unique<u8> [with T = u8] {
+                                             private:
+/*    176      |       8 */                    struct core::ptr::non_null::NonNull<T> [with T = T] {
+                                                 private:
+/*    176      |       8 */                        T *pointer;
+
+                                                   /* total size (bytes):    8 */
+                                               } pointer;
+/*    184      |       0 */                    struct core::marker::PhantomData<T> [with T = T] {
+                                                   <no data fields>
+
+                                                   /* total size (bytes):    0 */
+                                               } _marker;
+
+                                               /* total size (bytes):    8 */
+                                           } ptr;
+/*    168      |       8 */                struct core::num::niche_types::UsizeNoHighBit {
+                                             private:
+/*    168      |       8 */                    usize __0;
+
+                                               /* total size (bytes):    8 */
+                                           } cap;
+/* XXX  8-byte hole      */
+/*    184      |       0 */                A alloc;
+
+                                           /* total size (bytes):   16 */
+                                       } inner;
+/*    184      |       0 */            struct core::marker::PhantomData<(u64, u64)> [with T = T] {
+                                           <no data fields>
+
+                                           /* total size (bytes):    0 */
+                                       } _marker;
+
+                                       /* total size (bytes):   16 */
+                                   } buf;
+/*    184      |       8 */        usize len;
+
+                                   /* total size (bytes):   24 */
+                               } relative;
+/*     80      |      16 */    struct core::option::Option<alloc::boxed::Box<dyn vox::imasm_vm::Host, alloc::alloc::Global>> {
+                                 public:
+/*     80      |      16 */        struct core::option::Option<alloc::boxed::Box<dyn vox::imasm_vm::Host, alloc::alloc::Global>>::None [with T = struct alloc::boxed::Box<dyn vox::imasm_vm::Host, alloc::alloc::Global>] {
+                                       <no data fields>
+
+                                       /* total size (bytes):   16 */
+                                   } None;
+/*     80      |      16 */        struct core::option::Option<alloc::boxed::Box<dyn vox::imasm_vm::Host, alloc::alloc::Global>>::Some [with T = struct alloc::boxed::Box<dyn vox::imasm_vm::Host, alloc::alloc::Global>] {
+/*     80      |      16 */            T __0;
+
+                                       /* total size (bytes):   16 */
+                                   } Some;
+
+                                   /* total size (bytes):   16 */
+                               } host;
+/* XXX 280-byte hole      */
+/*    376      |      24 */    struct alloc::collections::btree::map::BTreeMap<u64, alloc::string::String, alloc::alloc::Global> [with K = u64, V = struct alloc::string::String, A = struct alloc::alloc::Global] {
+                                 private:
+/*    376      |      16 */        struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::string::String, alloc::collections::btree::node::marker::LeafOrInternal>> {
+                                     public:
+/*    376      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::string::String, alloc::collections::btree::node::marker::LeafOrInternal>>::None [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, K, alloc::string::String, alloc::collections::btree::node::marker::LeafOrInternal>] {
+                                           <no data fields>
+
+                                           /* total size (bytes):   16 */
+                                       } None;
+/*    376      |      16 */            struct core::option::Option<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, u64, alloc::string::String, alloc::collections::btree::node::marker::LeafOrInternal>>::Some [with T = struct alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Owned, K, alloc::string::String, alloc::collections::btree::node::marker::LeafOrInternal>] {
+/*    376      |      16 */                T __0;
+
+                                           /* total size (bytes):   16 */
+                                       } Some;
+
+                                       /* total size (bytes):   16 */
+                                   } root;
+/*    392      |       8 */        usize length;
+                                 protected:
+/*    400      |       0 */        struct core::mem::manually_drop::ManuallyDrop<alloc::alloc::Global> [with T = A] {
+                                     private:
+/*    400      |       0 */            A value;
+
+                                       /* total size (bytes):    0 */
+                                   } alloc;
+                                 private:
+/*    400      |       0 */        struct core::marker::PhantomData<alloc::boxed::Box<(u64, alloc::string::String), alloc::alloc::Global>> [with T = struct (u64, alloc::string::String) *] {
+                                       <no data fields>
+
+                                       /* total size (bytes):    0 */
+                                   } _marker;
+
+                                   /* total size (bytes):   24 */
+                               } watch;
+                             public:
+/*      0      |      32 */    struct alloc::collections::vec_deque::VecDeque<alloc::string::String, alloc::alloc::Global> [with T = struct alloc::string::String, A = struct alloc::alloc::Global] {
+                                 private:
+/*     16      |       8 */        usize head;
+/*     24      |       8 */        usize len;
+/*      0      |      16 */        struct alloc::raw_vec::RawVec<alloc::string::String, alloc::alloc::Global> [with T = T, A = A] {
+                                     private:
+/*      0      |      16 */            struct alloc::raw_vec::RawVecInner<alloc::alloc::Global> [with A = A] {
+                                         private:
+/*      8      |       8 */                struct core::ptr::unique::Unique<u8> [with T = u8] {
+                                             private:
+/*      8      |       8 */                    struct core::ptr::non_null::NonNull<T> [with T = T] {
+                                                 private:
+/*      8      |       8 */                        T *pointer;
+
+                                                   /* total size (bytes):    8 */
+                                               } pointer;
+/*     16      |       0 */                    struct core::marker::PhantomData<T> [with T = T] {
+                                                   <no data fields>
+
+                                                   /* total size (bytes):    0 */
+                                               } _marker;
+
+                                               /* total size (bytes):    8 */
+                                           } ptr;
+/*      0      |       8 */                struct core::num::niche_types::UsizeNoHighBit {
+                                             private:
+/*      0      |       8 */                    usize __0;
+
+                                               /* total size (bytes):    8 */
+                                           } cap;
+/* XXX  8-byte hole      */
+/*     16      |       0 */                A alloc;
+
+                                           /* total size (bytes):   16 */
+                                       } inner;
+/*     16      |       0 */            struct core::marker::PhantomData<alloc::string::String> [with T = T] {
+                                           <no data fields>
+
+                                           /* total size (bytes):    0 */
+                                       } _marker;
+
+                                       /* total size (bytes):   16 */
+                                   } buf;
+/* XXX 16-byte padding   */
+
+                                   /* total size (bytes):   32 */
+                               } syslog;
+/* XXX 368-byte hole      */
+/*    400      |       8 */    u64 trace_lo;
+/*    408      |       8 */    u64 trace_hi;
+/*    416      |       8 */    u64 wmem;
+/*    424      |       8 */    u64 wmem_lo;
+/*    432      |       8 */    u64 wmem_hi;
+/* XXX  8-byte hole      */
+/*    448      |       1 */    bool df;
+                             private:
+/*    440      |       8 */    u64 cur_pc;
+/* XXX  1-byte hole      */
+/*    449      |       1 */    bool fork_child;
+/*    192      |       8 */    struct core::option::Option<i32> {
+                                 public:
+/*    192      |       8 */        struct core::option::Option<i32>::None [with T = i32] {
+                                       <no data fields>
+
+                                       /* total size (bytes):    8 */
+                                   } None;
+/*    192      |       8 */        struct core::option::Option<i32>::Some [with T = i32] {
+/*    196      |       4 */            T __0;
+
+                                       /* total size (bytes):    8 */
+                                   } Some;
+
+                                   /* total size (bytes):    8 */
+                               } fork_exec_pid;
+/* XXX 264-byte padding   */
+
+                               /* total size (bytes):  464 */
+                             }

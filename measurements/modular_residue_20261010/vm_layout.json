@@ -1,0 +1,11 @@
+{
+  "memory": 304,
+  "current_pc": 440,
+  "steps": 328,
+  "root_node": 0,
+  "root_height": 8,
+  "node_length": 186,
+  "node_keys": 8,
+  "node_values": 96,
+  "node_edges": 192
+}

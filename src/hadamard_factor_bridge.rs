@@ -201,9 +201,9 @@ impl HadamardCarrier {
             return HadamardDescent::N(self);
         }
 
-        let x = match modular_phase_power(base, &half, self.n()) {
+        let x = match crate::modular_residue::certified_modular_residue_tape_step(&half, base, self.n(), period) {
             Ok(x) => x,
-            Err(_) => return HadamardDescent::F,
+            Err(_) => return HadamardDescent::N(self),
         };
         self.descend_involution(&x)
     }
