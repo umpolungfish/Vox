@@ -1,4 +1,5 @@
-I release discarded guest mappings during factor membrane execution
+I execute packed double bit masks in my factor membrane runtime
 
-I implement page-rounded munmap reclamation with Linux-style invalid-request errors.
-I verify adjacent storage, repeated unmapping, reuse, and musl growth with five dynamic-page tests.
+I support double-lane XOR, AND, AND-NOT, and OR without changing integer flags.
+I reproduce the missing sign changes and register clearing with a static musl floating-point probe.
+I pass all twelve SIMD checks and recover byte-identical native probe output.

@@ -1042,8 +1042,10 @@ impl Machine {
                 let x0=a&mask(4); let x2=(a>>64)&mask(4); let y0=b&mask(4); let y2=(b>>64)&mask(4);
                 self.write(&dst, (x0*y0) | ((x2*y2)<<64));
             }
-            "pxor"|"pand"|"pandn"|"por"|"xorps"|"andps"|"orps" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
-                self.write(&dst, match op {"pxor"|"xorps"=>a^b,"pand"|"andps"=>a&b,"pandn"=>(!a)&b,_=>a|b}); }
+            "pxor"|"pand"|"pandn"|"por"|"xorps"|"andps"|"andnps"|"orps"|
+            "xorpd"|"andpd"|"andnpd"|"orpd" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
+                self.write(&dst, match op {"pxor"|"xorps"|"xorpd"=>a^b,
+                    "pand"|"andps"|"andpd"=>a&b,"pandn"|"andnps"|"andnpd"=>(!a)&b,_=>a|b}); }
             // Byte/word/dword equality: each lane becomes all-ones on a match,
             // zero otherwise. The SSE2 string routines lean on this and pmovmskb.
             "pcmpeqb"|"pcmpeqw"|"pcmpeqd" => {
@@ -1476,7 +1478,8 @@ fn is_simd(op: &str) -> bool {
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
         |"packssdw"|"packsswb"|"packuswb"
         |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
-        |"xorps"|"andps"|"orps"|"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
+        |"xorps"|"andps"|"andnps"|"orps"|"xorpd"|"andpd"|"andnpd"|"orpd"
+        |"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
 }
 
 #[cfg(test)]
@@ -1698,6 +1701,35 @@ mod membrane_simd_tests {
             m.alu("imul",&operands.iter().map(|s|s.to_string()).collect::<Vec<_>>());
             assert_eq!(m.reg("eax"),0xfffffffe); assert!(m.cf()); assert!(m.cc("o"));
         }
+    }
+
+    #[test]
+    fn packed_double_bit_masks_preserve_payloads_and_integer_flags() {
+        let mut machine = Machine::new("");
+        let lanes = (0x7ff8000000000042u128 << 64) | 1.0f64.to_bits() as u128;
+        let signs = (1u128 << 127) | (1u128 << 63);
+        machine.set_reg("xmm0", lanes);
+        machine.set_reg("xmm1", signs);
+        machine.set_flags(0, 3, 8, "explicit");
+        let flags = machine.flags;
+        let kind = machine.kind.clone();
+        machine.alu("xorpd", &["r:xmm0".into(), "r:xmm1".into()]);
+        assert_eq!(machine.reg("xmm0"), lanes ^ signs);
+        assert_eq!(machine.flags, flags);
+        assert_eq!(machine.kind, kind);
+        machine.set_reg("xmm1", !signs);
+        machine.alu("andpd", &["r:xmm0".into(), "r:xmm1".into()]);
+        assert_eq!(machine.reg("xmm0"), lanes);
+        machine.set_reg("xmm1", signs);
+        machine.alu("orpd", &["r:xmm0".into(), "r:xmm1".into()]);
+        assert_eq!(machine.reg("xmm0"), lanes | signs);
+        machine.alu("andnpd", &["r:xmm0".into(), "r:xmm1".into()]);
+        assert_eq!(machine.reg("xmm0"), 0);
+        machine.set_reg("xmm0", lanes);
+        machine.alu("xorpd", &["r:xmm0".into(), "r:xmm0".into()]);
+        assert_eq!(machine.reg("xmm0"), 0);
+        assert_eq!(machine.flags, flags);
+        assert_eq!(machine.kind, kind);
     }
 
     #[test]
