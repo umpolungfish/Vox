@@ -1,5 +1,1 @@
-I execute packed double bit masks in my factor membrane runtime
-
-I support double-lane XOR, AND, AND-NOT, and OR without changing integer flags.
-I reproduce the missing sign changes and register clearing with a static musl floating-point probe.
-I pass all twelve SIMD checks and recover byte-identical native probe output.
+I remove transient allocations from guest address and flag execution
