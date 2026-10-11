@@ -555,6 +555,11 @@ impl Machine {
                 self.set_reg("rax", match result { Ok(address) => address as u128,
                     Err(errno) => errno as u64 as u128 });
             }
+            11 => { // munmap: release discarded anonymous allocator pages.
+                let result = self.unmap(a0 as u64, a1 as u64);
+                self.set_reg("rax", match result { Ok(()) => 0,
+                    Err(errno) => errno as u64 as u128 });
+            }
             12 => { // brk(addr): 0 reads the current break, else sets it
                 if a0 != 0 { self.brk_cur = a0 as u64; }
                 self.set_reg("rax", self.brk_cur as u128);
@@ -586,13 +591,25 @@ impl Machine {
             }
             // glibc's static init issues a run of housekeeping calls whose only
             // requirement is that they succeed: set_tid_address, set_robust_list,
-            // rseq, sigaltstack, rt_sigaction/procmask, mprotect, munmap,
+            // rseq, sigaltstack, rt_sigaction/procmask, mprotect,
             // prlimit64, sched_getaffinity, uname, poll and the
             // like. Their out-parameters read back zero from the sparse map,
             // which each of these tolerates. Reporting success lets init reach
             // main; a real semantics for any one of them is a later rung.
             _ => { self.set_reg("rax", 0); } // succeed by default so userland init proceeds
         }
+        Ok(())
+    }
+
+    /// Remove mapped storage in the page-rounded interval. Unmapped holes
+    /// already read as zero and need no materialized pages.
+    fn unmap(&mut self, address: u64, length: u64) -> Result<(), i64> {
+        if address & 4095 != 0 || length == 0 { return Err(-22); }
+        let rounded = length.checked_add(4095).ok_or(-22)? & !4095;
+        let end = address.checked_add(rounded).ok_or(-22)?;
+        let keys: Vec<u64> = self.mem.pages.range((address >> 12)..(end >> 12))
+            .map(|(&key, _)| key).collect();
+        for key in keys { self.mem.pages.remove(&key); }
         Ok(())
     }
 
@@ -1814,6 +1831,40 @@ fn parse_imm(s: &str) -> i128 {
 #[cfg(test)]
 mod dynamic_page_tests {
     use super::*;
+    fn unmap_call(machine: &mut Machine, address: u64, length: u64) -> i64 {
+        for (name, value) in [("rax", 11), ("rdi", address), ("rsi", length)] {
+            machine.set_reg(name, value as u128);
+        }
+        assert!(machine.do_syscall().is_ok());
+        machine.get_reg("rax") as u64 as i64
+    }
+    #[test]
+    fn unmap_releases_rounded_pages_and_preserves_adjacent_storage() {
+        let mut machine = Machine::new("");
+        let base = 0x380100000;
+        for page in 0..4 { machine.store(base + page * 4096, 100 + page as u128, 8); }
+        assert_eq!(unmap_call(&mut machine, base + 4096, 4097), 0);
+        assert_eq!(machine.load(base, 8), 100);
+        assert_eq!(machine.load(base + 4096, 8), 0);
+        assert_eq!(machine.load(base + 8192, 8), 0);
+        assert_eq!(machine.load(base + 12288, 8), 103);
+        assert!(!machine.mem.pages.contains_key(&((base + 4096) >> 12)));
+        assert!(!machine.mem.pages.contains_key(&((base + 8192) >> 12)));
+        assert_eq!(unmap_call(&mut machine, base + 4096, 4097), 0);
+        machine.store(base + 4096, 77, 8);
+        assert_eq!(machine.load(base + 4096, 8), 77);
+    }
+    #[test]
+    fn invalid_unmap_preserves_live_pages() {
+        let mut machine = Machine::new("");
+        let base = 0x380100000;
+        machine.store(base, 123, 8);
+        for (address, length) in [(base + 1, 4096), (base, 0),
+            (base, u64::MAX), (u64::MAX & !4095, 4096)] {
+            assert_eq!(unmap_call(&mut machine, address, length), -22);
+            assert_eq!(machine.load(base, 8), 123);
+        }
+    }
     fn remap_call(machine: &mut Machine, old: u64, old_size: u64, new_size: u64, flags: u64, fixed: u64) -> i64 {
         for (name, value) in [("rax", 25), ("rdi", old), ("rsi", old_size), ("rdx", new_size), ("r10", flags), ("r8", fixed)] {
             machine.set_reg(name, value as u128);

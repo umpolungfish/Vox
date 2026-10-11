@@ -1,5 +1,4 @@
-I certify modular residue execution across my factor paths
+I release discarded guest mappings during factor membrane execution
 
-I bind arbitrary-width ticks to certified source, base, and period values across my phase, coupled, braid, QFT, and Hadamard factor closures.
-
-I preserve guest memory through arena remapping, isolate concurrent Lean captures, keep IMASM stdout exact, and propagate guest exit status. I preserve complete address-level wiring and advance native sample stops through completed child waits. My control readout stays byte identical and passes independent factor and residue verification.
+I implement page-rounded munmap reclamation with Linux-style invalid-request errors.
+I verify adjacent storage, repeated unmapping, reuse, and musl growth with five dynamic-page tests.
