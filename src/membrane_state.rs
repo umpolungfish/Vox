@@ -183,9 +183,7 @@ impl MembraneState {
             if mf::cmp(&rem, &one_t) == core::cmp::Ordering::Equal {
                 alloc::format!("odd-order")
             } else {
-                let h = shor_pow(&self.a, &half, &self.n);
-                let gm = shor_pow(&self.a, &half, &self.n);
-                let _ = gm;
+                let h = crate::modular_residue::certified_modular_residue_tape_step(&half, &self.a, &self.n, &rt)?;
                 alloc::format!("h={}", mf::dec_of(&h))
             }
         };
@@ -282,7 +280,10 @@ fn shor_close(
     if cmp(&rem, &one()) == core::cmp::Ordering::Equal {
         return (None, "order odd");
     }
-    let h = shor_pow(a, &half, n);
+    let h = match crate::modular_residue::certified_modular_residue_tape_step(&half, a, n, r) {
+        Ok(value) => value,
+        Err(_) => return (None, "uncertified modular period"),
+    };
     let mut nm1 = trim(n.to_vec());
     nm1 = sub(&nm1, &one());
     if cmp(&h, &nm1) == core::cmp::Ordering::Equal {

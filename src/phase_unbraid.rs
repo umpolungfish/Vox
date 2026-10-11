@@ -190,7 +190,10 @@ fn attempt_big(k: usize, m_pow2: usize, a: &BigUint, n: &BigUint) -> Attempt {
                 r0, r));
         }
         let half = &r / &two;
-        let xh = powm_big(a.clone(), half, n);
+        let xh = match ::vox::modular_residue::certified_modular_residue_step(&half, a, n, &r) {
+            Ok(step) => step.value,
+            Err(_) => continue,
+        };
         if &xh + &one == *n {
             return Attempt::Degenerate(format!(
                 "CF: s/{} -> r={} but a^(r/2) == -1 (mod N) — no split this base; advancing",

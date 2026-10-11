@@ -31,6 +31,7 @@ pub mod imasm_module;
 pub mod glyph_module;
 pub mod imasm_vm;
 pub mod morphism_factor;
+pub mod modular_residue;
 pub mod factor_operator;
 pub mod factorization_31_membrane;
 pub mod complete_membrane;

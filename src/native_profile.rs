@@ -104,6 +104,18 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
         writeln!(output, "seconds\tbits\tphase_digits\tmeasured_digits\tnested_operations\tretained_nodes\tpeak_nodes\tshots_started\tshots_finished")?;
         Some(output)
     } else { None };
+    let pipeline_stage_address = vox::loader::elf_object_symbol(&raw, "VOX_QUQUART_PIPELINE_STAGE")
+        .filter(|&(_, size)| size >= 8).map(|(address, _)| base + address);
+    let power_words_decoded_address = vox::loader::elf_object_symbol(&raw, "VOX_QUQUART_POWER_WORDS_DECODED")
+        .filter(|&(_, size)| size >= 8).map(|(address, _)| base + address);
+    let power_validation_address = vox::loader::elf_object_symbol(&raw, "VOX_QUQUART_POWER_VALIDATIONS")
+        .filter(|&(_, size)| size >= 8).map(|(address, _)| base + address);
+    let mut pipeline_samples = if pipeline_stage_address.is_some() || power_words_decoded_address.is_some()
+        || power_validation_address.is_some() {
+        let mut output = BufWriter::new(File::create(format!("{prefix}.pipeline.tsv"))?);
+        writeln!(output, "seconds\tstage\tdecoded_power_words\tvalidated_powers")?;
+        Some(output)
+    } else { None };
     let nested_address = vox::loader::elf_object_symbol(&raw, "VOX_NESTED_OPERATION_COUNTERS")
         .filter(|&(_, size)| size >= 4 * 8).map(|(address, _)| base + address);
     let mut nested_samples = if nested_address.is_some() {
@@ -188,6 +200,19 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             // target's terminal-only output contract.
             if total % 64 == 0 { output.flush()?; }
         }
+        if let Some(output) = pipeline_samples.as_mut() {
+            write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
+            for address in [pipeline_stage_address, power_words_decoded_address, power_validation_address] {
+                if let Some(address) = address {
+                    let value = unsafe { ptrace(2, pid, address as *mut c_void,
+                        std::ptr::null_mut()) };
+                    if value == -1 { return Err(std::io::Error::last_os_error().into()); }
+                    write!(output, "\t{}", value as u64)?;
+                } else { write!(output, "\t")?; }
+            }
+            writeln!(output)?;
+            if total % 64 == 0 { output.flush()?; }
+        }
         if let (Some(address), Some(output)) = (nested_address, nested_samples.as_mut()) {
             write!(output, "{:.6}", started.elapsed().as_secs_f64())?;
             for index in 0..4 {
@@ -212,13 +237,20 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
             if total % 64 == 0 { output.flush()?; }
         }
         let signal = (status >> 8) & 0xff;
-        trace(7, pid, if signal == 19 || signal == 5 { 0 } else { signal as usize })?;
+        // Cross the delivery-stop boundary before resuming. On the hosted
+        // control, CONT alone repeatedly sampled a completed child wait.
+        trace(9, pid, if signal == 19 || signal == 5 { 0 } else { signal as usize })?;
+        status = wait_child(pid)?;
+        if status & 0x7f != 0x7f { break; }
+        let step_signal = (status >> 8) & 0xff;
+        trace(7, pid, if step_signal == 5 || step_signal == 19 { 0 } else { step_signal as usize })?;
     }
     let elapsed = started.elapsed().as_secs_f64();
     let _ = child.wait();
     samples.flush()?;
     if let Some(output) = sieve_samples.as_mut() { output.flush()?; }
     if let Some(output) = ququart_samples.as_mut() { output.flush()?; }
+    if let Some(output) = pipeline_samples.as_mut() { output.flush()?; }
     if let Some(output) = nested_samples.as_mut() { output.flush()?; }
     if let Some(output) = modular_samples.as_mut() { output.flush()?; }
     if let Some(output) = factor_samples.as_mut() { output.flush()?; }

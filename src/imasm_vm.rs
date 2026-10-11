@@ -67,10 +67,16 @@ pub trait Host {
     fn write(&mut self, fd: i32, buf: &[u8]) -> i64;
     fn close(&mut self, fd: i32) -> i32;
     fn clock_gettime(&mut self, _clock: i32) -> Result<(i64,i64),i32> { Err(-38) }
+    fn dup2(&mut self, _oldfd: i32, _newfd: i32) -> i32 { -38 }
+    fn chdir(&mut self, _path: &str) -> i32 { -38 }
+    fn exec(&mut self, _path: &str, _argv: &[String], _envp: &[String]) -> Result<i32,i32> { Err(-38) }
+    fn wait(&mut self, _pid: i32) -> Result<(i32,i32),i32> { Err(-38) }
+    fn begin_fork(&mut self) {}
+    fn end_fork(&mut self) {}
 }
 
 // Pages organize storage; the address domain and page count remain dynamic.
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct Memory {
     pages: BTreeMap<u64, Box<[u8; 4096]>>,
 }
@@ -154,6 +160,8 @@ pub struct Machine {
     pub wmem_hi: u64,
     pub df: bool,
     cur_pc: u64,
+    fork_child: bool,
+    fork_exec_pid: Option<i32>,
 }
 
 impl Machine {
@@ -163,7 +171,7 @@ impl Machine {
             reg: BTreeMap::new(), mem: Memory::default(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
-            watch: BTreeMap::new(), syslog: alloc::collections::VecDeque::new(), trace_lo: 0, trace_hi: 0, wmem: 0, wmem_lo: 0, wmem_hi: 0, df: false, cur_pc: 0,
+            watch: BTreeMap::new(), syslog: alloc::collections::VecDeque::new(), trace_lo: 0, trace_hi: 0, wmem: 0, wmem_lo: 0, wmem_hi: 0, df: false, cur_pc: 0, fork_child: false, fork_exec_pid: None,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
             m.reg.insert(r, 0);
@@ -384,7 +392,100 @@ impl Machine {
         let num = sign(self.get_reg("rax"), 8);
         let a0 = self.get_reg("rdi"); let a1 = self.get_reg("rsi"); let a2 = self.get_reg("rdx");
         let a3 = self.get_reg("r10"); let a4 = self.get_reg("r8");
+        if !self.watch.is_empty() && self.syslog_room() {
+            self.syslog.push_back(format!("syscall {} a0=0x{:x} a1=0x{:x} a2=0x{:x} @step {}", num, a0, a1, a2, self.steps));
+        }
         match num {
+            56 | 435 => { // fork-shaped clone used by std::process::Command
+                let (_clone_flags, child_stack, supported) = if num == 56 {
+                    let flags = a0 as u64;
+                    (flags, a1 as u64, flags & !0x4111 == 0)
+                } else {
+                    let size = sign(self.get_reg("r10"), 8) as usize;
+                    let flags = self.load(a0 as u64, 8) as u64;
+                    let stack = self.load(a0 as u64 + 48, 8) as u64;
+                    let stack_size = self.load(a0 as u64 + 56, 8) as u64;
+                    (flags, stack.wrapping_add(stack_size), size >= 64
+                        && flags & !0x4111 == 0)
+                };
+                if !supported && !self.watch.is_empty() && self.syslog_room() {
+                    self.syslog.push_back(format!("clone rejected nr={} flags=0x{:x} stack=0x{:x} parent_tid=0x{:x} child_tid=0x{:x} tls=0x{:x}", num, a0, a1, a2, a3, a4));
+                }
+                if !supported || self.fork_child || self.host.is_none() {
+                    self.set_reg("rax", (-38i64) as u64 as u128);
+                } else {
+                    let saved = (self.reg.clone(), self.mem.clone(), self.flags, self.df,
+                        self.brk_cur, self.mmap_next, self.steps, self.fork_child,
+                        self.fork_exec_pid);
+                    self.host.as_mut().unwrap().begin_fork();
+                    self.fork_child = true;
+                    self.fork_exec_pid = None;
+                    if child_stack != 0 { self.set_reg("rsp", child_stack as u128); }
+                    self.set_reg("rax", 0);
+                    let child_result = self.run_loop(self.get_reg("rip") as u64, None, 2_000_000);
+                    let child_pid = self.fork_exec_pid;
+                    if !self.watch.is_empty() && self.syslog_room() {
+                        self.syslog.push_back(format!("clone child stopped result={} exec_pid={:?}", match &child_result { Ok(_) => "returned", Err(Stop::SysExit(_)) => "exit", Err(Stop::Halt(_)) => "halt" }, child_pid));
+                    }
+                    self.reg = saved.0;
+                    self.mem = saved.1;
+                    self.flags = saved.2;
+                    self.df = saved.3;
+                    self.brk_cur = saved.4;
+                    self.mmap_next = saved.5;
+                    self.steps = saved.6;
+                    self.fork_child = saved.7;
+                    self.fork_exec_pid = saved.8;
+                    self.host.as_mut().unwrap().end_fork();
+                    match (child_pid, child_result) {
+                        (Some(pid), _) => self.set_reg("rax", pid as u32 as u128),
+                        (None, Err(Stop::SysExit(code))) => self.set_reg("rax", (-code.max(1) as i64) as u64 as u128),
+                        _ => self.set_reg("rax", (-11i64) as u64 as u128),
+                    }
+                }
+            }
+            59 => { // execve(path, argv, envp), reached in the emulated fork child
+                if !self.fork_child {
+                    self.set_reg("rax", (-38i64) as u64 as u128);
+                } else {
+                    let path = self.read_cstr(a0 as u64);
+                    let read_vec = |this: &Machine, mut p: u64| {
+                        let mut values = Vec::new();
+                        for _ in 0..256 {
+                            let at = this.load(p, 8) as u64;
+                            if at == 0 { break; }
+                            values.push(this.read_cstr(at));
+                            p = p.wrapping_add(8);
+                        }
+                        values
+                    };
+                    let argv = read_vec(self, a1 as u64);
+                    let envp = read_vec(self, a2 as u64);
+                    match self.host.as_mut().map(|h| h.exec(&path, &argv, &envp)).unwrap_or(Err(-38)) {
+                        Ok(pid) => { self.fork_exec_pid = Some(pid); return Err(Stop::SysExit(0)); }
+                        Err(errno) => self.set_reg("rax", (errno as i64 as u64) as u128),
+                    }
+                }
+            }
+            61 => { // wait4(pid, status, options, rusage)
+                let pid = sign(a0, 8) as i32;
+                match self.host.as_mut().map(|h| h.wait(pid)).unwrap_or(Err(-10)) {
+                    Ok((child, status)) => {
+                        if a1 != 0 { self.store(a1 as u64, status as u32 as u128, 4); }
+                        self.set_reg("rax", child as u32 as u128);
+                    }
+                    Err(errno) => self.set_reg("rax", (errno as i64 as u64) as u128),
+                }
+            }
+            33 => { // dup2
+                let result = self.host.as_mut().map(|h| h.dup2(sign(a0,8) as i32, sign(a1,8) as i32)).unwrap_or(-9);
+                self.set_reg("rax", result as u32 as u128);
+            }
+            80 => { // chdir
+                let path = self.read_cstr(a0 as u64);
+                let result = self.host.as_mut().map(|h| h.chdir(&path)).unwrap_or(-38);
+                self.set_reg("rax", result as i64 as u64 as u128);
+            }
             228 => {
                 let result = if a1 == 0 { Err(-14) }
                     else { self.host.as_mut().map(|h| h.clock_gettime(a0 as i32)).unwrap_or(Err(-38)) };
@@ -449,6 +550,11 @@ impl Machine {
                     }
                 }
             }
+            25 => { // mremap: musl uses this when a large Vec grows.
+                let result = self.remap(a0 as u64, a1 as u64, a2 as u64, a3 as u64, a4 as u64);
+                self.set_reg("rax", match result { Ok(address) => address as u128,
+                    Err(errno) => errno as u64 as u128 });
+            }
             12 => { // brk(addr): 0 reads the current break, else sets it
                 if a0 != 0 { self.brk_cur = a0 as u64; }
                 self.set_reg("rax", self.brk_cur as u128);
@@ -488,6 +594,46 @@ impl Machine {
             _ => { self.set_reg("rax", 0); } // succeed by default so userland init proceeds
         }
         Ok(())
+    }
+
+    /// Resize anonymous guest storage, moving its sparse pages when allowed.
+    /// An unsupported remap must return an errno so realloc can use its copy
+    /// path; a zero success address corrupts the allocator's offset pointers.
+    fn remap(&mut self, old: u64, old_size: u64, new_size: u64, flags: u64, fixed: u64) -> Result<u64, i64> {
+        if flags & !3 != 0 || old_size == 0 { return Err(-38); }
+        if old & 4095 != 0 || new_size == 0 || flags & 2 != 0 && flags & 1 == 0 { return Err(-22); }
+        let round = |size: u64| size.checked_add(4095).map(|n| n & !4095).ok_or(-12);
+        let old_len = round(old_size)?;
+        let new_len = round(new_size)?;
+        let old_end = old.checked_add(old_len).ok_or(-22)?;
+        let destination = if flags & 2 != 0 {
+            if fixed & 4095 != 0 { return Err(-22); }
+            let end = fixed.checked_add(new_len).ok_or(-22)?;
+            if fixed < old_end && old < end { return Err(-22); }
+            fixed
+        } else if new_len <= old_len {
+            old
+        } else if old_end == self.mmap_next {
+            old
+        } else if flags & 1 != 0 {
+            self.mmap_next
+        } else {
+            return Err(-12);
+        };
+        let end = destination.checked_add(new_len).ok_or(-12)?;
+        let keys: Vec<u64> = self.mem.pages.range((old >> 12)..(old_end >> 12)).map(|(&key, _)| key).collect();
+        let mut pages = Vec::with_capacity(keys.len());
+        for key in keys {
+            let page = self.mem.pages.remove(&key).unwrap();
+            let offset = (key << 12) - old;
+            if offset < new_len { pages.push(((destination + offset) >> 12, page)); }
+        }
+        // Fixed remapping replaces the destination, including its zero pages.
+        let keys: Vec<u64> = self.mem.pages.range((destination >> 12)..(end >> 12)).map(|(&key, _)| key).collect();
+        for key in keys { self.mem.pages.remove(&key); }
+        for (key, page) in pages { self.mem.pages.insert(key, page); }
+        self.mmap_next = self.mmap_next.max(end);
+        Ok(destination)
     }
 
     // ── ALU ──
@@ -1668,6 +1814,52 @@ fn parse_imm(s: &str) -> i128 {
 #[cfg(test)]
 mod dynamic_page_tests {
     use super::*;
+    fn remap_call(machine: &mut Machine, old: u64, old_size: u64, new_size: u64, flags: u64, fixed: u64) -> i64 {
+        for (name, value) in [("rax", 25), ("rdi", old), ("rsi", old_size), ("rdx", new_size), ("r10", flags), ("r8", fixed)] {
+            machine.set_reg(name, value as u128);
+        }
+        assert!(machine.do_syscall().is_ok());
+        machine.get_reg("rax") as u64 as i64
+    }
+    #[test]
+    fn musl_growth_remap_preserves_high_address_contents_and_zero_extension() {
+        let mut machine = Machine::new("");
+        let old = 0x38015a000;
+        machine.mmap_next = 0x380200000;
+        for (offset, value) in [(0, 7), (0xa80, 0xfeedbeef), (0x10ff8, 0x12345678)] {
+            machine.store(old + offset, value, 8);
+        }
+        let new = remap_call(&mut machine, old, 0x11000, 0x21000, 1, 0) as u64;
+        assert_eq!(new, 0x380200000);
+        for (offset, value) in [(0, 7), (0xa80, 0xfeedbeef), (0x10ff8, 0x12345678)] {
+            assert_eq!(machine.load(new + offset, 8), value);
+            assert_eq!(machine.load(old + offset, 8), 0);
+        }
+        assert_eq!(machine.load(new + 0x11000, 16), 0);
+        assert_eq!(machine.mmap_next, new + 0x21000);
+        assert_eq!(remap_call(&mut machine, new, 0x21000, 4097, 0, 0) as u64, new);
+        assert_eq!(machine.load(new + 0xa80, 8), 0xfeedbeef);
+        assert_eq!(machine.load(new + 0x10ff8, 8), 0);
+    }
+    #[test]
+    fn remap_errors_preserve_the_source_and_fixed_remap_replaces_destination() {
+        let mut machine = Machine::new("");
+        let old = 0x380100000;
+        let fixed = 0x380300000;
+        machine.store(old + 4088, 123, 16);
+        machine.store(fixed + 0x3000, 99, 8);
+        for (size, flags, address, errno) in [(0, 1, 0, -22), (0x4000, 0, 0, -12),
+            (0x4000, 2, fixed, -22), (0x4000, 3, old + 4096, -22), (0x4000, 4, 0, -38)] {
+            assert_eq!(remap_call(&mut machine, old, 0x2000, size, flags, address), errno);
+            assert_eq!(machine.load(old + 4088, 16), 123);
+        }
+        assert_eq!(remap_call(&mut machine, old, 0x2000, 0x4000, 3, fixed) as u64, fixed);
+        assert_eq!(machine.load(fixed + 4088, 16), 123);
+        assert_eq!(machine.load(fixed + 0x3000, 8), 0);
+        assert_eq!(machine.load(old + 4088, 16), 0);
+        assert_eq!(remap_call(&mut machine, fixed, 0x4000, 0x8000, 0, 0) as u64, fixed);
+        assert_eq!(machine.load(fixed + 4088, 16), 123);
+    }
     #[test]
     fn paged_memory_preserves_crossings_holes_and_high_addresses() {
         let mut memory = Memory::default();

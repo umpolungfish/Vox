@@ -1,3 +1,13 @@
-I wire my Vox commands to the native Lean kernel
+I expose nested-operation dispatch counts through my native profiler
 
-I require default SIXTEEN_3, kernel re-entry and certified Y admission before primary CLI payload work. I expose reentry and lean-kernel commands and export all sixteen register seeds from my existing phase interpreter in the native carrier coordinates, preserving payload execution. I verify coordinate mapping, frame restoration and nonmonotone seed behavior.
+I resolve the baked carrier's nested-operation symbol and sample its four atomic variant counters beside the existing ququart trace, so the indirect apply_nested paths can be compared with the runtime phase execution.
+
+I provide one arbitrary-width modular orbit certificate for Vox and G-mOMonadOS. I bind the period to its base and modulus before reducing any tick, and I route the Shor and combined period closures through this shared operation.
+
+I implement anonymous guest mremap so musl can grow the folded arena without replacing its node pointer with zero. I preserve sparse allocation pages through moves, growth, shrinkage, and fixed remaps, and I check errno paths without changing source storage.
+
+I preserve guest stdout as its IMASM readout and propagate its process exit status. I keep host halts on stderr so the factor verifier can consume the process output directly.
+
+I honor exclusive guest file creation and return the actual filesystem errno, preserving concurrent Lean capture reservations.
+
+I advance one instruction across each native sample stop before resuming. The child-wait control completes under profiling and emits the same independently verified IMASM readout as native execution.

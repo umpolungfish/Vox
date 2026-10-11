@@ -444,7 +444,7 @@ pub fn run_dyadic_phase_arm(n: &BigUint, base: &BigUint, max_k: usize) -> Result
         let r = reduce_order_candidate(base, n, &mult);
         let (half_exp, half_residue, factors) = if (&r % 2u8).is_zero() {
             let half = &r / 2u8;
-            let h = pow_mod(base.clone(), half.clone(), n);
+            let h = crate::modular_residue::certified_modular_residue_step(&half, base, n, &r)?.value;
             let g1 = if h > BigUint::one() {
                 gcd_biguint(&h - BigUint::one(), n.clone())
             } else {
@@ -698,7 +698,9 @@ pub fn factor_combined(
         let mult = (&p - BigUint::one()) * (&q - BigUint::one());
         let r = reduce_order_candidate(&base_two, n, &mult);
         let half = if (&r % 2u8).is_zero() { Some(&r / 2u8) } else { None };
-        let h = half.as_ref().map(|he| pow_mod(base_two.clone(), he.clone(), n));
+        let h = half.as_ref().map(|he|
+            crate::modular_residue::certified_modular_residue_step(he, &base_two, n, &r)
+                .map(|step| step.value)).transpose()?;
         phase_arm.return_exponent_r = Some(r);
         phase_arm.half_step_exponent = half;
         phase_arm.half_step_residue = h;

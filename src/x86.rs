@@ -18,13 +18,35 @@ pub enum Op {
     Mem { base: String, index: String, scale: u8, disp: i64, size: u8, seg: String },
 }
 
+#[cfg(test)]
+mod operand_format_tests {
+    use super::Op;
+    use alloc::string::String;
+
+    #[test]
+    fn formats_minimum_signed_displacements_without_overflow() {
+        let minimum = i64::MIN;
+        assert_eq!(Op::Imm(minimum).field(), "i:-0x8000000000000000");
+        let memory = Op::Mem {
+            base: String::new(),
+            index: String::new(),
+            scale: 1,
+            disp: minimum,
+            size: 8,
+            seg: String::new(),
+        };
+        assert_eq!(memory.field(), "m:::1:-0x8000000000000000:8");
+        assert_eq!(memory.intel(), "[-0x8000000000000000]");
+    }
+}
+
 impl Op {
     pub fn field(&self) -> String {
         match self {
             Op::Reg(r) => format!("r:{}", r),
-            Op::Imm(v) => if *v >= 0 { format!("i:{:#x}", v) } else { format!("i:-{:#x}", -v) },
+            Op::Imm(v) => if *v >= 0 { format!("i:{:#x}", v) } else { format!("i:-{:#x}", v.unsigned_abs()) },
             Op::Mem { base, index, scale, disp, size, seg } => {
-                let d = if *disp >= 0 { format!("{:#x}", disp) } else { format!("-{:#x}", -disp) };
+                let d = if *disp >= 0 { format!("{:#x}", disp) } else { format!("-{:#x}", disp.unsigned_abs()) };
                 // A segment override (fs/gs, the thread-local bases) rides in the
                 // base slot as a pseudo-register, folded with any real base by
                 // '+', so the size stays the last colon field and every existing
@@ -43,7 +65,7 @@ impl Op {
     pub fn intel(&self) -> String {
         match self {
             Op::Reg(r) => r.clone(),
-            Op::Imm(v) => if *v >= 0 { format!("{:#x}", v) } else { format!("-{:#x}", -v) },
+            Op::Imm(v) => if *v >= 0 { format!("{:#x}", v) } else { format!("-{:#x}", v.unsigned_abs()) },
             Op::Mem { base, index, scale, disp, seg, .. } => {
                 let mut inner = base.clone();
                 if !index.is_empty() {
@@ -52,7 +74,7 @@ impl Op {
                 }
                 if *disp != 0 || inner.is_empty() {
                     if !inner.is_empty() && *disp >= 0 { inner.push('+'); }
-                    if *disp < 0 { inner.push('-'); inner.push_str(&format!("{:#x}", -disp)); }
+                    if *disp < 0 { inner.push('-'); inner.push_str(&format!("{:#x}", disp.unsigned_abs())); }
                     else { inner.push_str(&format!("{:#x}", disp)); }
                 }
                 let s = if seg.is_empty() { String::new() } else { format!("{}:", seg) };
@@ -153,6 +175,141 @@ macro_rules! ins { ($addr:expr,$c:expr,$mn:expr,$ops:expr,$wm:expr,$t:expr) =>
 
 pub fn decode(b: &[u8], addr: u64) -> Option<Insn> { decode_mode(b, addr, 64) }
 
+/// Decode the VEX encodings emitted by AVX/AVX2 code. This covers the common
+/// arithmetic, shuffle, broadcast, and vector load/store families while
+/// preserving the exact instruction boundary needed by whole-image wiring.
+fn decode_vex(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
+    let mut c = Cur { b, i: 0 };
+    let lead = c.u8()?;
+    let (map, pp, l, vvvv, rex) = if lead == 0xc5 {
+        let p1 = c.u8()?;
+        (1, p1 & 3, (p1 >> 2) & 1,
+         (!p1 >> 3) & 15,
+         Rex { w: false, r: p1 & 0x80 == 0, x: false, b: false, p: true, bits, seg: String::new() })
+    } else if lead == 0xc4 {
+        let p0 = c.u8()?;
+        let p1 = c.u8()?;
+        (p0 & 0x1f, p1 & 3, (p1 >> 2) & 1,
+         (!p1 >> 3) & 15,
+         Rex { w: p1 & 0x80 != 0, r: p0 & 0x80 == 0, x: p0 & 0x40 == 0,
+               b: p0 & 0x20 == 0, p: true, bits, seg: String::new() })
+    } else {
+        return None;
+    };
+    let opcode = c.u8()?;
+    if map == 1 && opcode == 0x77 {
+        return ins!(addr, c, if l == 0 { "vzeroupper" } else { "vzeroall" }, vec![], false, None);
+    }
+    if !(1..=3).contains(&map) { return None; }
+
+    let vector_size = if l == 0 { 16 } else { 32 };
+    let scalar_size = if pp == 3 { 8 } else { 4 };
+    let scalar_op = map == 1 && pp >= 2 && matches!(opcode, 0x10 | 0x11 | 0x58..=0x5f);
+    let operand_size = if map == 1 && matches!(opcode, 0x6e | 0x7e) { 4 }
+        else if scalar_op { scalar_size } else { vector_size };
+    let (rm, reg_index) = modrm(&mut c, &rex, operand_size, operand_size)?;
+    let has_imm8 = map == 3 || (map == 1 && matches!(opcode, 0x70..=0x73 | 0xa4 | 0xac | 0xc2 | 0xc4..=0xc6));
+    let immediate = if has_imm8 { Some(Op::Imm(c.imm(1, false)?)) } else { None };
+
+    let vector = |n: u8| Op::Reg(format!("{}{}", if l == 0 { "xmm" } else { "ymm" }, n & 15));
+    let suffix = match pp { 1 => "pd", 2 => "ss", 3 => "sd", _ => "ps" };
+    let mnemonic = match map {
+        1 => match opcode {
+            0x10 => format!("vmov{}", suffix), 0x11 => format!("vmov{}", suffix),
+            0x28 | 0x29 => format!("vmovap{}", if pp == 1 { "d" } else { "s" }),
+            0x6e => "vmovd".into(), 0x7e => if rex.w { "vmovq".into() } else { "vmovd".into() },
+            0x6f | 0x7f => if pp == 2 { "vmovdqu".into() } else { "vmovdqa".into() },
+            0x54 => format!("vand{}", suffix), 0x55 => format!("vandn{}", suffix),
+            0x56 => format!("vor{}", suffix), 0x57 => format!("vxor{}", suffix),
+            0x58 => format!("vadd{}", suffix), 0x59 => format!("vmul{}", suffix),
+            0x5c => format!("vsub{}", suffix), 0x5e => format!("vdiv{}", suffix),
+            0x5d => format!("vmin{}", suffix), 0x5f => format!("vmax{}", suffix),
+            0x70 => "vpshufd".into(), 0xc2 => format!("vcmp{}", suffix),
+            _ => format!("vex1_{opcode:02x}"),
+        },
+        2 => match opcode {
+            0x00 => "vpshufb".into(), 0x40 => "vpmulld".into(),
+            0x58 => "vpbroadcastd".into(), 0x59 => "vpbroadcastq".into(),
+            0x78 => "vpbroadcastb".into(), 0x79 => "vpbroadcastw".into(),
+            0xdb => "vpand".into(), 0xdf => "vpandn".into(), 0xeb => "vpor".into(), 0xef => "vpxor".into(),
+            0xfc => "vpaddb".into(), 0xfd => "vpaddw".into(), 0xfe => "vpaddd".into(),
+            0xf8 => "vpsubb".into(), 0xf9 => "vpsubw".into(), 0xfa => "vpsubd".into(), 0xfb => "vpsubq".into(),
+            _ => format!("vex2_{opcode:02x}"),
+        },
+        _ => format!("vex3_{opcode:02x}"),
+    };
+    let writes_mem = matches!((map, opcode), (1, 0x11 | 0x29 | 0x7e | 0x7f) | (3, 0x0f | 0x14 | 0x15));
+    let reg_op = if map == 1 && matches!(opcode, 0x6e | 0x7e) {
+        rop(reg_index, 4, true)
+    } else {
+        vector(reg_index)
+    };
+    let writes_memory = writes_mem && rm.is_mem();
+    let mut ops = if writes_mem { vec![rm, reg_op] } else { vec![reg_op, vector(vvvv), rm] };
+    if let Some(immediate) = immediate { ops.push(immediate); }
+    ins!(addr, c, mnemonic, ops, writes_memory, None)
+}
+
+#[cfg(test)]
+mod vex_decode_tests {
+    use super::decode;
+
+    #[test]
+    fn decodes_avx2_instruction_boundaries_and_mnemonics() {
+        for (bytes, mnemonic) in [
+            (&[0xc5, 0xf9, 0x6e, 0xc7][..], "vmovd"),
+            (&[0xc4, 0xe2, 0x7d, 0x78, 0xc0][..], "vpbroadcastb"),
+            (&[0xc5, 0xf9, 0x7f, 0x40, 0x40][..], "vmovdqa"),
+            (&[0xc5, 0xf8, 0x77][..], "vzeroupper"),
+        ] {
+            let instruction = decode(bytes, 0x1000).expect("VEX instruction should decode");
+            assert_eq!(instruction.len, bytes.len(), "{bytes:02x?}");
+            assert_eq!(instruction.mnemonic, mnemonic, "{bytes:02x?}");
+        }
+    }
+
+    #[test]
+    fn decodes_sse2_operations_seen_in_symbol_bounded_code() {
+        for (bytes, mnemonic) in [
+            (&[0x66, 0x0f, 0x55, 0xd1][..], "andnpd"),
+            (&[0x66, 0x0f, 0xd5, 0xca][..], "pmullw"),
+            (&[0x66, 0x0f, 0xe4, 0xc8][..], "pmulhuw"),
+            (&[0x66, 0x0f, 0xf9, 0xc8][..], "psubw"),
+        ] {
+            let instruction = decode(bytes, 0x2000).expect("SSE2 instruction should decode");
+            assert_eq!(instruction.len, bytes.len());
+            assert_eq!(instruction.mnemonic, mnemonic);
+        }
+    }
+
+    #[test]
+    fn decodes_timing_cpu_feature_and_counter_branch_instructions() {
+        for (bytes, mnemonic) in [
+            (&[0x0f, 0x31][..], "rdtsc"),
+            (&[0x0f, 0x01, 0xd0][..], "xgetbv"),
+            (&[0xe2, 0x20][..], "loop"),
+        ] {
+            let instruction = decode(bytes, 0x3000).expect("system instruction should decode");
+            assert_eq!(instruction.len, bytes.len());
+            assert_eq!(instruction.mnemonic, mnemonic);
+        }
+    }
+
+    #[test]
+    fn decodes_x87_escape_instruction_boundaries() {
+        for bytes in [
+            &[0xdd, 0x3f][..],
+            &[0xdb, 0x3f][..],
+            &[0xd9, 0x6c, 0x24, 0x08][..],
+            &[0xdf, 0x6c, 0x24, 0x08][..],
+        ] {
+            let instruction = decode(bytes, 0x4000).expect("x87 escape should decode");
+            assert_eq!(instruction.len, bytes.len(), "{bytes:02x?}");
+            assert_eq!(instruction.mnemonic, "x87");
+        }
+    }
+}
+
 #[cfg(test)]
 mod membrane_decode_tests {
     use super::*;
@@ -222,6 +379,9 @@ mod membrane_decode_tests {
 /// inc/dec forms, and a mod=0 rm=5 memory operand is an absolute disp32 rather
 /// than RIP-relative.
 pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
+    if bits == 64 && matches!(b.first(), Some(0xc4 | 0xc5)) {
+        return decode_vex(b, addr, bits);
+    }
     let mut c = Cur { b, i: 0 };
     let (mut o66, mut f3) = (false, false);
     let mut f2 = false;
@@ -323,6 +483,12 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
         0x99 => ins!(addr,c,if rex.w{"cqo"}else{"cdq"},vec![],false,None),
         0xC0|0xC1 => { let sz=if op==0xC0{1}else{osz}; let (rm,g)=modrm(&mut c,&rex,sz,sz)?; let im=c.imm(1,false)?; let wm=rm.is_mem();
             ins!(addr,c,["rol","ror","rcl","rcr","shl","shr","sal","sar"][(g&7) as usize],vec![rm,Op::Imm(im)],wm,None) }
+        // x87 escape opcodes all carry one ModRM byte and no trailing
+        // immediate. Their exact arithmetic is outside the integer IMASM
+        // register model, but retaining the complete instruction boundary is
+        // required for whole-image wiring and byte-preserving tape generation.
+        0xD8..=0xDF => { let (rm,r)=modrm(&mut c,&rex,8,8)?; let wm=rm.is_mem();
+            ins!(addr,c,"x87",vec![rm,rop(r,8,rex.p)],wm,None) }
         0xD0|0xD1|0xD2|0xD3 => { let sz=if op==0xD0||op==0xD2{1}else{osz}; let (rm,g)=modrm(&mut c,&rex,sz,sz)?; let wm=rm.is_mem();
             let amt=if op==0xD0||op==0xD1{Op::Imm(1)}else{Op::Reg("cl".into())};
             ins!(addr,c,["rol","ror","rcl","rcr","shl","shr","sal","sar"][(g&7) as usize],vec![rm,amt],wm,None) }
@@ -334,6 +500,12 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
         0xE8 => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"call",vec![Op::Imm(t as i64)],false,Some(t)) }
         0xE9 => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"jmp",vec![Op::Imm(t as i64)],false,Some(t)) }
         0xEB => { let d=c.imm(1,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,"jmp",vec![Op::Imm(t as i64)],false,Some(t)) }
+        0xE0..=0xE3 => {
+            let d=c.imm(1,true)?;
+            let t=(addr as i64 + c.i as i64 + d) as u64;
+            let mn=["loopne","loope","loop","jrcxz"][(op-0xE0) as usize];
+            ins!(addr,c,mn,vec![Op::Imm(t as i64)],false,Some(t))
+        }
         0xF4 => ins!(addr,c,"hlt",vec![],false,None),
         0xFC => ins!(addr,c,"cld",vec![],false,None),
         0xFD => ins!(addr,c,"std",vec![],false,None),
@@ -371,6 +543,12 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
     match op2 {
         0x05 => ins!(addr,c,"syscall",vec![],false,None),
         0x0B => ins!(addr,c,"ud2",vec![],false,None),
+        0x31 => ins!(addr,c,"rdtsc",vec![],false,None),
+        0xA2 => ins!(addr,c,"cpuid",vec![],false,None),
+        0x01 => {
+            let sub=c.u8()?;
+            if sub==0xD0 { ins!(addr,c,"xgetbv",vec![],false,None) } else { None }
+        }
         // PREFETCHh has no architectural effect on the guest state. Consume
         // its ModRM/SIB/displacement so linear lifting stays synchronized.
         0x18 => { let (_rm,_)=modrm(c,rex,1,1)?; ins!(addr,c,"nop",vec![],false,None) }
@@ -440,9 +618,10 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         // Vector/scalar move: F3 movss, F2 movsd, 66 movupd, none movups.
         0x10 => { let (rm,r)=modrm(c,rex,16,16)?; let mn=if f3{"movss"}else if f2{"movsd"}else if o66{"movupd"}else{"movups"}; ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
         0x11 => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); let mn=if f3{"movss"}else if f2{"movsd"}else if o66{"movupd"}else{"movups"}; ins!(addr,c,mn,vec![rm,rop(r,16,rex.p)],wm,None) }
-        0x54 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"andps",vec![rop(r,16,rex.p),rm],false,None) }
-        0x56 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"orps",vec![rop(r,16,rex.p),rm],false,None) }
-        0x57 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"xorps",vec![rop(r,16,rex.p),rm],false,None) }
+        0x54 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"andpd"}else{"andps"},vec![rop(r,16,rex.p),rm],false,None) }
+        0x55 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"andnpd"}else{"andnps"},vec![rop(r,16,rex.p),rm],false,None) }
+        0x56 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"orpd"}else{"orps"},vec![rop(r,16,rex.p),rm],false,None) }
+        0x57 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if o66{"xorpd"}else{"xorps"},vec![rop(r,16,rex.p),rm],false,None) }
         // Scalar/packed float arithmetic, variant by prefix (fsuf).
         0x51 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("sqrt{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
         0x58 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,format!("add{}",fsuf),vec![rop(r,16,rex.p),rm],false,None) }
@@ -478,10 +657,13 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
                   else { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; let wm=rm.is_mem(); ins!(addr,c,if rex.w{"movq"}else{"movd"},vec![rm,rop(r,16,rex.p)],wm,None) } }
         0x7F => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,if f3{"movdqu"}else{"movdqa"},vec![rm,rop(r,16,rex.p)],wm,None) }
         0xD4 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"paddq",vec![rop(r,16,rex.p),rm],false,None) }
+        0xD5 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmullw",vec![rop(r,16,rex.p),rm],false,None) }
+        0xE4 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmulhuw",vec![rop(r,16,rex.p),rm],false,None) }
         0xFE => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"paddd",vec![rop(r,16,rex.p),rm],false,None) }
         0xFD => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"paddw",vec![rop(r,16,rex.p),rm],false,None) }
         0xFC => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"paddb",vec![rop(r,16,rex.p),rm],false,None) }
         0xFA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubd",vec![rop(r,16,rex.p),rm],false,None) }
+        0xF9 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubw",vec![rop(r,16,rex.p),rm],false,None) }
         0xFB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubq",vec![rop(r,16,rex.p),rm],false,None) }
         0xEF => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pxor",vec![rop(r,16,rex.p),rm],false,None) }
         0xDB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pand",vec![rop(r,16,rex.p),rm],false,None) }
@@ -504,7 +686,6 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x62 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpckldq",vec![rop(r,16,rex.p),rm],false,None) }
         0x6C => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpcklqdq",vec![rop(r,16,rex.p),rm],false,None) }
         0x6D => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpckhqdq",vec![rop(r,16,rex.p),rm],false,None) }
-        0xA2 => ins!(addr,c,"cpuid",vec![],false,None),
         0xC8..=0xCF => ins!(addr,c,"bswap",vec![rop((op2 & 7) | ((rex.b as u8) << 3),if rex.w {8} else {4},rex.p)],false,None),
         _ => None,
     }

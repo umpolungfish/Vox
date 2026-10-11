@@ -535,6 +535,60 @@ pub fn elf_function_symbols(raw: &[u8]) -> Vec<u64> {
     out
 }
 
+/// Sized function-symbol extents from ELF64 symbol tables, as half-open
+/// virtual-address ranges. The ranges let the wiring disassembler recover
+/// reachable basic blocks without guessing instruction starts in arbitrary
+/// executable bytes.
+pub fn elf_function_symbol_ranges(raw: &[u8]) -> Vec<(u64, u64)> {
+    let mut out = Vec::new();
+    if raw.len() < 64 || &raw[0..4] != b"\x7fELF" || raw[4] != 2 {
+        return out;
+    }
+    let rd64 = |o: usize| -> u64 {
+        u64::from_le_bytes(raw[o..o + 8].try_into().unwrap_or([0; 8]))
+    };
+    let rd32 = |o: usize| -> u32 {
+        u32::from_le_bytes(raw[o..o + 4].try_into().unwrap_or([0; 4]))
+    };
+    let rd16 = |o: usize| -> u16 {
+        u16::from_le_bytes(raw[o..o + 2].try_into().unwrap_or([0; 2]))
+    };
+    let shoff = rd64(40) as usize;
+    let shentsize = rd16(58) as usize;
+    let shnum = rd16(60) as usize;
+    for k in 0..shnum {
+        let sh = shoff.saturating_add(k.saturating_mul(shentsize));
+        if sh.checked_add(64).map_or(true, |end| end > raw.len()) {
+            break;
+        }
+        if !matches!(rd32(sh + 4), 2 | 11) {
+            continue;
+        }
+        let off = rd64(sh + 24) as usize;
+        let size = rd64(sh + 32) as usize;
+        let entsize = rd64(sh + 56) as usize;
+        if entsize < 24 || off.checked_add(size).map_or(true, |end| end > raw.len()) {
+            continue;
+        }
+        let mut entry = off;
+        while entry.checked_add(entsize).map_or(false, |end| end <= off + size) {
+            if raw[entry + 4] & 0x0f == 2 {
+                let address = rd64(entry + 8);
+                let length = rd64(entry + 16);
+                if address != 0 && length != 0 {
+                    if let Some(end) = address.checked_add(length) {
+                        out.push((address, end));
+                    }
+                }
+            }
+            entry += entsize;
+        }
+    }
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
 /// Parse ELF binary to extract executable sections
 pub fn parse_elf(raw: &[u8]) -> (u64, Vec<(u64, Vec<u8>)>) {
     if raw.len() < 64 || &raw[0..4] != b"\x7fELF" {

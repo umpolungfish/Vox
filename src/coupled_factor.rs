@@ -194,36 +194,22 @@ fn dyadic_close(g: &[char], n: &[char], budget: usize) -> Option<(Tape, Option<(
     }
 }
 
-/// Square-and-multiply on the tapes: base^exp mod n, exp read LSB-first.
-fn pow_tape(base: &[char], exp: &[char], n: &[char]) -> Tape {
-    let mut r = one();
-    let mut b = base.to_vec();
-    for i in 0..exp.len() {
-        if bit(exp, i) == 1 {
-            r = mul_mod(&r, &b, n);
-        }
-        if i + 1 < exp.len() {
-            b = mul_mod(&b, &b, n);
-        }
-    }
-    r
-}
-
 /// The half-step braid. r is a multiple of ord_N(g) with r even; halve r while
 /// g^{r/2} ≡ 1; then a = g^{r/2} ∉ {1, −1} and gcd(a ± 1, N) splits N.
 fn half_step_braid(g: &[char], r_in: &[char], n: &[char]) -> Option<(Tape, Tape, Tape)> {
     if bit(r_in, 0) == 1 {
         return None; // odd r: no ±1 structure, base is degenerate
     }
+    let orbit = crate::modular_residue::CertifiedModularOrbit::certify_tapes(g, n, r_in).ok()?;
     let mut r = r_in.to_vec();
-    let mut a = pow_tape(g, &rshl(&r, 1), n);
+    let mut a = orbit.step_tape(&rshl(&r, 1)).ok()?;
     while is_one(&a) {
         let r2 = rshl(&r, 1);
         if is_one(&r2) {
             break;
         }
         r = r2;
-        a = pow_tape(g, &rshl(&r, 1), n);
+        a = orbit.step_tape(&rshl(&r, 1)).ok()?;
     }
     if is_one(&a) || a == sub(n, &one()) {
         return None; // a ∈ {1, −1} all the way down: base fails
@@ -245,6 +231,21 @@ fn half_step_braid(g: &[char], r_in: &[char], n: &[char]) -> Option<(Tape, Tape,
         }
     }
     None
+}
+
+#[cfg(test)]
+mod residue_closure_tests {
+    use super::*;
+
+    #[test]
+    fn coupled_half_step_preserves_nonminimal_certificates_and_rejects_false_ones() {
+        let source = tape_u64(15);
+        let base = tape_u64(2);
+        assert!(half_step_braid(&base, &tape_u64(2), &source).is_none());
+        assert!(half_step_braid(&base, &tape_u64(0), &source).is_none());
+        let (left, right, _) = half_step_braid(&base, &tape_u64(4_000_000_000_000_000_000), &source).unwrap();
+        assert_eq!(mul(&left, &right), source);
+    }
 }
 // ── membrane arm: the phase-based close ─────────────────────────────────────
 
