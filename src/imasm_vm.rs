@@ -125,7 +125,7 @@ pub struct Machine {
     reg: BTreeMap<&'static str, u128>,
     mem: Memory,
     flags: (u128, u128, u8),
-    kind: String,
+    kind: &'static str,
     pub steps: u64,
     pub bits: u8,
     /// Parsed from the module's own `; sym NAME 0xADDR` lines, so a saved
@@ -168,7 +168,7 @@ impl Machine {
     pub fn new(module: &str) -> Machine {
         let mut m = Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0, phdr: 0, phent: 0, phnum: 0,
-            reg: BTreeMap::new(), mem: Memory::default(), flags: (0,0,1), kind: "cmp".into(), steps: 0, bits: 64,
+            reg: BTreeMap::new(), mem: Memory::default(), flags: (0,0,1), kind: "cmp", steps: 0, bits: 64,
             symbols: BTreeMap::new(),
             mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
             watch: BTreeMap::new(), syslog: alloc::collections::VecDeque::new(), trace_lo: 0, trace_hi: 0, wmem: 0, wmem_lo: 0, wmem_hi: 0, df: false, cur_pc: 0, fork_child: false, fork_exec_pid: None,
@@ -280,9 +280,15 @@ impl Machine {
     }
     fn ea(&self, field: &str) -> (u64, u8) {
         // m:base:index:scale:disp:size
-        let parts: Vec<&str> = field.split(':').collect();
-        let base = parts[1]; let index = parts[2]; let scale = parts[3];
-        let disp = parts[4]; let size: u8 = parts[5].parse().unwrap_or(8);
+        // Address evaluation is on every guest load/store. Walk the fixed
+        // operand fields directly instead of allocating a temporary vector.
+        let mut parts = field.split(':');
+        let _tag = parts.next().unwrap();
+        let base = parts.next().unwrap();
+        let index = parts.next().unwrap();
+        let scale = parts.next().unwrap();
+        let disp = parts.next().unwrap();
+        let size: u8 = parts.next().unwrap().parse().unwrap_or(8);
         // The base slot may fold a segment pseudo-register with a real base by
         // '+', e.g. "fs" or "fs+rax"; sum every term so a TLS access lands at
         // the installed fs/gs base plus any register base.
@@ -361,7 +367,7 @@ impl Machine {
             "le"|"ng" => zf||(sf!=of), "g"|"nle" => !zf&&sf==of,
             "o" => of, "no" => !of,
             "p"|"np" => {
-                let result = match self.kind.as_str() {
+                let result = match self.kind {
                     "add" => a.wrapping_add(b),
                     "explicit"|"logic"|"shift" => a,
                     _ => a.wrapping_sub(b),
@@ -372,7 +378,16 @@ impl Machine {
             _ => false,
         }
     }
-    fn set_flags(&mut self, a: u128, b: u128, size: u8, kind: &str) { self.flags = (a, b, size); self.kind = kind.to_string(); }
+    fn set_flags(&mut self, a: u128, b: u128, size: u8, kind: &str) {
+        self.flags = (a, b, size);
+        // These are the complete flag interpretations used by cc(). Unknown
+        // operation names already use subtraction there, just like cmp.
+        self.kind = match kind {
+            "fflags" => "fflags", "explicit" => "explicit", "add" => "add",
+            "logic" => "logic", "shift" => "shift", "test" => "test",
+            _ => "cmp",
+        };
+    }
     /// The current carry flag, for adc/sbb to fold in.
     fn cf(&self) -> bool { self.cc("c") }
 
@@ -684,7 +699,7 @@ impl Machine {
                 self.write(&f[0], res as u128 & mask(s));
                 // CF from a zero source, ZF from a zero result, under fflags.
                 self.flags = (if res == 0 { 1 } else { 0 }, cf, 0);
-                self.kind = "fflags".into();
+                self.kind = "fflags";
                 return;
             }
             // String move/store, forward (DF=0, the memcpy_fwd/memset case). A
@@ -741,7 +756,7 @@ impl Machine {
                 let idx = (self.read(&f[1], sz).0 as u32) % bits;
                 let val = self.read(&f[0], sz).0;
                 let cf = (val >> idx) & 1;
-                self.flags = (0, cf, 0); self.kind = "fflags".into();
+                self.flags = (0, cf, 0); self.kind = "fflags";
                 if op != "bt" {
                     let nv = match op { "bts" => val | (1u128 << idx), "btr" => val & !(1u128 << idx), _ => val ^ (1u128 << idx) };
                     self.write(&f[0], nv & mask(sz));
@@ -1188,7 +1203,7 @@ impl Machine {
             let (zf, cf) = if a.is_nan() || b.is_nan() { (true, true) }
                            else if a < b { (false, true) } else if a > b { (false, false) } else { (true, false) };
             self.flags = (if zf {1} else {0}, if cf {1} else {0}, 0);
-            self.kind = "fflags".into();
+            self.kind = "fflags";
             return;
         }
         // ── int → float ──
@@ -1712,7 +1727,7 @@ mod membrane_simd_tests {
         machine.set_reg("xmm1", signs);
         machine.set_flags(0, 3, 8, "explicit");
         let flags = machine.flags;
-        let kind = machine.kind.clone();
+        let kind = machine.kind;
         machine.alu("xorpd", &["r:xmm0".into(), "r:xmm1".into()]);
         assert_eq!(machine.reg("xmm0"), lanes ^ signs);
         assert_eq!(machine.flags, flags);
