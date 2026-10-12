@@ -32,6 +32,7 @@ const BRANCH: &[char] = &[VINIT, FSPLIT, EVALT, EVALF, FFUSE, TANCH];
 const SELECT: &[char] = &[VINIT, FSPLIT, IMSCRIB, FFUSE, TANCH];
 const CONTINUE: &[char] = &[VINIT, AFWD, CLINK, TANCH];
 const FIX: &[char] = &[VINIT, IMSCRIB, IFIX, TANCH];
+const SIEVE_SOURCE: &[char] = &[VINIT, FSPLIT, AFWD, '⊞', CLINK, FFUSE, TANCH];
 const FIX_BANKED: &[char] = &[VINIT, IFIX, CLINK, IMSCRIB, TANCH];
 // The repaired extract morphism banks its T/F/⊞ deposits and AREV within one
 // frame; the adjacent ⊡⋈⊙ tail is the paired fixed-point latch.
@@ -1014,7 +1015,7 @@ fn ipow(base: &[char], b: usize) -> Tape {
 
 /// Floor integer b-th root over numeral tapes: the largest r with r^b <= n.
 /// The search range is bounded by 2^(bits(n)/b + 1) so the powers stay small.
-fn iroot(n: &[char], b: usize) -> Tape {
+pub(crate) fn iroot(n: &[char], b: usize) -> Tape {
     if b <= 1 || cmp(n, &two()) == core::cmp::Ordering::Less {
         return trim(n.to_vec());
     }
@@ -1297,6 +1298,7 @@ struct State {
     round: Tape,
     exhausted: bool,
     selected: Option<Tape>,
+    selected_by: Option<&'static str>,
     // Each frame carries the two LSB-first lanes, the exact IMASM carry, and
     // the next product position to close.
     unbraid_stack: Vec<(Tape, Tape, Tape, usize)>,
@@ -1424,7 +1426,9 @@ const UNBRAID_I: &[char] = &[FSPLIT, IMSCRIB, AFWD, EVALT, AREV, EVALF, CLINK, F
 
 /// Name of an operator motif, for reporting a constructed tower.
 pub fn morphism_name(operator: &[char]) -> &'static str {
-    if operator == SEMIPRIME_DESCENT {
+    if operator == SIEVE_SOURCE {
+        "SIEVE_SOURCE"
+    } else if operator == SEMIPRIME_DESCENT {
         "SEMIPRIME_DESCENT"
     } else if operator == &[AFWD] {
         "FORWARD_PAIR"
@@ -1492,6 +1496,10 @@ pub fn morphism_name(operator: &[char]) -> &'static str {
 /// without emitting an operator. An interior mark that begins no motif and is
 /// not a carry mark is refused, naming the position.
 pub fn construct_carrier(operator_word: &str) -> Result<Vec<&'static [char]>, String> {
+    if operator_word == source_carrier_word() {
+        return Ok(vec![WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS,
+            LEHMAN, ECM, SIEVE_SOURCE, FIX]);
+    }
     if operator_word == NINE_ARM {
         return Ok(vec![
             WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, FIX,
@@ -1992,6 +2000,7 @@ fn initial_carrier_state(n: Tape, phase_base: &[char], a_seed: Tape) -> State {
         round: vec![EVALT],
         exhausted: false,
         selected: None,
+        selected_by: None,
         unbraid_stack: Vec::new(),
         unbraid_pair: None,
         unbraid_p_bits: 0,
@@ -2245,6 +2254,15 @@ fn apply_descent_stages(
 }
 
 fn apply_morphism(operator: &[char], state: &mut State) {
+    if operator == SIEVE_SOURCE {
+        if state.selected.is_none() {
+            if let Some(returned) = source_divisor(&state.n) {
+                state.selected = Some(returned.divisor);
+                state.selected_by = Some(returned.producer);
+            }
+        }
+        return;
+    }
     // Dispatch is read from the operator word itself. Each operator therefore
     // remains both the boundary and the action performed at that boundary.
     if operator == SEMIPRIME_DESCENT {
@@ -2800,6 +2818,7 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
                 round: vec![EVALT],
                 exhausted: false,
                 selected: None,
+        selected_by: None,
                 unbraid_stack: Vec::new(),
                 unbraid_pair: None,
                 unbraid_p_bits: p_bits,
@@ -2862,13 +2881,17 @@ fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, so
         #[cfg(feature = "carrier-profile")]
         {
             use core::sync::atomic::Ordering::Relaxed;
-            let stage = [WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, FIX]
+            let stage = [WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, FIX, SIEVE_SOURCE]
                 .iter().position(|candidate| candidate == operator).map_or(0, |i| i + 1);
             VOX_FACTOR_COUNTERS[2].store(stage as u64, Relaxed);
             VOX_FACTOR_COUNTERS[3].fetch_add(1, Relaxed);
             VOX_FACTOR_COUNTERS[4].store(1, Relaxed);
         }
+        let was_selected = state.selected.is_some();
         apply_morphism(operator, state);
+        if !was_selected && state.selected.is_some() && state.selected_by.is_none() {
+            state.selected_by = Some(morphism_name(operator));
+        }
         #[cfg(feature = "carrier-profile")]
         {
             use core::sync::atomic::Ordering::Relaxed;
@@ -2938,6 +2961,7 @@ pub fn factor(word: &str) -> Result<String, String> {
         round: vec![EVALT],
         exhausted: false,
         selected: None,
+        selected_by: None,
         unbraid_stack: Vec::new(),
         unbraid_pair: None,
         unbraid_p_bits: 0,
@@ -3130,6 +3154,120 @@ pub const HARD_CARRIER_ROUNDS: u64 = u64::MAX;
 /// The full nine-arm carrier word, the deepest routing in one string.
 pub const NINE_ARM: &str = "⊢∈⊤≺⊥∈⊤⊞⊥∈≻⊤≺⊥⊞⋈∈⊤≺⊞⊥∈⊙⊞⋈∈⊙≺⋈∈≻⋈⊤⊥∈⊙≻⋈∋∋∋∋∋∋∋∋⊙⊡⊣";
 
+/// Nest the source square/correlation morphism inside the existing carrier,
+/// before its enclosing fuses. This word binds its executable source port.
+pub fn source_carrier_word() -> String {
+    let mut word = String::new();
+    let mut inserted = false;
+    for mark in NINE_ARM.chars() {
+        if mark == FFUSE && !inserted {
+            word.extend(SIEVE_SOURCE[1..SIEVE_SOURCE.len() - 1].iter());
+            inserted = true;
+        }
+        word.push(mark);
+    }
+    word
+}
+
+/// N alone enters one carrier register; the actual latching arm is retained.
+pub fn source_carrier_divisor(n_in: &[char]) -> Result<Option<SourceDivisor>, String> {
+    let n = trim(n_in.to_vec());
+    if cmp(&n, &two()).is_lt() { return Ok(None); }
+    if zero(&divmod(&n, &two()).1) && cmp(&n, &two()).is_gt() {
+        return Ok(Some(SourceDivisor { divisor: two(), producer: "source-parity" }));
+    }
+    let tower = construct_carrier(&source_carrier_word())?;
+    let mut root = isqrt(&n);
+    if cmp(&mul(&root, &root), &n).is_lt() { root = add(&root, &one()); }
+    let mut state = initial_carrier_state(n.clone(), &two(), root);
+    loop {
+        state.round = add(&state.round, &one());
+        execute_nested(&tower, &mut state);
+        if let Some(divisor) = state.selected.take() {
+            if cmp(&divisor, &one()).is_gt() && cmp(&divisor, &n).is_lt()
+                && zero(&divmod(&n, &divisor).1) {
+                return Ok(Some(SourceDivisor { divisor, producer: state.selected_by.unwrap_or("carrier-source") }));
+            }
+            return Ok(None);
+        }
+        if state.carrier_closed { return Ok(None); }
+    }
+}
+
+pub struct SourceDivisor {
+    pub divisor: Tape,
+    pub producer: &'static str,
+}
+
+/// One N-only source split using the same hard arms as smart_factor.
+/// The quotient is derived only after a proper divisor has been produced.
+pub fn source_divisor(n_in: &[char]) -> Option<SourceDivisor> {
+    source_divisor_observed(n_in, |_| {})
+}
+
+pub fn source_divisor_observed(n_in: &[char], mut observe: impl FnMut(&'static str))
+    -> Option<SourceDivisor> {
+    let n = trim(n_in.to_vec());
+    observe("source-primality");
+    if cmp(&n, &one()) != core::cmp::Ordering::Greater || miller_rabin(&n) {
+        return None;
+    }
+    observe("source-scout");
+    if let (Some((p, _, _)), _) = scout_factor_with_primality(&n, false) {
+        if cmp(&p, &one()) == core::cmp::Ordering::Greater
+            && cmp(&p, &n) == core::cmp::Ordering::Less && zero(&divmod(&n, &p).1) {
+            return Some(SourceDivisor { divisor: p, producer: "source-scout" });
+        }
+    }
+    hard_source_divisor_observed(&n, &mut observe)
+}
+
+fn hard_source_divisor(n: &Tape) -> Option<SourceDivisor> {
+    hard_source_divisor_observed(n, |_| {})
+}
+
+fn hard_source_divisor_observed(n: &Tape, mut observe: impl FnMut(&'static str)) -> Option<SourceDivisor> {
+    let good = |p: &Tape| cmp(p, &one()) == core::cmp::Ordering::Greater
+        && cmp(p, n) == core::cmp::Ordering::Less && zero(&divmod(n, p).1);
+    let (bound, m) = crate::sieve::sieve_params(n);
+    let mut dialectic = crate::dialectic_reentry::DialecticObject::new(n.clone()).ok();
+    let mut producer = "mpqs-source";
+    observe("mpqs-source");
+    if let Some((p, arm)) = crate::sieve::mpqs_with_source_port(n, bound, 32_768, 64, || {
+        let object = dialectic.take()?;
+        observe("dialectic-source-return");
+        match object.descend() {
+            crate::dialectic_reentry::Descent::T(closed) => {
+                let p = closed.carrier.p;
+                if good(&p) && mul(&p, &closed.carrier.q) == *n {
+                    producer = "dialectic-source";
+                    return Some(p);
+                }
+            },
+            crate::dialectic_reentry::Descent::B(next)
+                | crate::dialectic_reentry::Descent::N(next) => dialectic = Some(next),
+            crate::dialectic_reentry::Descent::F => {},
+        }
+        None
+    }).filter(|(p, _)| good(p)) {
+        if arm != "retained-source-port" { producer = arm; }
+        return Some(SourceDivisor { divisor: p, producer });
+    }
+    observe("qs-source");
+    if let Some(p) = crate::sieve::qs(n, bound, m, 64).filter(&good) {
+        return Some(SourceDivisor { divisor: p, producer: "qs-source" });
+    }
+    observe("nine-arm-source");
+    let tower = construct_carrier(NINE_ARM).expect("NINE_ARM is a valid carrier");
+    let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
+    if let Some(p) = run_carrier_rounds(&tower_refs, n, HARD_CARRIER_ROUNDS).filter(&good) {
+        return Some(SourceDivisor { divisor: p, producer: "nine-arm-source" });
+    }
+    observe("dixon-source");
+    crate::sieve::dixon(n, bound, 8, u64::MAX).filter(&good)
+        .map(|divisor| SourceDivisor { divisor, producer: "dixon-source" })
+}
+
 /// Smart factorization: scout each piece for its shape and route it, recursing
 /// to a full prime multiset. A piece the scout labels HARD (large factor, far
 /// from the root, not smooth) is handed to the full nine-arm carrier, which
@@ -3163,13 +3301,6 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 //      It takes the width where the single QS pass comes up short of
                 //      smooth relations but rho still reaches the smaller factor.
                 //   3. Dixon, the exhaustive last resort, only if both above miss.
-                let good = |p: &Tape| {
-                    cmp(p, &one()) == core::cmp::Ordering::Greater
-                        && cmp(p, &c) == core::cmp::Ordering::Less
-                };
-                let (bound, m) = crate::sieve::sieve_params(&c);
-                let tower = construct_carrier(NINE_ARM).expect("NINE_ARM is a valid carrier");
-                let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
                 // MPQS is the primary hard arm: a fresh polynomial per step keeps
                 // the values small, so it is faster than the single polynomial
                 // everywhere they overlap and reaches to the machine-integer width.
@@ -3177,13 +3308,7 @@ pub fn smart_factor(n_in: &[char]) -> (Vec<Tape>, String) {
                 // then the carrier's rho, then Dixon.
                 // MPQS sizes its polynomial window by source width. The much
                 // wider single-polynomial QS interval is only for the fallback.
-                let hit = crate::sieve::mpqs(&c, bound, 32_768, 64)
-                    .filter(&good)
-                    .or_else(|| crate::sieve::qs(&c, bound, m, 64).filter(&good))
-                    .or_else(|| {
-                        run_carrier_rounds(&tower_refs, &c, HARD_CARRIER_ROUNDS).filter(&good)
-                    })
-                    .or_else(|| crate::sieve::dixon(&c, bound, 8, u64::MAX).filter(&good));
+                let hit = hard_source_divisor(&c).map(|result| result.divisor);
                 match hit {
                     Some(p) => {
                         let q = divmod(&c, &p).0;
@@ -3220,6 +3345,22 @@ pub fn repl_scout(n_in: &[char]) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn source_sieve_is_nested_and_a_cheap_closure_skips_it() {
+        let word = source_carrier_word();
+        let marks: Vec<char> = word.chars().collect();
+        let (_, open, overfused) = crate::vox::pairing(&marks);
+        assert!(open.is_empty() && overfused.is_empty());
+        let tower = construct_carrier(&word).unwrap();
+        let names: Vec<_> = tower.iter().map(|operator| morphism_name(operator)).collect();
+        assert_eq!(names[names.len() - 2..], ["SIEVE_SOURCE", "FIX"]);
+        let source = tape_u64(91);
+        let result = source_carrier_divisor(&source).unwrap().unwrap();
+        assert_eq!(result.producer, "EXTRACT");
+        assert_eq!(result.divisor, tape_u64(7));
+        assert!(zero(&divmod(&source, &result.divisor).1));
+    }
+
     use super::*;
 
     #[test]
@@ -4070,6 +4211,7 @@ pub fn factor_bounded(word: &str, max_steps: usize) -> Result<String, String> {
         round: vec![EVALT],
         exhausted: false,
         selected: None,
+        selected_by: None,
         unbraid_stack: Vec::new(),
         unbraid_pair: None,
         unbraid_p_bits: 0,

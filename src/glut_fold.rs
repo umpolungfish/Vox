@@ -626,28 +626,9 @@ impl Resident {
         let factor_bound = mf::isqrt(n);
         let cofactor_bound = ceiling(n, &factor_bound);
         let widest = n.len().div_ceil(2);
-        let mut widths = Vec::new();
-        let mut low = 2;
-        let mut high = widest;
-        while low <= high {
-            widths.push(low);
-            if low != high {
-                widths.push(high);
-            }
-            low += 1;
-            high -= 1;
-        }
         // Geometry admission is a live lane too. It cannot hold the correlation
         // and square rails behind an initialization pass over the entire width.
-        let mut geometries = Vec::new();
-        for p_width in widths {
-            for sum in [n.len(), n.len() + 1] {
-                let q_width = sum - p_width;
-                if q_width >= p_width {
-                    geometries.push((p_width, q_width));
-                }
-            }
-        }
+        let geometries = super::source_factor_geometries(n.len());
         let mut l = Lanes {
             frames: frames::Frames::new(n, &factor_bound),
             square: square_fold::SquareFold::new(n, &factor_bound),

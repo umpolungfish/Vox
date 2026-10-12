@@ -69,6 +69,18 @@ impl PreparedGlutMembrane {
     pub fn membrane_word(&self) -> &[char] {
         &self.collapsed
     }
+    /// Return through every component while retaining the same source register.
+    /// This advances work only; readout still requires `execute` and its bank checks.
+    pub fn advance(&mut self) -> bool {
+        self.advance_observed(|_| {})
+    }
+    pub fn advance_observed(&mut self, mut observe: impl FnMut(&super::FoldStats)) -> bool {
+        let mut resident = self.resident.borrow_mut();
+        for port in Port::ORDER {
+            resident.activate(port, &mut observe);
+        }
+        resident.finished() && resident.quantum_phase_closed()
+    }
     pub fn execute(self) -> Result<Option<GlutExecution>, String> {
         let binding = Rc::new(Cell::new(None));
         let address = Rc::new(Cell::new(None));

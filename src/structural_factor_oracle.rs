@@ -19,6 +19,12 @@ pub trait GateSink {
     fn checkpoint(&mut self) -> Result<(), &'static str> { Ok(()) }
 }
 
+/// Explicit source-support intersection for a glut relation. This operation
+/// is conditional support selection, separate from the coherent gate action.
+pub trait FactorSupportSink: GateSink {
+    fn retain_literals(&mut self, controls: &[Control]) -> Result<(), &'static str>;
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Layout {
     pub p: core::ops::Range<usize>,
@@ -208,9 +214,25 @@ impl<'a> FactorPhaseOracle<'a> {
     /// Requires all workspace cells at zero. Each factor register is unchanged
     /// and every workspace cell returns to zero, including on marked branches.
     pub fn lower<S: GateSink>(&self, sink: &mut S) -> Result<(), &'static str> {
+        self.lower_with_selection(sink, |_, _| Ok(()))
+    }
+
+    /// At row i, product bit i is final: every later row starts above it.
+    /// Intersect that completed column with N before advancing the same
+    /// factor/product/carry register. The final intersection includes properness.
+    pub fn lower_selected<S: FactorSupportSink>(&self, sink: &mut S)
+        -> Result<(), &'static str> {
+        self.lower_with_selection(sink, |state, controls| state.retain_literals(controls))
+    }
+
+    fn lower_with_selection<S: GateSink>(&self, sink: &mut S,
+        mut select: impl FnMut(&mut S, &[Control]) -> Result<(), &'static str>)
+        -> Result<(), &'static str> {
         let l = &self.layout;
         for i in 0..l.p.len() {
             self.row(sink, i, false)?;
+            select(sink, &[Control { cell: l.product.start + i,
+                value: self.n.get(i).copied().unwrap_or(EVALT) }])?;
         }
         self.nontrivial(sink, l.p.clone(), l.nontrivial_p, false)?;
         self.nontrivial(sink, l.q.clone(), l.nontrivial_q, false)?;
@@ -231,6 +253,7 @@ impl<'a> FactorPhaseOracle<'a> {
             cell: l.nontrivial_q,
             value: EVALF,
         });
+        select(sink, &matched)?;
         sink.phase_flip(&matched)?;
         self.nontrivial(sink, l.q.clone(), l.nontrivial_q, true)?;
         self.nontrivial(sink, l.p.clone(), l.nontrivial_p, true)?;

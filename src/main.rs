@@ -765,16 +765,36 @@ struct StdHost {
     next_fd: i32,
     stdio: [Option<i32>; 3],
     fork_stdio: Option<[Option<i32>; 3]>,
+    fork_files: Option<std::collections::BTreeMap<i32, std::fs::File>>,
     cwd: std::path::PathBuf,
     fork_cwd: Option<std::path::PathBuf>,
     children: std::collections::BTreeMap<i32, std::process::Child>,
 }
 impl StdHost { fn new() -> Self { StdHost {
     files: std::collections::BTreeMap::new(), next_fd: 100, stdio: [None; 3],
-    fork_stdio: None, cwd: std::env::current_dir().unwrap_or_else(|_| "/".into()), fork_cwd: None,
+    fork_stdio: None, fork_files: None, cwd: std::env::current_dir().unwrap_or_else(|_| "/".into()), fork_cwd: None,
     children: std::collections::BTreeMap::new(),
 } } }
 impl imasm_vm::Host for StdHost {
+    fn pipe(&mut self, flags: i32) -> Result<(i32, i32), i32> {
+        #[cfg(target_os = "linux")]
+        {
+            use std::os::fd::FromRawFd;
+            extern "C" { fn pipe2(fds: *mut i32, flags: i32) -> i32; }
+            let mut fds = [-1; 2];
+            if unsafe { pipe2(fds.as_mut_ptr(), flags) } != 0 {
+                return Err(-std::io::Error::last_os_error().raw_os_error().unwrap_or(5));
+            }
+            let read = self.next_fd;
+            let write = read + 1;
+            self.next_fd += 2;
+            self.files.insert(read, unsafe { std::fs::File::from_raw_fd(fds[0]) });
+            self.files.insert(write, unsafe { std::fs::File::from_raw_fd(fds[1]) });
+            Ok((read, write))
+        }
+        #[cfg(not(target_os = "linux"))]
+        { let _ = flags; Err(-38) }
+    }
     fn clock_gettime(&mut self, clock: i32) -> Result<(i64,i64),i32> {
         #[cfg(all(target_os="linux",target_pointer_width="64"))]
         {
@@ -806,6 +826,9 @@ impl imasm_vm::Host for StdHost {
     }
     fn read(&mut self, fd: i32, buf: &mut [u8]) -> i64 {
         use std::io::Read;
+        if let Some(file) = self.files.get_mut(&fd) {
+            return file.read(buf).map(|n| n as i64).unwrap_or_else(|e| -e.raw_os_error().unwrap_or(5) as i64);
+        }
         match fd {
             0 => std::io::stdin().read(buf).map(|n| n as i64).unwrap_or(-5),
             _ => match self.files.get_mut(&fd) { Some(f) => f.read(buf).map(|n| n as i64).unwrap_or(-5), None => -9 },
@@ -813,6 +836,9 @@ impl imasm_vm::Host for StdHost {
     }
     fn write(&mut self, fd: i32, buf: &[u8]) -> i64 {
         use std::io::Write;
+        if let Some(file) = self.files.get_mut(&fd) {
+            return file.write(buf).map(|n| n as i64).unwrap_or_else(|e| -e.raw_os_error().unwrap_or(5) as i64);
+        }
         match fd {
             1 => std::io::stdout().write_all(buf).map(|_| buf.len() as i64).unwrap_or(-5),
             2 => std::io::stderr().write_all(buf).map(|_| buf.len() as i64).unwrap_or(-5),
@@ -821,13 +847,19 @@ impl imasm_vm::Host for StdHost {
     }
     fn close(&mut self, fd: i32) -> i32 {
         for (target, source) in self.stdio.iter_mut().enumerate() {
-            if target as i32 == fd { *source = None; return 0; }
+            if target as i32 == fd { *source = None; self.files.remove(&fd); return 0; }
         }
         if matches!(fd, 0|1|2) { return 0; }
         if self.files.remove(&fd).is_some() { 0 } else { -9 }
     }
     fn dup2(&mut self, oldfd: i32, newfd: i32) -> i32 {
         if oldfd == newfd { return oldfd; }
+        if let Some(file) = self.files.get(&oldfd) {
+            let clone = match file.try_clone() { Ok(file) => file, Err(e) => return -e.raw_os_error().unwrap_or(5) };
+            self.files.insert(newfd, clone);
+            if (0..=2).contains(&newfd) { self.stdio[newfd as usize] = Some(newfd); }
+            return newfd;
+        }
         if !self.files.contains_key(&oldfd) && !(0..=2).contains(&oldfd) { return -9; }
         if (0..=2).contains(&newfd) { self.stdio[newfd as usize] = Some(oldfd); newfd }
         else { -9 }
@@ -883,10 +915,15 @@ impl imasm_vm::Host for StdHost {
         Ok((pid, encoded))
     }
     fn begin_fork(&mut self) {
+        // A fork has independent descriptor ownership, with shared file offsets.
+        let child_files = self.files.iter().map(|(&fd, file)|
+            (fd, file.try_clone().expect("clone guest fork descriptor"))).collect();
+        self.fork_files = Some(std::mem::replace(&mut self.files, child_files));
         self.fork_stdio = Some(self.stdio);
         self.fork_cwd = Some(self.cwd.clone());
     }
     fn end_fork(&mut self) {
+        if let Some(saved) = self.fork_files.take() { self.files = saved; }
         if let Some(saved) = self.fork_stdio.take() { self.stdio = saved; }
         if let Some(saved) = self.fork_cwd.take() { self.cwd = saved; }
     }
@@ -896,6 +933,32 @@ impl imasm_vm::Host for StdHost {
 mod host_file_tests {
     use super::*;
     use imasm_vm::Host;
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn fork_error_pipe_reaches_eof_without_reading_stdin() {
+        let mut host = StdHost::new();
+        let (read, write) = host.pipe(0o2000000 | 0o4000).unwrap();
+        host.begin_fork();
+        assert_eq!(host.close(read), 0);
+        host.end_fork();
+        assert_eq!(host.close(write), 0);
+        assert_eq!(host.read(read, &mut [0; 8]), 0);
+        assert_eq!(host.close(read), 0);
+    }
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn redirected_stdio_survives_closing_original_descriptor() {
+        let mut host = StdHost::new();
+        let (read, write) = host.pipe(0o2000000 | 0o4000).unwrap();
+        assert_eq!(host.dup2(write, 1), 1);
+        assert_eq!(host.close(write), 0);
+        assert_eq!(host.write(1, b"captured"), 8);
+        let mut bytes = [0; 8];
+        assert_eq!(host.read(read, &mut bytes), 8);
+        assert_eq!(&bytes, b"captured");
+        assert_eq!(host.close(1), 0);
+        assert_eq!(host.read(read, &mut bytes), 0);
+    }
     #[test]
     fn exclusive_guest_open_preserves_an_existing_capture_and_its_errno() {
         let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();

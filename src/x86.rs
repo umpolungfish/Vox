@@ -24,6 +24,21 @@ mod operand_format_tests {
     use alloc::string::String;
 
     #[test]
+    fn decodes_runtime_sign_masks_with_extended_registers() {
+        for (bytes, mnemonic, length) in [
+            (&[0x44, 0x0f, 0x50, 0xc0][..], "movmskps", 4),
+            (&[0x66, 0x45, 0x0f, 0x50, 0xc0][..], "movmskpd", 5),
+        ] {
+            let instruction = super::decode(bytes, 0x100).unwrap();
+            assert_eq!(instruction.mnemonic, mnemonic);
+            assert_eq!(instruction.len, length);
+            assert_eq!(instruction.ops[0].field(), "r:r8d");
+            assert_eq!(instruction.ops[1].field(), if length == 4 { "r:xmm0" } else { "r:xmm8" });
+        }
+        assert!(super::decode(&[0x0f, 0x50, 0x00], 0x100).is_none());
+    }
+
+    #[test]
     fn formats_minimum_signed_displacements_without_overflow() {
         let minimum = i64::MIN;
         assert_eq!(Op::Imm(minimum).field(), "i:-0x8000000000000000");
@@ -581,6 +596,11 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xDA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pminub",vec![rop(r,16,rex.p),rm],false,None) }
         0xDE => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmaxub",vec![rop(r,16,rex.p),rm],false,None) }
         0xD7 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmovmskb",vec![rop(r,4,rex.p),rm],false,None) }
+        0x50 if !f2 && !f3 => {
+            let (rm, r) = modrm(c, rex, 16, 16)?;
+            if rm.is_mem() { return None; }
+            ins!(addr,c,if o66 {"movmskpd"} else {"movmskps"},vec![rop(r,4,rex.p),rm],false,None)
+        }
         0x63|0x67|0x6B if o66 => {
             let (rm,r)=modrm(c,rex,16,16)?;
             let mn=match op2 {0x63=>"packsswb",0x67=>"packuswb",_=>"packssdw"};

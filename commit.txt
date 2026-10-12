@@ -1,1 +1,3 @@
-I remove transient allocations from guest address and flag execution
+I nest the source relation arm and retain full-width factor state
+
+I preserve source provenance, full-width coefficients, online relation dependencies, and the carrier controls alongside the current execution machinery.

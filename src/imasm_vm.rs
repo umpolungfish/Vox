@@ -66,6 +66,7 @@ pub trait Host {
     fn read(&mut self, fd: i32, buf: &mut [u8]) -> i64;
     fn write(&mut self, fd: i32, buf: &[u8]) -> i64;
     fn close(&mut self, fd: i32) -> i32;
+    fn pipe(&mut self, _flags: i32) -> Result<(i32, i32), i32> { Err(-38) }
     fn clock_gettime(&mut self, _clock: i32) -> Result<(i64,i64),i32> { Err(-38) }
     fn dup2(&mut self, _oldfd: i32, _newfd: i32) -> i32 { -38 }
     fn chdir(&mut self, _path: &str) -> i32 { -38 }
@@ -411,6 +412,19 @@ impl Machine {
             self.syslog.push_back(format!("syscall {} a0=0x{:x} a1=0x{:x} a2=0x{:x} @step {}", num, a0, a1, a2, self.steps));
         }
         match num {
+            22 | 293 => { // pipe / pipe2: return both descriptors through guest memory.
+                let result = if a0 == 0 { Err(-14) } else {
+                    self.host.as_mut().map(|h| h.pipe(if num == 293 { a1 as i32 } else { 0 })).unwrap_or(Err(-38))
+                };
+                match result {
+                    Ok((read, write)) => {
+                        self.store(a0 as u64, read as u32 as u128, 4);
+                        self.store(a0 as u64 + 4, write as u32 as u128, 4);
+                        self.set_reg("rax", 0);
+                    }
+                    Err(errno) => self.set_reg("rax", errno as i64 as u64 as u128),
+                }
+            }
             56 | 435 => { // fork-shaped clone used by std::process::Command
                 let (_clone_flags, child_stack, supported) = if num == 56 {
                     let flags = a0 as u64;
@@ -1103,6 +1117,15 @@ impl Machine {
                 for k in 0..16u32 { if (a>>(k*8+7))&1==1 { m |= 1u128<<k; } }
                 self.write(&dst, m);
             }
+            "movmskps" | "movmskpd" => {
+                let value = self.read(&f[1], 16).0;
+                let lane_bits = if op == "movmskps" { 32u32 } else { 64u32 };
+                let mut result = 0u128;
+                for lane in 0..(128 / lane_bits) {
+                    result |= ((value >> (lane * lane_bits + lane_bits - 1)) & 1) << lane;
+                }
+                self.write(&dst, result);
+            }
             "packssdw"|"packsswb"|"packuswb" => {
                 let a = self.read(&dst, 16).0;
                 let b = self.read(&f[1], 16).0;
@@ -1490,7 +1513,7 @@ fn is_simd(op: &str) -> bool {
     matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
-        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"
+        |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"|"movmskps"|"movmskpd"
         |"packssdw"|"packsswb"|"packuswb"
         |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
         |"xorps"|"andps"|"andnps"|"orps"|"xorpd"|"andpd"|"andnpd"|"orpd"
@@ -1499,6 +1522,30 @@ fn is_simd(op: &str) -> bool {
 
 #[cfg(test)]
 mod membrane_simd_tests {
+    #[test]
+    fn sign_mask_readout_keeps_lane_order_and_clears_upper_destination_bits() {
+        for (bytes, lane_bits, source) in [
+            (&[0x44, 0x0f, 0x50, 0xc0][..], 32u32, "xmm0"),
+            (&[0x66, 0x45, 0x0f, 0x50, 0xc0][..], 64u32, "xmm8"),
+        ] {
+            let instruction = crate::x86::decode(bytes, 0x100).unwrap();
+            let module = alloc::format!("@0x100\n⋈\t{}\t{}\t{}\n@0x200\n",
+                instruction.mnemonic, instruction.ops[0].field(), instruction.ops[1].field());
+            for expected in 0..(1u128 << (128 / lane_bits)) {
+                let mut value = u128::MAX;
+                for lane in 0..(128 / lane_bits) {
+                    let sign = 1u128 << (lane * lane_bits + lane_bits - 1);
+                    if expected & (1 << lane) == 0 { value &= !sign; }
+                }
+                let mut machine = super::Machine::new(&module);
+                machine.set_reg(source, value);
+                machine.set_reg("r8", u64::MAX as u128);
+                assert!(machine.step(0x100).is_ok());
+                assert_eq!(machine.reg("r8"), expected);
+            }
+        }
+    }
+
     #[test]
     fn lifted_memory_push_preserves_addresses_above_four_gib() {
         let insn = crate::x86::decode(&[0xff, 0x34, 0x24], 0x1000).unwrap();
