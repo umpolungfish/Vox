@@ -1,0 +1,30 @@
+{
+  "source_n": "70191810847962523428393383144335058145044794059705339572713006486785864659869",
+  "build_seconds": 24.06359038699884,
+  "runtime_arguments": [],
+  "wrapper_fixed_base": "2, unused by dialectic-lean",
+  "binary_sha256": "90c1e72106d03cd57d1e1228b02dd3e90212996299ae42b25b73b3950b56afda",
+  "runs": [
+    {
+      "returncode": 0,
+      "driver_seconds": 0.001117300009354949,
+      "stdout": "factor 264937371557812740802878898768711833427\nfactor 264937371557812740802878898768711834447\nproducer dialectic-resident lattice ShortFrontier\npreparation_seconds 0.000022600\ntrigger_to_readout_seconds 0.000013600\ntrigger_to_verified_factor_seconds 0.000015000\ndescents 1 contractions 10 temporal_ticks 1 information_joins 1 reversed_descents 0 cells 1 square_tests 1 rejected 0 residual_advances 0 phase 4 evidence 2\nseconds 0.0000967\n",
+      "stderr": "",
+      "product_verified": true
+    },
+    {
+      "returncode": 0,
+      "driver_seconds": 0.001028400001814589,
+      "stdout": "factor 264937371557812740802878898768711833427\nfactor 264937371557812740802878898768711834447\nproducer dialectic-resident lattice ShortFrontier\npreparation_seconds 0.000022400\ntrigger_to_readout_seconds 0.000013400\ntrigger_to_verified_factor_seconds 0.000014700\ndescents 1 contractions 10 temporal_ticks 1 information_joins 1 reversed_descents 0 cells 1 square_tests 1 rejected 0 residual_advances 0 phase 4 evidence 2\nseconds 0.0000969\n",
+      "stderr": "",
+      "product_verified": true
+    },
+    {
+      "returncode": 0,
+      "driver_seconds": 0.0009877000120468438,
+      "stdout": "factor 264937371557812740802878898768711833427\nfactor 264937371557812740802878898768711834447\nproducer dialectic-resident lattice ShortFrontier\npreparation_seconds 0.000023800\ntrigger_to_readout_seconds 0.000013400\ntrigger_to_verified_factor_seconds 0.000014700\ndescents 1 contractions 10 temporal_ticks 1 information_joins 1 reversed_descents 0 cells 1 square_tests 1 rejected 0 residual_advances 0 phase 4 evidence 2\nseconds 0.0001065\n",
+      "stderr": "",
+      "product_verified": true
+    }
+  ]
+}

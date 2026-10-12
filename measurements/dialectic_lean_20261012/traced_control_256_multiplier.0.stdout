@@ -1,0 +1,10 @@
+factor 372893512615556360754395794708509348761
+factor 186446756307778180377197897354254674337
+producer dialectic-resident lattice Lehman
+preparation_seconds 0.000030900
+trigger_to_readout_seconds 0.009797903
+trigger_to_verified_factor_seconds 0.009799403
+descents 4 contractions 13 temporal_ticks 4 information_joins 4 reversed_descents 2 cells 4224 square_tests 1072 rejected 3152 residual_advances 4220 phase 2 evidence 10
+residual_frame source=556198287003072363080803471675879976021880432955653273865232342440384075571656 multiplier=2 a=745787025231112721508791589417018697435 residual=7569 cell=0 lattice=Lehman
+executed_word ⊢⊙∈≻⋈⊤⊥∋⊡⊣
+seconds 0.009982203

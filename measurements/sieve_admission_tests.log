@@ -1,0 +1,21 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
+
+running 14 tests
+test sieve::threshold_tests::a_composite_shared_residual_also_contributes_an_exact_square ... ok
+test sieve::threshold_tests::folded_period_matches_prime_root_marks_across_block_boundaries ... ok
+test sieve::threshold_tests::lifted_prime_power_scores_match_repeated_divisibility ... ok
+test sieve::threshold_tests::matching_residuals_close_only_with_their_square_contribution ... ok
+test sieve::threshold_tests::matrix_closes_with_two_rows_and_many_unused_columns ... ok
+test sieve::threshold_tests::polynomial_scaling_retains_the_source_modular_identity ... ok
+test sieve::threshold_tests::polynomial_score_log_preserves_the_full_product_above_machine_width ... ok
+test sieve::threshold_tests::residual_buckets_include_exact_boundaries_and_wide_values ... ok
+test sieve::threshold_tests::score_period_doubling_preserves_a_large_rotated_partial_tail ... ok
+test sieve::threshold_tests::shared_residual_rows_preserve_signed_parity ... ok
+test sieve::threshold_tests::sliced_pivot_xor_matches_full_rows_at_word_boundaries ... ok
+test sieve::threshold_tests::square_residual_closes_without_waiting_for_a_duplicate ... ok
+test sieve::threshold_tests::vector_threshold_matches_signed_scalar_at_every_tail ... ok
+test sieve::threshold_tests::word_pivot_matches_bit_scan_with_padding_and_zero_words ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 359 filtered out; finished in 0.04s
+

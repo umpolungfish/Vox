@@ -59,6 +59,7 @@ pub mod layer_stack; // Core Numeral Boolean layer axis: threshold supports, lay
 pub mod lean_evidence; // Lean Evidence registry: theorem id -> build witness (tag only)
 pub mod producer_provenance;
 pub mod dialectic_reentry;
+pub mod dialectic_lean;
 pub mod dialectic_certificate;
 pub mod imscription_cycle;
 pub mod tape_delete;

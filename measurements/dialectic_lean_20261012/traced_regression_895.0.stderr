@@ -1,0 +1,18 @@
+preparation_seconds 0.000048800
+dialectic-lean seconds=5.000232 descents=11982 contractions=11991 phase=2 evidence=8 boundary=11981 cells=770816 square_tests=384384 rejected=386432
+dialectic-lean seconds=10.000431 descents=23981 contractions=23990 phase=4 evidence=8 boundary=23980 cells=1538752 square_tests=768320 rejected=770432
+dialectic-lean seconds=15.000697 descents=35979 contractions=35988 phase=4 evidence=8 boundary=35978 cells=2306624 square_tests=1152272 rejected=1154352
+dialectic-lean seconds=20.000793 descents=47916 contractions=47925 phase=2 evidence=8 boundary=47915 cells=3070592 square_tests=1534256 rejected=1536336
+dialectic-lean seconds=25.000967 descents=59845 contractions=59854 phase=4 evidence=8 boundary=59844 cells=3834048 square_tests=1915968 rejected=1918080
+dialectic-lean seconds=30.001306 descents=71787 contractions=71796 phase=4 evidence=8 boundary=71786 cells=4598336 square_tests=2298128 rejected=2300208
+dialectic-lean seconds=35.001615 descents=83706 contractions=83715 phase=2 evidence=8 boundary=83705 cells=5361152 square_tests=2679552 rejected=2681600
+dialectic-lean seconds=40.001982 descents=95628 contractions=95637 phase=2 evidence=8 boundary=95627 cells=6124160 square_tests=3061040 rejected=3063120
+dialectic-lean seconds=45.002252 descents=107515 contractions=107524 phase=4 evidence=8 boundary=107514 cells=6884928 square_tests=3441424 rejected=3443504
+dialectic-lean seconds=50.002622 descents=119524 contractions=119533 phase=2 evidence=8 boundary=119523 cells=7653504 square_tests=3825712 rejected=3827792
+dialectic-lean seconds=55.002918 descents=131491 contractions=131500 phase=4 evidence=8 boundary=131490 cells=8419392 square_tests=4208656 rejected=4210736
+dialectic-lean seconds=60.003094 descents=143527 contractions=143536 phase=4 evidence=8 boundary=143526 cells=9189696 square_tests=4593808 rejected=4595888
+dialectic-lean seconds=65.003169 descents=155543 contractions=155552 phase=4 evidence=8 boundary=155542 cells=9958720 square_tests=4978320 rejected=4980400
+dialectic-lean seconds=70.003340 descents=167597 contractions=167606 phase=4 evidence=8 boundary=167596 cells=10730176 square_tests=5364032 rejected=5366144
+dialectic-lean seconds=75.003411 descents=179693 contractions=179702 phase=4 evidence=8 boundary=179692 cells=11504320 square_tests=5751104 rejected=5753216
+dialectic-lean seconds=80.004962 descents=191809 contractions=191818 phase=4 evidence=8 boundary=191808 cells=12279744 square_tests=6138816 rejected=6140928
+dialectic-lean seconds=85.005242 descents=203889 contractions=203898 phase=4 evidence=8 boundary=203888 cells=13052864 square_tests=6525376 rejected=6527488

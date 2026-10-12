@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/home/mrnob0dy666/imsgct/Vox/target/release/vox",
+    "run",
+    "/home/mrnob0dy666/imsgct/Vox/measurements/dialectic_lean_20261012/static_rewired.imasm"
+  ],
+  "runtime_arguments": [],
+  "exit_status": 2,
+  "timed_out": false,
+  "bound_seconds": 90,
+  "driver_seconds": 0.4657741629926022,
+  "product_verified": false,
+  "stdout": "Vox/measurements/dialectic_lean_20261012/static_vox.stdout",
+  "stderr": "Vox/measurements/dialectic_lean_20261012/static_vox.stderr"
+}

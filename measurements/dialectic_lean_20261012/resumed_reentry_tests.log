@@ -1,0 +1,12 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.50s
+     Running tests/dialectic_reentry.rs (target/debug/deps/dialectic_reentry-01cf93c51b84d466)
+
+running 4 tests
+test operator_closes_without_descent_when_first_imscribed_space_affords_the_pair ... ok
+test operator_consumes_frontier_then_reimscribes_from_persisted_boundary ... ok
+test persisted_operator_space_rejects_rwx_relation_or_support_mismatch ... ok
+test operator_changes_lattice_and_reenters_until_lehman_locks_the_pair ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

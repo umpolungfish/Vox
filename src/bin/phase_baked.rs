@@ -4,7 +4,7 @@ extern crate alloc;
 #[path = "../membrane_complex.rs"] mod membrane_complex;
 #[path = "../fde_shor_membrane.rs"] mod fde_shor_membrane;
 #[path = "../shor_qft.rs"] mod shor_qft;
-#[path = "../phase_word.rs"] mod phase_word;
+use vox::phase_word;
 
 use vox::phase_partners;
 use vox::morphism_factor::{dec_of, parse_numeral};

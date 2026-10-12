@@ -1,0 +1,91 @@
+preparation_seconds 0.154339110
+failed_frame source=70191810847962523428393383144335058145044794059705339572713006486785864659869 multiplier=264937371557812740802878898768711833937 a=264937371557812740802878898768711833937 residual=260100 cell=0 lattice=ShortFrontier
+
+thread 'main' (0) panicked at src/bin/semiprime_probe.rs:104:13:
+terminal decode: unknown FOUR verdict; word=⊢⊙∈≻⊤≺⊥∋⊡⊣
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fatal runtime error: failed to initiate panic, error 5, aborting
+regs at halt: rax=0 rbx=21810 rcx=0 rdx=0 rsi=7ffeef08 rdi=1 rbp=7ffeef40 rsp=7ffeef08 r12=7ffef240 r13=7ffef288 r14=7ffef348 r15=85bd0
+call chain: 5d99 5e08 20eb6 45d08 45c69 45c5c 521f 1f46b
+entry(...) halted: no instruction at 0x86118 after 2006902 steps
+  previous 12:
+  65e92: ⋈ mov r:edi i:0x6
+  65e97: ≻ call i:0x67e50
+  67e50: ⋈ push r:rbp
+  67e51: ⋈ push r:rbx
+  67e52: ⋈ mov r:ebx r:edi
+  67e54: ⊞ sub r:rsp i:0x88
+  67e5b: ⋈ mov r:rbp r:rsp
+  67e5e: ⋈ mov r:rdi r:rbp
+  67e61: ≻ call i:0x67e1e
+  67e1e: ⋈ mov r:rdx r:rdi
+  67e21: ⋈ mov r:r10d i:0x8
+  67e27: ⊞ lea r:rsi m:rip::1:0xfeb2:8
+  67e2e: ⊞ xor r:edi r:edi
+  67e30: ⋈ mov r:eax i:0xe
+  67e35: ⊙ syscall
+  67e37: ⊣ ret
+  67e66: ⋈ movsxd r:rsi r:ebx
+  67e69: ⋈ mov r:rax m:fs::1:0x0:8
+  67e72: ⋈ movsxd r:rdi m:rax::1:0x30:4
+  67e76: ⋈ mov r:eax i:0xc8
+  67e7b: ⊙ syscall
+  67e7d: ⋈ mov r:rdi r:rax
+  67e80: ≻ call i:0x66160
+  66160: ⊤ cmp r:rdi i:-0x1000
+  66167: ∈ a i:0x66170
+  66169: ⋈ mov r:rax r:rdi
+  6616c: ⊣ ret
+  67e85: ⋈ mov r:rdi r:rbp
+  67e88: ⋈ mov r:rbx r:rax
+  67e8b: ≻ call i:0x67e38
+  67e38: ⋈ mov r:rsi r:rdi
+  67e3b: ⋈ mov r:r10d i:0x8
+  67e41: ⋈ mov r:eax i:0xe
+  67e46: ⊞ xor r:edx r:edx
+  67e48: ⋈ mov r:edi i:0x2
+  67e4d: ⊙ syscall
+  67e4f: ⊣ ret
+  67e90: ⊞ add r:rsp i:0x88
+  67e97: ⋈ mov r:eax r:ebx
+  67e99: ⋈ pop r:rbx
+  67e9a: ⋈ pop r:rbp
+  67e9b: ⊣ ret
+  65e9c: ⊞ xor r:edi r:edi
+  65e9e: ≻ call i:0x67e04
+  67e04: ⋈ mov r:rdx r:rdi
+  67e07: ⋈ mov r:r10d i:0x8
+  67e0d: ⊞ lea r:rsi m:rip::1:0xfed4:8
+  67e14: ⊞ xor r:edi r:edi
+  67e16: ⋈ mov r:eax i:0xe
+  67e1b: ⊙ syscall
+  67e1d: ⊣ ret
+  65ea3: ⊞ lea r:rdi m:rip::1:0x22b0e:8
+  65eaa: ≻ call i:0x6a4d8
+  6a4d8: ⋈ movsx r:ecx m:rip::1:0x1e524:1
+  6a4df: ⊤ test r:ecx r:ecx
+  6a4e1: ∈ e i:0x6a589
+  6a589: ⊣ ret
+  65eaf: ⋈ mov r:edx i:0x8
+  65eb4: ⊞ xor r:eax r:eax
+  65eb6: ⊞ lea r:rdi m:rsp::1:0x10:8
+  65ebb: ⋈ mov r:rcx r:rdx
+  65ebe: ⋈ mov r:r8d i:0x6
+  65ec4: ⊞ lea r:rsi m:rsp::1:0x10:8
+  65ec9: ⋈ mov r:r10d i:0x8
+  65ecf: ⊡ rep_stos i:0x4
+  65ed1: ⋈ mov r:eax i:0xd
+  65ed6: ⋈ mov r:rdi r:r8
+  65ed9: ⋈ mov r:rdx r:rcx
+  65edc: ⊙ syscall
+  65ede: ⋈ mov r:rax m:fs::1:0x0:8
+  65ee7: ⋈ mov r:rsi r:r8
+  65eea: ⋈ movsxd r:rdi m:rax::1:0x30:4
+  65eee: ⋈ mov r:eax i:0xc8
+  65ef3: ⊙ syscall
+  65ef5: ⋈ mov r:eax i:0xe
+  65efa: ⊞ lea r:rsi m:rsp::1:0x8:8
+  65eff: ⋈ mov r:edi i:0x1
+  65f04: ⋈ mov m:rsp::1:0x8:8 i:0x20
+  65f0d: ⊙ syscall
+  65f0f: ⊣ hlt   [2006902 steps]

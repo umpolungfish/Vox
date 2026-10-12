@@ -6,7 +6,7 @@
 #![deny(warnings)]
 extern crate alloc;
 
-#[path = "../phase_word.rs"] mod phase_word;
+use vox::phase_word;
 
 use vox::phase_partners;
 use vox::morphism_factor::parse_numeral;

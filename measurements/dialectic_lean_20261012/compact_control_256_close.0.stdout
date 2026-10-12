@@ -1,0 +1,8 @@
+factor 264937371557812740802878898768711833427
+factor 264937371557812740802878898768711834447
+producer dialectic-resident lattice ShortFrontier
+preparation_seconds 0.000024000
+trigger_to_readout_seconds 0.000015800
+trigger_to_verified_factor_seconds 0.000017100
+descents 1 contractions 10 temporal_ticks 1 information_joins 1 reversed_descents 0 cells 1 square_tests 1 rejected 0 residual_advances 0 phase 4 evidence 2
+seconds 0.000095

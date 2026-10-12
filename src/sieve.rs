@@ -28,6 +28,10 @@ type Tape = Vec<char>;
 #[unsafe(no_mangle)]
 pub static VOX_SIEVE_COUNTERS: [core::sync::atomic::AtomicU64; 19] =
     [const { core::sync::atomic::AtomicU64::new(0) }; 19];
+// Candidate admission: threshold, maximum observed score, scored blocks.
+#[unsafe(no_mangle)]
+pub static VOX_SIEVE_ADMISSION: [core::sync::atomic::AtomicU64; 3] =
+    [const { core::sync::atomic::AtomicU64::new(0) }; 3];
 fn sieve_gauge(index: usize, value: usize) {
     VOX_SIEVE_COUNTERS[index].store(value as u64, core::sync::atomic::Ordering::Relaxed);
 }
@@ -63,9 +67,15 @@ fn polynomial_multiplier(n: &Tape) -> u64 {
 #[cfg(test)]
 fn prime_power_marks(a: u128, b: i128, c: &Tape, window: usize,
     primes: &[u64]) -> Vec<(usize, usize, i32)> {
+    prime_power_marks_tape(&u128_to_tape(a), b < 0,
+        &u128_to_tape(b.unsigned_abs()), c, window, primes)
+}
+
+fn prime_power_marks_tape(a: &Tape, b_negative: bool, b: &Tape, c: &Tape,
+    window: usize, primes: &[u64]) -> Vec<(usize, usize, i32)> {
     let mut marks = Vec::new();
     for &prime in primes.iter().filter(|&&p| p >= 2 && p <= 31) {
-        if prime != 2 && a % prime as u128 == 0 { continue; }
+        if prime != 2 && n_mod_u64(a, prime) == 0 { continue; }
         let p = prime as usize;
         let weight = (63 - prime.leading_zeros()) as i32;
         let mut modulus = p;
@@ -73,8 +83,9 @@ fn prime_power_marks(a: u128, b: i128, c: &Tape, window: usize,
         loop {
             let cm = n_mod_u64(c, modulus as u64) as u128;
             let mm = modulus as u128;
-            let am = a % mm;
-            let bm = b.rem_euclid(modulus as i128) as u128;
+            let am = n_mod_u64(a, modulus as u64) as u128;
+            let bm = n_mod_u64(b, modulus as u64) as u128;
+            let bm = if b_negative && bm != 0 { mm - bm } else { bm };
             roots.retain(|&offset| {
                 let x = (offset + modulus - window % modulus) % modulus;
                 let x = x as u128;
@@ -490,6 +501,7 @@ fn score_block_capacity(width: usize) -> usize {
 
 /// Fold the first active prime lanes into one common score period. Its length
 /// is chosen from the live primes and must fit the existing block storage.
+#[cfg(test)]
 fn prepare_score_period(base: &[u64], roots1: &[i64], roots2: &[i64], logs: &[i32],
     capacity: usize, scores: &mut Vec<i32>) -> usize {
     prepare_score_period_with_powers(base, roots1, roots2, logs, capacity, scores, &[])
@@ -1204,6 +1216,9 @@ pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
     for counter in &VOX_SIEVE_COUNTERS {
         counter.store(0, core::sync::atomic::Ordering::Relaxed);
     }
+    for counter in &VOX_SIEVE_ADMISSION {
+        counter.store(0, core::sync::atomic::Ordering::Relaxed);
+    }
     let n = trim(n.clone());
     let bits = n.len();
     // Wider targets amortize polynomial setup across a larger window.
@@ -1407,6 +1422,7 @@ pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
         let thresh = if coefficient_wide {
             (mul(&a_t, &u128_to_tape((m_half as u128).pow(2))).len() - 1) as i32
         } else { polynomial_score_log(a_val,m as u128) } - thresh_slack;
+        VOX_SIEVE_ADMISSION[0].store(thresh.max(0) as u64, core::sync::atomic::Ordering::Relaxed);
 
         // inner: each of the 2^(k-1) sign patterns is a B sibling that reuses the
         // per-A inverse; its two roots per prime are recomputed directly from the
@@ -1497,13 +1513,19 @@ pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
             // running mark positions start at the roots and advance across blocks
             next1.copy_from_slice(&soln1);
             next2.copy_from_slice(&soln2);
-            let unfolded_start = prepare_score_period(&base, &soln1, &soln2, &lp,
-                score_block, &mut folded_scores);
+            let powers = prime_power_marks_tape(&a_t, b_neg, &b_t, &c_mag, m_half, &base);
+            let unfolded_start = prepare_score_period_with_powers(&base, &soln1, &soln2, &lp,
+                score_block, &mut folded_scores, &powers);
             let mut bstart = 0usize;
             while bstart < span {
                 let bend = (bstart + score_block).min(span);
                 let blen = bend - bstart;
                 seed_score_period(&mut blk[..blen], &folded_scores, bstart);
+                for &(modulus, root, weight) in &powers {
+                    if folded_scores.len() % modulus == 0 { continue; }
+                    let offset = (root + modulus - bstart % modulus) % modulus;
+                    for index in (offset..blen).step_by(modulus) { blk[index] += weight; }
+                }
                 for j in unfolded_start..width {
                     if soln1[j] < 0 {
                         continue;
@@ -1527,6 +1549,9 @@ pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
                     next2[j] = idx2 as i64;
                 }
                 threshold_positions(&blk[..blen], thresh, &mut candidates);
+                VOX_SIEVE_ADMISSION[1].fetch_max(blk[..blen].iter().copied().max().unwrap_or(0).max(0) as u64,
+                    core::sync::atomic::Ordering::Relaxed);
+                VOX_SIEVE_ADMISSION[2].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
                 VOX_SIEVE_COUNTERS[4].fetch_add(blen as u64, core::sync::atomic::Ordering::Relaxed);
                 VOX_SIEVE_COUNTERS[5].fetch_add(candidates.len() as u64, core::sync::atomic::Ordering::Relaxed);
                 for &off in &candidates {
