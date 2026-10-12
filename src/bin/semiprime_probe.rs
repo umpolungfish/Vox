@@ -11,9 +11,28 @@ include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 fn main() {
     let mode = option_env!("VOX_PROBE_MODE").expect("bake the producer at build time");
     let n = parse_numeral(BAKED_MODULUS_WORD.expect("bake the IMASM modulus at build time")).unwrap();
-    let a = parse_numeral(BAKED_BASE_WORD.expect("bake the IMASM base at build time")).unwrap();
+    let a = if mode == "synthesis" { vox::morphism_factor::two() }
+        else { parse_numeral(BAKED_BASE_WORD.expect("bake the IMASM base at build time")).unwrap() };
     let start = Instant::now();
-    if mode == "braid" {
+    if mode == "synthesis" {
+        let mut resident = vox::factor_synthesis::FactorSynthesis::new(&n).unwrap();
+        let mut last_report = Instant::now();
+        loop {
+            if let Some(result) = resident.advance_observed(|stats| {
+                if last_report.elapsed().as_secs() >= 5 {
+                    eprintln!("synthesis seconds={:.3} stage={} phase={} square={} rows={} columns={} frontier={} decisions={}",
+                        start.elapsed().as_secs_f64(), stats.diagnostic_stage, stats.phase_stage,
+                        stats.square_advances, stats.phase_rows, stats.phase_columns,
+                        stats.frontier, stats.correlation_decisions);
+                    last_report = Instant::now();
+                }
+            }).unwrap() {
+                println!("factor {}\nfactor {}", dec_of(&result.p), dec_of(&result.q));
+                println!("producer {} turns {}", result.producer, result.turns);
+                break;
+            }
+        }
+    } else if mode == "braid" {
         eprintln!("stage braid order acquisition, base=2");
         let (word, levels) = vox::shor_braid::shor_braid(&a, &n).unwrap();
         eprintln!("stage winding readout; levels={levels}");

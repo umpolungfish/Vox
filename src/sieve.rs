@@ -733,6 +733,62 @@ fn combine(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64]) -> Option
     combine_with_square_factors(n, a_of, exp_of, base, None)
 }
 
+/// The same GF(2) row transformation, retained as relations arrive. Histories
+/// refer to the source-bound relation bank and survive every polynomial return.
+struct OnlineRelations {
+    pivots: Vec<Option<(Vec<u64>, Vec<u64>)>>,
+}
+
+impl OnlineRelations {
+    fn new(width: usize) -> Self {
+        Self { pivots: vec![None; width] }
+    }
+
+    fn insert(&mut self, exponents: &[u32], index: usize) -> Option<Vec<usize>> {
+        let width = self.pivots.len();
+        let mut row = vec![0u64; width / 64 + 1];
+        for (column, exponent) in exponents.iter().enumerate() {
+            if exponent & 1 == 1 { row[column / 64] |= 1 << (column % 64); }
+        }
+        let mut history = vec![0u64; index / 64 + 1];
+        history[index / 64] = 1 << (index % 64);
+        while let Some(column) = first_set_column(&row, width) {
+            if let Some((pivot, ancestry)) = &self.pivots[column] {
+                for (left, right) in row[column / 64..].iter_mut().zip(&pivot[column / 64..]) {
+                    *left ^= right;
+                }
+                for (left, right) in history.iter_mut().zip(ancestry) { *left ^= right; }
+            } else {
+                self.pivots[column] = Some((row, history));
+                return None;
+            }
+        }
+        Some((0..=index).filter(|&i| (history[i / 64] >> (i % 64)) & 1 == 1).collect())
+    }
+}
+
+fn dependency_divisor(n: &Tape, selected: &[usize], a_of: &[Tape],
+    exp_of: &[Vec<u32>], base: &[u64], square_factors: Option<&[Tape]>) -> Option<Tape> {
+    if selected.is_empty() { return None; }
+    let mut x = one();
+    let mut total = vec![0u32; base.len()];
+    let mut y = one();
+    for &index in selected {
+        x = mul_mod(&x, &a_of[index], n);
+        for (sum, exponent) in total.iter_mut().zip(&exp_of[index]) { *sum += exponent; }
+        if let Some(squares) = square_factors {
+            y = mul_mod(&y, &squares[index], n);
+        }
+    }
+    if total.iter().any(|exponent| exponent & 1 == 1) { return None; }
+    for (&exponent, &prime) in total.iter().zip(base) {
+        for _ in 0..exponent / 2 { y = mul_mod(&y, &tape_u64(prime), n); }
+    }
+    let difference = if cmp(&x, &y).is_lt() { sub(&y, &x) } else { sub(&x, &y) };
+    let divisor = gcd(trim(difference), n.clone());
+    (cmp(&divisor, &one()).is_gt() && cmp(&divisor, n).is_lt()).then_some(trim(divisor))
+}
+
 fn combine_with_square_factors(n: &Tape, a_of: &[Tape], exp_of: &[Vec<u32>], base: &[u64],
     square_factors: Option<&[Tape]>) -> Option<Tape> {
     debug_assert!(square_factors.is_none_or(|factors| factors.len() == a_of.len()));
@@ -1073,34 +1129,78 @@ fn iroot(v: u128, k: u32) -> u128 {
     if k == 0 || v < 2 {
         return v.max(1);
     }
-    let mut r = 1u128;
-    while {
+    let mut lo = 1u128;
+    let mut hi = v;
+    while lo < hi {
+        let candidate = lo + (hi - lo) / 2 + 1;
         let mut p = 1u128;
         let mut over = false;
         for _ in 0..k {
-            match p.checked_mul(r + 1) {
-                Some(np) => p = np,
+            match p.checked_mul(candidate) {
+                Some(np) if np <= v => p = np,
                 None => {
                     over = true;
                     break;
                 }
+                Some(_) => { over = true; break; }
             }
         }
-        !over && p <= v
-    } {
-        r += 1;
+        if over { hi = candidate - 1; } else { lo = candidate; }
     }
-    r
+    lo
 }
 
-/// Multiple-polynomial quadratic sieve over machine integers, exact for N up to
-/// about 120 bits. Each polynomial is g(x) = A x^2 + 2B x + C with A a product of
+fn coefficient_prime_size(target: &Tape, bound: usize) -> (usize, u128) {
+    let limit = (bound * 3 / 5).max(2) as u128;
+    let root = |degree: usize| -> u128 {
+        if let Some(value) = tape_to_u128(target) {
+            iroot(value, degree as u32)
+        } else {
+            tape_to_u128(&crate::morphism_factor::iroot(target, degree)).unwrap_or(u128::MAX)
+        }
+    };
+    let size_bits = (127 - limit.leading_zeros()).max(1) as usize;
+    let mut degree = target.len().div_ceil(size_bits).max(3);
+    while degree > 3 && root(degree - 1) <= limit { degree -= 1; }
+    let mut size = root(degree);
+    while size > limit { degree += 1; size = root(degree); }
+    (degree, size)
+}
+
+fn next_sibling(signs: &mut [bool]) -> bool {
+    for sign in signs {
+        *sign = !*sign;
+        if *sign { return true; }
+    }
+    false
+}
+
+fn wide_crt_terms(a: &Tape, indices: &[usize], base: &[u64], roots: &[u64]) -> Vec<Tape> {
+    indices.iter().map(|&index| {
+        let prime = base[index];
+        let quotient = divmod(a, &tape_u64(prime)).0;
+        let inverse = modinv(n_mod_u64(&quotient, prime), prime);
+        let weight = (roots[index] as u128 * inverse as u128 % prime as u128) as u64;
+        modulo(&mul(&quotient, &tape_u64(weight)), a)
+    }).collect()
+}
+
+/// Multiple-polynomial quadratic sieve over folded numeral tapes. Machine-word
+/// arithmetic is used where the exact intermediates fit. Each polynomial is
+/// g(x) = A x^2 + 2B x + C with A a product of
 /// base primes and B^2 == N (mod A), so (A x + B)^2 == A g(x) (mod N) and the A
 /// factors sit in the base. A fresh polynomial keeps its values small near its own
 /// root, so relations come thick without the single-polynomial window growing with
 /// N. The -1 sign of g rides a phantom base column so the GF(2) combine, shared
 /// with Dixon and single-poly QS, needs no change. Returns a factor or None.
 pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<Tape> {
+    mpqs_with_source_port(n, base_bound, m_half, extra, || None).map(|(divisor, _)| divisor)
+}
+
+/// Retain the sieve relations while returning through another N-bound port.
+/// The enclosing producer owns that port's state and checks its provenance.
+pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
+    extra: usize, mut source_port: impl FnMut() -> Option<Tape>) -> Option<(Tape, &'static str)> {
     for counter in &VOX_SIEVE_COUNTERS {
         counter.store(0, core::sync::atomic::Ordering::Relaxed);
     }
@@ -1112,16 +1212,15 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         121..=150 => 131_072,
         _ => 1_048_576,
     });
-    // N stays on the tape. The polynomial coefficients A and B fit a machine word
-    // (they are near sqrt(N)); C, g(x) and A x + B are carried on the tapes, so the
-    // value arithmetic has no bit ceiling. No cap on how large N may be.
+    // N and the coefficient target stay on the tape. A and B use the same full
+    // tape path when their CRT intermediates exceed a machine word. C, g(x),
+    // and Ax+B also retain their complete values.
     let polynomial_n = mul(&n, &tape_u64(polynomial_multiplier(&n)));
     let sqrt2n = isqrt(&mul(&tape_u64(2), &polynomial_n));
-    let sqrt2n_u = tape_to_u128(&sqrt2n).unwrap_or(u128::MAX);
     // Free lunch, no cap: run the per-x value in a machine word while it fits
     // (g ~ M*sqrt(2N)), and only fall to the tapes when it would overflow. Fast
     // below the boundary, uncapped above it.
-    let wide = 128 - sqrt2n_u.leading_zeros() as usize + (usize::BITS - m_half.leading_zeros()) as usize + 4 >= 126;
+    let wide = sqrt2n.len() + (usize::BITS - m_half.leading_zeros()) as usize + 4 >= 126;
     let flog2 = |x: u128| -> u32 {
         if x < 2 {
             0
@@ -1130,8 +1229,9 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         }
     };
     // Target A ~ sqrt(2N)/M.
-    let a_target = (sqrt2n_u / (m_half as u128).max(1)).max(8);
-    sieve_gauge(13, (128 - a_target.leading_zeros()) as usize);
+    let mut a_target = divmod(&sqrt2n, &u128_to_tape(m_half.max(1) as u128)).0;
+    if cmp(&a_target, &tape_u64(8)).is_lt() { a_target = tape_u64(8); }
+    sieve_gauge(13, a_target.len());
     // Factor-base bound near the sieve optimum exp(0.5*sqrt(ln N ln ln N)), which
     // grows slowly with N. Too small a base makes smooth values too rare to
     // collect; this table tracks the optimum by width (no float in no_std).
@@ -1159,7 +1259,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     for &p in &primes {
         let np = n_mod_u64(&polynomial_n, p);
         if np == 0 {
-            if n_mod_u64(&n,p) == 0 { return Some(tape_u64(p)); }
+            if n_mod_u64(&n,p) == 0 { return Some((tape_u64(p), "mpqs-base-source")); }
             base.push(p);
             sqrt_n.push(0);
             continue;
@@ -1192,12 +1292,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     // what lifts the arm past the width where three big primes would need an
     // unreachable base. Choosing near the k-th root, not the largest primes, is
     // what keeps the values minimal and the smooth hits frequent.
-    let mut k = 3usize;
-    let mut s = iroot(a_target, k as u32);
-    while s as usize > base_bound * 3 / 5 && k < 16 {
-        k += 1;
-        s = iroot(a_target, k as u32);
-    }
+    let (k, s) = coefficient_prime_size(&a_target, base_bound);
     // A-prime band around the per-prime size s. A wide band gives many distinct
     // k-subsets, which is what keeps each polynomial's A fresh so relations do not
     // repeat before a dependency forms.
@@ -1219,11 +1314,12 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let mut a_of: Vec<Tape> = Vec::new();
     let mut exp_of: Vec<Vec<u32>> = Vec::new();
     let mut square_factors = Vec::new();
+    let mut online_relations = OnlineRelations::new(width);
     let mut partials = PartialRelations::new();
     let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
     let n_tape = polynomial_n;
     let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
-    let thresh_slack = (flog2(base_bound as u128) + flog2(width as u128)) as i32;
+    let thresh_slack = (flog2(eff_bound as u128) + flog2(width as u128)) as i32;
     let score_block = span.min(score_block_capacity(width));
 
     // A owns the inverses and sieve storage. Its B siblings prepare window
@@ -1238,6 +1334,11 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
     let (mut rx, mut ry, mut rc, mut rprod) = (two.clone(), two.clone(), one(), one());
     let rho_close = |g: &Tape| cmp(g, &one()) == core::cmp::Ordering::Greater && cmp(g, &n) == core::cmp::Ordering::Less;
     'outer: while a_of.len() < need {
+        if let Some(divisor) = source_port() {
+            if rho_close(&divisor) && zero(&divmod(&n, &divisor).1) {
+                return Some((divisor, "retained-source-port"));
+            }
+        }
         // The current factor-base width sets both the orbit batch and its
         // checkpoint spacing, so rho's work scales with the live sieve shape.
         if a_count % width == 0 {
@@ -1253,7 +1354,7 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             }
             let g = gcd(trim(rprod.clone()), n.clone());
             if rho_close(&g) {
-                return Some(g);
+                return Some((g, "mpqs-rho-source"));
             }
             if cmp(&g, &n) == core::cmp::Ordering::Equal {
                 rc = add(&rc, &one());
@@ -1263,10 +1364,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             rprod = one();
         }
         let ks: Vec<usize> = combo.iter().map(|&c| a_pool[c]).collect();
-        let mut a_val: u128 = 1;
-        for &kk in &ks {
-            a_val *= base[kk] as u128;
-        }
+        let a_t = ks.iter().fold(one(), |a, &index| mul(&a, &tape_u64(base[index])));
+        let a_val = tape_to_u128(&a_t).unwrap_or(0);
+        let coefficient_wide = a_t.len() + ks.iter().map(|&i|
+            (64 - base[i].leading_zeros()) as usize).max().unwrap_or(0) >= 128;
         a_count += 1;
         let combinations_exhausted = !next_combination(&mut combo, npool);
         let kk = ks.len();
@@ -1279,12 +1380,15 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
 
         // per-A CRT terms: B_l ≡ sqrt_n mod its own prime, 0 mod the other A-primes
         let mut bl = vec![0u128; kk];
+        let bl_t = if coefficient_wide { wide_crt_terms(&a_t, &ks, &base, &sqrt_n) } else { Vec::new() };
         for (l, &idx) in ks.iter().enumerate() {
             let q = base[idx] as u128;
-            let mj = a_val / q;
-            let inv = modinv((mj % q) as u64, base[idx]) as u128;
-            let rj = sqrt_n[idx] as u128 % q;
-            bl[l] = ((rj * (mj % a_val)) % a_val) * inv % a_val;
+            if !coefficient_wide {
+                let mj = a_val / q;
+                let inv = modinv((mj % q) as u64, base[idx]) as u128;
+                let rj = sqrt_n[idx] as u128 % q;
+                bl[l] = ((rj * (mj % a_val)) % a_val) * inv % a_val;
+            }
         }
         // per-A setup, computed ONCE: A^{-1} mod p, the expensive modular inverse.
         // skip[j] marks a prime left out of the sieve (2, or a divisor of A),
@@ -1293,19 +1397,22 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
             let mut skip = vec![true; width];
             for j in 1..width {
                 let p = base[j];
-            if p == 2 || sqrt_n[j] == 0 || a_val % p as u128 == 0 {
+            let amod = if coefficient_wide { n_mod_u64(&a_t, p) } else { (a_val % p as u128) as u64 };
+            if p == 2 || sqrt_n[j] == 0 || amod == 0 {
                 continue;
             }
-            ainv[j] = modinv((a_val % p as u128) as u64, p) as i64;
+            ainv[j] = modinv(amod, p) as i64;
             skip[j] = false;
         }
-        let thresh = polynomial_score_log(a_val,m as u128) - thresh_slack;
+        let thresh = if coefficient_wide {
+            (mul(&a_t, &u128_to_tape((m_half as u128).pow(2))).len() - 1) as i32
+        } else { polynomial_score_log(a_val,m as u128) } - thresh_slack;
 
         // inner: each of the 2^(k-1) sign patterns is a B sibling that reuses the
         // per-A inverse; its two roots per prime are recomputed directly from the
         // cached inverse (one multiply each, the same cost an incremental update
         // would be, and correct without any carry bookkeeping).
-        let nb = 1usize << (kk - 1);
+        let mut signs = vec![false; kk - 1];
         let mut soln1 = vec![0i64; width];
         let mut soln2 = vec![0i64; width];
         // The enclosing A frame owns storage reused by every B sibling. The sieve
@@ -1318,31 +1425,48 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         let mut folded_scores = Vec::new();
         let mut next1 = vec![0i64; width];
         let mut next2 = vec![0i64; width];
-        for pat in 0..nb {
+        loop {
             if a_of.len() >= need {
                 break 'outer;
+            }
+            if let Some(divisor) = source_port() {
+                if rho_close(&divisor) && zero(&divmod(&n, &divisor).1) {
+                    return Some((divisor, "retained-source-port"));
+                }
             }
             _poly += 1;
             sieve_gauge(3, _poly);
             // B = bl[0] + sum_{l>=1} (±bl[l]); pattern bit picks the sign
-            let mut b_cur = bl[0] % a_val;
+            let mut b_cur = if coefficient_wide { 0 } else { bl[0] % a_val };
+            let mut b_cur_t = if coefficient_wide { bl_t[0].clone() } else { one() };
             for l in 1..kk {
+                if coefficient_wide {
+                    b_cur_t = if signs[l - 1] {
+                        modulo(&sub(&add(&b_cur_t, &a_t), &bl_t[l]), &a_t)
+                    } else { modulo(&add(&b_cur_t, &bl_t[l]), &a_t) };
+                    continue;
+                }
                 let blm = bl[l] % a_val;
-                if (pat >> (l - 1)) & 1 == 1 {
+                if signs[l - 1] {
                     b_cur = (b_cur + a_val - blm) % a_val;
                 } else {
                     b_cur = (b_cur + blm) % a_val;
                 }
             }
-            sieve_gauge(12, (128 - a_val.leading_zeros()) as usize);
+            sieve_gauge(12, a_t.len());
             let a_i = a_val as i128;
             // Center the representative consistently for roots and coefficients.
             // Subtracting A translates the polynomial by one x position.
-            let b_i = if b_cur > a_val / 2 {
+            let b_i = if !coefficient_wide && b_cur > a_val / 2 {
                 b_cur as i128 - a_i
             } else {
                 b_cur as i128
             };
+            let (b_neg, b_t) = if coefficient_wide {
+                if cmp(&mul(&b_cur_t, &two), &a_t).is_gt() {
+                    (true, sub(&a_t, &b_cur_t))
+                } else { (false, b_cur_t) }
+            } else { (b_i < 0, u128_to_tape(b_i.unsigned_abs())) };
             for j in 1..width {
                 if skip[j] {
                     soln1[j] = -1;
@@ -1351,7 +1475,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                 let p = base[j];
                 let pi = p as i64;
             let t = sqrt_n[j] as i64;
-                let bmod = b_i.rem_euclid(pi as i128) as i64;
+                let bmod = if coefficient_wide {
+                    let residue = n_mod_u64(&b_t, p);
+                    (if b_neg && residue != 0 { p - residue } else { residue }) as i64
+                } else { b_i.rem_euclid(pi as i128) as i64 };
                 soln1[j] = (ainv[j] * (t - bmod)).rem_euclid(pi);
                 soln2[j] = (ainv[j] * ((pi - t) - bmod)).rem_euclid(pi);
                 // Store window coordinates once per sibling. Both sieving and
@@ -1360,12 +1487,10 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                 soln2[j] = (soln2[j] + m as i64) % pi;
             }
             // C = (B^2 - N)/A on the tapes; C < 0 since B^2 < N. Kept as magnitude.
-            let b_abs = b_i.unsigned_abs();
-            let b2 = mul(&u128_to_tape(b_abs), &u128_to_tape(b_abs));
-            let (c_mag, _r) = divmod(&sub(&n_tape, &b2), &u128_to_tape(a_val));
-            let a_t = u128_to_tape(a_val);
-            let b_t = u128_to_tape(b_abs);
-            let b_neg = b_i < 0;
+            let b2 = mul(&b_t, &b_t);
+            if cmp(&b2, &n_tape).is_gt() { return None; }
+            let (c_mag, remainder) = divmod(&sub(&n_tape, &b2), &a_t);
+            if !zero(&remainder) { return None; }
             // machine-word C, valid only on the fast path (values fit i128)
             let cc_i: i128 = if wide { 0 } else { -(tape_to_u128(&c_mag).unwrap_or(0) as i128) };
 
@@ -1529,12 +1654,19 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
                     exp_of.push(exps);
                     square_factors.push(square_factor);
                     sieve_gauge(6, a_of.len());
+                    if let Some(selected) = online_relations.insert(exp_of.last().unwrap(), a_of.len() - 1) {
+                        if let Some(divisor) = dependency_divisor(&n, &selected, &a_of,
+                            &exp_of, &base, Some(&square_factors)) {
+                            return Some((divisor, "mpqs-relation-source"));
+                        }
+                    }
                     if a_of.len() >= need {
                         break 'outer;
                     }
                 }
                 bstart += score_block;
             }
+            if !next_sibling(&mut signs) { break; }
         }
         if combinations_exhausted {
             break 'outer;
@@ -1554,10 +1686,11 @@ pub fn mpqs(n: &Tape, base_bound: usize, m_half: usize, extra: usize) -> Option<
         let t = std::time::Instant::now();
         let r = combine_with_square_factors(&n, &a_of, &exp_of, &base, Some(&square_factors));
         std::eprintln!("[mpqs] combine took {:?}", t.elapsed());
-        return r;
+        return r.map(|divisor| (divisor, "mpqs-relation-source"));
     }
     #[cfg(not(feature = "mpqs_debug"))]
     combine_with_square_factors(&n, &a_of, &exp_of, &base, Some(&square_factors))
+        .map(|divisor| (divisor, "mpqs-relation-source"))
 }
 
 /// Base bound and window sized from the width of N: B grows about like the
@@ -1661,6 +1794,108 @@ mod tests {
             assert!(cmp(&q, &one()).is_gt());
             assert_eq!(trim(mul(&g, &q)), n);
         }
+    }
+
+    #[test]
+    fn source_895_coefficient_target_and_crt_stay_on_full_tapes() {
+        let n = crate::morphism_factor::decimal_to_tape(include_str!(
+            "../../measurements/factor_synthesis_20261011/n_895.txt").trim()).unwrap();
+        let target = divmod(&isqrt(&mul(&tape_u64(2), &n)), &tape_u64(1_048_576)).0;
+        assert_eq!(target.len(), 428);
+        let (degree, size) = coefficient_prime_size(&target, 60_000);
+        assert!(degree > 16);
+        assert!(size <= 36_000);
+        let mut base = Vec::new();
+        let mut roots = Vec::new();
+        for prime in small_primes(1000).into_iter().filter(|&prime| prime > 2) {
+            if let Some(root) = tonelli(n_mod_u64(&n, prime), prime) {
+                base.push(prime); roots.push(root);
+            }
+        }
+        let indices: Vec<usize> = (0..40).collect();
+        let a = indices.iter().fold(one(), |a, &i| mul(&a, &tape_u64(base[i])));
+        assert!(a.len() > 127);
+        let terms = wide_crt_terms(&a, &indices, &base, &roots);
+        for sign_word in [false, true] {
+            let mut b = terms[0].clone();
+            for (index, term) in terms.iter().enumerate().skip(1) {
+                b = if sign_word && index % 2 == 1 {
+                    modulo(&sub(&add(&b, &a), term), &a)
+                } else { modulo(&add(&b, term), &a) };
+            }
+            assert_eq!(modulo(&mul(&b, &b), &a), modulo(&n, &a));
+            let b2 = mul(&b, &b);
+            assert!(cmp(&b2, &n).is_lt());
+            let (c, remainder) = divmod(&sub(&n, &b2), &a);
+            assert!(zero(&remainder));
+            let x = tape_u64(1_048_576);
+            let axb = add(&mul(&a, &x), &b);
+            let (negative, g) = sadd((false, add(&mul(&a, &mul(&x, &x)),
+                &mul(&mul(&tape_u64(2), &b), &x))), (true, c));
+            let ag = mul_mod(&a, &g, &n);
+            let signed = if negative && !zero(&ag) { sub(&n, &ag) } else { ag };
+            assert_eq!(mul_mod(&axb, &axb, &n), signed);
+        }
+        let mut signs = vec![true; 130]; signs[129] = false;
+        assert!(next_sibling(&mut signs));
+        assert!(signs[129] && signs[..129].iter().all(|sign| !sign));
+    }
+
+    #[test]
+    fn online_relation_histories_reconstruct_the_exact_even_exponents() {
+        let width = 129;
+        let mut bank = OnlineRelations::new(width);
+        let rows: Vec<Vec<u32>> = (0..300).map(|index| {
+            (0..width).map(|column| u32::from(
+                (column == index % 65) || (column == (index * 7 + 3) % 65))).collect()
+        }).collect();
+        let mut dependencies = 0;
+        for (index, row) in rows.iter().enumerate() {
+            if let Some(selected) = bank.insert(row, index) {
+                assert!(!selected.is_empty());
+                assert!(selected.contains(&index));
+                for column in 0..width {
+                    let total: u32 = selected.iter().map(|&i| rows[i][column]).sum();
+                    assert_eq!(total % 2, 0);
+                }
+                dependencies += 1;
+            }
+        }
+        assert!(dependencies > 200);
+    }
+
+    #[test]
+    fn coefficient_integer_root_closes_at_machine_boundary() {
+        for value in [2u128, 8, 26, 27, 28, (1u128 << 108) - 1, u128::MAX] {
+            for degree in 1..=16 {
+                let root = iroot(value, degree);
+                assert!(root.checked_pow(degree).is_some_and(|power| power <= value));
+                assert!(root.checked_add(1).and_then(|next| next.checked_pow(degree))
+                    .is_none_or(|power| power > value));
+            }
+        }
+    }
+
+    #[test]
+    fn mpqs_source_return_rejects_improper_divisors_and_keeps_sieve_work() {
+        let n = crate::morphism_factor::decimal_to_tape("3050585191915710906097942786821407").unwrap();
+        let (bound, _) = sieve_params(&n);
+        let mut returns = 0;
+        let (g, producer) = mpqs_with_source_port(&n, bound, 32_768, 32, || {
+            returns += 1;
+            match returns {
+                1 => Some(one()),
+                2 => Some(n.clone()),
+                3 => Some(tape_u64(4)),
+                _ => None,
+            }
+        }).expect("retained sieve failed after invalid source returns");
+        assert!(returns > 3);
+        assert_eq!(producer, "mpqs-relation-source");
+        let (q, remainder) = divmod(&n, &g);
+        assert!(zero(&remainder));
+        assert!(cmp(&g, &one()).is_gt() && cmp(&g, &n).is_lt());
+        assert_eq!(trim(mul(&g, &q)), n);
     }
 
     #[test]

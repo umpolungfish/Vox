@@ -44,6 +44,30 @@ pub use fold::FoldStats;
 mod carrier;
 pub use carrier::PreparedGlutMembrane;
 
+/// Source-derived factor geometries shared by the resident constraint and
+/// coherent glut backends. No reference factor width enters this enumeration.
+pub fn source_factor_geometries(source_bits: usize) -> Vec<(usize, usize)> {
+    let mut widths = Vec::new();
+    let mut low = 2;
+    let mut high = source_bits.div_ceil(2);
+    while low <= high {
+        widths.push(low);
+        if low != high { widths.push(high); }
+        low += 1;
+        high -= 1;
+    }
+    let mut geometries = Vec::new();
+    for p_width in widths {
+        for sum in [source_bits, source_bits + 1] {
+            if sum >= p_width {
+                let q_width = sum - p_width;
+                if q_width >= p_width { geometries.push((p_width, q_width)); }
+            }
+        }
+    }
+    geometries
+}
+
 const ZERO: char = '⊤';
 const ONE: char = '⊥';
 
