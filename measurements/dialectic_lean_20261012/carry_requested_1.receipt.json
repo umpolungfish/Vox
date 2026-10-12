@@ -1,0 +1,53 @@
+{
+  "source_n": "7014129566030312171023600324145522815701572066391356680469502560191571052957947310214883282904546197",
+  "source_bits": 332,
+  "source_only_file": "inputs/requested_1.txt",
+  "runtime_arguments": [],
+  "wrapper_fixed_base": "2, unused by dialectic-lean",
+  "build_seconds": 24.0122906419856,
+  "binary_sha256": "31db8ad2a376cf762f7c1bd5fcbbdc84cfcf6a69825f1d65ee9079e1cef1c475",
+  "source_stable_during_build": true,
+  "driver_clock": "includes process.wait timeout polling; native clocks are reported separately",
+  "source_bindings": [
+    {
+      "path": "Vox/src/dialectic_lean.rs",
+      "sha256": "706a6d419a9c4f96cbaa79925e960d7f0ae61e46afdd9a1b0595c680deaa9523"
+    },
+    {
+      "path": "Vox/src/dialectic_reentry.rs",
+      "sha256": "a8642b91ff3836e9c7c2361f35e515c912a6fbb17d43fc873f2a58538343412a"
+    },
+    {
+      "path": "Vox/src/bin/semiprime_probe.rs",
+      "sha256": "db3c525f1f0b2f7b1518535df3edb6ed2a874808b1158c942159d5b9c17015bf"
+    },
+    {
+      "path": "Vox/baked_case.py",
+      "sha256": "bc4dc67a63cda26be691285e661d05295f7985a3af33fc6b31358b81a10d4c60"
+    },
+    {
+      "path": "p4rakernel/p4ramill/KernelBridge.lean",
+      "sha256": "f24e327d9fd706a0bdd21010f7c7698e300d82e4406b5831ef3a49c6ecd1ebba"
+    },
+    {
+      "path": "p4rakernel/p4ramill/Imscribing/Paraconsistent/DialecticResident.lean",
+      "sha256": "f7a14703f2c2bc29103e061f632a21a495c2b5db78c49cad0c74a19a4368dfbe"
+    },
+    {
+      "path": "Vox/measurements/dialectic_lean_20261012/lean_plan.txt",
+      "sha256": "e0d3a60ef954a69bbb59d2c4d5ea359cc7f74e7438c5adb5ffd24dde79d22569"
+    }
+  ],
+  "runs": [
+    {
+      "exit_status": -9,
+      "timed_out": true,
+      "bound_seconds": 90.0,
+      "driver_seconds": 90.00132414099062,
+      "product_verified": false,
+      "measurements": {},
+      "stdout": "carry_requested_1.0.stdout",
+      "stderr": "carry_requested_1.0.stderr"
+    }
+  ]
+}

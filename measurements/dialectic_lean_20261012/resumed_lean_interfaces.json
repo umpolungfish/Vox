@@ -1,0 +1,38 @@
+{
+  "executable_sha256": "ec3415ccef9076307be20a0fd2334224ef94059cf8a7fa7e6757c8064c907d5f",
+  "reports": [
+    {
+      "arguments": [
+        "Y",
+        "6"
+      ],
+      "returncode": 0,
+      "stdout": "backend=Lean-kernel SIXTEEN_3=active mask-order=N,T,F,B\nkernel-reentry=6\ntable=[6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]\nleast=6 greatest=6 certified=true\nseed=0 transient=1 period=1 tick=4 value=6 cycle-certified=true\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "orbit",
+        "2",
+        "9",
+        "negation"
+      ],
+      "returncode": 0,
+      "stdout": "backend=Lean-kernel SIXTEEN_3=active mask-order=N,T,F,B\nkernel-reentry=6\ntable=[0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15]\nleast=0 greatest=15 certified=true\nseed=2 transient=0 period=2 tick=9 value=4 cycle-certified=true\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "orbit",
+        "9",
+        "3",
+        "retain-after-inject",
+        "9",
+        "6"
+      ],
+      "returncode": 0,
+      "stdout": "backend=Lean-kernel SIXTEEN_3=active mask-order=N,T,F,B\nkernel-reentry=6\ntable=[0, 1, 0, 1, 0, 1, 0, 1, 8, 9, 8, 9, 8, 9, 8, 9]\nleast=0 greatest=9 certified=true\nseed=9 transient=0 period=1 tick=3 value=9 cycle-certified=true\n",
+      "stderr": ""
+    }
+  ]
+}

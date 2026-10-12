@@ -587,6 +587,10 @@ impl DialecticObject {
     /// total: every complete in-memory relation yields exactly T, B, N, or F.
     /// Rust errors remain confined to persistence/codec APIs, not FOUR judgment.
     pub fn judge_current_imscription(&self) -> DialecticJudgment {
+        self.judge_with_kernel(None)
+    }
+
+    fn judge_with_kernel(&self, mut kernel: Option<&mut ResidentScan>) -> DialecticJudgment {
         if self.validate_relation_shape().is_err() {
             return DialecticJudgment::F;
         }
@@ -606,6 +610,9 @@ impl DialecticObject {
         }
 
         let lattice = execution.lattice();
+        let exposure = if let Some(kernel) = kernel.as_deref_mut() {
+            resident_lattice(&self.n, self.boundary(), self.span(), lattice, kernel)
+        } else {
         let exposure = match lattice {
             ImscriptionLattice::ShortFrontier => fermat_lattice_from(
                 &self.n,
@@ -622,6 +629,8 @@ impl DialecticObject {
             ImscriptionLattice::Lehman => {
                 lehman_multiplier(&self.n, self.boundary(), self.span())
             }
+        };
+        exposure
         };
 
         match (execution, exposure) {
@@ -641,9 +650,15 @@ impl DialecticObject {
                 );
                 let terminal = match decode_imasm_execution(imscription.word()) {
                     Ok(terminal) => terminal,
-                    Err(_) => return DialecticJudgment::F,
+                    Err(error) => {
+                        if let Some(kernel) = kernel.as_deref_mut() {
+                            kernel.failure = Some(format!("terminal decode: {error}; word={}", imscription.word().iter().collect::<String>()));
+                        }
+                        return DialecticJudgment::F;
+                    }
                 };
                 if terminal != (ImasmExecution::T { lattice }) {
+                    if let Some(kernel) = kernel.as_deref_mut() { kernel.failure = Some(format!("terminal execution mismatch: {terminal:?}")); }
                     return DialecticJudgment::F;
                 }
                 DialecticJudgment::T {
@@ -770,7 +785,17 @@ impl DialecticObject {
     /// The execution result itself is T/B/N/F; persistence and codecs are the
     /// only layers that use Rust `Result` for malformed serialized input.
     pub fn descend(self) -> Descent {
-        match self.judge_current_imscription() {
+        let judgment = self.judge_current_imscription();
+        self.consume_judgment(judgment, None)
+    }
+
+    pub fn descend_with_kernel(self, kernel: &mut ResidentScan) -> Descent {
+        let judgment = self.judge_with_kernel(Some(kernel));
+        self.consume_judgment(judgment, Some(&mut kernel.failure))
+    }
+
+    fn consume_judgment(self, judgment: DialecticJudgment, failure: Option<&mut Option<String>>) -> Descent {
+        match judgment {
             DialecticJudgment::T {
                 imscription,
                 support,
@@ -793,6 +818,7 @@ impl DialecticObject {
                     imscription,
                     witness.lattice_cell,
                     lehman_multiplier,
+                    failure,
                 )
             }
             DialecticJudgment::B {
@@ -838,14 +864,17 @@ fn close(
     imscription: Imscription,
     lattice_cell: Tape,
     lehman_multiplier: Option<Tape>,
+    failure: Option<&mut Option<String>>,
 ) -> Descent {
     if !matches!(
         decode_imasm_execution(imscription.word()),
         Ok(ImasmExecution::T { .. })
     ) {
+        if let Some(failure) = failure { *failure = Some("closure terminal decode".into()); }
         return Descent::F;
     }
     if !imscription.relation_is_live_for(&n) {
+        if let Some(failure) = failure { *failure = Some("closure source relation".into()); }
         return Descent::F;
     }
     let word = imscription.word().to_vec();
@@ -858,7 +887,10 @@ fn close(
     }]);
     let carrier = match FactorCarrier::new(n, p, q, trace) {
         Ok(carrier) => carrier,
-        Err(_) => return Descent::F,
+        Err(error) => {
+            if let Some(failure) = failure { *failure = Some(error); }
+            return Descent::F;
+        }
     };
     Descent::T(DialecticClosure {
         carrier,
@@ -875,6 +907,113 @@ fn fermat_origin(n: &[Mark]) -> Tape {
         a = add(&a, &tape_u64(1));
     }
     a
+}
+
+/// The compiled Lean low-word support and temporal orientation act on the
+/// residual of the same source/boundary relation used by dialectic descent.
+#[derive(Clone, Debug)]
+pub struct ResidentScan {
+    pub square_support: [bool; 16],
+    pub reverse: bool,
+    pub cells: u64,
+    pub square_tests: u64,
+    pub rejected_cells: u64,
+    pub residual_advances: u64,
+    pub last_frame: Option<ResidualFrame>,
+    pub failure: Option<String>,
+}
+
+/// Full-width measured state retained across the next Y re-entry.
+#[derive(Clone, Debug)]
+pub struct ResidualFrame {
+    pub source: Tape,
+    pub multiplier: Tape,
+    pub a: Tape,
+    pub residual: Tape,
+    pub lattice_cell: Tape,
+    pub lattice: ImscriptionLattice,
+}
+
+impl ResidentScan {
+    pub fn new(square_support: [bool; 16]) -> Self {
+        Self { square_support, reverse: false, cells: 0, square_tests: 0,
+            rejected_cells: 0, residual_advances: 0, last_frame: None, failure: None }
+    }
+}
+
+fn resident_lattice(n: &[Mark], boundary: &[Mark], span: &[Mark],
+    lattice: ImscriptionLattice, kernel: &mut ResidentScan) -> LatticeExposure {
+    let one = tape_u64(1);
+    let two = tape_u64(2);
+    let lehman = lattice == ImscriptionLattice::Lehman;
+    let source = if lehman {
+        if let Some(previous) = &kernel.last_frame {
+            if previous.lattice == ImscriptionLattice::Lehman
+                && add(&previous.multiplier, &one) == boundary {
+                // Re-entry consumes the previous source relation, advancing
+                // 4*k*N to 4*(k+1)*N within the same retained frame.
+                add(&previous.source, &mul(&tape_u64(4), n))
+            } else { mul(&tape_u64(4), &mul(boundary, n)) }
+        } else { mul(&tape_u64(4), &mul(boundary, n)) }
+    }
+        else { n.to_vec() };
+    let origin = if lehman { fermat_origin(&source) } else { boundary.to_vec() };
+    let end = add(&origin, span);
+    let mut a = if kernel.reverse { sub(&end, &one) } else { origin };
+    let mut cell = if lattice == ImscriptionLattice::ExtendedFermat {
+        tape_u64(SHORT_FRONTIER_SPAN)
+    } else { tape_u64(0) };
+    if kernel.reverse { cell = add(&cell, &sub(span, &one)); }
+    // Preparation computes the complete residual once. Every following cell
+    // updates the full-width carry relation proven by Lean residual_advance.
+    let mut residual = sub(&mul(&a, &a), &source);
+    let mut remaining = span.to_vec();
+    while !zero(&remaining) {
+        kernel.cells += 1;
+        let residue = residual.iter().take(4).enumerate().fold(0usize,
+            |r, (bit, mark)| r | (usize::from(*mark == EVALF) << bit));
+        if kernel.square_support[residue] {
+            kernel.square_tests += 1;
+            let b = isqrt(&residual);
+            if mul(&b, &b) == residual {
+                let pair = if lehman {
+                    factor_from_gcd(n, &add(&a, &b))
+                        .or_else(|| factor_from_gcd(n, &sub(&a, &b)))
+                } else {
+                    let p = sub(&a, &b);
+                    if cmp(&p, &one) == Ordering::Greater && cmp(&p, n) == Ordering::Less {
+                        let (q, remainder) = divmod(n, &p);
+                        if zero(&remainder) && cmp(&q, &one) == Ordering::Greater {
+                            Some((p, q))
+                        } else { None }
+                    } else { None }
+                };
+                if let Some((p, q)) = pair {
+                    kernel.last_frame = Some(ResidualFrame { source, multiplier: boundary.to_vec(),
+                        a: a.clone(), residual, lattice_cell: cell.clone(), lattice });
+                    return LatticeExposure::T {
+                        write_boundary: if lehman { boundary.to_vec() } else { a },
+                        witness: DialecticWitness { p, q, lattice_cell: cell },
+                    };
+                }
+            }
+        } else { kernel.rejected_cells += 1; }
+        remaining = sub(&remaining, &one);
+        if zero(&remaining) { break; }
+        if kernel.reverse {
+            residual = sub(&residual, &sub(&mul(&two, &a), &one));
+            a = sub(&a, &one);
+            cell = sub(&cell, &one);
+        } else {
+            residual = add(&residual, &add(&mul(&two, &a), &one));
+            a = add(&a, &one);
+            cell = add(&cell, &one);
+        }
+        kernel.residual_advances += 1;
+    }
+    kernel.last_frame = Some(ResidualFrame { source, multiplier: boundary.to_vec(),
+        a, residual, lattice_cell: cell, lattice });
+    LatticeExposure::B { write_boundary: if lehman { add(boundary, &one) } else { end } }
 }
 
 fn fermat_lattice_from(

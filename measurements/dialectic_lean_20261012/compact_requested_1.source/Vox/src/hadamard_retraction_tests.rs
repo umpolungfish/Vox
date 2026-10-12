@@ -1,0 +1,443 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Winding {
+    num: u64,
+    den: u64,
+}
+
+impl Winding {
+    fn new(num: u64, den: u64) -> Self {
+        assert!(den != 0);
+        let num = num % den;
+        if num == 0 {
+            return Self { num: 0, den: 1 };
+        }
+        let g = gcd_u64(num, den);
+        Self {
+            num: num / g,
+            den: den / g,
+        }
+    }
+
+    fn add(self, other: Self) -> Self {
+        Self::new(
+            self.num * other.den + other.num * self.den,
+            self.den * other.den,
+        )
+    }
+
+    fn is_self_inverse(self) -> bool {
+        self.num == 0 || (self.den == 2 && self.num == 1)
+    }
+
+    fn nearest_self_inverse_sign(self) -> i8 {
+        let four_num = 4 * self.num;
+        if four_num <= self.den || four_num >= 3 * self.den {
+            1
+        } else {
+            -1
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ComplexPhase {
+    re: f64,
+    im: f64,
+}
+
+impl ComplexPhase {
+    const fn new(re: f64, im: f64) -> Self {
+        Self { re, im }
+    }
+
+    fn add(self, other: Self) -> Self {
+        Self::new(self.re + other.re, self.im + other.im)
+    }
+
+    fn mul(self, other: Self) -> Self {
+        Self::new(
+            self.re * other.re - self.im * other.im,
+            self.re * other.im + self.im * other.re,
+        )
+    }
+
+    fn conj(self) -> Self {
+        Self::new(self.re, -self.im)
+    }
+}
+
+fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
+    while b != 0 {
+        let r = a % b;
+        a = b;
+        b = r;
+    }
+    a
+}
+
+fn abs_f64(x: f64) -> f64 {
+    if x < 0.0 { -x } else { x }
+}
+
+fn cos_sin(theta: f64) -> (f64, f64) {
+    const PI: f64 = 3.14159265358979323846264338327950288;
+    const TAU: f64 = 6.28318530717958647692528676655900576;
+
+    let mut t = theta % TAU;
+    if t > PI {
+        t -= TAU;
+    }
+    if t < -PI {
+        t += TAU;
+    }
+
+    let t2 = t * t;
+
+    let mut cos = 1.0;
+    let mut cos_term = 1.0;
+    for n in 1u32..=12 {
+        let a = (2 * n - 1) as f64;
+        let b = (2 * n) as f64;
+        cos_term *= -t2 / (a * b);
+        cos += cos_term;
+    }
+
+    let mut sin = t;
+    let mut sin_term = t;
+    for n in 1u32..=12 {
+        let a = (2 * n) as f64;
+        let b = (2 * n + 1) as f64;
+        sin_term *= -t2 / (a * b);
+        sin += sin_term;
+    }
+
+    (cos, sin)
+}
+
+fn cyclic_character(row: u64, column: u64, order: u64) -> ComplexPhase {
+    const TAU: f64 = 6.28318530717958647692528676655900576;
+    assert!(order != 0);
+    let turn = (row * column) % order;
+    let theta = -TAU * (turn as f64) / (order as f64);
+    let (re, im) = cos_sin(theta);
+    ComplexPhase::new(re, im)
+}
+
+fn is_quadratic_residue_mod_11(r: u64) -> bool {
+    (1..11).any(|x| (x * x) % 11 == r % 11)
+}
+
+fn discrete_log_base_2_mod_11(r: u64) -> Option<u64> {
+    let mut value = 1u64;
+    for exponent in 0..10 {
+        if value == r {
+            return Some(exponent);
+        }
+        value = (value * 2) % 11;
+    }
+    None
+}
+
+fn quadratic_character_mod_11(x: i64) -> i8 {
+    let r = x.rem_euclid(11) as u64;
+    if r == 0 {
+        0
+    } else if is_quadratic_residue_mod_11(r) {
+        1
+    } else {
+        -1
+    }
+}
+
+fn paley_12() -> [[i8; 12]; 12] {
+    let mut h = [[0i8; 12]; 12];
+    for entry in &mut h[0] {
+        *entry = 1;
+    }
+    for i in 0..11 {
+        h[i + 1][0] = 1;
+        for j in 0..11 {
+            h[i + 1][j + 1] = if i == j {
+                -1
+            } else {
+                quadratic_character_mod_11(j as i64 - i as i64)
+            };
+        }
+    }
+    h
+}
+
+fn sylvester_character(i: u32, j: u32) -> i8 {
+    if (i & j).count_ones() & 1 == 0 {
+        1
+    } else {
+        -1
+    }
+}
+
+fn sylvester_16() -> [[i8; 16]; 16] {
+    let mut h = [[0i8; 16]; 16];
+    for i in 0u32..16 {
+        for j in 0u32..16 {
+            h[i as usize][j as usize] = sylvester_character(i, j);
+        }
+    }
+    h
+}
+
+fn is_hadamard<const N: usize>(h: &[[i8; N]; N]) -> bool {
+    if h.iter().flatten().any(|&entry| entry != 1 && entry != -1) {
+        return false;
+    }
+
+    for i in 0..N {
+        for j in 0..N {
+            let dot: i64 = (0..N)
+                .map(|k| i64::from(h[i][k]) * i64::from(h[j][k]))
+                .sum();
+            if dot != if i == j { N as i64 } else { 0 } {
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
+fn assert_hadamard<const N: usize>(h: &[[i8; N]; N]) {
+    for row in h {
+        for &entry in row {
+            assert!(entry == 1 || entry == -1);
+        }
+    }
+    for i in 0..N {
+        for j in 0..N {
+            let dot: i64 = (0..N)
+                .map(|k| i64::from(h[i][k]) * i64::from(h[j][k]))
+                .sum();
+            assert_eq!(dot, if i == j { N as i64 } else { 0 }, "rows {i},{j}");
+        }
+    }
+}
+
+#[test]
+fn generic_cyclic_winding_is_real_only_at_orders_one_and_two() {
+    for d in 1..=64 {
+        let witness = Winding::new(1, d);
+        assert_eq!(
+            witness.is_self_inverse(),
+            d <= 2,
+            "W(1,1)=1/{d} gave an unexpected self-inverse reading",
+        );
+    }
+
+    for d in [1u64, 2] {
+        for j in 0..d {
+            for k in 0..d {
+                assert!(
+                    Winding::new(j * k, d).is_self_inverse(),
+                    "order {d} entry ({j},{k}) was not real",
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn cyclic_winding_character_is_bilinear_mod_one() {
+    for d in 1u64..=32 {
+        for a in 0..d {
+            for b in 0..d {
+                let sum = (a + b) % d;
+                for k in 0..d {
+                    let left = Winding::new(sum * k, d);
+                    let right = Winding::new(a * k, d).add(Winding::new(b * k, d));
+                    assert_eq!(
+                        left, right,
+                        "left character law failed at order {d}, a={a}, b={b}, k={k}",
+                    );
+
+                    let left = Winding::new(k * sum, d);
+                    let right = Winding::new(k * a, d).add(Winding::new(k * b, d));
+                    assert_eq!(
+                        left, right,
+                        "right character law failed at order {d}, a={a}, b={b}, k={k}",
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn complex_cyclic_character_table_remains_orthogonal_before_real_retraction() {
+    const TOL: f64 = 1.0e-10;
+
+    for d in 1u64..=16 {
+        for a in 0..d {
+            for b in 0..d {
+                let mut inner = ComplexPhase::new(0.0, 0.0);
+                for k in 0..d {
+                    inner = inner.add(
+                        cyclic_character(a, k, d)
+                            .conj()
+                            .mul(cyclic_character(b, k, d)),
+                    );
+                }
+
+                let expected_re = if a == b { d as f64 } else { 0.0 };
+                assert!(
+                    abs_f64(inner.re - expected_re) < TOL,
+                    "order {d} rows {a},{b} had real inner product {} instead of {expected_re}",
+                    inner.re,
+                );
+                assert!(
+                    abs_f64(inner.im) < TOL,
+                    "order {d} rows {a},{b} had imaginary inner product {}",
+                    inner.im,
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn nearest_self_inverse_retraction_preserves_orthogonality_only_at_orders_one_and_two() {
+    for d in 1u64..=32 {
+        let mut orthogonal = true;
+        'rows: for a in 0..d {
+            for b in 0..d {
+                let dot: i64 = (0..d)
+                    .map(|k| {
+                        i64::from(Winding::new(a * k, d).nearest_self_inverse_sign())
+                            * i64::from(Winding::new(b * k, d).nearest_self_inverse_sign())
+                    })
+                    .sum();
+                let expected = if a == b { d as i64 } else { 0 };
+                if dot != expected {
+                    orthogonal = false;
+                    break 'rows;
+                }
+            }
+        }
+
+        assert_eq!(
+            orthogonal,
+            d <= 2,
+            "nearest pointwise real retraction had unexpected orthogonality at order {d}",
+        );
+    }
+}
+
+#[test]
+fn every_cyclic_order_above_two_exposes_a_non_self_inverse_entry() {
+    for d in 3u64..=64 {
+        let mut witness = None;
+        'entries: for j in 0..d {
+            for k in 0..d {
+                let winding = Winding::new(j * k, d);
+                if !winding.is_self_inverse() {
+                    witness = Some((j, k, winding));
+                    break 'entries;
+                }
+            }
+        }
+
+        let (j, k, winding) = witness.expect("order above two should leave the real subspace");
+        assert!(
+            !winding.is_self_inverse(),
+            "order {d} witness ({j},{k}) unexpectedly retracted to a self-inverse phase",
+        );
+    }
+}
+
+#[test]
+fn paley_12_quadratic_character_is_the_order_two_reading() {
+    for r in 1..11 {
+        let qr = is_quadratic_residue_mod_11(r);
+        let log = discrete_log_base_2_mod_11(r).expect("2 should generate F_11^*");
+        assert_eq!(qr, log % 2 == 0, "residue {r}");
+
+        let winding = if qr {
+            Winding::new(0, 1)
+        } else {
+            Winding::new(1, 2)
+        };
+        assert!(winding.is_self_inverse(), "residue {r}");
+    }
+
+    let h = paley_12();
+    assert_hadamard(&h);
+}
+
+#[test]
+fn paley_quadratic_character_is_multiplicative_on_f11_units() {
+    for a in 1i64..11 {
+        let chi_a = quadratic_character_mod_11(a);
+        assert!(chi_a == 1 || chi_a == -1, "a={a}");
+
+        for b in 1i64..11 {
+            let chi_b = quadratic_character_mod_11(b);
+            let chi_ab = quadratic_character_mod_11(a * b);
+            assert_eq!(
+                chi_ab,
+                chi_a * chi_b,
+                "quadratic character failed multiplicativity at a={a}, b={b}",
+            );
+        }
+    }
+}
+
+#[test]
+fn paley_12_single_sign_corruption_breaks_hadamard_orthogonality() {
+    let mut h = paley_12();
+    assert!(is_hadamard(&h));
+
+    h[3][7] = -h[3][7];
+
+    assert!(!is_hadamard(&h));
+}
+
+#[test]
+fn sylvester_character_is_bilinear_over_f2_xor() {
+    for a in 0u32..16 {
+        for b in 0u32..16 {
+            for k in 0u32..16 {
+                assert_eq!(
+                    sylvester_character(a ^ b, k),
+                    sylvester_character(a, k) * sylvester_character(b, k),
+                    "left character law failed at a={a}, b={b}, k={k}",
+                );
+                assert_eq!(
+                    sylvester_character(k, a ^ b),
+                    sylvester_character(k, a) * sylvester_character(k, b),
+                    "right character law failed at a={a}, b={b}, k={k}",
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn sylvester_16_carrier_and_its_negation_are_hadamard() {
+    let h = sylvester_16();
+    assert_hadamard(&h);
+
+    let mut negated = h;
+    for row in &mut negated {
+        for entry in row {
+            *entry = -*entry;
+        }
+    }
+    assert_hadamard(&negated);
+}
+
+#[test]
+fn sylvester_16_single_sign_corruption_breaks_hadamard_orthogonality() {
+    let mut h = sylvester_16();
+    assert!(is_hadamard(&h));
+
+    h[5][9] = -h[5][9];
+
+    assert!(!is_hadamard(&h));
+}

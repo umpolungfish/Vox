@@ -1,0 +1,22 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+error[E0061]: this function takes 4 arguments but 3 arguments were supplied
+    --> src/morphism_factor.rs:3614:13
+     |
+3614 |             execute_nested_preserving_source(&tower,&mut state,&source);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--------------------------- argument #4 of type `&mut _` is missing
+     |
+note: function defined here
+    --> src/morphism_factor.rs:2876:4
+     |
+2876 | fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, source: &[char],
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2877 |     port: &mut impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>) -> Result<(),String> {
+     |     ----------------------------------------------------------------------
+help: provide the argument
+     |
+3614 -             execute_nested_preserving_source(&tower,&mut state,&source);
+3614 +             execute_nested_preserving_source(&tower, &mut state, &source, /* port */);
+     |
+
+For more information about this error, try `rustc --explain E0061`.
+error: could not compile `vox` (lib test) due to 1 previous error

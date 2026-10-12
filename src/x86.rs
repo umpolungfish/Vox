@@ -370,6 +370,8 @@ mod membrane_decode_tests {
             (&[0x66,0x0f,0xc6,0xc9,0x01][..], "shufpd"),
             (&[0x0f,0x16,0x44,0x24,0x08][..], "movhps"),
             (&[0x49,0x0f,0xc8][..], "bswap"),
+            (&[0x66,0x0f,0xd2,0xe1][..], "psrld"),
+            (&[0x66,0x0f,0xf2,0xe8][..], "pslld"),
         ] {
             let instruction = decode(bytes, 0).unwrap();
             assert_eq!(instruction.len, bytes.len(), "{name}");
@@ -702,6 +704,8 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x72 => { let (rm,g)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
                   ins!(addr,c,match g&7 {2=>"psrld",6=>"pslld",4=>"psrad",_=>"psrld"},vec![rm,Op::Imm(im)],false,None) }
         0xD3 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psrlq",vec![rop(r,16,rex.p),rm],false,None) }
+        0xD2 if o66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psrld",vec![rop(r,16,rex.p),rm],false,None) }
+        0xF2 if o66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pslld",vec![rop(r,16,rex.p),rm],false,None) }
         0xF3 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psllq",vec![rop(r,16,rex.p),rm],false,None) }
         0x62 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpckldq",vec![rop(r,16,rex.p),rm],false,None) }
         0x6C => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"punpcklqdq",vec![rop(r,16,rex.p),rm],false,None) }

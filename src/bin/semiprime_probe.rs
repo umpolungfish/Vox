@@ -11,7 +11,7 @@ include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 fn main() {
     let mode = option_env!("VOX_PROBE_MODE").expect("bake the producer at build time");
     let n = parse_numeral(BAKED_MODULUS_WORD.expect("bake the IMASM modulus at build time")).unwrap();
-    let a = if mode == "synthesis" { vox::morphism_factor::two() }
+    let a = if mode == "synthesis" || mode == "dialectic-lean" { vox::morphism_factor::two() }
         else { parse_numeral(BAKED_BASE_WORD.expect("bake the IMASM base at build time")).unwrap() };
     let start = Instant::now();
     if mode == "synthesis" {
@@ -88,6 +88,55 @@ fn main() {
         assert!(resident.boundary_ok && resident.sidearm_round_trip);
         println!("factor {}", dec_of(&resident.remainder));
         for p in resident.factors { println!("factor {}", dec_of(&p)); }
+    } else if mode == "dialectic-lean" {
+        let preparation_start = Instant::now();
+        let mut resident = vox::dialectic_lean::ResidentDialectic::new(n.clone()).unwrap();
+        let preparation = preparation_start.elapsed().as_secs_f64();
+        eprintln!("preparation_seconds {preparation:.9}");
+        let trigger = Instant::now();
+        let mut last_report = Instant::now();
+        while !resident.advance().unwrap_or_else(|error| {
+            if let Some(frame) = &resident.scan.last_frame {
+                eprintln!("failed_frame source={} multiplier={} a={} residual={} cell={} lattice={:?}",
+                    dec_of(&frame.source), dec_of(&frame.multiplier), dec_of(&frame.a),
+                    dec_of(&frame.residual), dec_of(&frame.lattice_cell), frame.lattice);
+            }
+            panic!("{error}")
+        }) {
+            if last_report.elapsed().as_secs() >= 5 {
+                let object = resident.object().unwrap();
+                eprintln!("dialectic-lean seconds={:.6} descents={} contractions={} temporal_ticks={} information_joins={} reversed_descents={} phase={} evidence={} boundary={} cells={} square_tests={} rejected={} residual_advances={}",
+                    trigger.elapsed().as_secs_f64(), resident.operations.descents,
+                    resident.operations.contractions, resident.operations.temporal_ticks,
+                    resident.operations.information_joins, resident.operations.reversed_descents,
+                    resident.phase, resident.evidence,
+                    dec_of(object.boundary()), resident.scan.cells,
+                    resident.scan.square_tests, resident.scan.rejected_cells,
+                    resident.scan.residual_advances);
+                last_report = Instant::now();
+            }
+        }
+        let readout = trigger.elapsed().as_secs_f64();
+        let closure = resident.closure().unwrap();
+        let p = &closure.carrier.p;
+        let (q, remainder) = vox::morphism_factor::divmod(&n, p);
+        assert!(vox::morphism_factor::zero(&remainder));
+        assert_eq!(vox::morphism_factor::mul(p, &q), n);
+        assert_eq!(q, closure.carrier.q);
+        let verified = trigger.elapsed().as_secs_f64();
+        println!("factor {}\nfactor {}", dec_of(p), dec_of(&q));
+        println!("producer dialectic-resident lattice {:?}", vox::dialectic_reentry::decode_imasm_execution(closure.word()).unwrap().lattice());
+        println!("preparation_seconds {preparation:.9}\ntrigger_to_readout_seconds {readout:.9}\ntrigger_to_verified_factor_seconds {verified:.9}");
+        println!("descents {} contractions {} temporal_ticks {} information_joins {} reversed_descents {} cells {} square_tests {} rejected {} residual_advances {} phase {} evidence {}",
+            resident.operations.descents, resident.operations.contractions,
+            resident.operations.temporal_ticks, resident.operations.information_joins,
+            resident.operations.reversed_descents, resident.scan.cells, resident.scan.square_tests,
+            resident.scan.rejected_cells, resident.scan.residual_advances, resident.phase, resident.evidence);
+        let frame = resident.scan.last_frame.as_ref().unwrap();
+        println!("residual_frame source={} multiplier={} a={} residual={} cell={} lattice={:?}",
+            dec_of(&frame.source), dec_of(&frame.multiplier), dec_of(&frame.a),
+            dec_of(&frame.residual), dec_of(&frame.lattice_cell), frame.lattice);
+        println!("executed_word {}", closure.word().iter().collect::<String>());
     } else if mode == "dialectic" {
         let mut object = DialecticObject::new(n).unwrap();
         let mut steps = 0;

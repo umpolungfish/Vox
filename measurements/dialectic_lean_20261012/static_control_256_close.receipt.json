@@ -1,0 +1,10 @@
+{
+  "n": "70191810847962523428393383144335058145044794059705339572713006486785864659869",
+  "target": "x86_64-unknown-linux-musl",
+  "binary_sha256": "e8eeea35563d07dc8df69b16017ad7b7e6653b280645f84c550a7bdd4d5a45e3",
+  "runtime_arguments": [],
+  "stdout": "factor 264937371557812740802878898768711833427\nfactor 264937371557812740802878898768711834447\nproducer dialectic-resident lattice ShortFrontier\npreparation_seconds 0.000163000\ntrigger_to_readout_seconds 0.000265100\ntrigger_to_verified_factor_seconds 0.000267300\ndescents 1 contractions 10 temporal_ticks 1 information_joins 1 reversed_descents 0 cells 1 square_tests 1 rejected 0 residual_advances 0 phase 4 evidence 2\nresidual_frame source=70191810847962523428393383144335058145044794059705339572713006486785864659869 multiplier=264937371557812740802878898768711833937 a=264937371557812740802878898768711833937 residual=260100 cell=0 lattice=ShortFrontier\nexecuted_word \u22a2\u2299\u2208\u227b\u22a4\u227a\u22a5\u220b\u22a1\u22a3\nseconds 0.0009512\n",
+  "stderr": "preparation_seconds 0.000163000\n",
+  "exit_status": 0,
+  "product_verified": true
+}

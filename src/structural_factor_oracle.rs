@@ -85,6 +85,18 @@ impl<'a> FactorPhaseOracle<'a> {
     pub fn layout(&self) -> &Layout {
         &self.layout
     }
+    /// Keep the same source while binding only low factor and work columns.
+    pub fn product_prefix(&self, columns: usize) -> Result<Self, &'static str> {
+        if columns == 0 || columns > self.layout.p.len() {
+            return Err("product prefix exceeds its source layout");
+        }
+        Ok(Self { n: self.n, layout: Layout {
+            p: 0..columns, q: columns..2*columns,
+            product: 2*columns..4*columns, row: 4*columns..6*columns,
+            carry: 6*columns, nontrivial_p: 6*columns+1,
+            nontrivial_q: 6*columns+2, cells: 6*columns+3,
+        } })
+    }
     fn cx<S: GateSink>(sink: &mut S, control: usize, target: usize) -> Result<(), &'static str> {
         sink.toggle(
             &[Control {
@@ -225,6 +237,22 @@ impl<'a> FactorPhaseOracle<'a> {
         self.lower_with_selection(sink, |state, controls| state.retain_literals(controls))
     }
 
+    /// Select only the requested low product columns and restore all workspace.
+    /// Properness concerns complete factors and is deliberately deferred here.
+    pub fn lower_selected_product_prefix<S: FactorSupportSink>(&self, sink: &mut S,
+        columns: usize) -> Result<(), &'static str> {
+        if columns == 0 || columns > self.layout.p.len() {
+            return Err("product prefix exceeds its source layout");
+        }
+        for i in 0..columns {
+            self.row(sink, i, false)?;
+            sink.retain_literals(&[Control { cell: self.layout.product.start + i,
+                value: self.n.get(i).copied().unwrap_or(EVALT) }])?;
+        }
+        for i in (0..columns).rev() { self.row(sink, i, true)?; }
+        Ok(())
+    }
+
     fn lower_with_selection<S: GateSink>(&self, sink: &mut S,
         mut select: impl FnMut(&mut S, &[Control]) -> Result<(), &'static str>)
         -> Result<(), &'static str> {
@@ -301,6 +329,50 @@ mod tests {
             self.negative ^= controls.iter().all(|c| self.cells[c.cell] == c.value);
             self.gates += 1;
             Ok(())
+        }
+    }
+    struct SelectedBasis { basis: Basis, retained: bool }
+    impl GateSink for SelectedBasis {
+        fn toggle(&mut self, controls: &[Control], target: usize) -> Result<(), &'static str> {
+            self.basis.toggle(controls, target)
+        }
+        fn phase_flip(&mut self, controls: &[Control]) -> Result<(), &'static str> {
+            self.basis.phase_flip(controls)
+        }
+    }
+    impl FactorSupportSink for SelectedBasis {
+        fn retain_literals(&mut self, controls: &[Control]) -> Result<(), &'static str> {
+            self.retained &= controls.iter().all(|c| self.basis.cells[c.cell] == c.value);
+            Ok(())
+        }
+    }
+    #[test]
+    fn low_product_selection_matches_modular_product_and_restores_workspace() {
+        for n in [17usize, 32, 91, 143] {
+            let tape = numeral(n);
+            let full = FactorPhaseOracle::from_n(&tape).unwrap();
+            for columns in 1..=4 {
+                let oracle = full.product_prefix(columns).unwrap();
+                let l = oracle.layout();
+                for p in 0..1usize << columns {
+                    for q in 0..1usize << columns {
+                        let mut state = SelectedBasis { basis: Basis {
+                            cells: vec![EVALT; l.cells], negative: false, gates: 0,
+                        }, retained: true };
+                        for (range, value) in [(l.p.clone(), p), (l.q.clone(), q)] {
+                            for (i, cell) in range.enumerate() {
+                                state.basis.cells[cell] = if value >> i & 1 == 1 { EVALF } else { EVALT };
+                            }
+                        }
+                        let before = state.basis.cells.clone();
+                        oracle.lower_selected_product_prefix(&mut state, columns).unwrap();
+                        assert_eq!(state.retained, (p*q) % (1 << columns) == n % (1 << columns),
+                            "N={n},p={p},q={q},columns={columns}");
+                        assert_eq!(state.basis.cells, before);
+                        assert!(!state.basis.negative);
+                    }
+                }
+            }
         }
     }
     #[test]

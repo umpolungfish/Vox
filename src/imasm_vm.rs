@@ -320,6 +320,19 @@ impl Machine {
 
     // ── truth ──
     fn cc(&self, name: &str) -> bool {
+        if self.kind == "packed" {
+            let bits = self.flags.0;
+            let (zf, sf, cf, of, pf) = (bits & 1 != 0, bits & 2 != 0,
+                bits & 4 != 0, bits & 8 != 0, bits & 16 != 0);
+            return match name {
+                "e"|"z" => zf, "ne"|"nz" => !zf, "s" => sf, "ns" => !sf,
+                "b"|"nae"|"c" => cf, "ae"|"nb"|"nc" => !cf,
+                "be"|"na" => cf || zf, "a"|"nbe" => !(cf || zf),
+                "l"|"nge" => sf != of, "ge"|"nl" => sf == of,
+                "le"|"ng" => zf || sf != of, "g"|"nle" => !zf && sf == of,
+                "o" => of, "no" => !of, "p" => pf, "np" => !pf, _ => false,
+            };
+        }
         // A float compare (comiss/ucomiss and kin) stored its zero and carry
         // bits directly; the parity bit a NaN would set is not modelled.
         if self.kind == "fflags" {
@@ -764,6 +777,27 @@ impl Machine {
             }
             // Bit test: CF becomes the selected bit; the set/reset/complement
             // forms also write it back. A following jb/jae reads CF via fflags.
+            "rol"|"ror" => {
+                let size = self.width(&f[0]);
+                let bits = u32::from(size) * 8;
+                let value = self.read(&f[0], size).0 & mask(size);
+                let count = (self.read(&f[1], size).0 as u32 & if size == 8 {63} else {31}) % bits;
+                if count == 0 { return; }
+                let result = if op == "rol" {
+                    (value << count | value >> (bits - count)) & mask(size)
+                } else { (value >> count | value << (bits - count)) & mask(size) };
+                let cf = if op == "rol" { result & 1 } else { result >> (bits - 1) };
+                let of = if count == 1 {
+                    if op == "rol" { (result >> (bits - 1)) ^ cf }
+                    else { (result >> (bits - 1)) ^ ((result >> (bits - 2)) & 1) }
+                } else { u128::from(self.cc("o")) };
+                let flags = u128::from(self.cc("e")) | (u128::from(self.cc("s")) << 1)
+                    | (cf << 2) | (of << 3) | (u128::from(self.cc("p")) << 4);
+                self.write(&f[0], result);
+                self.flags = (flags, 0, 0);
+                self.kind = "packed";
+                return;
+            }
             "bt"|"bts"|"btr"|"btc" => {
                 let sz = self.width(&f[0]);
                 let bits = sz as u32 * 8;
@@ -1648,6 +1682,39 @@ mod membrane_simd_tests {
         }
     }
     use super::*;
+
+    #[test]
+    fn scalar_rotates_respect_width_and_preserve_status_flags() {
+        for (size, register) in [(1,"al"),(2,"ax"),(4,"eax"),(8,"rax")] {
+            for count in [0u32,1,8,16,31,32,63,64,255] {
+                for op in ["rol","ror"] {
+                    let mut machine = Machine::new("");
+                    let value = 0x8000000080010012u64;
+                    machine.set_reg(register, value as u128);
+                    machine.set_flags(0,3,size,"explicit");
+                    machine.alu(op,&vec![format!("r:{register}"),format!("i:0x{count:x}")]);
+                    let expected = match (size, op) {
+                        (1,"rol") => (value as u8).rotate_left(count) as u128,
+                        (1,_) => (value as u8).rotate_right(count) as u128,
+                        (2,"rol") => (value as u16).rotate_left(count) as u128,
+                        (2,_) => (value as u16).rotate_right(count) as u128,
+                        (4,"rol") => (value as u32).rotate_left(count) as u128,
+                        (4,_) => (value as u32).rotate_right(count) as u128,
+                        (_,"rol") => value.rotate_left(count) as u128,
+                        _ => value.rotate_right(count) as u128,
+                    };
+                    assert_eq!(machine.get_reg(register),expected,"{register} {op} {count}");
+                    assert!(machine.cc("e"));
+                    assert!(!machine.cc("s"));
+                    assert!(machine.cc("p"));
+                }
+            }
+        }
+        let mut machine = Machine::new("");
+        machine.set_reg("r8d",18);
+        machine.alu("ror",&vec!["r:r8d".into(),"i:0x1".into()]);
+        assert_eq!(machine.get_reg("r8d"),9);
+    }
 
     #[test]
     fn packed_shift_decode_lengths_and_saturation() {

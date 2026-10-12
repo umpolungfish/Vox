@@ -1,0 +1,27 @@
+{
+  "plan_sha256": "677d62a012af2aed47ffe390df6cf2fd150d061030bd70917811543b4ac3b90d",
+  "compiled_bridge_sha256": "06d649824cae0500c8a93d079fd35dc67e242c407a8ad496e07c5919b77b1b17",
+  "compiled_plan_matches": true,
+  "source_bindings": [
+    {
+      "path": "p4rakernel/p4ramill/KernelBridge.lean",
+      "sha256": "20d7eb5b7398ee02a859b1abdfd53621f013e962975f8c6d2433ac4ded584a38"
+    },
+    {
+      "path": "p4rakernel/p4ramill/Imscribing/Paraconsistent/DialecticResident.lean",
+      "sha256": "8431fb2fa056298912fe9797482ecc542c7a3c19d4a88f9c2c1b47c1ebea30a6"
+    },
+    {
+      "path": "p4rakernel/p4ramill/Imscribing/Paraconsistent/CombinatoryReentry.lean",
+      "sha256": "285a3eaa4677c523826f882e7a63fdc6638aadb33ce6ca34dfbaec6ce2d7b760"
+    },
+    {
+      "path": "p4rakernel/p4ramill/Imscribing/Paraconsistent/CombinatoryDynamics.lean",
+      "sha256": "93eccc6474aab36ff4a79d3a8721a445ce26f093e1625f2dad65a936789279b4"
+    },
+    {
+      "path": "p4rakernel/p4ramill/Imscribing/Paraconsistent/TemporalSemantics.lean",
+      "sha256": "e2b6cf895154eb0c86d6e75755a7d9687aaf546729f7d5a29b2901b179580194"
+    }
+  ]
+}
