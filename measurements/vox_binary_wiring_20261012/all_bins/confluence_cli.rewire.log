@@ -1,0 +1,6 @@
+rewired 71305 instructions in 3286 functions
+Frobenius wiring: 6908 closed, 0 open; arm-entry work witness: 6906/6908
+coverage: 284493/284493 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1294
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/confluence_cli.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/confluence_cli.rewired.json.gz)

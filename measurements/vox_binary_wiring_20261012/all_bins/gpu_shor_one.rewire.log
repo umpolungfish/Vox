@@ -1,0 +1,6 @@
+rewired 93469 instructions in 4186 functions
+Frobenius wiring: 9347 closed, 0 open; arm-entry work witness: 9345/9347
+coverage: 373710/373710 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1840
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/gpu_shor_one.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/gpu_shor_one.rewired.json.gz)

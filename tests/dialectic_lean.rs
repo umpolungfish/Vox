@@ -1,4 +1,21 @@
 use vox::dialectic_lean::ResidentDialectic;
+
+#[test]
+fn certified_y_drives_one_retained_payload_and_rejects_changed_program() {
+    use vox::dialectic_lean::ResidentY;
+    let program = ResidentY::certified_program();
+    assert!(ResidentY::from_certified_program(&program.replace("Y-prefix-contractions=9","Y-prefix-contractions=8")).is_err());
+    let mut driver = ResidentY::from_certified_program(program).unwrap();
+    let mut payload = Vec::new();
+    for tick in 0..6 {
+        let done = driver.advance(|| { payload.push(tick); Ok(payload.len()==6) }).unwrap();
+        assert_eq!(done,tick==5);
+        assert_eq!(driver.calls,payload.len() as u64);
+        assert_eq!(driver.contractions,9+driver.calls);
+    }
+    assert!(driver.advance(|| panic!("closed Y executed its payload again")).unwrap());
+    assert_eq!(payload,vec![0,1,2,3,4,5]);
+}
 use vox::dialectic_reentry::{Descent, DialecticObject};
 use vox::morphism_factor::{cmp, mul, one, tape_u64};
 use core::cmp::Ordering;
@@ -59,6 +76,19 @@ fn both_temporal_phases_preserve_every_square_residue() {
         let closure = resident.closure().unwrap();
         assert_eq!(mul(&closure.carrier.p, &closure.carrier.q), source);
       }
+    }
+}
+
+#[test]
+fn lean_compiled_byte_support_accepts_every_square_residue() {
+    let resident = ResidentDialectic::new(tape_u64(91)).unwrap();
+    let support = resident.scan.square_support;
+    for residue in 0..256usize {
+        let expected = (0..256usize).any(|root| root * root % 256 == residue);
+        assert_eq!(support[residue], expected, "residue {residue}");
+    }
+    for root in 0..65_536usize {
+        assert!(support[root * root % 256], "root {root}");
     }
 }
 

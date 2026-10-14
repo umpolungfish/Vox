@@ -1334,7 +1334,7 @@ pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
     let mut seen: alloc::collections::BTreeSet<Tape> = alloc::collections::BTreeSet::new();
     let n_tape = polynomial_n;
     let lp: Vec<i32> = base.iter().map(|&p| flog2(p as u128) as i32).collect();
-    let thresh_slack = (flog2(eff_bound as u128) + flog2(width as u128)) as i32;
+    let thresh_slack = flog2(residual_bound2_u) as i32;
     let score_block = span.min(score_block_capacity(width));
 
     // A owns the inverses and sieve storage. Its B siblings prepare window
@@ -1534,15 +1534,12 @@ pub(crate) fn mpqs_with_source_port(n: &Tape, base_bound: usize, m_half: usize,
                     let l = lp[j];
                     let mut idx = next1[j] as usize;
                     while idx < bend {
-                        // Running positions are >= bstart. The loop guard puts
-                        // idx-bstart below blen, and blen is at most blk.len().
                         unsafe { *blk.get_unchecked_mut(idx - bstart) += l; }
                         idx += pi;
                     }
                     next1[j] = idx as i64;
                     let mut idx2 = next2[j] as usize;
                     while idx2 < bend {
-                        // The same carried-position invariant applies to lane 2.
                         unsafe { *blk.get_unchecked_mut(idx2 - bstart) += l; }
                         idx2 += pi;
                     }

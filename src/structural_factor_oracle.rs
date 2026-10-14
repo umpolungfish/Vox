@@ -237,6 +237,24 @@ impl<'a> FactorPhaseOracle<'a> {
         self.lower_with_selection(sink, |state, controls| state.retain_literals(controls))
     }
 
+    /// Advance one completed source column while product and carry state stay
+    /// resident. The caller advances rows once in ascending order, then calls
+    /// finish_selected_product on this same register.
+    pub fn lower_selected_row<S: FactorSupportSink>(&self, sink: &mut S, row: usize)
+        -> Result<(), &'static str> {
+        if row >= self.layout.p.len() { return Err("product row exceeds its source layout"); }
+        self.row(sink, row, false)?;
+        sink.retain_literals(&[Control { cell: self.layout.product.start + row,
+            value: self.n.get(row).copied().unwrap_or(EVALT) }])
+    }
+
+    /// Select complete proper products and close the shared reverse rail after
+    /// every forward product row has returned into this same resident register.
+    pub fn finish_selected_product<S: FactorSupportSink>(&self, sink: &mut S)
+        -> Result<(), &'static str> {
+        self.finish_with_selection(sink, |state, controls| state.retain_literals(controls))
+    }
+
     /// Select only the requested low product columns and restore all workspace.
     /// Properness concerns complete factors and is deliberately deferred here.
     pub fn lower_selected_product_prefix<S: FactorSupportSink>(&self, sink: &mut S,
@@ -262,6 +280,13 @@ impl<'a> FactorPhaseOracle<'a> {
             select(sink, &[Control { cell: l.product.start + i,
                 value: self.n.get(i).copied().unwrap_or(EVALT) }])?;
         }
+        self.finish_with_selection(sink, select)
+    }
+
+    fn finish_with_selection<S: GateSink>(&self, sink: &mut S,
+        mut select: impl FnMut(&mut S, &[Control]) -> Result<(), &'static str>)
+        -> Result<(), &'static str> {
+        let l = &self.layout;
         self.nontrivial(sink, l.p.clone(), l.nontrivial_p, false)?;
         self.nontrivial(sink, l.q.clone(), l.nontrivial_q, false)?;
         let mut matched: Vec<_> = l
@@ -344,6 +369,36 @@ mod tests {
         fn retain_literals(&mut self, controls: &[Control]) -> Result<(), &'static str> {
             self.retained &= controls.iter().all(|c| self.basis.cells[c.cell] == c.value);
             Ok(())
+        }
+    }
+    #[test]
+    fn resident_product_rows_select_exact_factors_and_close_the_reverse_rail() {
+        for n in [15usize, 21, 35] {
+            let tape = numeral(n);
+            let oracle = FactorPhaseOracle::from_n(&tape).unwrap();
+            let l = oracle.layout();
+            for p in 0..1usize << l.p.len() {
+                for q in 0..1usize << l.q.len() {
+                    let mut state = SelectedBasis { basis: Basis {
+                        cells: vec![EVALT;l.cells], negative:false, gates:0,
+                    }, retained:true };
+                    for (range,value) in [(l.p.clone(),p),(l.q.clone(),q)] {
+                        for (bit,cell) in range.enumerate() {
+                            state.basis.cells[cell] = if value>>bit&1==1 { EVALF } else { EVALT };
+                        }
+                    }
+                    let before=state.basis.cells.clone();
+                    for row in 0..l.p.len() {
+                        oracle.lower_selected_row(&mut state,row).unwrap();
+                        let mask=(1usize<<(row+1))-1;
+                        assert_eq!(state.retained, p*q&mask==n&mask);
+                    }
+                    oracle.finish_selected_product(&mut state).unwrap();
+                    assert_eq!(state.retained,p>1&&q>1&&p*q==n);
+                    assert_eq!(state.basis.cells,before);
+                    assert_eq!(state.basis.negative,p>1&&q>1&&p*q==n);
+                }
+            }
         }
     }
     #[test]

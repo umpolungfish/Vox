@@ -74,6 +74,8 @@ pub trait Host {
     fn wait(&mut self, _pid: i32) -> Result<(i32,i32),i32> { Err(-38) }
     fn begin_fork(&mut self) {}
     fn end_fork(&mut self) {}
+    /// Optional host observation; it cannot alter guest registers or memory.
+    fn execution_progress(&mut self, _steps: u64, _pc: u64) {}
 }
 
 // Pages organize storage; the address domain and page count remain dynamic.
@@ -1105,6 +1107,20 @@ impl Machine {
                 let x0=a&mask(4); let x2=(a>>64)&mask(4); let y0=b&mask(4); let y2=(b>>64)&mask(4);
                 self.write(&dst, (x0*y0) | ((x2*y2)<<64));
             }
+            "psadbw" => {
+                let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
+                let mut result=0u128;
+                for group in 0..2u32 {
+                    let mut sum=0u128;
+                    for lane in 0..8u32 {
+                        let shift=(group*8+lane)*8;
+                        let left=(a>>shift)&0xff; let right=(b>>shift)&0xff;
+                        sum+=left.abs_diff(right);
+                    }
+                    result|=sum<<(group*64);
+                }
+                self.write(&dst,result);
+            }
             "pxor"|"pand"|"pandn"|"por"|"xorps"|"andps"|"andnps"|"orps"|
             "xorpd"|"andpd"|"andnpd"|"orpd" => { let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
                 self.write(&dst, match op {"pxor"|"xorps"|"xorpd"=>a^b,
@@ -1281,6 +1297,13 @@ impl Machine {
         // ── precision convert ──
         if op == "cvtss2sd" { let v = self.fread(&f[1], 4); self.fwrite(&dst, v, 8); return; }
         if op == "cvtsd2ss" { let v = self.fread(&f[1], 8); self.fwrite(&dst, v, 4); return; }
+        if op == "cvtdq2pd" {
+            let source = self.read(&f[1], 8).0;
+            let first = source as u32 as i32 as f64;
+            let second = (source >> 32) as u32 as i32 as f64;
+            self.write(&dst, first.to_bits() as u128 | ((second.to_bits() as u128) << 64));
+            return;
+        }
         // ── arithmetic: scalar (ss/sd) and packed (ps/pd) ──
         let w: u8 = if op.ends_with("ss") || op.ends_with("ps") { 4 } else { 8 };
         let scalar = op.ends_with("ss") || op.ends_with("sd");
@@ -1420,6 +1443,9 @@ impl Machine {
         loop {
             if Some(pc) == sentinel { return Ok(pc); }
             self.cur_pc = pc;
+            if self.steps & ((1 << 20) - 1) == 0 {
+                if let Some(host) = self.host.as_mut() { host.execution_progress(self.steps, pc); }
+            }
             if !self.watch.is_empty() {
                 let name = self.watch.get(&pc).cloned();
                 if let Some(name) = name {
@@ -1548,7 +1574,7 @@ fn is_simd(op: &str) -> bool {
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"|"movmskps"|"movmskpd"
-        |"packssdw"|"packsswb"|"packuswb"
+        |"packssdw"|"packsswb"|"packuswb"|"psadbw"
         |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
         |"xorps"|"andps"|"andnps"|"orps"|"xorpd"|"andpd"|"andnpd"|"orpd"
         |"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
@@ -1556,6 +1582,33 @@ fn is_simd(op: &str) -> bool {
 
 #[cfg(test)]
 mod membrane_simd_tests {
+    #[test]
+    fn cvtdq2pd_converts_two_signed_dwords_from_xmm_source() {
+        use super::Machine;
+        let instruction = crate::x86::decode(&[0xf3, 0x0f, 0xe6, 0xc1], 0x100).unwrap();
+        let module = alloc::format!("@0x100\n⋈\t{}\t{}\t{}\n@0x104\n",
+            instruction.mnemonic, instruction.ops[0].field(), instruction.ops[1].field());
+        let mut machine = Machine::new(&module);
+        machine.set_reg("xmm1", 0xffff_ffff_8000_0000u128);
+        assert!(machine.step(0x100).is_ok());
+        assert_eq!(machine.reg("xmm0"), (-2147483648.0f64).to_bits() as u128
+            | (((-1.0f64).to_bits() as u128) << 64));
+    }
+
+    #[test]
+    fn psadbw_decodes_and_sums_absolute_byte_differences_per_qword() {
+        use super::{Machine, is_simd};
+        let instruction = crate::x86::decode(&[0x66, 0x0f, 0xf6, 0xc1], 0x100).unwrap();
+        let module = alloc::format!("@0x100\n⋈\t{}\t{}\t{}\n@0x104\n",
+            instruction.mnemonic, instruction.ops[0].field(), instruction.ops[1].field());
+        let mut machine = Machine::new(&module);
+        machine.set_reg("xmm0", 0x0001020304050607_0101010101010101u128);
+        machine.set_reg("xmm1", 0x0808080808080808_0000000000000000u128);
+        assert!(machine.step(0x100).is_ok());
+        assert_eq!(machine.reg("xmm0"), (36u128 << 64) | 8);
+        assert!(is_simd("psadbw"));
+    }
+
     #[test]
     fn sign_mask_readout_keeps_lane_order_and_clears_upper_destination_bits() {
         for (bytes, lane_bits, source) in [
@@ -1966,7 +2019,7 @@ fn is_float(op: &str) -> bool {
         "sqrtss"|"sqrtsd"|"sqrtps"|"sqrtpd"|
         "comiss"|"comisd"|"ucomiss"|"ucomisd"|
         "cvtsi2ss"|"cvtsi2sd"|"cvtss2si"|"cvtsd2si"|"cvttss2si"|"cvttsd2si"|
-        "cvtss2sd"|"cvtsd2ss"|
+        "cvtss2sd"|"cvtsd2ss"|"cvtdq2pd"|
         "cmpss"|"cmpsd"|"cmpps"|"cmppd")
 }
 

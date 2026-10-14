@@ -1,3 +1,5 @@
-I integrate Lean re-entry into the resident dialectic factor membrane
+I observe Vox membrane loading and instruction progress
 
-I retain the source-derived factor, product, carry, square-residue, and temporal state through Y descent and closure. I bind the membrane through the Vox rewirer, execute the repaired rotate path, preserve the close-factor and multiplier-family controls, and record N-only hard-target runs with source bindings, operation counters, and exact-product checks.
+I add optional host-side loading clocks and sparse guest instruction address samples through VOX_PROGRESS. I preserve the guest register and memory execution path and retain the locked 512-bit membrane for the bounded integration run.
+
+I trace the reachable dialectic entry with Vox and exercise the requested small N-only source through the current prepared membrane. I compile the existing arithmetic-cell words into their complete carry and borrow returns. I retain each build and execution boundary.

@@ -1,0 +1,6 @@
+rewired 164150 instructions in 6162 functions
+Frobenius wiring: 17122 closed, 0 open; arm-entry work witness: 17120/17122
+coverage: 697502/697502 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 4890
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/shor_big_batch.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/shor_big_batch.rewired.json.gz)

@@ -1,0 +1,6 @@
+rewired 72393 instructions in 3332 functions
+Frobenius wiring: 7029 closed, 0 open; arm-entry work witness: 7027/7029
+coverage: 290317/290317 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1356
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/reduce_resident_cli.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/reduce_resident_cli.rewired.json.gz)

@@ -1,0 +1,6 @@
+rewired 95230 instructions in 4143 functions
+Frobenius wiring: 9767 closed, 0 open; arm-entry work witness: 9765/9767
+coverage: 378910/378910 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1697
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/hensel_factor.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/hensel_factor.rewired.json.gz)

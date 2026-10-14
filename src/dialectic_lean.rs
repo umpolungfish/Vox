@@ -31,7 +31,7 @@ fn numbers(report: &str, key: &str, length: usize) -> Result<Vec<u8>, String> {
 }
 
 #[derive(Clone, Debug)]
-struct Plan { y: Rc<Term>, prefix_contractions: u64, prefix_trace: Vec<String>, negation: [u8; 16], join: [u8; 256], squares: [bool; 16] }
+struct Plan { y: Rc<Term>, prefix_contractions: u64, prefix_trace: Vec<String>, negation: [u8; 16], join: [u8; 256], squares: [bool; 256] }
 impl Plan {
     fn load(report: &str) -> Result<Self, String> {
         if !report.lines().any(|s| s == "dialectic-plan=Lean-certified") {
@@ -58,7 +58,7 @@ impl Plan {
         if negation.iter().chain(join.iter()).any(|v| *v > 15) {
             return Err("compiled register table escaped SIXTEEN_3".into());
         }
-        let values = numbers(report, "square-support=", 16)?;
+        let values = numbers(report, "square-support=", 256)?;
         if values.iter().any(|v| *v > 1) { return Err("invalid square support".into()); }
         let squares = core::array::from_fn(|i| values[i] == 1);
         let prefix_contractions = report.lines().find_map(|s| s.strip_prefix("Y-prefix-contractions="))
@@ -86,7 +86,7 @@ pub struct Operations {
 
 pub struct ResidentDialectic {
     plan: Plan,
-    term: Rc<Term>,
+    driver: Option<ResidentY>,
     object: Option<DialecticObject>,
     closure: Option<DialecticClosure>,
     pub scan: ResidentScan,
@@ -99,9 +99,9 @@ impl ResidentDialectic {
     /// N alone initializes the same source object as the recovered producer.
     pub fn new(n: Tape) -> Result<Self, String> {
         let plan = Plan::load(LEAN_PLAN)?;
-        let term = app(app(plan.y.clone(), Rc::new(Term::Operator)), Rc::new(Term::Payload));
+        let driver = Some(ResidentY::from_plan(&plan));
         let scan = ResidentScan::new(plan.squares);
-        Ok(Self { plan, term, object: Some(DialecticObject::new(n)?), closure: None,
+        Ok(Self { plan, driver, object: Some(DialecticObject::new(n)?), closure: None,
             scan, operations: Operations::default(), phase: 2, evidence: 0 })
     }
 
@@ -128,14 +128,59 @@ impl ResidentDialectic {
         };
     }
 
-    fn root(&mut self, term: &Rc<Term>) -> Result<Option<Rc<Term>>, String> {
-        if matches!(term.as_ref(), Term::Resume) { return self.descend_term(); }
+    /// Execute the same certified Y driver around the resident dialectic operator.
+    pub fn advance(&mut self) -> Result<bool, String> {
+        let mut driver = self.driver.take().ok_or("resident Y driver is already executing")?;
+        let result = driver.advance(|| {
+            let term = self.descend_term()?.ok_or("dialectic operator omitted its return")?;
+            Ok(matches!(term.as_ref(), Term::Done))
+        });
+        self.operations.contractions = driver.contractions;
+        self.driver = Some(driver);
+        result
+    }
+}
+
+/// The retained Lean-certified Y reduction, with one caller-owned payload.
+/// Every operator call transforms that payload and returns its closure state.
+/// Resumption retains a compact term instead of copying the carried object.
+pub struct ResidentY {
+    term: Rc<Term>,
+    prefix_trace: Vec<String>,
+    prefix_contractions: u64,
+    pub contractions: u64,
+    pub calls: u64,
+    done: bool,
+}
+
+impl ResidentY {
+    pub fn certified_program() -> &'static str { LEAN_PLAN }
+
+    pub fn from_certified_program(program: &str) -> Result<Self, String> {
+        if program != LEAN_PLAN { return Err("resident Y program differs from retained Lean export".into()); }
+        Ok(Self::from_plan(&Plan::load(program)?))
+    }
+
+    fn from_plan(plan: &Plan) -> Self {
+        Self { term: app(app(plan.y.clone(), Rc::new(Term::Operator)), Rc::new(Term::Payload)),
+            prefix_trace: plan.prefix_trace.clone(), prefix_contractions: plan.prefix_contractions,
+            contractions: 0, calls: 0, done: false }
+    }
+
+    fn call(&mut self, operator: &mut impl FnMut() -> Result<bool, String>) -> Result<Option<Rc<Term>>, String> {
+        self.done = operator()?;
+        self.calls += 1;
+        Ok(Some(Rc::new(if self.done { Term::Done } else { Term::Resume })))
+    }
+
+    fn root(&mut self, term: &Rc<Term>, operator: &mut impl FnMut() -> Result<bool, String>) -> Result<Option<Rc<Term>>, String> {
+        if matches!(term.as_ref(), Term::Resume) { return self.call(operator); }
         let Term::App(f, x) = term.as_ref() else { return Ok(None); };
         if matches!(f.as_ref(), Term::I) { return Ok(Some(x.clone())); }
         if let Term::App(g, y) = f.as_ref() {
             if matches!(g.as_ref(), Term::K) { return Ok(Some(y.clone())); }
             if matches!(g.as_ref(), Term::Operator) && matches!(x.as_ref(), Term::Payload) {
-                return self.descend_term();
+                return self.call(operator);
             }
             if let Term::App(h, z) = g.as_ref() {
                 if matches!(h.as_ref(), Term::S) {
@@ -146,36 +191,36 @@ impl ResidentDialectic {
         Ok(None)
     }
 
-    fn reduce(&mut self, term: &Rc<Term>) -> Result<Option<Rc<Term>>, String> {
-        if let Some(next) = self.root(term)? { return Ok(Some(next)); }
+    fn reduce(&mut self, term: &Rc<Term>, operator: &mut impl FnMut() -> Result<bool, String>) -> Result<Option<Rc<Term>>, String> {
+        if let Some(next) = self.root(term, operator)? { return Ok(Some(next)); }
         if let Term::App(f, x) = term.as_ref() {
-            if let Some(next) = self.reduce(f)? { return Ok(Some(app(next, x.clone()))); }
-            if let Some(next) = self.reduce(x)? { return Ok(Some(app(f.clone(), next))); }
+            if let Some(next) = self.reduce(f, operator)? { return Ok(Some(app(next, x.clone()))); }
+            if let Some(next) = self.reduce(x, operator)? { return Ok(Some(app(f.clone(), next))); }
         }
         Ok(None)
     }
 
-    /// One resident descent, including the actual Y contractions that reach it.
-    pub fn advance(&mut self) -> Result<bool, String> {
-        if self.closure.is_some() { return Ok(true); }
-        let before = self.operations.descents;
+    /// One operator call after the actual certified combinator contractions.
+    pub fn advance(&mut self, mut operator: impl FnMut() -> Result<bool, String>) -> Result<bool, String> {
+        if self.done { return Ok(true); }
+        let before = self.calls;
         loop {
             let term = self.term.clone();
             if before == 0 {
                 let mut tokens = Vec::new();
                 emit_term(&term, &mut tokens);
-                let index = self.operations.contractions as usize;
-                if self.plan.prefix_trace.get(index) != Some(&tokens.join(" ")) {
+                let index = self.contractions as usize;
+                if self.prefix_trace.get(index) != Some(&tokens.join(" ")) {
                     return Err("resident Y residual differs from proof-carrying Lean reduction".into());
                 }
             }
-            self.term = self.reduce(&term)?.ok_or("resident Y halted before descent")?;
-            self.operations.contractions += 1;
-            if self.operations.descents != before {
-                if before == 0 && self.operations.contractions != self.plan.prefix_contractions + 1 {
+            self.term = self.reduce(&term, &mut operator)?.ok_or("resident Y halted before operator")?;
+            self.contractions += 1;
+            if self.calls != before {
+                if before == 0 && self.contractions != self.prefix_contractions + 1 {
                     return Err("resident Y prefix differs from measured Lean contractions".into());
                 }
-                return Ok(self.closure.is_some());
+                return Ok(self.done);
             }
         }
     }

@@ -1,0 +1,6 @@
+rewired 69764 instructions in 3343 functions
+Frobenius wiring: 6733 closed, 0 open; arm-entry work witness: 6731/6733
+coverage: 276605/276605 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1241
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/terminal_fixpoint_cli.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/terminal_fixpoint_cli.rewired.json.gz)

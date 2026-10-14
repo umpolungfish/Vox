@@ -49,7 +49,7 @@ fn usage() {
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
-    eprintln!("  vox profile-native <ELF> <report-prefix> [--registers]   sample native addresses; capture target output");
+    eprintln!("  vox profile-native <ELF> <report-prefix> [--registers] [--duration-ms N]");
     eprintln!("  vox imasm <file> [--output <module.imasm>]   emit the executable IMASM module");
     eprintln!("  vox glyphs <module.imasm> <output.glyphs>   encode complete module as glyphs");
     eprintln!("  vox unglyphs <word.glyphs> <output.imasm>  restore exact executable module");
@@ -761,6 +761,7 @@ fn read_or_exit(path: &str) -> Vec<u8> {
 /// this does so for real, under whatever permission this process already
 /// has — the same access the shell that launched `vox` already had.
 struct StdHost {
+    progress: Option<(std::time::Instant, std::time::Instant)>,
     files: std::collections::BTreeMap<i32, std::fs::File>,
     next_fd: i32,
     stdio: [Option<i32>; 3],
@@ -771,11 +772,20 @@ struct StdHost {
     children: std::collections::BTreeMap<i32, std::process::Child>,
 }
 impl StdHost { fn new() -> Self { StdHost {
+    progress: std::env::var_os("VOX_PROGRESS").map(|_| { let now=std::time::Instant::now(); (now,now) }),
     files: std::collections::BTreeMap::new(), next_fd: 100, stdio: [None; 3],
     fork_stdio: None, fork_files: None, cwd: std::env::current_dir().unwrap_or_else(|_| "/".into()), fork_cwd: None,
     children: std::collections::BTreeMap::new(),
 } } }
 impl imasm_vm::Host for StdHost {
+    fn execution_progress(&mut self, steps: u64, pc: u64) {
+        if let Some((started,last)) = self.progress.as_mut() {
+            if steps == 0 || last.elapsed().as_secs() >= 5 {
+                eprintln!("vox-execution seconds={:.6} steps={} pc=0x{:x}",started.elapsed().as_secs_f64(),steps,pc);
+                *last=std::time::Instant::now();
+            }
+        }
+    }
     fn pipe(&mut self, flags: i32) -> Result<(i32, i32), i32> {
         #[cfg(target_os = "linux")]
         {
@@ -1232,7 +1242,11 @@ fn main() {
             // symbol table (`; sym NAME 0xADDR`), so it runs directly with no
             // second read of the original binary. Anything else is read as raw
             // bytes and lifted fresh, same as before.
+            let observed = std::env::var_os("VOX_PROGRESS").is_some();
+            let load_started = std::time::Instant::now();
+            if observed { eprintln!("vox-loading stage=read"); }
             let raw = read_or_exit(&file);
+            if observed { eprintln!("vox-loading stage=module seconds={:.6} bytes={}",load_started.elapsed().as_secs_f64(),raw.len()); }
             let is_glyph = file.ends_with(".glyphs") || raw.starts_with(::vox::glyph_module::PREFIX.as_bytes());
             let is_module = is_glyph || file.ends_with(".imasm")
                 || raw.starts_with(b"; ");
@@ -1252,6 +1266,7 @@ fn main() {
                 imasm_vm::Machine::new(&imasm_module::emit(&raw))
             };
             m.set_host(Box::new(StdHost::new()));
+            if observed { eprintln!("vox-loading stage=ready seconds={:.6}",load_started.elapsed().as_secs_f64()); }
             let trace = std::env::var("VOX_TRACE").is_ok();
             if trace { m.trace_allocs(); }
             if let Ok(w) = std::env::var("VOX_WMEM") {
@@ -1379,10 +1394,35 @@ fn main() {
         Some("word") | Some("words") => { if args.len()<2 { eprintln!("vox word <file>"); return; }
             let raw=read_or_exit(&args[1]); println!("{}", imasm_module::words(&raw)); std::process::exit(0); }
         Some("profile-native") => {
-            if args.len() != 3 && !(args.len() == 4 && args[3] == "--registers") {
-                eprintln!("vox profile-native <ELF> <report-prefix> [--registers]"); return;
+            if args.len() < 3 {
+                eprintln!("vox profile-native <ELF> <report-prefix> [--registers] [--duration-ms N]"); return;
             }
-            if let Err(error) = native_profile::run(&args[1], &args[2], args.len() == 4) {
+            let mut register_samples = false;
+            let mut max_duration = None;
+            let mut index = 3;
+            while index < args.len() {
+                match args[index].as_str() {
+                    "--registers" => register_samples = true,
+                    "--duration-ms" if index + 1 < args.len() => {
+                        match args[index + 1].parse::<u64>() {
+                            Ok(milliseconds) if milliseconds > 0 => {
+                                max_duration = Some(std::time::Duration::from_millis(milliseconds));
+                                index += 1;
+                            }
+                            _ => {
+                                eprintln!("--duration-ms requires a positive integer");
+                                std::process::exit(2);
+                            }
+                        }
+                    }
+                    _ => {
+                        eprintln!("unknown profile-native option: {}", args[index]);
+                        std::process::exit(2);
+                    }
+                }
+                index += 1;
+            }
+            if let Err(error) = native_profile::run(&args[1], &args[2], register_samples, max_duration) {
                 eprintln!("native profile: {error}");
                 std::process::exit(1);
             }

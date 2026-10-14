@@ -1927,7 +1927,12 @@ pub fn factor_with_phase_base(
 /// the deepest fallback, run only after this returns None. `u64::MAX` is the
 /// unbounded run factor_with wants.
 pub fn run_carrier_rounds(tower: &[&[char]], n_in: &[char], max_rounds: u64) -> Option<Tape> {
-    run_carrier_rounds_with_phase_base(tower, n_in, &two(), max_rounds)
+    run_carrier_rounds_with_observer(tower, n_in, max_rounds, &mut |_, _| {})
+}
+
+pub fn run_carrier_rounds_with_observer(tower: &[&[char]], n_in: &[char],
+    max_rounds: u64, observe: &mut impl FnMut(&'static str, u64)) -> Option<Tape> {
+    run_carrier_rounds_with_phase_base_and_observer(tower, n_in, &two(), max_rounds, observe)
 }
 
 /// Bounded carrier execution with a dynamic phase base already parsed from its
@@ -1937,6 +1942,17 @@ pub fn run_carrier_rounds_with_phase_base(
     n_in: &[char],
     phase_base: &[char],
     max_rounds: u64,
+) -> Option<Tape> {
+    run_carrier_rounds_with_phase_base_and_observer(tower, n_in, phase_base,
+        max_rounds, &mut |_, _| {})
+}
+
+fn run_carrier_rounds_with_phase_base_and_observer(
+    tower: &[&[char]],
+    n_in: &[char],
+    phase_base: &[char],
+    max_rounds: u64,
+    observe: &mut impl FnMut(&'static str, u64),
 ) -> Option<Tape> {
     let n = trim(n_in.to_vec());
     if cmp(&n, &two()) == core::cmp::Ordering::Less {
@@ -1954,7 +1970,12 @@ pub fn run_carrier_rounds_with_phase_base(
     let mut r = 0u64;
     loop {
         state.round = add(&state.round, &one());
-        execute_nested(tower, &mut state);
+        observe("nested-round-start", r.saturating_add(1));
+        let mut port = |source: &[char]| Ok(source_divisor(source));
+        if execute_nested_with_source_port_observed(tower, &mut state, &mut port, observe).is_err() {
+            return None;
+        }
+        observe("nested-round-complete", r.saturating_add(1));
         if let Some(ref selected) = state.selected {
             return Some(selected.clone());
         }
@@ -2860,6 +2881,12 @@ fn execute_nested(operators: &[&[char]], state: &mut State) {
 
 fn execute_nested_with_source_port(operators: &[&[char]], state: &mut State,
     port: &mut impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>) -> Result<(),String> {
+    execute_nested_with_source_port_observed(operators, state, port, &mut |_, _| {})
+}
+
+fn execute_nested_with_source_port_observed(operators: &[&[char]], state: &mut State,
+    port: &mut impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>,
+    observe: &mut impl FnMut(&'static str, u64)) -> Result<(),String> {
     #[cfg(feature = "carrier-profile")]
     {
         use core::sync::atomic::Ordering::Relaxed;
@@ -2867,14 +2894,15 @@ fn execute_nested_with_source_port(operators: &[&[char]], state: &mut State,
         VOX_FACTOR_COUNTERS[1].store(tape_to_u64(&state.round), Relaxed);
     }
     let source = state.n.clone();
-    execute_nested_preserving_source(operators, state, &source, port)
+    execute_nested_preserving_source_observed(operators, state, &source, port, observe)
 }
 
 // Check the source register returned by each executed stage. The working
 // registers may evolve, but every stage must retain the same bound source.
 // This also applies to a single-stage descent without imposing a tower size.
-fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, source: &[char],
-    port: &mut impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>) -> Result<(),String> {
+fn execute_nested_preserving_source_observed(operators: &[&[char]], state: &mut State,
+    source: &[char], port: &mut impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>,
+    observe: &mut impl FnMut(&'static str, u64)) -> Result<(),String> {
     if state.carrier_closed {
         return Ok(());
     }
@@ -2882,18 +2910,19 @@ fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, so
         // A selected arm stops further search, but its enclosing fixation
         // boundaries still have to execute before the carrier can return.
         if state.selected.is_some() && *operator != FIX && *operator != FIX_BANKED {
-            return execute_nested_preserving_source(continuation,state,source,port);
+            return execute_nested_preserving_source_observed(continuation,state,source,port,observe);
         }
         #[cfg(feature = "carrier-profile")]
         {
             use core::sync::atomic::Ordering::Relaxed;
-            let stage = [WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, FIX, SIEVE_SOURCE]
+            let stage = [WITNESS, POWER, EXTRACT, SQUFOF, P_MINUS, P_PLUS, LEHMAN, ECM, SIEVE_SOURCE, FIX]
                 .iter().position(|candidate| candidate == operator).map_or(0, |i| i + 1);
             VOX_FACTOR_COUNTERS[2].store(stage as u64, Relaxed);
             VOX_FACTOR_COUNTERS[3].fetch_add(1, Relaxed);
             VOX_FACTOR_COUNTERS[4].store(1, Relaxed);
         }
         let was_selected = state.selected.is_some();
+        observe(morphism_name(operator), tape_to_u64(&state.round));
         if *operator == SIEVE_SOURCE {
             if let Some(returned) = port(&state.n)? {
                 if cmp(&returned.divisor,&one()).is_gt() && cmp(&returned.divisor,&state.n).is_lt()
@@ -2920,7 +2949,7 @@ fn execute_nested_preserving_source(operators: &[&[char]], state: &mut State, so
             state.carrier_closed = true;
             return Ok(());
         }
-        execute_nested_preserving_source(continuation, state, source, port)?;
+        execute_nested_preserving_source_observed(continuation, state, source, port, observe)?;
         if state.n != source {
             state.selected = None;
             state.carrier_closed = true;
@@ -3186,24 +3215,48 @@ pub fn source_carrier_word() -> String {
 
 /// N alone enters one carrier register; the actual latching arm is retained.
 pub fn source_carrier_divisor(n_in: &[char]) -> Result<Option<SourceDivisor>, String> {
-    source_carrier_divisor_with_port(n_in, |n| Ok(source_divisor(n)))
+    source_carrier_divisor_with_observer(n_in, |_, _| {})
+}
+
+pub fn source_carrier_divisor_with_observer(n_in: &[char],
+    observe: impl FnMut(&'static str, u64)) -> Result<Option<SourceDivisor>, String> {
+    let observer = core::cell::RefCell::new(observe);
+    source_carrier_divisor_with_port_and_observer(n_in,
+        |n| Ok(source_divisor_observed(n,
+            |stage| (observer.borrow_mut())(stage, 0))),
+        |stage, count| (observer.borrow_mut())(stage, count))
 }
 
 pub fn source_carrier_divisor_with_port(n_in: &[char],
     mut port: impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>)
     -> Result<Option<SourceDivisor>,String> {
+    source_carrier_divisor_with_port_and_observer(n_in, &mut port, |_, _| {})
+}
+
+pub fn source_carrier_divisor_with_port_and_observer(n_in: &[char],
+    mut port: impl FnMut(&[char]) -> Result<Option<SourceDivisor>,String>,
+    mut observe: impl FnMut(&'static str, u64)) -> Result<Option<SourceDivisor>,String> {
     let n = trim(n_in.to_vec());
     if cmp(&n, &two()).is_lt() { return Ok(None); }
     if zero(&divmod(&n, &two()).1) && cmp(&n, &two()).is_gt() {
+        observe("source-parity", 0);
         return Ok(Some(SourceDivisor { divisor: two(), producer: "source-parity" }));
     }
+    observe("dialectic-start", 0);
+    if let Some(split) = dialectic_source_divisor_observed(&n, &mut observe) {
+        observe("dialectic-return", 0);
+        return Ok(Some(split));
+    }
+    observe("dialectic-exhausted", 0);
     let tower = construct_carrier(&source_carrier_word())?;
     let mut root = isqrt(&n);
     if cmp(&mul(&root, &root), &n).is_lt() { root = add(&root, &one()); }
     let mut state = initial_carrier_state(n.clone(), &two(), root);
     loop {
         state.round = add(&state.round, &one());
-        execute_nested_with_source_port(&tower, &mut state, &mut port)?;
+        observe("carrier-round-start", tape_to_u64(&state.round));
+        execute_nested_with_source_port_observed(&tower, &mut state, &mut port, &mut observe)?;
+        observe("carrier-round-complete", tape_to_u64(&state.round));
         if let Some(divisor) = state.selected.take() {
             if cmp(&divisor, &one()).is_gt() && cmp(&divisor, &n).is_lt()
                 && zero(&divmod(&n, &divisor).1) {
@@ -3238,6 +3291,10 @@ pub fn source_divisor_observed_with_return(n_in: &[char], mut observe: impl FnMu
     if cmp(&n, &one()) != core::cmp::Ordering::Greater || miller_rabin(&n) {
         return None;
     }
+    observe("dialectic-source");
+    if let Some(split) = dialectic_source_divisor(&n) {
+        return Some(split);
+    }
     observe("source-scout");
     if let (Some((p, _, _)), _) = scout_factor_with_primality(&n, false) {
         if cmp(&p, &one()) == core::cmp::Ordering::Greater
@@ -3246,6 +3303,43 @@ pub fn source_divisor_observed_with_return(n_in: &[char], mut observe: impl FnMu
         }
     }
     hard_source_divisor_with_return(&n, &mut observe, &mut resident_return)
+}
+
+pub fn dialectic_source_divisor(n_in: &[char]) -> Option<SourceDivisor> {
+    dialectic_source_divisor_observed(n_in, |_, _| {})
+}
+
+pub fn dialectic_source_divisor_observed(n_in: &[char],
+    mut observe: impl FnMut(&'static str, u64)) -> Option<SourceDivisor> {
+    let n = trim(n_in.to_vec());
+    observe("dialectic-init-start", 0);
+    let mut resident = crate::dialectic_lean::ResidentDialectic::new(n.clone()).ok()?;
+    observe("dialectic-init-complete", 0);
+    let mut steps = 0u64;
+    loop {
+        let next_step = steps.saturating_add(1);
+        observe("dialectic-step-start", next_step);
+        let closed = resident.advance().ok()?;
+        steps = next_step;
+        observe("dialectic-step-complete", steps);
+        if closed {
+            let closure = resident.closure()?;
+            let p = closure.carrier.p.clone();
+            let q = closure.carrier.q.clone();
+            if cmp(&p, &one()) == core::cmp::Ordering::Greater
+                && cmp(&p, &n) == core::cmp::Ordering::Less
+                && mul(&p, &q) == n && zero(&divmod(&n, &p).1) {
+                return Some(SourceDivisor { divisor: p, producer: "dialectic-source" });
+            }
+            return None;
+        }
+        if resident.scan.last_frame.as_ref().is_some_and(|frame|
+            frame.lattice == crate::dialectic_reentry::ImscriptionLattice::Lehman
+                && frame.multiplier == tape_u64(2)) {
+            observe("dialectic-window-exhausted", steps);
+            return None;
+        }
+    }
 }
 
 fn hard_source_divisor(n: &Tape) -> Option<SourceDivisor> {
@@ -3260,36 +3354,10 @@ fn hard_source_divisor_with_return(n: &Tape, mut observe: impl FnMut(&'static st
     mut resident_return: impl FnMut() -> Option<SourceDivisor>) -> Option<SourceDivisor> {
     let good = |p: &Tape| cmp(p, &one()) == core::cmp::Ordering::Greater
         && cmp(p, n) == core::cmp::Ordering::Less && zero(&divmod(n, p).1);
-    let (bound, m) = crate::sieve::sieve_params(n);
-    let mut dialectic = crate::dialectic_reentry::DialecticObject::new(n.clone()).ok();
-    let mut producer = "mpqs-source";
-    observe("mpqs-source");
-    if let Some((p, arm)) = crate::sieve::mpqs_with_source_port(n, bound, 32_768, 64, || {
-        if let Some(returned) = resident_return() {
-            if good(&returned.divisor) {
-                producer = returned.producer;
-                return Some(returned.divisor);
-            }
-        }
-        let object = dialectic.take()?;
-        observe("dialectic-source-return");
-        match object.descend() {
-            crate::dialectic_reentry::Descent::T(closed) => {
-                let p = closed.carrier.p;
-                if good(&p) && mul(&p, &closed.carrier.q) == *n {
-                    producer = "dialectic-source";
-                    return Some(p);
-                }
-            },
-            crate::dialectic_reentry::Descent::B(next)
-                | crate::dialectic_reentry::Descent::N(next) => dialectic = Some(next),
-            crate::dialectic_reentry::Descent::F => {},
-        }
-        None
-    }).filter(|(p, _)| good(p)) {
-        if arm != "retained-source-port" { producer = arm; }
-        return Some(SourceDivisor { divisor: p, producer });
+    if let Some(returned) = resident_return() {
+        if good(&returned.divisor) { return Some(returned); }
     }
+    let (bound, m) = crate::sieve::sieve_params(n);
     observe("qs-source");
     if let Some(p) = crate::sieve::qs(n, bound, m, 64).filter(&good) {
         return Some(SourceDivisor { divisor: p, producer: "qs-source" });
@@ -3297,7 +3365,9 @@ fn hard_source_divisor_with_return(n: &Tape, mut observe: impl FnMut(&'static st
     observe("nine-arm-source");
     let tower = construct_carrier(NINE_ARM).expect("NINE_ARM is a valid carrier");
     let tower_refs: Vec<&[char]> = tower.iter().map(|t| *t).collect();
-    if let Some(p) = run_carrier_rounds(&tower_refs, n, HARD_CARRIER_ROUNDS).filter(&good) {
+    let mut nested_observe = |stage, _| observe(stage);
+    if let Some(p) = run_carrier_rounds_with_observer(&tower_refs, n,
+        HARD_CARRIER_ROUNDS, &mut nested_observe).filter(&good) {
         return Some(SourceDivisor { divisor: p, producer: "nine-arm-source" });
     }
     observe("dixon-source");
@@ -3393,9 +3463,22 @@ mod tests {
         assert_eq!(names[names.len() - 2..], ["SIEVE_SOURCE", "FIX"]);
         let source = tape_u64(91);
         let result = source_carrier_divisor(&source).unwrap().unwrap();
-        assert_eq!(result.producer, "EXTRACT");
+        assert_eq!(result.producer, "dialectic-source");
         assert_eq!(result.divisor, tape_u64(7));
         assert!(zero(&divmod(&source, &result.divisor).1));
+    }
+
+    #[test]
+    fn source_dialectic_precedes_fallback_and_returns_verified_close_pair() {
+        for numeral in [
+            "27964510737383644111643356141407390758587530948501269",
+            "70191810847962523428393383144335058145044794059705339572713006486785864659869",
+        ] {
+            let source = decimal_to_tape(numeral).unwrap();
+            let result = source_carrier_divisor(&source).unwrap().unwrap();
+            assert_eq!(result.producer, "dialectic-source");
+            assert_eq!(mul(&result.divisor, &divmod(&source, &result.divisor).0), source);
+        }
     }
 
     use super::*;
@@ -3611,7 +3694,8 @@ mod tests {
             // return path. This is a closure check, not a factoring readout.
             state.selected = Some(padded);
             let tower: [&[char];5] = [EXTRACT,FIX,PHASE,FIX_BANKED,FIX];
-            execute_nested_preserving_source(&tower,&mut state,&source,&mut |_| Ok(None)).unwrap();
+            execute_nested_preserving_source_observed(&tower,&mut state,&source,
+                &mut |_| Ok(None), &mut |_, _| {}).unwrap();
             assert_eq!(state.n,source);
             assert_eq!(state.selected,Some(payload));
             assert!(!state.carrier_closed);

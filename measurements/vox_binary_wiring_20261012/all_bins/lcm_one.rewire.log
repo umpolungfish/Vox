@@ -1,0 +1,6 @@
+rewired 62833 instructions in 3035 functions
+Frobenius wiring: 5996 closed, 0 open; arm-entry work witness: 5994/5996
+coverage: 247176/247176 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1031
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/lcm_one.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/lcm_one.rewired.json.gz)
