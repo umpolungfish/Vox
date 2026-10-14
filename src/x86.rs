@@ -290,6 +290,9 @@ mod vex_decode_tests {
             (&[0x66, 0x0f, 0xd5, 0xca][..], "pmullw"),
             (&[0x66, 0x0f, 0xe4, 0xc8][..], "pmulhuw"),
             (&[0x66, 0x0f, 0xf9, 0xc8][..], "psubw"),
+            (&[0x66, 0x41, 0x0f, 0xf8, 0xf8][..], "psubb"),
+            (&[0x66, 0x0f, 0xf6, 0xc1][..], "psadbw"),
+            (&[0xf3, 0x0f, 0xe6, 0xc1][..], "cvtdq2pd"),
         ] {
             let instruction = decode(bytes, 0x2000).expect("SSE2 instruction should decode");
             assert_eq!(instruction.len, bytes.len());
@@ -687,11 +690,14 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xFA => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubd",vec![rop(r,16,rex.p),rm],false,None) }
         0xF9 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubw",vec![rop(r,16,rex.p),rm],false,None) }
         0xFB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubq",vec![rop(r,16,rex.p),rm],false,None) }
+        0xF8 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psubb",vec![rop(r,16,rex.p),rm],false,None) }
         0xEF => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pxor",vec![rop(r,16,rex.p),rm],false,None) }
         0xDB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pand",vec![rop(r,16,rex.p),rm],false,None) }
         0xDF => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pandn",vec![rop(r,16,rex.p),rm],false,None) }
         0xEB => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"por",vec![rop(r,16,rex.p),rm],false,None) }
         0xF4 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pmuludq",vec![rop(r,16,rex.p),rm],false,None) }
+        0xF6 if o66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"psadbw",vec![rop(r,16,rex.p),rm],false,None) }
+        0xE6 if f3 => { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,"cvtdq2pd",vec![rop(r,16,rex.p),rm],false,None) }
         0x38 => { let op3=c.u8()?; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if op3==0x40{"pmulld"}else{"pshufb"},vec![rop(r,16,rex.p),rm],false,None) }
         0xC4 if o66 => { let (rm,r)=modrm(c,rex,4,2)?; let im=c.imm(1,false)?; ins!(addr,c,"pinsrw",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         0x70 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;

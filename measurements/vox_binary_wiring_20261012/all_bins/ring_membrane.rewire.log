@@ -1,0 +1,6 @@
+rewired 62709 instructions in 2978 functions
+Frobenius wiring: 6000 closed, 0 open; arm-entry work witness: 5998/6000
+coverage: 246956/246956 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1034
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/ring_membrane.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/ring_membrane.rewired.json.gz)

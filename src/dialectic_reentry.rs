@@ -913,7 +913,7 @@ fn fermat_origin(n: &[Mark]) -> Tape {
 /// residual of the same source/boundary relation used by dialectic descent.
 #[derive(Clone, Debug)]
 pub struct ResidentScan {
-    pub square_support: [bool; 16],
+    pub square_support: [bool; 256],
     pub reverse: bool,
     pub cells: u64,
     pub square_tests: u64,
@@ -935,7 +935,7 @@ pub struct ResidualFrame {
 }
 
 impl ResidentScan {
-    pub fn new(square_support: [bool; 16]) -> Self {
+    pub fn new(square_support: [bool; 256]) -> Self {
         Self { square_support, reverse: false, cells: 0, square_tests: 0,
             rejected_cells: 0, residual_advances: 0, last_frame: None, failure: None }
     }
@@ -970,7 +970,7 @@ fn resident_lattice(n: &[Mark], boundary: &[Mark], span: &[Mark],
     let mut remaining = span.to_vec();
     while !zero(&remaining) {
         kernel.cells += 1;
-        let residue = residual.iter().take(4).enumerate().fold(0usize,
+        let residue = residual.iter().take(8).enumerate().fold(0usize,
             |r, (bit, mark)| r | (usize::from(*mark == EVALF) << bit));
         if kernel.square_support[residue] {
             kernel.square_tests += 1;

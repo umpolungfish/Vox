@@ -1,0 +1,6 @@
+rewired 146493 instructions in 5615 functions
+Frobenius wiring: 15410 closed, 0 open; arm-entry work witness: 15408/15410
+coverage: 623102/623102 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 4309
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/hyperstack_one.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/hyperstack_one.rewired.json.gz)

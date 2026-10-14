@@ -34,19 +34,19 @@ pub const WORD_SUB_CELL: [char; 10] = [
 /// Comparison boundary used while constructing square-root candidates.
 pub const WORD_COMPARE: [char; 7] = [VINIT, FSPLIT, EVALT, EVALF, FFUSE, IFIX, TANCH];
 
-fn mark_xor(a: char, b: char) -> char {
+const fn mark_xor(a: char, b: char) -> char {
     if a == b { EVALT } else { EVALF }
 }
 
-fn mark_not(a: char) -> char {
+const fn mark_not(a: char) -> char {
     if a == EVALF { EVALT } else { EVALF }
 }
 
-fn mark_and(a: char, b: char) -> char {
+const fn mark_and(a: char, b: char) -> char {
     if a == EVALF && b == EVALF { EVALF } else { EVALT }
 }
 
-fn mark_or(a: char, b: char) -> char {
+const fn mark_or(a: char, b: char) -> char {
     if a == EVALF || b == EVALF { EVALF } else { EVALT }
 }
 
@@ -59,7 +59,7 @@ enum CellMode {
 /// Execute one arithmetic cell by walking its IMASM program. Operand values are
 /// resident marks; `ENGAGR` is the only place the output cell is formed, and
 /// `IFIX` is required before `TANCH` can return it.
-fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) -> (char, char) {
+const fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) -> (char, char) {
     let mut left = EVALT;
     let mut right = EVALT;
     let mut saw_left = false;
@@ -69,7 +69,10 @@ fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) -> (ch
     let mut out = EVALT;
     let mut next = EVALT;
 
-    for &op in word {
+    let mut cursor = 0;
+    while cursor < word.len() {
+        let op = word[cursor];
+        cursor += 1;
         match op {
             VINIT => {
                 saw_left = false;
@@ -103,8 +106,32 @@ fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) -> (ch
         }
     }
 
-    debug_assert!(fixed, "arithmetic cell did not reach IMASM fixation");
+    assert!(fixed, "arithmetic cell did not reach IMASM fixation");
     (out, next)
+}
+
+// Compile the existing cell words over their complete finite input carrier.
+// Each entry is the interpreter's fixed return, including its carry/borrow.
+// Runtime words remain glyph cells; only the local cell transition is cached.
+const fn compile_cell(word: &[char], mode: CellMode) -> [(char, char); 8] {
+    let mut table = [(EVALT, EVALT); 8];
+    let mut index = 0;
+    while index < table.len() {
+        let a = if index & 1 == 0 { EVALT } else { EVALF };
+        let b = if index & 2 == 0 { EVALT } else { EVALF };
+        let carry = if index & 4 == 0 { EVALT } else { EVALF };
+        table[index] = run_cell(word, mode, a, b, carry);
+        index += 1;
+    }
+    table
+}
+
+const ADD_CELL_RETURNS: [(char, char); 8] = compile_cell(&WORD_ADD_CELL, CellMode::Add);
+const SUB_CELL_RETURNS: [(char, char); 8] = compile_cell(&WORD_SUB_CELL, CellMode::Sub);
+
+fn prepared_cell(table: &[(char, char); 8], a: char, b: char, carry: char) -> (char, char) {
+    table[(a == EVALF) as usize | ((b == EVALF) as usize) << 1
+        | ((carry == EVALF) as usize) << 2]
 }
 
 fn trim_bits(mut bits: Vec<char>) -> Vec<char> {
@@ -170,8 +197,8 @@ fn from_bits(bits: Vec<char>) -> Result<ImasmNumeralWord, &'static str> {
 }
 
 fn cmp_bits(a: &[char], b: &[char]) -> Ordering {
-    let a = trim_bits(a.to_vec());
-    let b = trim_bits(b.to_vec());
+    let a = &a[..a.iter().rposition(|&mark| mark == EVALF).map_or(0,|at| at+1)];
+    let b = &b[..b.iter().rposition(|&mark| mark == EVALF).map_or(0,|at| at+1)];
     if a.len() != b.len() {
         return a.len().cmp(&b.len());
     }
@@ -195,7 +222,7 @@ fn add_bits(a: &[char], b: &[char]) -> Vec<char> {
     for at in 0..width {
         let left = a.get(at).copied().unwrap_or(EVALT);
         let right = b.get(at).copied().unwrap_or(EVALT);
-        let (sum, next) = run_cell(&WORD_ADD_CELL, CellMode::Add, left, right, carry);
+        let (sum, next) = prepared_cell(&ADD_CELL_RETURNS, left, right, carry);
         out.push(sum);
         carry = next;
     }
@@ -214,7 +241,7 @@ fn sub_bits(a: &[char], b: &[char]) -> Result<Vec<char>, &'static str> {
     for at in 0..a.len() {
         let left = a.get(at).copied().unwrap_or(EVALT);
         let right = b.get(at).copied().unwrap_or(EVALT);
-        let (difference, next) = run_cell(&WORD_SUB_CELL, CellMode::Sub, left, right, borrow);
+        let (difference, next) = prepared_cell(&SUB_CELL_RETURNS, left, right, borrow);
         out.push(difference);
         borrow = next;
     }
@@ -225,6 +252,34 @@ fn sub_bits(a: &[char], b: &[char]) -> Result<Vec<char>, &'static str> {
 }
 
 fn mul_bits(a: &[char], b: &[char]) -> Vec<char> {
+    let a = &a[..a.iter().rposition(|&mark| mark == EVALF).map_or(0,|at| at+1)];
+    let b = &b[..b.iter().rposition(|&mark| mark == EVALF).map_or(0,|at| at+1)];
+    if a.is_empty() || b.is_empty() { return vec![EVALT]; }
+    let a_weight = a.iter().filter(|&&mark| mark == EVALF).count();
+    let b_weight = b.iter().filter(|&&mark| mark == EVALF).count();
+    if a_weight < b_weight { return mul_bits(b,a); }
+    if b_weight == 1 {
+        let mut shifted = vec![EVALT;b.len()-1];
+        shifted.extend_from_slice(a);
+        return shifted;
+    }
+    if a.len().max(b.len()) >= 64 && b_weight > 8 {
+        // Split the resident glyph lanes; the three products and their return
+        // remain words. Machine integers address the split and shifts only.
+        let half = a.len().max(b.len())/2;
+        let (al,ah) = a.split_at(half.min(a.len()));
+        let (bl,bh) = b.split_at(half.min(b.len()));
+        let low = mul_bits(al,bl);
+        let high = mul_bits(ah,bh);
+        let combined = mul_bits(&add_bits(al,ah),&add_bits(bl,bh));
+        let cross = sub_bits(&sub_bits(&combined,&low).expect("combined product contains low rail"),
+            &high).expect("combined product contains high rail");
+        let mut middle = vec![EVALT;half];
+        middle.extend_from_slice(&cross);
+        let mut upper = vec![EVALT;2*half];
+        upper.extend_from_slice(&high);
+        return add_bits(&add_bits(&low,&middle),&upper);
+    }
     let mut out = vec![EVALT];
     for (shift, &bit) in b.iter().enumerate() {
         if bit != EVALF {
@@ -263,6 +318,33 @@ pub fn multiply(a: &ImasmNumeralWord, b: &ImasmNumeralWord) -> Result<ImasmNumer
     from_bits(mul_bits(&payload_bits(a)?, &payload_bits(b)?))
 }
 
+/// Restore the remainder one resident cell at a time. Neither operand nor
+/// intermediate is folded into a machine integer or limb vector.
+pub fn divide(a: &ImasmNumeralWord, b: &ImasmNumeralWord)
+    -> Result<(ImasmNumeralWord, ImasmNumeralWord), &'static str> {
+    let dividend = payload_bits(a)?;
+    let divisor = payload_bits(b)?;
+    if divisor == [EVALT] { return Err("IMASM word division by zero"); }
+    if divisor.iter().filter(|&&mark| mark == EVALF).count() == 1 {
+        let cut = (divisor.len()-1).min(dividend.len());
+        return Ok((from_bits(dividend[cut..].to_vec())?,from_bits(dividend[..cut].to_vec())?));
+    }
+    let mut remainder = vec![EVALT];
+    let mut quotient = Vec::with_capacity(dividend.len());
+    for &cell in dividend.iter().rev() {
+        remainder.insert(0, cell);
+        remainder = trim_bits(remainder);
+        if cmp_bits(&remainder, &divisor) != Ordering::Less {
+            remainder = sub_bits(&remainder, &divisor)?;
+            quotient.push(EVALF);
+        } else {
+            quotient.push(EVALT);
+        }
+    }
+    quotient.reverse();
+    Ok((from_bits(quotient)?, from_bits(remainder)?))
+}
+
 pub fn square(a: &ImasmNumeralWord) -> Result<ImasmNumeralWord, &'static str> {
     multiply(a, a)
 }
@@ -285,11 +367,19 @@ pub fn sqrt_floor(n: &ImasmNumeralWord) -> Result<ImasmNumeralWord, &'static str
     let n_bits = payload_bits(n)?;
     let root_width = (n_bits.len() + 1) / 2;
     let mut root = vec![EVALT];
+    let mut root_square = vec![EVALT];
     for position in (0..root_width).rev() {
         let candidate = bit_candidate(&root, position);
-        let candidate_square = mul_bits(&candidate, &candidate);
+        // Retain R². Setting this previously zero cell adds exactly
+        // 2 R 2^position + 2^(2 position), through the same adder word.
+        let mut twice_root_shifted = vec![EVALT;position+1];
+        twice_root_shifted.extend_from_slice(&root);
+        let unit_square = bit_candidate(&[EVALT],2*position);
+        let increment = add_bits(&twice_root_shifted,&unit_square);
+        let candidate_square = add_bits(&root_square,&increment);
         if cmp_bits(&candidate_square, &n_bits) != Ordering::Greater {
             root = candidate;
+            root_square = candidate_square;
         }
     }
     from_bits(root)
@@ -363,5 +453,16 @@ mod tests {
             assert_eq!(word.last(), Some(&TANCH));
             assert!(word.iter().all(|&mark| super::super::fixed_point_imasm::is_imasm_for_test(mark)));
         }
+    }
+
+    #[test]
+    fn division_restores_remainder_without_decoding_values() {
+        let five = numeral("⊢≻⋈∈⊥∋≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣");
+        let three = numeral("⊢≻⋈∈⊥∋≻⋈∈⊥∋⊙⊡⊣");
+        let two = numeral("⊢≻⋈∈⊤∋≻⋈∈⊥∋⊙⊡⊣");
+        assert_eq!(divide(&five, &three).unwrap(), (one(), two));
+        assert_eq!(divide(&three, &five).unwrap(), (zero(), three.clone()));
+        assert_eq!(divide(&three, &three).unwrap(), (one(), zero()));
+        assert!(divide(&five, &zero()).is_err());
     }
 }

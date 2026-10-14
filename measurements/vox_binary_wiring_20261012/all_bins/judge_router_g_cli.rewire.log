@@ -1,0 +1,6 @@
+rewired 69878 instructions in 3293 functions
+Frobenius wiring: 6695 closed, 0 open; arm-entry work witness: 6693/6695
+coverage: 277213/277213 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1264
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/judge_router_g_cli.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/judge_router_g_cli.rewired.json.gz)

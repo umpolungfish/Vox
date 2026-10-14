@@ -1,0 +1,6 @@
+rewired 88285 instructions in 4138 functions
+Frobenius wiring: 8637 closed, 0 open; arm-entry work witness: 8635/8637
+coverage: 355966/355966 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1834
+Diagrammar: Vox/measurements/dialectic_lean_20261012/byte_fresh_balanced_224.rewired.diagrammar.txt.gz
+IMASM tape: Vox/measurements/dialectic_lean_20261012/byte_fresh_balanced_224.rewired.imasm
+result: PASS (Vox/measurements/dialectic_lean_20261012/byte_fresh_balanced_224.rewired.json.gz)

@@ -1,0 +1,62 @@
+{
+  "source_n": "24937384895847894358120264124930833426221437163545452015667815601231",
+  "source_bits": 224,
+  "source_only_file": "inputs/regression_224.txt",
+  "source_sha256": "bb2903d03f4688725d3330379e46857cbb4ab102d0b6cec3c1ff790e06daa874",
+  "runtime_arguments": [],
+  "dispatch": "resident source-carrier; N-only MPQS relation source",
+  "bound_seconds": 90.0,
+  "wrapper_sha256": "738731f207458e942397dbf5b7bcb4011a3d8de1225f78a6e7b36a12328a1df7",
+  "runs": [
+    {
+      "campaign_receipt": "G-mOMonadOS/measurements/factor_source_carrier_20261011/dispatchfixed_20261012_r1_regression_224.receipt.json",
+      "campaign_log": "dispatchfixed_20261012_r1_regression_224.campaign.log",
+      "wrapper_seconds": 96.94990231998963,
+      "status": "returned",
+      "product_verified": true,
+      "producer": [
+        "producer mpqs-relation-source"
+      ],
+      "preparation": [
+        "prepared bits=224 seconds=0.003063"
+      ],
+      "production_clocks": [
+        "trigger_to_readout_seconds 71.292462684",
+        "trigger_to_verified_divisor_seconds 71.292494084"
+      ],
+      "binary_sha256": "215f2165fbcc3cf77718be518d171efdc55df0b030814be9d578b3efc02fdcb8",
+      "source_sha256": "bb2903d03f4688725d3330379e46857cbb4ab102d0b6cec3c1ff790e06daa874",
+      "vox_binding": {
+        "binary_sha256": "215f2165fbcc3cf77718be518d171efdc55df0b030814be9d578b3efc02fdcb8",
+        "source_sha256": "bb2903d03f4688725d3330379e46857cbb4ab102d0b6cec3c1ff790e06daa874",
+        "carrier_word": "\u22a2\u2208\u22a4\u227a\u22a5\u2208\u22a4\u229e\u22a5\u2208\u227b\u22a4\u227a\u22a5\u229e\u22c8\u2208\u22a4\u227a\u229e\u22a5\u2208\u2299\u229e\u22c8\u2208\u2299\u227a\u22c8\u2208\u227b\u22c8\u22a4\u22a5\u2208\u2299\u227b\u22c8\u2208\u227b\u229e\u22c8\u220b\u220b\u220b\u220b\u220b\u220b\u220b\u220b\u220b\u2299\u22a1\u22a3",
+        "carrier_tower": "tower (10 morphisms): WITNESS -> POWER -> EXTRACT -> SQUFOF -> P_MINUS -> P_PLUS -> LEHMAN -> ECM -> SIEVE_SOURCE -> FIX",
+        "disassembly": "/home/mrnob0dy666/imsgct/G-mOMonadOS/measurements/factor_source_carrier_20261011/dispatchfixed_20261012_r1_regression_224.vox.disasm",
+        "wiring": "/home/mrnob0dy666/imsgct/G-mOMonadOS/measurements/factor_source_carrier_20261011/dispatchfixed_20261012_r1_regression_224.wiring.tsv",
+        "rewire_log": "/home/mrnob0dy666/imsgct/G-mOMonadOS/measurements/factor_source_carrier_20261011/dispatchfixed_20261012_r1_regression_224.rewire.log",
+        "rewiring_checks": {
+          "whole_image_coverage": true,
+          "whole_image_decoded": true,
+          "diagrammar_format": true,
+          "diagrammar_fork_closure": true,
+          "diagrammar_walk_closure": true,
+          "diagrammar_symbol_anchor": true,
+          "frobenius_closure": true,
+          "closed_pairs": 14435,
+          "arm_entry_work_witness_pairs": 14432,
+          "arm_entries_without_work_witness": 3,
+          "frobenius_transformation_witness": true,
+          "open_pairs": 0,
+          "unresolved_indirect_transfers": 0,
+          "symbolic_transfers_preserved": true,
+          "symbolic_transfer_count": 1793,
+          "frobenius_scope": "interprocedural control-flow closure; value-level Frobenius identity requires a semantic witness",
+          "publishable": true,
+          "rewritten_imasm_tape": true,
+          "rewritten_diagrammar": true
+        },
+        "rewired_binary_word": "/home/mrnob0dy666/imsgct/G-mOMonadOS/measurements/factor_source_carrier_20261011/dispatchfixed_20261012_r1_regression_224.rewired.imasm"
+      }
+    }
+  ]
+}

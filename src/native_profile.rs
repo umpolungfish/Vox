@@ -47,7 +47,8 @@ fn wait_child(pid: i32) -> std::io::Result<i32> {
     }
 }
 
-pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(file: &str, prefix: &str, register_samples: bool, max_duration: Option<Duration>)
+    -> Result<(), Box<dyn std::error::Error>> {
     let path = std::fs::canonicalize(file)?;
     let raw = std::fs::read(&path)?;
     let loaded = vox::loader::load(&raw);
@@ -141,6 +142,7 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     let mut counts = BTreeMap::<String, u64>::new();
     let mut total = 0u64;
     let mut random = pid as u64 | 1;
+    let mut deadline_reached = false;
     trace(7, pid, 0)?;
     loop {
         random ^= random << 13; random ^= random >> 7; random ^= random << 17;
@@ -148,6 +150,12 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
         unsafe { kill(pid, 19); }
         status = wait_child(pid)?;
         if status & 0x7f != 0x7f { break; }
+        if max_duration.is_some_and(|duration| started.elapsed() >= duration) {
+            trace(8, pid, 0)?;
+            status = wait_child(pid)?;
+            deadline_reached = true;
+            break;
+        }
         let mut regs = [0u64; 27];
         trace(12, pid, regs.as_mut_ptr() as usize)?;
         let address = regs[16].wrapping_sub(base);
@@ -273,8 +281,8 @@ pub fn run(file: &str, prefix: &str, register_samples: bool) -> Result<(), Box<d
     for (name,n) in ranking {
         writeln!(report, "{n}\t{:.3}\t{name}", n as f64 * 100.0 / total.max(1) as f64)?;
     }
-    std::fs::write(format!("{prefix}.status"), format!("elapsed_seconds={elapsed:.6}\nsamples={total}\nwait_status={status}\nbinary={}\n", Path::new(file).display()))?;
-    if status != 0 { return Err(format!("target terminated with wait status {status:#x}").into()); }
+    std::fs::write(format!("{prefix}.status"), format!("elapsed_seconds={elapsed:.6}\nsamples={total}\nwait_status={status}\ndeadline_reached={deadline_reached}\nbinary={}\n", Path::new(file).display()))?;
+    if status != 0 && !deadline_reached { return Err(format!("target terminated with wait status {status:#x}").into()); }
     println!("native profile closed in {elapsed:.3}s; {total} samples; {prefix}.profile.tsv");
     Ok(())
 }

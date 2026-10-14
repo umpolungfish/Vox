@@ -1,0 +1,6 @@
+rewired 62842 instructions in 3006 functions
+Frobenius wiring: 5997 closed, 0 open; arm-entry work witness: 5995/5997
+coverage: 247245/247245 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1033
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/tripsum_one.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/tripsum_one.rewired.json.gz)

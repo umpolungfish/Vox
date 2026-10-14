@@ -1,0 +1,6 @@
+rewired 71443 instructions in 3370 functions
+Frobenius wiring: 6893 closed, 0 open; arm-entry work witness: 6891/6893
+coverage: 283086/283086 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1324
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/braid_gens.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/braid_gens.rewired.json.gz)

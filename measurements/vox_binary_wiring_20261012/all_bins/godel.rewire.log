@@ -1,0 +1,6 @@
+rewired 272784 instructions in 8917 functions
+Frobenius wiring: 28399 closed, 0 open; arm-entry work witness: 28396/28399
+coverage: 1206670/1206670 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 9002
+Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/godel.rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/godel.rewired.json.gz)
