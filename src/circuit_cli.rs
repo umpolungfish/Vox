@@ -70,6 +70,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let module = if file.ends_with(".glyphs") || module.starts_with(vox::glyph_module::PREFIX) {
         vox::glyph_module::decode(&module)?
     } else { module };
+    vox::imasm_module::validate_standalone(&module)?;
     let mut machine = Machine::new(&module);
     let resolve = |name: &str| machine.resolve(name).ok_or_else(|| format!("missing circuit ABI symbol {name}"));
     let prepare = resolve("membrane_prepare")?;

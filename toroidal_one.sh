@@ -9,19 +9,20 @@
 # through the toroidal path the baked membrane runs: the short-frontier scout
 # (scout_semiprime) first, and when the scout verdicts HARD (factors far apart)
 # the shape-routed membrane (vox factor: rho fused with the sieve). Emits a TSV
-# manifest N -> p x q [shape]. No per-N cargo build is needed for the sweep;
-# add --bake to also EMIT each per-N baked membrane (slow: one cargo build per N).
+# manifest N -> p x q [shape]. No per-N cargo build --target-dir target is needed for the sweep;
+# add --bake to also EMIT each per-N baked membrane (slow: one cargo build --target-dir target per N).
 #
 # usage:
 #   ./toroidal_one.sh <decimal N> [--run]                 bake (and optionally run) one membrane
 #   ./toroidal_one.sh --all [--bound B] [--bake] [--out FILE]
 #       vox every semiprime <= B (default B=1000)
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/static_membrane.sh"
 
 cd "$(dirname "$0")"
-VOX=./target/release/vox
+VOX=./target/x86_64-unknown-linux-musl/release/vox
 
-ensure_vox() { [ -x "$VOX" ] || cargo build --release --bin vox >/dev/null 2>&1; }
+ensure_vox() { [ -x "$VOX" ] || cargo build --target-dir target --release --target x86_64-unknown-linux-musl --bin vox >/dev/null 2>&1; }
 
 # semiprimes BOUND — one N per line, ascending: every p*q <= BOUND, p,q prime, p<=q
 semiprimes() {
@@ -49,7 +50,7 @@ PY
 }
 
 bake_one() { # $1 = N, $2 = run (0/1)
-  local N="$1" RUN="$2" WORD OUT FRAME_NAME FRAME_MEM
+  local N="$1" RUN="$2" WORD OUT FRAME_NAME FRAME_MEM BUILD_KEY
   echo "🌀 [1/2] Ensuring vox compiler is built..."
   ensure_vox
   echo "🌀 [2/2] Encoding decimal N=$N into IMASM numeral word..."
@@ -59,20 +60,34 @@ bake_one() { # $1 = N, $2 = run (0/1)
   FRAME_NAME=$(echo -n "$N" | sha256sum | cut -c1-16)
   FRAME_MEM="membranes/frame_factor_${FRAME_NAME}"
   OUT="membranes/toroidal_factor_${FRAME_NAME}"
-  if [ -f "$OUT" ] && [ -x "$OUT" ] && [ -f "$FRAME_MEM" ] && [ -x "$FRAME_MEM" ]; then
+  BUILD_KEY=$(
+    {
+      printf '%s\n' "$WORD" 'target=x86_64-unknown-linux-musl' 'frame-width=2'
+      rustc -vV
+      sha256sum Cargo.toml Cargo.lock build.rs
+      rg --files src -g '*.rs' -g '*.cuh' -g '*.imasm' | sort | xargs -d '\n' sha256sum
+    } | sha256sum | cut -d ' ' -f 1
+  )
+  if [ -x "$OUT" ] && [ -x "$FRAME_MEM" ] &&
+     [ -f "$OUT.build-key" ] && [ "$(cat "$OUT.build-key")" = "$BUILD_KEY" ] &&
+     [ -f "$OUT.sha256" ] && sha256sum --check --status "$OUT.sha256"; then
     echo "🌀 Membrane already baked: $OUT"
   else
-    touch src/bin/toroidal_one.rs
-    FACTOR_N_WORD="$WORD" cargo build --release --bin toroidal_one --target x86_64-unknown-linux-musl >/dev/null 2>&1
-    touch src/bin/frame_factor_one.rs
-    FRAME_FACTOR_N_WORD="$WORD" FRAME_FACTOR_WIDTH=2 cargo build --release --bin frame_factor_one --target x86_64-unknown-linux-musl >/dev/null 2>&1
+    FACTOR_N_WORD="$WORD" cargo build --target-dir target --release --bin toroidal_one --target x86_64-unknown-linux-musl >/dev/null 2>&1
+    FRAME_FACTOR_N_WORD="$WORD" FRAME_FACTOR_WIDTH=2 cargo build --target-dir target --release --bin frame_factor_one --target x86_64-unknown-linux-musl >/dev/null 2>&1
+    mkdir -p membranes
+    require_static_membrane "./target/x86_64-unknown-linux-musl/release/frame_factor_one"
     cp -f ./target/x86_64-unknown-linux-musl/release/frame_factor_one "$FRAME_MEM"
     chmod +x "$FRAME_MEM"
     mkdir -p membranes
+    require_static_membrane "./target/x86_64-unknown-linux-musl/release/toroidal_one"
     cp -f ./target/x86_64-unknown-linux-musl/release/toroidal_one "$OUT"
     chmod +x "$OUT"
+    printf '%s\n' "$BUILD_KEY" > "$OUT.build-key"
+    sha256sum "$OUT" "$FRAME_MEM" > "$OUT.sha256"
     echo "🌀 EMITTED BAKED MEMBRANE: $OUT"
   fi
+  require_static_membrane "$OUT" "$FRAME_MEM"
   echo ""
 
   if [ "$RUN" -eq 1 ]; then

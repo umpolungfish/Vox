@@ -6,6 +6,11 @@ from pathlib import Path
 import shutil
 import subprocess
 import uuid
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parents[1]
 diagnosis_id = uuid.uuid4().hex
 label = os.environ.get('GLUT_DIAG_RUN')
@@ -24,12 +29,13 @@ word = (ROOT/os.environ.get('GLUT_DIAG_INPUT','tests/fixtures/random_rsa_2048.im
 for lane in os.environ.get('GLUT_DIAG_LANES','combined,square,masked,correlation').split(','):
     folder = OUT/lane; folder.mkdir()
     env = dict(os.environ, GLUT_SOURCE_WORD=word, GLUT_DIAGNOSTIC_LANE=lane,
-               RUSTFLAGS='-D warnings')
+               RUSTFLAGS='-D warnings -C target-feature=+crt-static')
     with (folder/'build.stdout').open('w') as log:
-        subprocess.run(['cargo','build','--release','--features','root-work-profile','--example','glut_lane_diagnosis'],
+        subprocess.run(['cargo','build','--release','--features','root-work-profile','--example','glut_lane_diagnosis', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'],
                        cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
     binary=folder/'diagnosis.elf'
-    shutil.copy2(ROOT/'target/release/examples/glut_lane_diagnosis',binary)
+    require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/examples/glut_lane_diagnosis')
+    shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_lane_diagnosis',binary)
     result=subprocess.run([str(binary)],capture_output=True,text=True,check=True,timeout=60)
     (folder/'diagnosis.stdout').write_text(result.stdout)
     (folder/'diagnosis.stderr').write_text(result.stderr)

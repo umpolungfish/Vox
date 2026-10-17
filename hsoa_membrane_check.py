@@ -17,6 +17,10 @@ import numpy as np
 if hasattr(sys, 'set_int_max_str_digits'):
     sys.set_int_max_str_digits(0)
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT.parent / 'G-mOMonadOS/hsoa_shor_state.py'
 BLUEPRINT = ROOT.parent / 'ob3ect/digital/obtaining_informative_phase_observations_without_913a8f7c/obtaining_informative_phase_observations_without_913a8f7c_ob3ect.json'
@@ -43,9 +47,9 @@ def main():
     spec = importlib.util.spec_from_file_location('hsoa_reference', SOURCE)
     hsoa = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(hsoa)
-    call(['cargo', 'build', '--release', '--bin', 'vox', '--bin', 'phase_case_encode'])
-    vox = ROOT / 'target/release/vox'
-    encoder = ROOT / 'target/release/phase_case_encode'
+    call(['cargo', 'build', '--release', '--bin', 'vox', '--bin', 'phase_case_encode', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'])
+    vox = ROOT / 'target/x86_64-unknown-linux-musl/release/vox'
+    encoder = ROOT / 'target/x86_64-unknown-linux-musl/release/phase_case_encode'
     output = ROOT / 'membranes/hsoa' / str(time.time_ns())
     output.mkdir(parents=True)
     word = json.loads(BLUEPRINT.read_text())['glyph_word']
@@ -87,7 +91,8 @@ def main():
             binary = case / 'payload.elf'
             with (ROOT / 'target/baked-phase.lock').open('a') as lock:
                 fcntl.flock(lock, fcntl.LOCK_EX)
-                call(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','phase_baked'],env=env)
+                call(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','phase_baked', '--target-dir', 'target'],env=env)
+                require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/phase_baked')
                 shutil.copy2(ROOT / 'target/x86_64-unknown-linux-musl/release/phase_baked', binary)
             audit = call([vox,'lift',binary])
             (case/'audit.stdout').write_text(audit.stdout)

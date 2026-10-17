@@ -1,9 +1,0 @@
-   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.19s
-     Running unittests src/lib.rs (target/debug/deps/vox-766cf675ec3e61db)
-
-running 1 test
-test x86::membrane_decode_tests::packed_membrane_instructions_keep_their_boundaries ... ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 372 filtered out; finished in 0.00s
-

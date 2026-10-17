@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/static_membrane.sh"
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -20,6 +21,7 @@ run_case() {
     --bin fixed_point_baked
 
   local binary="$target_dir/x86_64-unknown-linux-gnu/release/fixed_point_baked"
+  require_static_membrane "$binary"
   local output
   output="$(cd /tmp && env -u VOX_BAKED_INPUT_FILE "$binary")"
   printf '%s\n' "$output"

@@ -1,0 +1,20 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling autocfg v1.5.1
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+   Compiling num-traits v0.2.19
+   Compiling num-integer v0.1.47
+   Compiling num-bigint v0.4.8
+    Finished `release` profile [optimized] target(s) in 31.22s
+saved membranes/qft_circuit/2/payload.elf.imasm
+ports=2 levels=1 load=77.5458ms prepare=14.2µs prepare_steps=16
+gates=0000000000000000 feedback=0 activate=47.7µs steps=81 max_error=0.000e0
+gates=0000000000000001 feedback=0 activate=37.8µs steps=82 max_error=0.000e0
+gates=0000000000000003 feedback=0 activate=39.1µs steps=83 max_error=8.660e-17
+gates=0123456789abcdef feedback=0 activate=34.5µs steps=83 max_error=8.660e-17
+gates=ffffffffffffffff feedback=1 activate=40.7µs steps=86 max_error=1.110e-16
+gates=5555555555555555 feedback=1 activate=36.7µs steps=82 max_error=4.330e-17
+gates=0000000000000000 feedback=0 activate=37.5µs steps=81 max_error=0.000e0
+gates=8000000000000000 feedback=0 activate=35.1µs steps=81 max_error=0.000e0
+gates=0000000000000001 feedback=0 activate=37.7µs steps=82 max_error=0.000e0
+resident: preparations=1 activations=9 median_activation=37.7µs
+same_gates_control: cold_parse_prepare_activate=75.4944ms resident_activate=42.9µs ratio=1759.78x samples=5

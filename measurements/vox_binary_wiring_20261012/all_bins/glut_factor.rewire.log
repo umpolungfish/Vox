@@ -1,6 +1,0 @@
-rewired 137760 instructions in 5438 functions
-Frobenius wiring: 13815 closed, 0 open; arm-entry work witness: 13813/13815
-coverage: 572942/572942 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 3195
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/glut_factor.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/glut_factor.rewired.json.gz)

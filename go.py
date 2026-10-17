@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Relate perfect_one delta lanes to known factors. Every relation tested exactly."""
-import re, subprocess
+import os, re, subprocess
 from math import gcd
 from fractions import Fraction
 
@@ -35,7 +35,7 @@ FACTORS = {
 }
 
 def run(n):
-    return subprocess.check_output(["./perfect_one.sh", str(n), "2"],
+    return subprocess.check_output(["./perfect_one.sh", str(n), "2"], env=dict(os.environ, MEMBRANE_RUN="1"),
                                    cwd=VOX, text=True, timeout=180)
 
 def parse(out):

@@ -1,0 +1,12 @@
+vox: V⊙x CLI — lift an x86-64 ELF to twelve-glyph IMASM words and verdict them.
+Source: /home/mrnob0dy666/imsgct/Vox/src/main.rs
+Run: ./programs run vox [arguments]
+Build only: ./programs build bin:vox
+
+Usage recorded in its source:
+No usage text is recorded. Use the main CLI help or the recipe in USER_GUIDE.md.
+Live help: ./programs run vox --help
+
+This source has build-time settings. For instance-bound membranes, use ./programs bake.
+
+Help inspection does not start the program. Relative program arguments use this repository as their working directory.

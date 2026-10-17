@@ -70,6 +70,133 @@ pub fn load(raw: &[u8]) -> Loaded {
              symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "raw", arch: "x86-64" }
 }
 
+/// Check the runtime-linkage boundary before exporting or running a membrane.
+/// Build-time dependencies are already part of the executable. ELF interpreters
+/// and DT_NEEDED entries instead name code outside that retained image.
+pub fn standalone(raw: &[u8]) -> Result<(), String> {
+    if !raw.starts_with(b"\x7fELF") {
+        return Err("standalone membrane requires an ELF executable".into());
+    }
+    if raw.len() < 52 || raw[5] != 1 || !matches!(raw[4], 1 | 2) {
+        return Err("invalid or unsupported standalone ELF header".into());
+    }
+    let wide = raw[4] == 2;
+    if wide && raw.len() < 64 { return Err("truncated ELF header".into()); }
+    let (off, size, count) = if wide {
+        (le(raw, 32, 8), le(raw, 54, 2), le(raw, 56, 2))
+    } else { (le(raw, 28, 4), le(raw, 42, 2), le(raw, 44, 2)) };
+    if count == 0 || size < if wide { 56 } else { 32 } {
+        return Err("standalone ELF has no valid program headers".into());
+    }
+    let end = count.checked_mul(size).and_then(|n| off.checked_add(n))
+        .ok_or("ELF program-header range overflow")?;
+    if end > raw.len() as u64 { return Err("truncated ELF program headers".into()); }
+    for index in 0..count {
+        let p = (off + index * size) as usize;
+        match le(raw, p, 4) {
+            3 => return Err("membrane requires an external ELF interpreter; rebuild it statically".into()),
+            2 => {
+                let (start, len, stride) = if wide {
+                    (le(raw, p + 8, 8), le(raw, p + 32, 8), 16)
+                } else { (le(raw, p + 4, 4), le(raw, p + 16, 4), 8) };
+                let end = start.checked_add(len).ok_or("ELF dynamic range overflow")?;
+                if end > raw.len() as u64 || len % stride != 0 {
+                    return Err("truncated ELF dynamic table".into());
+                }
+                let mut at = start;
+                while at < end {
+                    let tag = le(raw, at as usize, (stride / 2) as usize);
+                    if tag == 0 { break; }
+                    if matches!(tag, 1 | 0x7fff_fffd | 0x7fff_ffff) {
+                        return Err("membrane requires an external shared library; rebuild it statically".into());
+                    }
+                    at += stride;
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod standalone_tests {
+    use super::standalone;
+    fn image(kind: u32, tag: u64) -> alloc::vec::Vec<u8> {
+        let mut bytes = alloc::vec![0; 144];
+        bytes[..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
+        bytes[32..40].copy_from_slice(&64u64.to_le_bytes());
+        bytes[54..56].copy_from_slice(&56u16.to_le_bytes());
+        bytes[56..58].copy_from_slice(&1u16.to_le_bytes());
+        bytes[64..68].copy_from_slice(&kind.to_le_bytes());
+        bytes[72..80].copy_from_slice(&128u64.to_le_bytes());
+        bytes[96..104].copy_from_slice(&16u64.to_le_bytes());
+        bytes[128..136].copy_from_slice(&tag.to_le_bytes());
+        bytes
+    }
+    #[test]
+    fn static_image_is_admitted() { assert!(standalone(&image(1, 0)).is_ok()); }
+    #[test]
+    fn interpreter_and_external_libraries_are_rejected() {
+        assert!(standalone(&image(3, 0)).is_err());
+        assert!(standalone(&image(2, 1)).is_err());
+        assert!(standalone(&image(2, 0)).is_ok());
+    }
+    #[test]
+    fn truncated_headers_and_dynamic_tables_are_rejected() {
+        assert!(standalone(&image(1, 0)[..100]).is_err());
+        assert!(standalone(&image(2, 0)[..136]).is_err());
+        assert!(standalone(b"\x7fELF").is_err());
+    }
+    #[test]
+    fn resident_image_retains_allocated_dynamic_metadata_and_omits_nobits() {
+        let mut raw = alloc::vec![0; 0x600];
+        raw[..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
+        raw[40..48].copy_from_slice(&0x100u64.to_le_bytes());
+        raw[58..60].copy_from_slice(&64u16.to_le_bytes());
+        raw[60..62].copy_from_slice(&5u16.to_le_bytes());
+        for (index, kind) in [3u32, 6, 11, 0x6fff_fff6, 8].into_iter().enumerate() {
+            let section = 0x100 + index * 64;
+            let offset = 0x300 + index * 16;
+            let address = 0x400000 + offset as u64;
+            raw[section + 4..section + 8].copy_from_slice(&kind.to_le_bytes());
+            raw[section + 8..section + 16].copy_from_slice(&2u64.to_le_bytes());
+            raw[section + 16..section + 24].copy_from_slice(&address.to_le_bytes());
+            raw[section + 24..section + 32].copy_from_slice(&(offset as u64).to_le_bytes());
+            raw[section + 32..section + 40].copy_from_slice(&8u64.to_le_bytes());
+            raw[offset..offset + 8].fill(index as u8 + 1);
+        }
+        let loaded = super::load(&raw);
+        for index in 0..4 {
+            let address = 0x400300 + index * 16;
+            let expected = alloc::vec![index as u8 + 1; 8];
+            assert!(loaded.data.iter().any(|(at, data)| *at == address && *data == expected));
+        }
+        assert!(!loaded.data.iter().any(|(at, _)| *at == 0x400340));
+    }
+    #[test]
+    fn zero_pie_base_keeps_headers_at_zero_with_later_segment_padding() {
+        let mut raw = alloc::vec![0; 512];
+        raw[..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
+        raw[32..40].copy_from_slice(&64u64.to_le_bytes());
+        raw[54..56].copy_from_slice(&56u16.to_le_bytes());
+        raw[56..58].copy_from_slice(&2u16.to_le_bytes());
+        for (index, offset, address, length, flags) in [(0, 0u64, 0u64, 512u64, 4u32),
+            (1, 256, 4352, 16, 5)] {
+            let ph = 64 + index * 56;
+            raw[ph..ph + 4].copy_from_slice(&1u32.to_le_bytes());
+            raw[ph + 4..ph + 8].copy_from_slice(&flags.to_le_bytes());
+            raw[ph + 8..ph + 16].copy_from_slice(&offset.to_le_bytes());
+            raw[ph + 16..ph + 24].copy_from_slice(&address.to_le_bytes());
+            raw[ph + 32..ph + 40].copy_from_slice(&length.to_le_bytes());
+        }
+        let loaded = super::load(&raw);
+        assert_eq!(loaded.phdr, 64);
+        assert!(loaded.data.iter().any(|(at, bytes)| *at == 0 && bytes.starts_with(b"\x7fELF")));
+        assert!(!loaded.data.iter().any(|(at, _)| *at == 4096));
+    }
+}
+
 // ── ELF (32- and 64-bit) ──────────────────────────────────────────────────────
 fn elf(raw: &[u8]) -> Loaded {
     let is64 = raw.get(4).copied() == Some(2);
@@ -81,22 +208,22 @@ fn elf(raw: &[u8]) -> Loaded {
     out.phent = le(raw, if is64 {0x36} else {0x2a}, 2);
     out.phnum = le(raw, if is64 {0x38} else {0x2c}, 2);
     let phent = out.phent as usize;
-    let mut load_base = 0u64;
+    let mut load_base = None;
     for k in 0..out.phnum as usize {
         let p = phoff + k * phent;
         if p + phent > raw.len() { break; }
         let ptype = le(raw, p, 4);
         let (off, addr) = if is64 { (le(raw,p+8,8),le(raw,p+16,8)) } else { (le(raw,p+4,4),le(raw,p+8,4)) };
         if ptype == 6 { out.phdr = addr; }
-        if ptype == 1 && load_base == 0 { load_base = addr.wrapping_sub(off); }
+        if ptype == 1 && load_base.is_none() { load_base = Some(addr.wrapping_sub(off)); }
     }
-    if out.phdr == 0 { out.phdr = load_base.wrapping_add(phoff as u64); }
+    if out.phdr == 0 { out.phdr = load_base.unwrap_or(0).wrapping_add(phoff as u64); }
     // __ehdr_start and the in-memory program-header table are read by glibc
     // before main. Section loading omits these non-section ELF bytes, so carry
     // the ELF header and PHDR table as ordinary module data.
     let headers_end = phoff.saturating_add((out.phnum as usize).saturating_mul(phent));
-    if load_base != 0 && headers_end <= raw.len() {
-        out.data.push((load_base, raw[..headers_end].to_vec()));
+    if let Some(base) = load_base.filter(|_| headers_end <= raw.len()) {
+        out.data.push((base, raw[..headers_end].to_vec()));
     }
     let shoff = le(raw, if is64 {0x28} else {0x20}, w) as usize;
     let shentsize = le(raw, if is64 {0x3a} else {0x2e}, 2) as usize;
@@ -111,12 +238,11 @@ fn elf(raw: &[u8]) -> Loaded {
         let sh_addr = sh(k, f_addr, w);
         let sh_off = sh(k, f_off, w) as usize;
         let sh_size = sh(k, f_size, w) as usize;
-        // PROGBITS, dynamic relocation tables, and constructor/destructor
-        // pointer tables read by the C runtime before main. Leaving the RELA
-        // bytes zero made glibc treat each record as an invalid R_NONE entry.
-        // NOBITS (.bss) still stays zero from the sparse map.
-        let loadable = sh_type == 1 || sh_type == 4 || sh_type == 9
-            || sh_type == 14 || sh_type == 15 || sh_type == 16;
+        // Every allocated, file-backed section belongs to the resident image.
+        // This includes dynamic symbol/string/version/hash tables read by
+        // dlopen, as well as relocations and constructor/destructor arrays.
+        // Only NOBITS (.bss) has no file bytes and remains zero in the map.
+        let loadable = sh_type != 8;
         if loadable && sh_off + sh_size <= raw.len() && sh_size > 0 && (sh_flags & 0x2) != 0 {
             let bytes = raw[sh_off..sh_off + sh_size].to_vec();
             if (sh_flags & 0x4) != 0 { out.code.push((sh_addr, bytes)); }

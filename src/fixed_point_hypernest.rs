@@ -131,6 +131,34 @@ pub fn collapse_to_nested(word: &[char]) -> alloc::vec::Vec<char> {
     out
 }
 
+/// Compile a complete dissolved return. Interior component fixations become
+/// winding records at the surviving enclosing fuse, after all retained work.
+/// A component with a living readout receives that enclosing fixation here.
+pub fn collapse_for_execution(word:&[char])->alloc::vec::Vec<char> {
+    let collapsed=collapse_to_nested(word);
+    let fixations=collapsed.iter().filter(|&&mark|mark==IFIX).count().max(1);
+    let mut out=alloc::vec::Vec::with_capacity(collapsed.len()+1);
+    for mark in collapsed {
+        if mark==IFIX {continue;}
+        out.push(mark);
+        if mark==FFUSE {out.extend(core::iter::repeat_n(IFIX,fixations));}
+    }
+    out
+}
+
+/// Bind component source/readout ports inside one enclosing operator. Work,
+/// dyads and fixation records stay in order; only consumed boundary ports go.
+/// The caller must admit the resulting graph before dissolving its dyads.
+pub fn bind_component_boundaries(word: &[char]) -> Result<alloc::vec::Vec<char>, &'static str> {
+    if word.first() != Some(&VINIT) || word.last() != Some(&TANCH) {
+        return Err("contained operator requires source and readout endcaps");
+    }
+    let last = word.len() - 1;
+    Ok(word.iter().copied().enumerate().filter_map(|(i, mark)| {
+        (!matches!(mark, VINIT | TANCH) || i == 0 || i == last).then_some(mark)
+    }).collect())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

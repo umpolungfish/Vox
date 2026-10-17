@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Bake a dynamic IMASM numeral into an executable. Execution is a separate step.
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/static_membrane.sh"
 usage() {
     printf 'usage: %s DECIMAL_N [OUTPUT_DIRECTORY]\n       %s --input SINGLE_CASE.jsonl [OUTPUT_DIRECTORY]\n' "$0" "$0"
 }
 if [[ ${1:-} == --help || ${1:-} == -h ]]; then usage; exit 0; fi
 if [[ ${1:-} == --input ]]; then
     [[ $# -ge 2 && $# -le 3 ]] || { usage >&2; exit 2; }
-    bake_n=$(python3 -c 'import json,sys; rows=[json.loads(line) for line in open(sys.argv[1]) if line.strip()]; len(rows)==1 or sys.exit("Expected one independently generated case; use the batch runner for multiple cases."); print(rows[0]["n"])' "$2")
+    bake_n=$(jq -er -s 'if length == 1 then .[0].n else error("Expected exactly one case") end' "$2")
     bake_output=${3:-}
 else
     [[ $# -ge 1 && $# -le 2 ]] || { usage >&2; exit 2; }
@@ -32,14 +33,14 @@ bake_fail() {
     printf 'Bake failed; build diagnostics are in %s\n' "$bake_output" >&2
 }
 trap bake_fail ERR
-RUSTFLAGS="${RUSTFLAGS:-} -D warnings" cargo build --release --bin vox \
+cargo build --target-dir target --release --target x86_64-unknown-linux-musl --bin vox \
     >"$bake_output/vox_build.stdout" 2>"$bake_output/vox_build.stderr"
-./target/release/vox numeral "$bake_n" >"$bake_output/input.imasm"
+./target/x86_64-unknown-linux-musl/release/vox numeral "$bake_n" >"$bake_output/input.imasm"
 bake_word=$(<"$bake_output/input.imasm")
-FACTOR_N_WORD="$bake_word" RUSTFLAGS="${RUSTFLAGS:-} -D warnings" \
-    cargo build --release --bin factor_one \
+FACTOR_N_WORD="$bake_word" cargo build --target-dir target --release --target x86_64-unknown-linux-musl --bin factor_one \
     >"$bake_output/build.stdout" 2>"$bake_output/build.stderr"
-cp -- target/release/factor_one "$bake_output/factor_one"
+require_static_membrane "target/x86_64-unknown-linux-musl/release/factor_one"
+cp -- target/x86_64-unknown-linux-musl/release/factor_one "$bake_output/factor_one"
 printf '%s\n' "$bake_n" >"$bake_output/input.decimal"
 sha256sum "$bake_output/factor_one" >"$bake_output/factor_one.sha256"
 printf '%s\n' "$bake_output/factor_one"

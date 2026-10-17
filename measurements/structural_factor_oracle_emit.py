@@ -5,6 +5,10 @@ from pathlib import Path
 import shutil
 import subprocess
 import time
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone
+
 ROOT = Path(__file__).resolve().parents[1]
 FOLDER = ROOT / 'membranes/structural_factor_phase_2026-09-30_verified'
 FOLDER.mkdir(exist_ok=False)
@@ -14,11 +18,12 @@ for name in ['src/structural_factor_oracle.rs', 'src/structural_quantum_executor
 elf = FOLDER / 'payload.elf'
 shutil.copy2(ROOT / 'target/x86_64-unknown-linux-musl/release/examples/factor_phase_baked_control', elf)
 start = time.monotonic()
+require_standalone(elf)
 with (FOLDER / 'native.stdout').open('w') as out, (FOLDER / 'native.stderr').open('w') as err:
     subprocess.run([str(elf)], stdout=out, stderr=err, timeout=60, check=True)
 elapsed = time.monotonic() - start
 assert not (FOLDER / 'native.stderr').read_bytes()
-vox = ROOT / 'target/release/vox'
+vox = ROOT / 'target/x86_64-unknown-linux-musl/release/vox'
 expected = [subprocess.check_output([str(vox), 'numeral', str(n)], text=True, timeout=60).strip()
             for n in [15, 1, 0, 0]]
 assert (FOLDER / 'native.stdout').read_text().splitlines() == expected

@@ -9,6 +9,11 @@ import signal
 import subprocess
 import time
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / ('membranes/glut_stress_' + os.environ.get('GLUT_STRESS_RUN', '2026-09-29'))
 OUT.mkdir(exist_ok=True)
@@ -84,7 +89,7 @@ manifest = []
 for name, n, shape, p, q in CASES:
     folder = OUT/name
     folder.mkdir(exist_ok=True)
-    word = subprocess.check_output([str(ROOT/'target/release/vox'), 'numeral', str(n)], text=True).strip()
+    word = subprocess.check_output([str(ROOT/'target/x86_64-unknown-linux-musl/release/vox'), 'numeral', str(n)], text=True).strip()
     (folder/'input.imasm').write_text(word+'\n')
     env = dict(os.environ, GLUT_STRESS_WORD=word,
         RUSTFLAGS='-D warnings -C target-feature=+crt-static -C relocation-model=static')
@@ -93,7 +98,8 @@ for name, n, shape, p, q in CASES:
         fcntl.flock(lock, fcntl.LOCK_EX)
         with (folder/'build.stdout').open('w') as log:
             subprocess.run(['cargo', 'build', '--release', '--target', 'x86_64-unknown-linux-musl',
-                '--example', 'glut_stress_baked'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True,timeout=60)
+                '--example', 'glut_stress_baked', '--target-dir', 'target'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True,timeout=60)
+        require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked')
         shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked', binary)
     measured = measure(binary, folder)
     row = dict(name=name, n=str(n), bits=n.bit_length(), popcount=n.bit_count(),

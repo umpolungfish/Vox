@@ -17,7 +17,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-type Tape = Vec<char>;
+pub type Tape = Vec<char>;
 
 /// Observational counters for Vox's native sampler; never used for dispatch.
 #[cfg(feature = "carrier-profile")]

@@ -1,6 +1,0 @@
-rewired 68109 instructions in 3219 functions
-Frobenius wiring: 6548 closed, 0 open; arm-entry work witness: 6546/6548
-coverage: 269053/269053 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1176
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/trace_word_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/trace_word_cli.rewired.json.gz)

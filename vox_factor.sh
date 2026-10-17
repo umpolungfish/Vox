@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Baked FDE-QC membrane factoriser: the pre-encoded IMASM numerals are read from
-# the compiled-in word file and CONSUMED by vox, which PRODUCES the factors.
-# No runtime input, no decimals.
+# Bake the saved numeric words; runtime needs only the emitted executable.
 set -euo pipefail
-cd "$(dirname "$0")"
-read -r A N Q < membrane_words.imasm
-echo "membrane baked: a=${#A} N=${#N} q=${#Q} marks"
-exec ./target/release/vox morphism-factor "$N"
+cd "$(dirname "${BASH_SOURCE[0]}")"
+source scripts/static_membrane.sh
+MEMBRANE_WORDS=$(< membrane_words.imasm)
+export MEMBRANE_WORDS
+cargo build --target-dir target --release --target x86_64-unknown-linux-musl --bin membrane
+finish_static_membrane "$PWD/target/x86_64-unknown-linux-musl/release/membrane"

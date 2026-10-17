@@ -1,6 +1,0 @@
-rewired 102002 instructions in 1175 functions
-Frobenius wiring: 10881 closed, 0 open; arm-entry work witness: 10880/10881
-coverage: 418260/418260 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1783
-Diagrammar: Vox/measurements/dialectic_lean_20261012/static_rewired.diagrammar.txt.gz
-IMASM tape: Vox/measurements/dialectic_lean_20261012/static_rewired.imasm
-result: PASS (Vox/measurements/dialectic_lean_20261012/static_rewired.json.gz)

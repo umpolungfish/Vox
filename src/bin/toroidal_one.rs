@@ -166,11 +166,16 @@ impl PhaseShift {
 }
 
 fn main() {
-    let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");
+    // FACTOR_N_WORD must be set at build time via the bake script (toroidal_one.sh).
+    // This binary contains no runtime inputs — the target semiprime is baked in.
+    let word = option_env!("FACTOR_N_WORD").unwrap_or_else(|| {
+        eprintln!("❌ FACTOR_N_WORD must be set at build time (use toroidal_one.sh)");
+        std::process::exit(2);
+    });
     let n = match parse_numeral(word) {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("❌ FACTOR_N_WORD was not an IMASM numeral: {e}");
+            eprintln!("❌ FACTOR_N_WORD was not a valid IMASM numeral: {e}");
             std::process::exit(2);
         }
     };

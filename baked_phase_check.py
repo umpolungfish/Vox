@@ -14,6 +14,11 @@ import subprocess
 import time
 from imasm16_3_core import IMASM16_3_Machine
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parent
 BLUEPRINT = ROOT.parent / 'ob3ect/digital/obtaining_informative_phase_observations_without_913a8f7c/obtaining_informative_phase_observations_without_913a8f7c_ob3ect.json'
 
@@ -26,8 +31,8 @@ def run(command, **kwargs):
 def main():
     blueprint = json.loads(BLUEPRINT.read_text())
     execution_word = blueprint['glyph_word']
-    run(['cargo', 'build', '--release', '--bin', 'phase_case_encode'])
-    encoder = ROOT / 'target/release/phase_case_encode'
+    run(['cargo', 'build', '--release', '--bin', 'phase_case_encode', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'])
+    encoder = ROOT / 'target/x86_64-unknown-linux-musl/release/phase_case_encode'
     output = ROOT / 'target/baked-phase' / str(time.time_ns())
     output.mkdir(parents=True)
     # Small case is an arithmetic control. Campaign inputs start at 175 bits.
@@ -46,8 +51,9 @@ def main():
             binary = output / name
             with (ROOT / 'target/baked-phase.lock').open('a') as lock:
                 fcntl.flock(lock, fcntl.LOCK_EX)
-                run(['cargo', 'build', '--release', '--bin', 'phase_baked'], env=env)
-                shutil.copy2(ROOT / 'target/release/phase_baked', binary)
+                run(['cargo', 'build', '--release', '--bin', 'phase_baked', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'], env=env)
+                require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/phase_baked')
+                shutil.copy2(ROOT / 'target/x86_64-unknown-linux-musl/release/phase_baked', binary)
             started = time.monotonic()
             result = run([str(binary)], env={}, input='')
             elapsed = time.monotonic() - started

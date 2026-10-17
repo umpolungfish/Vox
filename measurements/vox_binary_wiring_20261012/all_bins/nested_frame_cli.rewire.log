@@ -1,6 +1,0 @@
-rewired 82598 instructions in 3734 functions
-Frobenius wiring: 7853 closed, 0 open; arm-entry work witness: 7851/7853
-coverage: 329726/329726 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1421
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/nested_frame_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/nested_frame_cli.rewired.json.gz)

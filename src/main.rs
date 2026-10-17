@@ -50,7 +50,7 @@ fn usage() {
     eprintln!("  vox lift <file>           same");
     eprintln!("  vox run <sym> --args a,b <file>   recompile and RUN a function");
     eprintln!("  vox profile-native <ELF> <report-prefix> [--registers] [--duration-ms N]");
-    eprintln!("  vox imasm <file> [--output <module.imasm>]   emit the executable IMASM module");
+    eprintln!("  vox imasm <static-ELF> [--output <module.imasm>]   emit a self-contained executable module");
     eprintln!("  vox glyphs <module.imasm> <output.glyphs>   encode complete module as glyphs");
     eprintln!("  vox unglyphs <word.glyphs> <output.imasm>  restore exact executable module");
     eprintln!("  vox circuit <module.imasm> [--stdin | hex-mask[:feedback] ...]   prepare once, switch resident QFT gates");
@@ -67,6 +67,7 @@ fn usage() {
     eprintln!("  vox scout <N>                                read the shape of N and hand the factor");
     eprintln!("  vox factor <N>                               shape-routed full factorization");
     eprintln!("  vox factor-membrane <N|membrane-word> [--factors P Q]  decode and verify membrane numerals");
+    eprintln!("  vox factor-glut <N>                       execute the shared GLUT factor/product/carry register on CUDA");
     eprintln!("  vox membrane tower <levels>                  build a complete bidirectional tower");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
@@ -778,6 +779,28 @@ impl StdHost { fn new() -> Self { StdHost {
     children: std::collections::BTreeMap::new(),
 } } }
 impl imasm_vm::Host for StdHost {
+    fn file_stat(&mut self, fd: i32) -> Result<imasm_vm::FileStat, i32> {
+        let file = self.files.get(&fd).ok_or(-9)?;
+        let metadata = file.metadata().map_err(|e| -e.raw_os_error().unwrap_or(5))?;
+        #[cfg(unix)]
+        { use std::os::unix::fs::MetadataExt;
+          Ok(imasm_vm::FileStat { device: metadata.dev(), inode: metadata.ino(), size: metadata.len(), mode: metadata.mode() }) }
+        #[cfg(not(unix))]
+        { Ok(imasm_vm::FileStat { device: 0, inode: fd as u64, size: metadata.len(), mode: 0o100644 }) }
+    }
+    fn pread(&mut self, fd: i32, buf: &mut [u8], offset: u64) -> i64 {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::FileExt;
+            match self.files.get(&fd) {
+                Some(file) => file.read_at(buf, offset).map(|n| n as i64)
+                    .unwrap_or_else(|e| -e.raw_os_error().unwrap_or(5) as i64),
+                None => -9,
+            }
+        }
+        #[cfg(not(unix))]
+        { let _ = (fd, buf, offset); -38 }
+    }
     fn execution_progress(&mut self, steps: u64, pc: u64) {
         if let Some((started,last)) = self.progress.as_mut() {
             if steps == 0 || last.elapsed().as_secs() >= 5 {
@@ -1261,9 +1284,15 @@ fn main() {
                         Err(error) => { eprintln!("invalid glyph module: {error}"); std::process::exit(2); }
                     }
                 } else { text };
+                imasm_module::validate_standalone(&text).unwrap_or_else(|error| {
+                    eprintln!("cannot run standalone membrane: {error}"); std::process::exit(2);
+                });
                 imasm_vm::Machine::new(&text)
             } else {
-                imasm_vm::Machine::new(&imasm_module::emit(&raw))
+                let module = imasm_module::emit_standalone(&raw).unwrap_or_else(|error| {
+                    eprintln!("cannot run standalone membrane: {error}"); std::process::exit(2);
+                });
+                imasm_vm::Machine::new(&module)
             };
             m.set_host(Box::new(StdHost::new()));
             if observed { eprintln!("vox-loading stage=ready seconds={:.6}",load_started.elapsed().as_secs_f64()); }
@@ -1362,6 +1391,10 @@ fn main() {
             let result = if args[0]=="glyphs" { ::vox::glyph_module::encode(&source) }
                          else { ::vox::glyph_module::decode(&source) };
             let result = result.unwrap_or_else(|e| { eprintln!("{e}"); std::process::exit(2); });
+            let module = if args[0] == "glyphs" { source.as_str() } else { result.as_str() };
+            imasm_module::validate_standalone(module).unwrap_or_else(|error| {
+                eprintln!("cannot serialize standalone membrane: {error}"); std::process::exit(2);
+            });
             let mut output = std::fs::OpenOptions::new().write(true).create_new(true).open(&args[2])
                 .unwrap_or_else(|e| { eprintln!("cannot create {}: {e}",args[2]); std::process::exit(1); });
             output.write_all(result.as_bytes()).unwrap_or_else(|e| {
@@ -1375,7 +1408,9 @@ fn main() {
                 eprintln!("vox imasm <file> [--output <module.imasm>]"); return;
             }
             let raw=read_or_exit(&args[1]);
-            let module = imasm_module::emit(&raw);
+            let module = imasm_module::emit_standalone(&raw).unwrap_or_else(|error| {
+                eprintln!("cannot emit standalone membrane: {error}"); std::process::exit(2);
+            });
             if args.len()==4 {
                 match std::fs::write(&args[3], &module) {
                     Ok(()) => eprintln!("saved {}", args[3]),
@@ -1674,7 +1709,18 @@ fn main() {
                 None => { eprintln!("vox factor <N-word|decimal>   shape-routed full factorization"); 1 }
             }
         }
-        Some("factor-membrane") => match ::vox::membrane_factor::command(&args[1..]) {
+        Some("factor-membrane") | Some("factor-glut") => {
+            let production=if args[0]=="factor-glut" {
+                factor_membrane_support::route_n_only_to_gpu_entry(&args[1..],"glut")
+            } else {factor_membrane_support::route_n_only_to_gpu(&args[1..])};
+            let (routed_args, gpu_producer) = match production {
+                Ok(route) => route,
+                Err(error) => {
+                    eprintln!("factor-membrane GPU producer: {error}");
+                    std::process::exit(2);
+                }
+            };
+            match ::vox::membrane_factor::command(&routed_args) {
             Ok(report) => {
                 if let Some(pos) = report.find("[EMITTED_MODULE_DESTINATION: ") {
                     let after = &report[pos + "[EMITTED_MODULE_DESTINATION: ".len()..];
@@ -1689,11 +1735,15 @@ fn main() {
                     }
                 }
                 print!("{report}");
+                if let Some(producer) = gpu_producer {
+                    println!("GPU factor producer = {producer}");
+                }
                 factor_membrane_support::append_trilattice_reads(&report);
                 0
             }
             Err(error) => { eprintln!("factor-membrane: {error}"); 2 }
-        },
+            }
+        }
         Some("perfect") => {
             // Build the depth-n perfect membrane and read its closure with the
             // auditor: T means mu∘delta = id holds by the matched circuitry.
@@ -1804,6 +1854,17 @@ fn main() {
             match parsed {
                 Some(n) => { println!("{}", ::vox::morphism_factor::repl_scout(&n)); 0 }
                 None => { eprintln!("vox scout <N-word|decimal>   read the shape of N and hand the factor"); 1 }
+            }
+        }
+        Some("shor_factor") => {
+            if args.len() < 2 {
+                eprintln!("vox shor_factor <N> [max_bases]   Shor order-finding membrane factorization");
+                1
+            } else {
+                match ::vox::shor_membrane::repl_shor_factor(&args[1..]) {
+                    Ok(s) => { println!("{}", s); 0 }
+                    Err(e) => { eprintln!("{}", e); 2 }
+                }
             }
         }
         Some("factor-operator") => {

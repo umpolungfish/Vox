@@ -6,8 +6,13 @@ from pathlib import Path
 import shutil
 import subprocess
 import time
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT=Path(__file__).resolve().parents[1]
-VOX=ROOT/'target/release/vox'
+VOX=ROOT/'target/x86_64-unknown-linux-musl/release/vox'
 OUT=ROOT/('membranes/glut_imasm_'+os.environ.get('GLUT_IMASM_RUN','2026-09-29_folded'))
 OUT.mkdir(exist_ok=True)
 ALPHABET=set('⊢⊣≻≺⋈⊤∈∋⊙⊥⊞⊡')
@@ -25,8 +30,9 @@ for name,n in CASES:
     (folder/'input.imasm').write_text(word+'\n')
     env=dict(os.environ,GLUT_SOURCE_WORD=word,RUSTFLAGS='-D warnings -C target-feature=+crt-static -C relocation-model=static')
     with (folder/'build.stdout').open('w') as log:
-        subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','glut_one'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
+        subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','glut_one', '--target-dir', 'target'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
     elf=folder/'payload.elf'
+    require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/glut_one')
     shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/glut_one',elf)
     native=subprocess.check_output([str(elf)],text=True)
     (folder/'native.stdout').write_text(native)

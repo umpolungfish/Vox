@@ -1,0 +1,8 @@
+bake_resident.sh: Bake an N-only IMASM source into a resident membrane executable.
+Source: /home/mrnob0dy666/imsgct/G-mOMonadOS/bake_resident.sh
+Run: ./programs run bake_resident.sh [arguments]
+
+Usage recorded in its source:
+printf 'usage: %s DECIMAL_N [OUTPUT_DIRECTORY]\n' "$0"
+
+Help inspection does not start the program. Relative program arguments use this repository as their working directory.

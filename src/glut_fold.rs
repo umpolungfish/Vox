@@ -13,6 +13,54 @@ mod frames;
 #[path = "glut_square_fold.rs"]
 mod square_fold;
 
+pub(super) fn device_correlation(n:&[char])->super::DeviceCorrelation {
+    let source=trim(n.to_vec());
+    let root=mf::isqrt(&source);
+    correlation::Correlation::new_nested(&source,source.len().div_ceil(2),&root)
+        .into_device_relation()
+}
+
+pub(super) fn device_admission(n:&[char])->super::DeviceCorrelation {
+    correlation::Correlation::admission_only(n).into_device_relation()
+}
+
+/// One existing interval rail, without decisions or candidate production.
+pub(super) fn device_mask_interval_step(n:&[char],p:&[u32],q:&[u32])
+ ->Option<(Vec<u32>,Vec<u32>)> {
+    let read=|masks:&[u32]|masks.iter().map(|m|match m {
+        1=>Some(Some(ZERO)),2=>Some(Some(ONE)),3=>Some(None),_=>None,
+    }).collect::<Option<Vec<_>>>();
+    let mut p=read(p)?;let mut q=read(q)?;
+    let root=mf::isqrt(n);
+    let (pmin,pmax)=extrema(&p,&[ONE,ONE],&root)?;
+    let (qmin,qmax)=extrema(&q,&ceiling(n,&root),&bounds(&q).1)?;
+    if mf::cmp(&mf::mul(&pmin,&qmin),n)==Ordering::Greater
+      ||mf::cmp(&mf::mul(&pmax,&qmax),n)==Ordering::Less
+      ||mf::cmp(&pmin,&qmax)==Ordering::Greater {return None;}
+    let plo=max(pmin.clone(),ceiling(n,&qmax));
+    let phi=min(min(pmax.clone(),mf::divmod(n,&qmin).0),qmax.clone());
+    let qlo=max(max(qmin.clone(),ceiling(n,&pmax)),pmin.clone());
+    let qhi=min(qmax,mf::divmod(n,&pmin).0);
+    constrain(&mut p,&plo,&phi)?;constrain(&mut q,&qlo,&qhi)?;
+    let write=|cells:Vec<Option<char>>|cells.into_iter().map(|c|match c {
+        Some(ZERO)=>1,Some(ONE)=>2,None=>3,_=>unreachable!(),
+    }).collect();
+    Some((write(p),write(q)))
+}
+
+pub(super) fn device_carry_envelope_step(n:&[char],p:&[u32],q:&[u32])
+ ->Option<(Vec<u32>,Vec<u32>)> {
+    let read=|masks:&[u32]|masks.iter().map(|m|match m {
+        1=>Some(Some(ZERO)),2=>Some(Some(ONE)),3=>Some(None),_=>None,
+    }).collect::<Option<Vec<_>>>();
+    let mut p=read(p)?;let mut q=read(q)?;
+    carry_envelope(&mut p,&mut q,n)?;
+    let write=|cells:Vec<Option<char>>|cells.into_iter().map(|c|match c {
+        Some(ZERO)=>1,Some(ONE)=>2,None=>3,_=>unreachable!(),
+    }).collect();
+    Some((write(p),write(q)))
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FoldStats {
     pub active: bool,
@@ -690,14 +738,93 @@ impl Resident {
     pub fn pair(&self) -> Option<(Vec<char>, Vec<char>)> {
         self.pair.clone()
     }
-    pub fn take_execution(&mut self) -> Option<super::GlutExecution> {
-        self.execution.take()
+    pub fn execution(&self) -> Option<super::GlutExecution> {
+        self.execution.clone()
+    }
+    #[cfg(test)]
+    pub fn accept_emitted_pair_for_return_test(&mut self, p: Vec<char>, q: Vec<char>) {
+        assert!(crate::trace_algebra::witness_valid(&self.n, &p, &q));
+        self.pair = Some((p, q));
+        self.activate(Port::Verify, |_| {});
+        self.activate(Port::Quantum, |_| {});
     }
     #[cfg(test)]
     pub fn source(&self) -> &[char] {
         &self.n
     }
+    pub fn frame_observation(&self) -> Option<super::GlutFrameObservation> {
+        self.lanes.as_ref().map(|lanes| lanes.frames.observation())
+    }
+    pub fn activate_frames(&mut self, mut observe: impl FnMut(&FoldStats)) {
+        if self.finished || self.pair.is_some() { return; }
+        let Some(l) = self.lanes.as_mut() else { return; };
+        let scheduled_work = match option_env!("GLUT_ACTIVE_FRAME_WORD") {
+            Some("⊤") => l.pending_cells / l.pending_count.max(1),
+            Some("⊥") => l.pending_cells,
+            _ => l.turn_work,
+        };
+        l.square_quantum = (scheduled_work / l.square.work_extent().max(1)).max(1)
+            * l.square.folded_extent();
+        l.turn_work = 0;
+        self.stats.diagnostic_stage = '⊡';
+        if let Some(pair) = l.frames.advance() {
+            observe(&self.stats);
+            self.pair = Some(pair);
+        }
+    }
+    pub fn activate_square(&mut self, mut observe: impl FnMut(&FoldStats)) {
+        if self.finished || self.pair.is_some() { return; }
+        let Some(l) = self.lanes.as_mut() else { return; };
+        let stats = &mut self.stats;
+        for _ in 0..l.square_quantum {
+            if !l.square_live {
+                break;
+            }
+            let step = l.square.advance_observed(|stage, columns, rows, partials| {
+                stats.phase_stage = stage;
+                stats.phase_columns = columns;
+                stats.phase_rows = rows;
+                stats.phase_partials = partials;
+                observe(&stats);
+            });
+            stats.square_advances = l.square.advances;
+            stats.square_cells = l.square.cells();
+            #[cfg(feature = "root-work-profile")]
+            {
+                (
+                    stats.square_root_marks,
+                    stats.square_root_link_visits,
+                    stats.square_root_links,
+                    stats.square_root_candidates,
+                ) = l.square.root_work();
+            }
+            if stats.square_advances.is_power_of_two()
+                || !matches!(step, square_fold::Step::Running)
+            {
+                observe(&stats);
+            }
+            match step {
+                square_fold::Step::Running => {}
+                square_fold::Step::Empty => l.square_live = false,
+                square_fold::Step::Closed(p, q) => {
+                    self.pair = Some((p, q));
+                    return;
+                }
+            }
+        }
+        if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
+            observe(&stats);
+        }
+    }
     pub fn activate(&mut self, port: Port, mut observe: impl FnMut(&FoldStats)) {
+        if port == Port::Frames {
+            self.activate_frames(observe);
+            return;
+        }
+        if port == Port::Square {
+            self.activate_square(observe);
+            return;
+        }
         if port == Port::Quantum {
             self.quantum_phase_closed = self.execution.as_ref().is_none_or(|execution| {
                 correlation::factor_phase_closes(&self.n, &execution.p, &execution.q)
@@ -744,66 +871,8 @@ impl Resident {
         let n = &self.n;
         let mut stats = &mut self.stats;
         match port {
-            Port::Frames => {
-                let scheduled_work = match option_env!("GLUT_ACTIVE_FRAME_WORD") {
-                    Some("⊤") => l.pending_cells / l.pending_count.max(1),
-                    Some("⊥") => l.pending_cells,
-                    _ => l.turn_work,
-                };
-                // Advance the prepared modular lane across the source's folded
-                // limb extent before returning to full-width mask propagation.
-                // Every enclosing pass still returns through all live ports.
-                l.square_quantum = (scheduled_work / l.square.work_extent().max(1)).max(1)
-                    * l.square.folded_extent();
-                l.turn_work = 0;
-                stats.diagnostic_stage = '⊡';
-                if let Some(pair) = l.frames.advance() {
-                    observe(&stats);
-                    self.pair = Some(pair);
-                    return;
-                }
-            }
-            Port::Square => {
-                for _ in 0..l.square_quantum {
-                    if !l.square_live {
-                        break;
-                    }
-                    let step = l.square.advance_observed(|stage, columns, rows, partials| {
-                        stats.phase_stage = stage;
-                        stats.phase_columns = columns;
-                        stats.phase_rows = rows;
-                        stats.phase_partials = partials;
-                        observe(&stats);
-                    });
-                    stats.square_advances = l.square.advances;
-                    stats.square_cells = l.square.cells();
-                    #[cfg(feature = "root-work-profile")]
-                    {
-                        (
-                            stats.square_root_marks,
-                            stats.square_root_link_visits,
-                            stats.square_root_links,
-                            stats.square_root_candidates,
-                        ) = l.square.root_work();
-                    }
-                    if stats.square_advances.is_power_of_two()
-                        || !matches!(step, square_fold::Step::Running)
-                    {
-                        observe(&stats);
-                    }
-                    match step {
-                        square_fold::Step::Running => {}
-                        square_fold::Step::Empty => l.square_live = false,
-                        square_fold::Step::Closed(p, q) => {
-                            self.pair = Some((p, q));
-                            return;
-                        }
-                    }
-                }
-                if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
-                    observe(&stats);
-                }
-            }
+            Port::Frames => unreachable!(),
+            Port::Square => unreachable!(),
             Port::Admission => {
                 stats.diagnostic_stage = '∈';
                 if let Some(&(p_width, q_width)) = l.geometries.get(l.admitted) {

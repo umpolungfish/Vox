@@ -1,0 +1,37 @@
+[
+  {
+    "name": "word_bake",
+    "command": [
+      "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+      "bake",
+      "word",
+      "--word-file",
+      "/home/mrnob0dy666/imsgct/Vox/measurements/static_bakers_20261015/source.imasm",
+      "--output",
+      "/home/mrnob0dy666/imsgct/Vox/measurements/program_operations_20261015/word_membrane"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "word_execute",
+    "command": [
+      "/home/mrnob0dy666/imsgct/Vox/programs",
+      "execute",
+      "/home/mrnob0dy666/imsgct/Vox/measurements/program_operations_20261015/word_membrane"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "factor_bake",
+    "command": [
+      "/home/mrnob0dy666/imsgct/Vox/programs",
+      "bake",
+      "factor",
+      "--input",
+      "/home/mrnob0dy666/imsgct/Vox/measurements/static_bakers_20261015/source.decimal",
+      "--output",
+      "/home/mrnob0dy666/imsgct/Vox/measurements/program_operations_20261015/factor_case"
+    ],
+    "exit_code": 0
+  }
+]

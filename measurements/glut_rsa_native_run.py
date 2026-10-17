@@ -10,6 +10,11 @@ import subprocess
 import time
 import uuid
 from random_rsa_fixtures import fixture as random_fixture
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parents[1]
 RUN_ID = uuid.uuid4().hex
 RUN_LABEL = os.environ.get('GLUT_RSA_RUN')
@@ -21,7 +26,7 @@ OUT.mkdir(exist_ok=False)
 print('campaign', RUN_NAME, flush=True)
 SECONDS = min(60.0, float(os.environ.get('GLUT_RSA_SECONDS', '60')))
 NATIVE_TARGET = os.environ.get('GLUT_NATIVE_TARGET', 'x86_64-unknown-linux-gnu')
-VOX = ROOT / 'target/release/vox'
+VOX = ROOT / 'target/x86_64-unknown-linux-musl/release/vox'
 SOURCES = ['Cargo.toml', 'src/main.rs', 'build.rs', 'src/bin/m3mbrain.rs', 'src/glut_system.rs', 'src/glut_carrier.rs', 'src/phase_word.rs', 'src/fixed_point_hypernest.rs', 'src/fixed_point_quantum_membrane.rs', 'src/fixed_point_quantum_phase.rs', 'src/structural_quantum_phase.rs', 'src/structural_quantum_executor.rs', 'src/structural_factor_oracle.rs', 'src/folded_quantum_register.rs', 'src/hadamard_gate.rs', 'src/glut_fold.rs', 'src/glut_frame_elimination.rs', 'src/glut_parity.rs', 'src/glut_quantum.rs', 'src/glut_transport.rs', 'src/glut_correlation.rs', 'src/glut_midpoint.rs', 'src/glut_square_fold.rs', 'src/glut_square_phase.rs', 'src/glut_residue.rs', 'src/glut_support.rs', 'src/glut_frames.rs', 'src/factor_2adic.rs', 'src/morphism_factor.rs', 'src/trace_word.rs', 'src/tape_delete.rs', 'src/reentry_certificate.rs', 'src/factor_extract.rs', 'measurements/random_rsa_fixtures.py', 'measurements/glut_rsa_native_run.py']
 hashes = {name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCES}
 source = OUT/'source'; source.mkdir()
@@ -45,9 +50,10 @@ for case in os.environ.get('GLUT_RSA_CASES', 'rsa_128_0,rsa_256_0,rsa_512_0,rsa_
         fcntl.flock(lock, fcntl.LOCK_EX)
         assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest for name,digest in hashes.items())
         with (folder/'build.stdout').open('w') as log:
-            subprocess.run(['cargo','build','--release','--target',NATIVE_TARGET,'--bin','m3mbrain'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True, timeout=60)
+            subprocess.run(['cargo','build','--release','--target',NATIVE_TARGET,'--bin','m3mbrain', '--target-dir', 'target'], cwd=ROOT, env=env, stdout=log, stderr=log, check=True, timeout=60)
         if re.search(r'\bwarning(?:\[[^\]]*\])?:', (folder/'build.stdout').read_text(), re.IGNORECASE):
             raise RuntimeError('Build warnings are hard errors: '+str(folder/'build.stdout'))
+        require_standalone(ROOT / 'target' / NATIVE_TARGET / 'release/m3mbrain')
         binary = folder/'payload.elf'; shutil.copy2(ROOT/'target'/NATIVE_TARGET/'release/m3mbrain',binary)
     start = time.monotonic()
     with (folder/'native.stdout').open('w') as out, (folder/'native.stderr').open('w') as err:

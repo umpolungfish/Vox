@@ -8,8 +8,13 @@ import random
 import subprocess
 import uuid
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parents[1]
-VOX = ROOT / 'target/release/vox'
+VOX = ROOT / 'target/x86_64-unknown-linux-musl/release/vox'
 _vox_ready = False
 
 
@@ -17,14 +22,15 @@ def _ensure_vox():
     global _vox_ready
     if _vox_ready:
         return
-    env = dict(os.environ, RUSTFLAGS='-D warnings')
-    result = subprocess.run(['cargo', 'build', '--release', '--bin', 'vox'], cwd=ROOT,
+    env = dict(os.environ, RUSTFLAGS='-D warnings -C target-feature=+crt-static')
+    result = subprocess.run(['cargo', 'build', '--release', '--bin', 'vox', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'], cwd=ROOT,
                             env=env, text=True, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, timeout=60)
     if result.returncode:
         raise RuntimeError('warning-free Vox primality build failed:\n' + result.stdout)
     if any(line.lstrip().startswith('warning') for line in result.stdout.splitlines()):
         raise RuntimeError('Vox primality build emitted a warning:\n' + result.stdout)
+    require_standalone(VOX)
     _vox_ready = True
 
 

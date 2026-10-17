@@ -1,0 +1,13 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized] target(s) in 8.11s
+     Running unittests src/lib.rs (target/x86_64-unknown-linux-musl/debug/deps/vox-92c6f5036c4e7011)
+
+running 5 tests
+test imasm_vm::hosted_loader_tests::actual_glibc_loader_name_matching_handles_aligned_and_unaligned_strings ... ignored, requires VOX_LOADER_TEST_IMAGE naming the retained glibc membrane
+test imasm_vm::hosted_loader_tests::cpu_discovery_clears_stale_registers_and_advertises_the_virtual_isa ... ok
+test imasm_vm::hosted_loader_tests::fstat_transports_file_identity_size_and_errors ... ok
+test imasm_vm::hosted_loader_tests::anonymous_fixed_mapping_clears_old_file_bytes_and_retains_neighbor_banks ... ok
+test imasm_vm::hosted_loader_tests::mapped_file_code_executes_and_remaps_without_changing_retained_banks ... ok
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 394 filtered out; finished in 0.00s
+

@@ -1,6 +1,0 @@
-rewired 63183 instructions in 2978 functions
-Frobenius wiring: 6028 closed, 0 open; arm-entry work witness: 6026/6028
-coverage: 248908/248908 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1033
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/double_arev_membrane.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/double_arev_membrane.rewired.json.gz)

@@ -114,7 +114,9 @@ fn is_shift_faithful(n: &BigUint) -> bool {
 }
 
 fn shift_domain_exclusion(n: &BigUint) -> Option<&'static str> {
-    if n <= &BigUint::one() {
+    if is_shift_faithful(n) {
+        None
+    } else if n <= &BigUint::one() {
         Some("value must be greater than one")
     } else if (n % 2u8).is_zero() {
         Some("even values are outside the shift-faithful domain")
@@ -131,6 +133,7 @@ fn dialect_register(n: &BigUint) -> &'static str {
 
 /// Search divisor candidates in the shift-faithful domain and require their
 /// register to match N's register.
+#[cfg(test)]
 fn register_filtered_trial_factor(n: &BigUint) -> Option<(BigUint, BigUint)> {
     const TRIAL_LIMIT: u64 = 100_000;
     let target_register = dialect_register(n);
@@ -245,15 +248,10 @@ fn run(args: &[String]) -> Result<String, String> {
             }
         }
         (p, q, "supplied factor witness")
-    } else if let Some((p, q)) = register_filtered_trial_factor(&n) {
-        (p, q, "shift-faithful-domain trial division")
     } else {
-        let tape = crate::morphism_factor::decimal_to_tape(&n.to_string()).ok_or_else(|| "could not encode N for Vox factorizer".to_string())?;
-        let (factors, _log) = crate::morphism_factor::smart_factor(&tape);
-        if factors.len() != 2 { return Err(format!("Vox returned {} prime factors; expected a semiprime pair", factors.len())); }
-        let a = decode_integer(&crate::morphism_factor::dec_of(&factors[0]))?;
-        let b = decode_integer(&crate::morphism_factor::dec_of(&factors[1]))?;
-        (a, b, "Vox smart factorizer")
+        return Err(String::from(
+            "N-only production requires the GPU factor-membrane CLI adapter; CPU factor search is disabled",
+        ));
     };
     for (label, factor) in [("p", &p), ("q", &q)] {
         if let Some(reason) = shift_domain_exclusion(factor) {
@@ -264,6 +262,21 @@ fn run(args: &[String]) -> Result<String, String> {
     let (carry_columns, carry_mass, carry_positions, product_bits) = binary_product_carries(&p, &q);
     let product = from_lsb_bits(&product_bits);
     if product != n { return Err("internal carry trace failed to reconstruct N".into()); }
+    // These checks consume emitted factors after production. Source-only
+    // preparation and device execution receive none of these witnesses.
+    let source_tape=crate::morphism_factor::decimal_to_tape(&n.to_string()).ok_or("invalid source tape")?;
+    let p_tape=crate::morphism_factor::decimal_to_tape(&p.to_string()).ok_or("invalid divisor tape")?;
+    let q_tape=crate::morphism_factor::decimal_to_tape(&q.to_string()).ok_or("invalid cofactor tape")?;
+    let (derived,remainder)=crate::morphism_factor::divmod(&source_tape,&p_tape);
+    if !crate::morphism_factor::zero(&remainder)||derived!=q_tape {
+        return Err("IMASM divisor/derived-quotient boundary failed".into());
+    }
+    let checked=crate::semiprime_descent::verify_pair(&source_tape,&p_tape,&derived)?;
+    let paired=crate::factor_2adic::meet_factor_nestings(&source_tape,&p_tape,&derived,&crate::morphism_factor::two())
+        .ok_or("paired factor-frame boundaries failed to meet")?;
+    if checked.product!=source_tape||paired.product!=source_tape {
+        return Err("IMASM product and paired-frame source boundaries differ".into());
+    }
     let mut out = String::new();
     out.push_str(&format!("N = {n}\nhex = {}\nbitlength = {}\npopcount = {}\n", n.to_str_radix(16), n.bits(), popcount(&n)));
     out.push_str("shift-faithful domain = odd, non-Mersenne integers greater than one\n");
@@ -284,6 +297,7 @@ fn run(args: &[String]) -> Result<String, String> {
         dialect_register(&q), if is_mersenne(&q) { "Mersenne" } else { "non-Mersenne" }));
     out.push_str(&format!("product check = {}\npopcount sum = {}\npopcount delta = {}\n",
         &p * &q == n, popcount(&p) + popcount(&q), popcount(&n) as isize - popcount(&p) as isize - popcount(&q) as isize));
+    out.push_str("IMASM product closure = true\npaired boundary closure = true\nderived quotient remainder = 0\n");
     out.push_str(&format!("binary multiplication nonzero carry-out columns = {carry_columns}\ncarry-out positions (0-based) = {carry_positions:?}\n"));
     out.push_str(&format!("sum of carry-out values = {carry_mass}\n"));
     out.push_str(&format!("carry identity: popcount(p) * popcount(q) - popcount(N) = {}\n",
@@ -294,6 +308,41 @@ fn run(args: &[String]) -> Result<String, String> {
 
 /// CLI entrypoint shared by `vox factor-membrane` and its standalone binary.
 pub fn command(args: &[String]) -> Result<String, String> { run(args) }
+
+/// Decode the N-only source for the std CLI adapter that invokes the device
+/// producer. A supplied factor witness stays on the validation-only route.
+pub fn source_for_gpu_producer(args: &[String]) -> Result<Option<String>, String> {
+    if args.is_empty() || args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        return Ok(None);
+    }
+    if args.iter().any(|arg| arg == "--factors") {
+        return Ok(None);
+    }
+    let mut source: Option<BigUint> = None;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--hex-word" | "--native-word" => {
+                let flag = args[i].as_str();
+                let value = args.get(i + 1).ok_or_else(|| format!("{flag} requires a word"))?;
+                if source.is_some() { return Err("provide exactly one integer source".into()); }
+                source = Some(if flag == "--hex-word" { decode_hex_word(value)? } else { decode_native_word(value)? });
+                i += 2;
+            }
+            value if value.starts_with('-') => return Ok(None),
+            value => {
+                if source.is_some() { return Err("provide exactly one integer source".into()); }
+                source = Some(decode_integer(value)?);
+                i += 1;
+            }
+        }
+    }
+    let Some(n) = source else { return Ok(None); };
+    if let Some(reason) = shift_domain_exclusion(&n) {
+        return Err(format!("N={n}: {reason}"));
+    }
+    Ok(Some(n.to_string()))
+}
 
 #[cfg(test)]
 mod tests {

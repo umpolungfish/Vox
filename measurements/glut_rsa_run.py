@@ -12,6 +12,11 @@ import signal
 import subprocess
 import time
 import sympy
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/('membranes/glut_rsa_'+os.environ.get('GLUT_RSA_RUN','2026-09-29_baseline'))
 OUT.mkdir(exist_ok=True)
@@ -60,7 +65,7 @@ for bits in WIDTHS:
         folder.mkdir(exist_ok=True)
         if (folder/'measurement.json').exists(): raise RuntimeError('Use a fresh GLUT_RSA_RUN to preserve measurements.')
         row=dict(name=name,**fixture(bits,index))
-        word=subprocess.check_output([str(ROOT/'target/release/vox'),'numeral',row['n']],text=True).strip()
+        word=subprocess.check_output([str(ROOT/'target/x86_64-unknown-linux-musl/release/vox'),'numeral',row['n']],text=True).strip()
         (folder/'input.imasm').write_text(word+'\n')
         (folder/'fixture.json').write_text(json.dumps(row,indent=2)+'\n')
         env=dict(os.environ,GLUT_STRESS_WORD=word,RUSTFLAGS='-D warnings -C target-feature=+crt-static -C relocation-model=static')
@@ -69,7 +74,8 @@ for bits in WIDTHS:
             fcntl.flock(lock,fcntl.LOCK_EX)
             assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest for name,digest in sources.items()), 'Runtime source changed during campaign.'
             with (folder/'build.stdout').open('w') as log:
-                subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--example','glut_stress_baked'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
+                subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--example','glut_stress_baked', '--target-dir', 'target'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
+            require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked')
             shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/glut_stress_baked',binary)
         row['source_hashes']=sources
         row['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()

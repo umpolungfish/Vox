@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
-# Baked FDE-QC membrane: the word is pre-encoded IMASM, compiled by the imasm
-# toolchain and run one-shot. No runtime input, no decimals, no read-back.
+# Bake the saved IMASM word into one static native executable.
 set -euo pipefail
-cd "$(dirname "$0")"
-W="$(cat membrane_word.imasm)"
-echo "baked membrane word: ${#W} marks"
-python3 - "$W" <<'PY'
-import sys
-sys.path.insert(0, '/home/mrnob0dy666/imsgct/G-mOMonadOS')
+cd "$(dirname "${BASH_SOURCE[0]}")"
+source scripts/static_membrane.sh
+output=${1:-"$PWD/membranes/vox_membrane"}
+[[ ! -e "$output" ]] || { printf 'output already exists: %s\n' "$output" >&2; exit 2; }
+mkdir -p "$(dirname "$output")"
+word_file=${VOX_MEMBRANE_WORD_FILE:-membrane_word.imasm}
+if [[ ! -f "$word_file" && "$word_file" == membrane_word.imasm ]]; then
+    word_file=membrane_word.imasm.ref
+fi
+python3 - "$PWD/../G-mOMonadOS" "$output" "$word_file" <<'PY'
+import pathlib, sys
+sys.path.insert(0, sys.argv[1])
 from imasm_emit import compile_word
-compile_word(sys.argv[1].strip(), '/tmp/membrane.bin')
-print('compiled -> /tmp/membrane.bin')
+compile_word(pathlib.Path(sys.argv[3]).read_text().strip(), sys.argv[2])
 PY
-chmod +x /tmp/membrane.bin
-exec /tmp/membrane.bin
+finish_static_membrane "$output"

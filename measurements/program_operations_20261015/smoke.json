@@ -1,0 +1,84 @@
+[
+  {
+    "command": [
+      "Vox/programs",
+      "--help"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "G-mOMonadOS/programs",
+      "--help"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "Vox/programs",
+      "bake",
+      "--help"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "G-mOMonadOS/programs",
+      "bake",
+      "--list"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "Vox/programs",
+      "list",
+      "--all",
+      "--json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "G-mOMonadOS/programs",
+      "list",
+      "--all",
+      "--json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "Vox/programs",
+      "help",
+      "vox"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "G-mOMonadOS/programs",
+      "help",
+      "bake_resident.sh"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "Vox/programs",
+      "--no-build",
+      "cli",
+      "--help"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "G-mOMonadOS/programs",
+      "--no-build",
+      "cli",
+      "--help"
+    ],
+    "exit_code": 0
+  }
+]

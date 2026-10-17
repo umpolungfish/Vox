@@ -1,0 +1,6 @@
+positions 1 register_size 256 modular_steps 256 stored_position_bytes 32
+probability 0 0.00390625
+probability 1 0.00390625
+probability 128 0.00390625
+probability 255 0.00390625
+seconds 0.0008356

@@ -1,0 +1,7 @@
+usage: ./programs cli [-h] ...
+
+positional arguments:
+  arguments
+
+options:
+  -h, --help  show this help message and exit

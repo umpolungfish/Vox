@@ -4,13 +4,18 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone
+
 ROOT=Path(__file__).resolve().parents[1]
 run=ROOT/('membranes/glut_rsa_native_'+os.environ['GLUT_RSA_RUN'])
-vox=ROOT/'target/release/vox'
+vox=ROOT/'target/x86_64-unknown-linux-musl/release/vox'
 alphabet=set('⊢⊣≻≺⋈⊤∈∋⊙⊥⊞⊡')
 rows=[]
 for row in json.loads((run/'manifest.json').read_text()):
     folder=run/row['name']; elf=folder/'payload.elf'
+    require_standalone(elf)
     module=folder/'payload.elf.imasm'; glyph=folder/'payload.glyphs'; recovered=folder/'recovered.imasm'
     if glyph.exists(): raise RuntimeError('Retain the existing emission; use a fresh run for changes.')
     with (folder/'emission.stdout').open('w') as log:

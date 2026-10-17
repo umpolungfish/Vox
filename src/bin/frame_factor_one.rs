@@ -8,12 +8,13 @@
 #![deny(warnings)]
 
 use vox::morphism_factor::{self, dec_of, mul, parse_numeral};
-use std::env;
 
-const BAKED_N_WORD: &str = match option_env!("FRAME_FACTOR_N_WORD") {
-    Some(word) => word,
-    None => "⊢⊙⊡⊣",
-};
+fn baked_n_word() -> &'static str {
+    option_env!("FRAME_FACTOR_N_WORD").unwrap_or_else(|| {
+        eprintln!("❌ FRAME_FACTOR_N_WORD must be set at build time (use toroidal_one.sh)");
+        std::process::exit(2);
+    })
+}
 
 fn parse_width(raw: &str) -> Option<usize> {
     let bytes = raw.as_bytes();
@@ -44,9 +45,8 @@ fn parse_width(raw: &str) -> Option<usize> {
 }
 
 fn get_baked_width() -> usize {
-    env::var("FRAME_FACTOR_WIDTH")
-        .ok()
-        .and_then(|w| parse_width(&w))
+    option_env!("FRAME_FACTOR_WIDTH")
+        .and_then(parse_width)
         .unwrap_or(2)
 }
 
@@ -129,7 +129,7 @@ fn factor_baked_value() -> Result<String, String> {
     if baked_width < 2 {
         return Err("baked frame width must be at least 2".into());
     }
-    let source = parse_numeral(BAKED_N_WORD)?;
+    let source = parse_numeral(baked_n_word())?;
     let source_frame = shift_evaluation_frame(&source, baked_width);
     let framed_source = return_from_frame(&source_frame)?;
     if framed_source != source {
@@ -181,7 +181,7 @@ fn factor_baked_value() -> Result<String, String> {
     Ok(format!(
         "frame-width  {}\nsource-word  {}\nsource       {}\nfactor-route {}\nphase-index  {}\nfactor-words {}\nfactors      {}\nproduct      {}\nclosure      closed\n",
         baked_width,
-        BAKED_N_WORD,
+        baked_n_word(),
         dec_of(&source),
         route,
         phase_index

@@ -1,0 +1,11 @@
+test_external_interpreter_is_rejected (test_standalone_bakers.StaticMembranePolicy.test_external_interpreter_is_rejected) ... ok
+test_flags_enforce_static_after_inherited_override (test_standalone_bakers.StaticMembranePolicy.test_flags_enforce_static_after_inherited_override) ... ok
+test_needed_filter_and_auxiliary_libraries_are_rejected (test_standalone_bakers.StaticMembranePolicy.test_needed_filter_and_auxiliary_libraries_are_rejected) ... ok
+test_nonexecutables_and_truncated_metadata_are_rejected (test_standalone_bakers.StaticMembranePolicy.test_nonexecutables_and_truncated_metadata_are_rejected) ... ok
+test_shell_and_python_enforce_the_same_encoded_flags (test_standalone_bakers.StaticMembranePolicy.test_shell_and_python_enforce_the_same_encoded_flags) ... ok
+test_static_exec_and_static_pie (test_standalone_bakers.StaticMembranePolicy.test_static_exec_and_static_pie) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.094s
+
+OK

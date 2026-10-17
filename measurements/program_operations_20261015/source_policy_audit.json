@@ -1,0 +1,282 @@
+{
+  "scope": "Live shell, Python, raw-ELF and idempotent emitters in G-mOMonadOS and Vox; frozen archives retain their historical content.",
+  "recipes": [
+    {
+      "path": "Vox/bake_factor.sh",
+      "sha256": "32c779d9df9dbe99809c17dca15372dfad8cee4f676edc998f8dd89a156763f6",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/bench.sh",
+      "sha256": "9fb414151f0fc2ac82cdb06a6da23132426ee056d6d3e89a8a1b85016f515237",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/eml_factor_one.sh",
+      "sha256": "97c4df95f34d476fe0635bb44e81bd3a498f3c3212949cbae69dbd353d363353",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/factor_2adic_membrane.sh",
+      "sha256": "cd0d5f2441fed24317e49578fcfaa68d79bf4453527015dba61fd241ca696949",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/factor_one.sh",
+      "sha256": "0c85e0edac7a9f2620c0381350e2044800ecf98c8f598be9f306cfda4fb47ea2",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/frame_factor_build.sh",
+      "sha256": "c5574081db572adbde610a9d75975bbb838b05b12a2c4c9c7725964efc07830a",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/glyph_membranes.sh",
+      "sha256": "4b7fbd421a1ae9288af372cc6e8811bada1e2b7900f4488441af22af88d1c0df",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/hyperstack_one.sh",
+      "sha256": "72805d00a8be0d83c9b10460b4d1fa4b0bf848432f7e394d79bed3aeedcd85be",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/membrane_one.sh",
+      "sha256": "e19ee35918e03429486531b0ac7fe86667bef99d3abe8cce2eb1dfdd43b7a00d",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/membrane_run_15.sh",
+      "sha256": "d51c0b7446c61edc7eadbf4f2958ae6f8bd11cf0a65df2a7096e053d865a8353",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/membrane_run_big.sh",
+      "sha256": "3ca5cd4616597e65811e963fee9a6bb8ebd229e865528bce7e5ded421383c18c",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/multi_membrane_one.sh",
+      "sha256": "dbd914c3a5927706ce68b96e7c973e2cb1323663063b29bd43eb8e28558fa0db",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/perfect_one.sh",
+      "sha256": "9fb00cc4347c374992f024526be46bb0e348e9ab7e8a76da51b60c142c97bd97",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/qft_circuit.sh",
+      "sha256": "6323d4a8a44cd86aa821289ebfa4f4f480aebcd38c921e93f6766d7079c7a36a",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/scripts/test_fixed_point_semiprime_baked.sh",
+      "sha256": "1083df816a3d37543b7dd4921b3239e9b6a2dc46074cb41310a45bb7ea3c57be",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/shor_one.sh",
+      "sha256": "2e694752f285a12eed1d26367d8aa78e9facf43986d0139855f9d107ca134572",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/toroidal_one.sh",
+      "sha256": "3fedab71ad34b6ba928b254cb82f3a644686216e487fb04317afd1b6d82fc021",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/vox_factor.sh",
+      "sha256": "05bb14fcc09beaad4a44ac22cb430aa07d7dcce660308099618d965024eb43ba",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/vox_membrane.sh",
+      "sha256": "10dbfbb83c105ea6e93007641eb8308c66d567cde207e7d49b3a5595990cd558",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/baked_case.py",
+      "sha256": "9d956ae1575343c1814d93733810217aa835e5dd8382f6c5f6b31e16fe664216",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/baked_phase_check.py",
+      "sha256": "656463f9f5e20e36acb50dcd384cbed158ec9cf2bea0c8968909638a7c8cc11c",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/factor_membrane_check.py",
+      "sha256": "8821306471d5e96ff7b3194f82571994b809c842a620100a2965dac3df53a98d",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/hsoa_membrane_check.py",
+      "sha256": "06a91618af344834d185ae13ae46db0402cad03ebe2d2a597ce5a956979d2b08",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/folded_quantum_pair_emit.py",
+      "sha256": "e9def7e107cb1b28ad9219df1b9e24abaf1427256a308b4d7f5137c63cb860d1",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/folded_quantum_scaling.py",
+      "sha256": "ce3c93eabb7b4a1b3c56f9c8c01f471e6966f9176c71f7ecc3366fdb325f8c50",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_imasm_bake.py",
+      "sha256": "8b8684055ed9a3f2535bba848e2195bab59deb80d20ce394f1783e38dfab6610",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_lane_diagnosis.py",
+      "sha256": "43e0fa4a5161fa6528d3c9826676af7773dfbbf87752cbf4f2a0b423accd51c0",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_native_carrier_emit.py",
+      "sha256": "60d6a7095fc23ae3e6daf1939665696da28efcedf7ee7c1769e50e26999165c5",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_replay_stress_run.py",
+      "sha256": "64b975d089c5232f8575d9ef0104a0363417accc70a4f848c384891176ad409f",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_rsa_imasm_bake.py",
+      "sha256": "bac6d31f593d6c45e15ffa9a520669f29db8597ee7ac1a76a99dd36a2bc183bc",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_rsa_native_run.py",
+      "sha256": "170b32a1f016a150c255b6c90f234ac09bd878e97b1adb1bde5ddecc3dc66ad9",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_rsa_run.py",
+      "sha256": "80dd9f397360fdefcb49be3ebc41953b4fb52a09071fcc1e7148b128df58d880",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/glut_stress_run.py",
+      "sha256": "98c60d326e17bf745e5849c56f67948ed615c3f05684c1f2a22b0d7f136b92a9",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/godel_baked_random_semiprime.py",
+      "sha256": "be8a1830f58c45dddab8f9ef286325cc16bc0a56ac4f539ffe7d5b792d7b03ef",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/random_rsa_fixtures.py",
+      "sha256": "5bae5453967e43196001a3bddd18bbc06eb4304e281decfd610ee3d1ee6288d9",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "Vox/measurements/structural_factor_oracle_emit.py",
+      "sha256": "aebe5745181884941ad3cd58a51d8a3d8bf3a121cf11289e40dc49660ae2bf86",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/bake_resident.sh",
+      "sha256": "b00e43b282b85fa47daa5834f512284a41e603503aa2d48596e14d55ed72159d",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/imasm_phase_factor_build.sh",
+      "sha256": "e7033960ade5eba7c94c978b69b3a3947a4953bda0e36dd4dca4ce4869859f03",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/make_membrane.sh",
+      "sha256": "ff8df3c243c8f293c81ff41c2678ab59f5b0a9d52a009d284102573d211d3d73",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/tools/bake_idempotent_cpu.sh",
+      "sha256": "0285c0c348b3b1d9d636c30fb0ff95a110b24e223e0e4b452148a184511d757c",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/tools/bake_recycled_phase.sh",
+      "sha256": "f7f933e98639ea8a2b4b5fe9802b0ac156647ccc1b4b4642f97b40948fcd1c69",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/vox_phase_factor_build.sh",
+      "sha256": "1ecc0a2fc94d092ce56b24e95161026a580d6e8213163e92a60cd66108d65be5",
+      "syntax": "bash-n",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/imasm_emit.py",
+      "sha256": "736ea7cd69966ac43a44e0ea0ab9814027cbe46bbb727d9ca36394ba35fa13c9",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/imasm_link.py",
+      "sha256": "97ff99230c7236ac99f3884dd0b96742c6edebee8f40ee3321382642f98c2b9c",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/prepare_ququart.py",
+      "sha256": "39c4ccd00684c25afd3ca9a4f9442076bb254ff4531b15967e9813dfe2a7d544",
+      "syntax": "python-ast",
+      "output_admission": true
+    },
+    {
+      "path": "G-mOMonadOS/src/idempotent_closure.rs",
+      "sha256": "493b19e004ac365ebfb0d038d40486620895c96f2b544f8c04569e48ca2620e5",
+      "syntax": "source-reviewed",
+      "output_admission": false
+    }
+  ],
+  "gpu_execution": false
+}

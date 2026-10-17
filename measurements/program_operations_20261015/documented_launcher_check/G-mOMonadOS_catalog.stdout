@@ -1,0 +1,2004 @@
+[
+  {
+    "name": "bin:anyon_cnot_compile",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/anyon_cnot_compile.rs",
+    "available": true,
+    "description": "Native local CNOT calibration; never supplies a phase readout or factors."
+  },
+  {
+    "name": "bin:anyon_generator",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/anyon_generator.rs",
+    "available": true,
+    "description": "Local socket service for source-bound ququart factor execution."
+  },
+  {
+    "name": "bin:anyon_stack_audit",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/anyon_stack_audit.rs",
+    "available": true,
+    "description": "Check transformed-state recovery through every prepared anyon stack stage."
+  },
+  {
+    "name": "bin:g-momonados",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/main.rs",
+    "available": true,
+    "description": "main.rs"
+  },
+  {
+    "name": "bin:godel",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/godel.rs",
+    "available": true,
+    "description": "godel.rs"
+  },
+  {
+    "name": "bin:imasm_phase_factor",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/imasm_phase_factor.rs",
+    "available": true,
+    "description": "A contained encoded numeral enters the resident IMASM arithmetic circuits."
+  },
+  {
+    "name": "bin:membrane",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/membrane.rs",
+    "available": true,
+    "description": "membrane.rs"
+  },
+  {
+    "name": "bin:membrane-factor",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/membrane_factor.rs",
+    "available": true,
+    "description": "Direct membrane factorization using the GLUT 2-adic running-product membrane."
+  },
+  {
+    "name": "bin:prime-tool",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/prime_tool.rs",
+    "available": true,
+    "description": "prime_tool.rs"
+  },
+  {
+    "name": "bin:qpe_semiprime_cases",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/qpe_semiprime_cases.rs",
+    "available": true,
+    "description": "Native semiprime fixtures with independently verifiable prime certificates."
+  },
+  {
+    "name": "bin:ququart_baked",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/ququart_baked.rs",
+    "available": true,
+    "description": "Source-bound Fourier membrane with one terminal readout."
+  },
+  {
+    "name": "bin:ququart_factor",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/ququart_factor.rs",
+    "available": true,
+    "description": "Standalone ququart phase factor extraction binary."
+  },
+  {
+    "name": "bin:ququart_factor_baked",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/ququart_factor_baked.rs",
+    "available": true,
+    "description": "Baked ququart phase measurements and G\u00f6del factor-product extraction."
+  },
+  {
+    "name": "bin:ququart_prepare_operator",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/ququart_prepare_operator.rs",
+    "available": true,
+    "description": "Preparation-time contraction of the complete physical Fourier braid."
+  },
+  {
+    "name": "bin:ququart_verify_readout",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/ququart_verify_readout.rs",
+    "available": true,
+    "description": "Replay terminal phase evidence without executing the factoring membrane."
+  },
+  {
+    "name": "bin:ququart_work_probe_baked",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/ququart_work_probe_baked.rs",
+    "available": true,
+    "description": "Source-only, baked probe of one phase digit on the full shared work register."
+  },
+  {
+    "name": "bin:resident_circuit_braid_probe",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/resident_circuit_braid_probe.rs",
+    "available": true,
+    "description": "Apply a certified dimension-two split/fuse operator to one N-only resident state."
+  },
+  {
+    "name": "bin:resident_factor_baked",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/resident_factor_baked.rs",
+    "available": true,
+    "description": "Trigger the static resident state prepared by Cargo."
+  },
+  {
+    "name": "bin:resident_frobenius_exact_probe",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/resident_frobenius_exact_probe.rs",
+    "available": true,
+    "description": "Audit exact adjugate recovery for the compiled circuit matrix on one N-only resident diagram."
+  },
+  {
+    "name": "bin:semiprime-tool",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/semiprime_tool.rs",
+    "available": true,
+    "description": "semiprime_tool.rs"
+  },
+  {
+    "name": "bin:sic-tool",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/sic_tool.rs",
+    "available": true,
+    "description": "sic_tool.rs"
+  },
+  {
+    "name": "bin:test_source_256",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/test_source_256.rs",
+    "available": true,
+    "description": "test_source_256.rs"
+  },
+  {
+    "name": "bin:vox_disasm_region",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/src/bin/vox_disasm_region.rs",
+    "available": true,
+    "description": "Decode a symbol-bounded ELF region with Vox's native decoder, including"
+  },
+  {
+    "name": "example:factor_phase_baked",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/factor_phase_baked.rs",
+    "available": true,
+    "description": "Silent prepared coherent pair measurement using the kernel interface."
+  },
+  {
+    "name": "example:factor_synthesis",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/factor_synthesis.rs",
+    "available": true,
+    "description": "Retained scheduling probe, separate from the shared-resident synthesis."
+  },
+  {
+    "name": "example:hadamard_retraction",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/hadamard_retraction.rs",
+    "available": true,
+    "description": "The Hadamard conjecture read as a winding retraction \u2014 the checks."
+  },
+  {
+    "name": "example:membrane_16744463",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/membrane_16744463.rs",
+    "available": true,
+    "description": "GENERATED by make_membrane.sh \u2014 do not edit by hand."
+  },
+  {
+    "name": "example:membrane_24067241928114400276743427938087228122449193727371390534074004100947",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/membrane_24067241928114400276743427938087228122449193727371390534074004100947.rs",
+    "available": true,
+    "description": "GENERATED by make_membrane.sh \u2014 do not edit by hand."
+  },
+  {
+    "name": "example:membrane_32132131313131",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/membrane_32132131313131.rs",
+    "available": true,
+    "description": "GENERATED by make_membrane.sh \u2014 do not edit by hand."
+  },
+  {
+    "name": "example:membrane_60491",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/membrane_60491.rs",
+    "available": true,
+    "description": "GENERATED by make_membrane.sh \u2014 do not edit by hand."
+  },
+  {
+    "name": "example:membrane_8051",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/membrane_8051.rs",
+    "available": true,
+    "description": "GENERATED by make_membrane.sh \u2014 do not edit by hand."
+  },
+  {
+    "name": "example:open_phase_readout",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/open_phase_readout.rs",
+    "available": true,
+    "description": "Compiled control for an open terminal on the whole-register phase circuit."
+  },
+  {
+    "name": "example:parse_tower",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/parse_tower.rs",
+    "available": true,
+    "description": "parse_tower.rs"
+  },
+  {
+    "name": "example:phase_unbraid_membrane",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/phase_unbraid_membrane.rs",
+    "available": true,
+    "description": "phase_unbraid_membrane.rs \u2014 the phase unbraider instantiated AS a"
+  },
+  {
+    "name": "example:resident_glut",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/resident_glut.rs",
+    "available": true,
+    "description": "Baked N-only instrument for one coherent factor/product/carry glut."
+  },
+  {
+    "name": "example:resident_native_readout",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/resident_native_readout.rs",
+    "available": true,
+    "description": "Inspect the baked carrier and execute two retained Y/clock operations."
+  },
+  {
+    "name": "example:resident_prepared",
+    "kind": "example",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/examples/resident_prepared.rs",
+    "available": true,
+    "description": "Trigger the self-contained resident membrane constructed by Cargo."
+  },
+  {
+    "name": "gpu_port/fold_probe/bin:fold_probe",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/gpu_port/fold_probe/src/main.rs",
+    "available": true,
+    "description": "main.rs"
+  },
+  {
+    "name": "gpu_port/spine_probe/bin:spine_probe",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/gpu_port/spine_probe/src/main.rs",
+    "available": true,
+    "description": "main.rs"
+  },
+  {
+    "name": "membranes/bin:aggregate_braider",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/aggregate_braider.rs",
+    "available": true,
+    "description": "aggregate_braider.rs"
+  },
+  {
+    "name": "membranes/bin:frobenius_braider",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/frobenius_braider.rs",
+    "available": true,
+    "description": "frobenius_braider.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_aggregate_phase",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/aggregate_phase.rs",
+    "available": true,
+    "description": "aggregate_phase.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_carry_fuse_closure",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/carry_fuse_closure.rs",
+    "available": true,
+    "description": "carry_fuse_closure.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_closed_divisor_search",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/closed_divisor_search.rs",
+    "available": true,
+    "description": "closed_divisor_search.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_ecm_extract",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/ecm_extract.rs",
+    "available": true,
+    "description": "ecm_extract.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_factor_separating_crossing",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/factor_separating_crossing.rs",
+    "available": true,
+    "description": "factor_separating_crossing.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_fixed_nested",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/fixed_nested.rs",
+    "available": true,
+    "description": "fixed_nested.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_frobenius_circuit",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/frobenius_circuit.rs",
+    "available": true,
+    "description": "frobenius_circuit.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_full_enfolding_nesting",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/full_enfolding_nesting.rs",
+    "available": true,
+    "description": "full_enfolding_nesting.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_fully_nested_phase",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/fully_nested_phase.rs",
+    "available": true,
+    "description": "fully_nested_phase.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_imscribing_factorizer",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/imscribing_factorizer.rs",
+    "available": true,
+    "description": "imscribing_factorizer.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_instant_nested_phase",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/instant_nested_phase.rs",
+    "available": true,
+    "description": "instant_nested_phase.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_instant_read",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/instant_read.rs",
+    "available": true,
+    "description": "instant_read.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_nested_instant_tower",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/nested_instant_tower.rs",
+    "available": true,
+    "description": "nested_instant_tower.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_phase_based",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/phase_based.rs",
+    "available": true,
+    "description": "phase_based.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_prime_inverse_braider",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/prime_inverse_braider.rs",
+    "available": true,
+    "description": "prime_inverse_braider.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_quantum_phase",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/quantum_phase.rs",
+    "available": true,
+    "description": "quantum_phase.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_radix4_factor",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/radix4_factor.rs",
+    "available": true,
+    "description": "radix4_factor.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_shor_order",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/shor_order.rs",
+    "available": true,
+    "description": "shor_order.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_squaring_cycle",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/squaring_cycle.rs",
+    "available": true,
+    "description": "squaring_cycle.rs"
+  },
+  {
+    "name": "membranes/bin:membrane_trilattice_native",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/trilattice_native.rs",
+    "available": true,
+    "description": "trilattice_native.rs"
+  },
+  {
+    "name": "membranes/bin:minimal_nested",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/minimal_nested.rs",
+    "available": true,
+    "description": "minimal_nested.rs"
+  },
+  {
+    "name": "membranes/bin:nested_braider",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/nested_braider.rs",
+    "available": true,
+    "description": "nested_braider.rs"
+  },
+  {
+    "name": "membranes/bin:nested_full_payload",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/nested_full_payload.rs",
+    "available": true,
+    "description": "nested_full_payload.rs"
+  },
+  {
+    "name": "membranes/bin:nested_payload_level1",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/nested_payload_level1.rs",
+    "available": true,
+    "description": "nested_payload_level1.rs"
+  },
+  {
+    "name": "membranes/bin:nested_payload_numeral",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/nested_payload_numeral.rs",
+    "available": true,
+    "description": "nested_payload_numeral.rs"
+  },
+  {
+    "name": "membranes/bin:nested_payload_v2",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/nested_payload_v2.rs",
+    "available": true,
+    "description": "nested_payload_v2.rs"
+  },
+  {
+    "name": "membranes/bin:phase_circuit",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/phase_circuit.rs",
+    "available": true,
+    "description": "phase_circuit.rs"
+  },
+  {
+    "name": "membranes/bin:proper_nested",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/proper_nested.rs",
+    "available": true,
+    "description": "proper_nested.rs"
+  },
+  {
+    "name": "membranes/bin:quantum_frobenius",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/quantum_frobenius.rs",
+    "available": true,
+    "description": "quantum_frobenius.rs"
+  },
+  {
+    "name": "membranes/bin:spec_nested",
+    "kind": "bin",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/membranes/src/bin/spec_nested.rs",
+    "available": true,
+    "description": "spec_nested.rs"
+  },
+  {
+    "name": "script:affine_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/affine_check.py",
+    "available": true,
+    "description": "LTE claim: with k = a + 2^j b and L = j+3, once 2L >= m,"
+  },
+  {
+    "name": "script:auto_factor_ququart.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/auto_factor_ququart.sh",
+    "available": true,
+    "description": "=============================================================================="
+  },
+  {
+    "name": "script:bake_resident.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/bake_resident.sh",
+    "available": true,
+    "description": "Bake an N-only IMASM source into a resident membrane executable."
+  },
+  {
+    "name": "script:bdd_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/bdd_check.py",
+    "available": true,
+    "description": "ROBDD node count of a boolean function given as a truth table (list of 0/1),"
+  },
+  {
+    "name": "script:bdd_push.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/bdd_push.py",
+    "available": true,
+    "description": "Efficient bottom-up ROBDD node count. tt: list of 0/1 length 2^n, index MSB=var0."
+  },
+  {
+    "name": "script:carrier_hadamard_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/carrier_hadamard_check.py",
+    "available": true,
+    "description": "The sixteen-value carrier IS P({T,F,t,f}), the powerset under symmetric"
+  },
+  {
+    "name": "script:closure_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/closure_check.py",
+    "available": true,
+    "description": "Verify the two exact closure laws along a phase orbit."
+  },
+  {
+    "name": "script:codebook_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/codebook_check.py",
+    "available": true,
+    "description": "codebook_check.py"
+  },
+  {
+    "name": "script:debug_ququart.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/debug_ququart.py",
+    "available": true,
+    "description": "debug_ququart.py"
+  },
+  {
+    "name": "script:derivation_image.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/derivation_image.py",
+    "available": true,
+    "description": "derivation_image.py"
+  },
+  {
+    "name": "script:divine.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/divine.py",
+    "available": true,
+    "description": "Candidate expressions in G and L (linear + quadratic, small coeffs)"
+  },
+  {
+    "name": "script:energy_probe.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/energy_probe.py",
+    "available": true,
+    "description": "energy_probe.py"
+  },
+  {
+    "name": "script:erdos_straus_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/erdos_straus_check.py",
+    "available": true,
+    "description": "Verify the paper's own mechanism directly: for n=193 (a listed frontier"
+  },
+  {
+    "name": "script:erdos_straus_frontier_closure.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/erdos_straus_frontier_closure.py",
+    "available": true,
+    "description": "Reaches the two rungs the price-zero paper's frontier cascade names as"
+  },
+  {
+    "name": "script:factor_relation_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/factor_relation_check.py",
+    "available": true,
+    "description": "factor_relation_check.py"
+  },
+  {
+    "name": "script:gen_cfg_viz.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/gen_cfg_viz.py",
+    "available": true,
+    "description": "Phase colors"
+  },
+  {
+    "name": "script:gen_dialect_torus.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/gen_dialect_torus.py",
+    "available": true,
+    "description": "Each entry: (name, phase, strictness, t_count, seq, desc)"
+  },
+  {
+    "name": "script:gen_kernel_torus.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/gen_kernel_torus.py",
+    "available": true,
+    "description": "gen_kernel_torus.py"
+  },
+  {
+    "name": "script:geometry_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/geometry_check.py",
+    "available": true,
+    "description": "geometry_check.py"
+  },
+  {
+    "name": "script:hensel_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/hensel_check.py",
+    "available": true,
+    "description": "Hensel sieve: requiring first r overflow bits of h=(PQ-N)/2^m to vanish"
+  },
+  {
+    "name": "script:holomorphic_semiotic_operator_algebra.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/holomorphic_semiotic_operator_algebra.py",
+    "available": true,
+    "description": "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+    "name": "script:hsoa_shor_state.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/hsoa_shor_state.py",
+    "available": true,
+    "description": "hsoa_shor_state.py"
+  },
+  {
+    "name": "script:imasm_asm.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/imasm_asm.py",
+    "available": true,
+    "description": "imasm_asm.py"
+  },
+  {
+    "name": "script:imasm_compile_all.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/imasm_compile_all.py",
+    "available": true,
+    "description": "The twelve marks. A line whose first field is one of these is an instruction;"
+  },
+  {
+    "name": "script:imasm_emit.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/imasm_emit.py",
+    "available": true,
+    "description": "imasm_emit.py"
+  },
+  {
+    "name": "script:imasm_link.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/imasm_link.py",
+    "available": true,
+    "description": "imasm_link.py"
+  },
+  {
+    "name": "script:imasm_phase_factor_build.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/imasm_phase_factor_build.sh",
+    "available": true,
+    "description": "imasm_phase_factor_build.sh"
+  },
+  {
+    "name": "script:make_membrane.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/make_membrane.sh",
+    "available": true,
+    "description": "make_membrane.sh \u2014 mint a phase-unbraid membrane: value baked in, no input."
+  },
+  {
+    "name": "script:make_proof_vehicle.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/make_proof_vehicle.sh",
+    "available": true,
+    "description": "make_proof_vehicle.sh \u2014 one emailable file carrying the OS, the QC surfaces,"
+  },
+  {
+    "name": "script:nested_banked_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/nested_banked_check.py",
+    "available": true,
+    "description": "nested_banked_check.py"
+  },
+  {
+    "name": "script:nested_composition_banked_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/nested_composition_banked_check.py",
+    "available": true,
+    "description": "nested_composition_banked_check.py"
+  },
+  {
+    "name": "script:nested_relation_depth_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/nested_relation_depth_check.py",
+    "available": true,
+    "description": "nested_relation_depth_check.py"
+  },
+  {
+    "name": "script:nested_relation_width_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/nested_relation_width_check.py",
+    "available": true,
+    "description": "nested_relation_width_check.py"
+  },
+  {
+    "name": "script:nested_selector_probe.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/nested_selector_probe.py",
+    "available": true,
+    "description": "nested_selector_probe.py"
+  },
+  {
+    "name": "script:nested_word_capacity_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/nested_word_capacity_check.py",
+    "available": true,
+    "description": "Working marks after the old boundary must execute. Also exercise the CPU's"
+  },
+  {
+    "name": "script:order12_winding_search.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/order12_winding_search.py",
+    "available": true,
+    "description": "Exhaustive search: does any bilinear/affine winding assignment mod 12,"
+  },
+  {
+    "name": "script:paley12_fix.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/paley12_fix.py",
+    "available": true,
+    "description": "paley12_fix.py"
+  },
+  {
+    "name": "script:paley12_winding.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/paley12_winding.py",
+    "available": true,
+    "description": "The Paley construction at order 12, built from p=11, and checked directly"
+  },
+  {
+    "name": "script:phase_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/phase_check.py",
+    "available": true,
+    "description": "Verify: odd residues mod 2^m = s(X) * 9^k uniquely; and phase-walk finds a factor."
+  },
+  {
+    "name": "script:phase_prefix.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/phase_prefix.py",
+    "available": true,
+    "description": "phase_prefix.py"
+  },
+  {
+    "name": "script:prepare_ququart.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/prepare_ququart.py",
+    "available": true,
+    "description": "prepare_ququart.py"
+  },
+  {
+    "name": "script:py/check_menu_coverage.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/check_menu_coverage.py",
+    "available": true,
+    "description": "check_menu_coverage.py"
+  },
+  {
+    "name": "script:py/dialect_cfg_viz_head.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/dialect_cfg_viz_head.py",
+    "available": true,
+    "description": "dialect_cfg_viz_head.py"
+  },
+  {
+    "name": "script:py/experiment_delta_s.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/experiment_delta_s.py",
+    "available": true,
+    "description": "experiment_delta_s.py"
+  },
+  {
+    "name": "script:py/fix_hardcodes.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/fix_hardcodes.py",
+    "available": true,
+    "description": "\u2500\u2500 1. Theorem \u2192 Catalog name mapping \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+    "name": "script:py/gen_cfg_dialect_viz.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/gen_cfg_dialect_viz.py",
+    "available": true,
+    "description": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+  },
+  {
+    "name": "script:py/generate_rust_catalog.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/generate_rust_catalog.py",
+    "available": true,
+    "description": "Shavian glyph \u2192 Rust IgPrim variant mapping"
+  },
+  {
+    "name": "script:py/patch_cfg_gates.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/patch_cfg_gates.py",
+    "available": true,
+    "description": "===== GATE MAP (matches dialect_expansion.rs patterns) ====="
+  },
+  {
+    "name": "script:py/shoot_cfg.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/py/shoot_cfg.py",
+    "available": true,
+    "description": "shoot_cfg.py"
+  },
+  {
+    "name": "script:random_prime_phase_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/random_prime_phase_check.py",
+    "available": true,
+    "description": "random_prime_phase_check.py"
+  },
+  {
+    "name": "script:reach_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/reach_check.py",
+    "available": true,
+    "description": "Verify: toggling phase bit i of k changes P only in bits >= i+3; lower bits of"
+  },
+  {
+    "name": "script:relation_nesting_diagram.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/relation_nesting_diagram.py",
+    "available": true,
+    "description": "Canonical k=0 word from fully_nested_phase_based_prime_factorization."
+  },
+  {
+    "name": "script:run.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/run.sh",
+    "available": true,
+    "description": "run.sh \u2014 build and run the G-mOMonadOS REPL."
+  },
+  {
+    "name": "script:run_cmds.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/run_cmds.sh",
+    "available": true,
+    "description": "run_cmds.sh \u2014 feed REPL commands to the G-mOMonadOS binary, non-interactive."
+  },
+  {
+    "name": "script:run_quit.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/run_quit.sh",
+    "available": true,
+    "description": "run_quit.sh \u2014 non-interactive G-mOMonadOS: feed commands, quit, print only results."
+  },
+  {
+    "name": "script:run_ququart_ladder.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/run_ququart_ladder.py",
+    "available": true,
+    "description": "run_ququart_ladder.py"
+  },
+  {
+    "name": "script:run_relation.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/run_relation.sh",
+    "available": true,
+    "description": "Execute one relation without entering the boot or REPL presentation layers."
+  },
+  {
+    "name": "script:run_tower_d2048.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/run_tower_d2048.sh",
+    "available": true,
+    "description": "Run one PARI tower distillation level for d=2048 (host-side; mOMonadOS banks results in d2048_sic.rs)"
+  },
+  {
+    "name": "script:scan_lean_census.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scan_lean_census.sh",
+    "available": true,
+    "description": "scan_lean_census.sh \u2014 bake the Lean corpus census into the kernel."
+  },
+  {
+    "name": "script:scripts/abc_champion_json_to_lean.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scripts/abc_champion_json_to_lean.py",
+    "available": true,
+    "description": "abc_champion_json_to_lean.py"
+  },
+  {
+    "name": "script:scripts/abc_json_to_certificate_manifest.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scripts/abc_json_to_certificate_manifest.py",
+    "available": true,
+    "description": "abc_json_to_certificate_manifest.py"
+  },
+  {
+    "name": "script:scripts/abc_json_to_lean_certificate.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scripts/abc_json_to_lean_certificate.py",
+    "available": true,
+    "description": "abc_json_to_lean_certificate.py"
+  },
+  {
+    "name": "script:scripts/patch2.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scripts/patch2.py",
+    "available": true,
+    "description": "1) Remove the slow string-based powmod_str, mod_str and is_prime_str."
+  },
+  {
+    "name": "script:scripts/patch3.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scripts/patch3.py",
+    "available": true,
+    "description": "\u2500\u2500 Replace the entire limb block (to_limbs through is_prime_limbs) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+    "name": "script:scripts/patch_prime_winding.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/scripts/patch_prime_winding.py",
+    "available": true,
+    "description": "--- 1. New helper block to insert just after div_small (line ~181) -------"
+  },
+  {
+    "name": "script:selector_curve_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/selector_curve_check.py",
+    "available": true,
+    "description": "selector_curve_check.py"
+  },
+  {
+    "name": "script:selector_joint_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/selector_joint_check.py",
+    "available": true,
+    "description": "selector_joint_check.py"
+  },
+  {
+    "name": "script:temporal_phase_relation_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/temporal_phase_relation_check.py",
+    "available": true,
+    "description": "temporal_phase_relation_check.py"
+  },
+  {
+    "name": "script:temporal_phase_scale_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/temporal_phase_scale_check.py",
+    "available": true,
+    "description": "temporal_phase_scale_check.py"
+  },
+  {
+    "name": "script:test_full_factor_pipeline.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/test_full_factor_pipeline.sh",
+    "available": true,
+    "description": "Feed only N to the production extractor; fixture factors are output oracles."
+  },
+  {
+    "name": "script:testvals_phase_check.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/testvals_phase_check.py",
+    "available": true,
+    "description": "testvals_phase_check.py"
+  },
+  {
+    "name": "script:tools/bake_idempotent_cpu.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/bake_idempotent_cpu.sh",
+    "available": true,
+    "description": "bake_idempotent_cpu.sh"
+  },
+  {
+    "name": "script:tools/bake_recycled_phase.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/bake_recycled_phase.sh",
+    "available": true,
+    "description": "bake_recycled_phase.sh"
+  },
+  {
+    "name": "script:tools/dimensional_arrangement.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/dimensional_arrangement.py",
+    "available": true,
+    "description": "dimensional_arrangement.py"
+  },
+  {
+    "name": "script:tools/frame_work.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/frame_work.py",
+    "available": true,
+    "description": "frame_work.py"
+  },
+  {
+    "name": "script:tools/frame_work_parity.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/frame_work_parity.py",
+    "available": true,
+    "description": "frame_work_parity.py"
+  },
+  {
+    "name": "script:tools/gdb_vox_snapshot.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/gdb_vox_snapshot.py",
+    "available": true,
+    "description": "gdb_vox_snapshot.py"
+  },
+  {
+    "name": "script:tools/gen_canonical_ig.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/gen_canonical_ig.py",
+    "available": true,
+    "description": "gen_canonical_ig.py"
+  },
+  {
+    "name": "script:tools/gen_catalog_subset.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/gen_catalog_subset.py",
+    "available": true,
+    "description": "gen_catalog_subset.py"
+  },
+  {
+    "name": "script:tools/lift_100.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_100.py",
+    "available": true,
+    "description": "lift_100.py"
+  },
+  {
+    "name": "script:tools/lift_101.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_101.py",
+    "available": true,
+    "description": "lift_101.py"
+  },
+  {
+    "name": "script:tools/lift_102.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_102.py",
+    "available": true,
+    "description": "lift_102.py"
+  },
+  {
+    "name": "script:tools/lift_102_landed.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_102_landed.py",
+    "available": true,
+    "description": "lift_102_landed.py"
+  },
+  {
+    "name": "script:tools/lift_103.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_103.py",
+    "available": true,
+    "description": "lift_103.py"
+  },
+  {
+    "name": "script:tools/lift_104.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_104.py",
+    "available": true,
+    "description": "lift_104.py"
+  },
+  {
+    "name": "script:tools/lift_105.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_105.py",
+    "available": true,
+    "description": "lift_105.py"
+  },
+  {
+    "name": "script:tools/lift_106.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_106.py",
+    "available": true,
+    "description": "lift_106.py"
+  },
+  {
+    "name": "script:tools/lift_107.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_107.py",
+    "available": true,
+    "description": "lift_107.py"
+  },
+  {
+    "name": "script:tools/lift_108.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_108.py",
+    "available": true,
+    "description": "lift_108.py"
+  },
+  {
+    "name": "script:tools/lift_109.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_109.py",
+    "available": true,
+    "description": "lift_109.py"
+  },
+  {
+    "name": "script:tools/lift_110.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_110.py",
+    "available": true,
+    "description": "lift_110.py"
+  },
+  {
+    "name": "script:tools/lift_110_landed.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_110_landed.py",
+    "available": true,
+    "description": "lift_110_landed.py"
+  },
+  {
+    "name": "script:tools/lift_111.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_111.py",
+    "available": true,
+    "description": "lift_111.py"
+  },
+  {
+    "name": "script:tools/lift_112.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_112.py",
+    "available": true,
+    "description": "lift_112.py"
+  },
+  {
+    "name": "script:tools/lift_113.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_113.py",
+    "available": true,
+    "description": "lift_113.py"
+  },
+  {
+    "name": "script:tools/lift_114.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_114.py",
+    "available": true,
+    "description": "lift_114.py"
+  },
+  {
+    "name": "script:tools/lift_115.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_115.py",
+    "available": true,
+    "description": "lift_115.py"
+  },
+  {
+    "name": "script:tools/lift_116.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_116.py",
+    "available": true,
+    "description": "lift_116.py"
+  },
+  {
+    "name": "script:tools/lift_117.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_117.py",
+    "available": true,
+    "description": "lift_117.py"
+  },
+  {
+    "name": "script:tools/lift_118.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_118.py",
+    "available": true,
+    "description": "lift_118.py"
+  },
+  {
+    "name": "script:tools/lift_119.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_119.py",
+    "available": true,
+    "description": "lift_119.py"
+  },
+  {
+    "name": "script:tools/lift_120.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_120.py",
+    "available": true,
+    "description": "lift_120.py"
+  },
+  {
+    "name": "script:tools/lift_121.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_121.py",
+    "available": true,
+    "description": "lift_121.py"
+  },
+  {
+    "name": "script:tools/lift_122.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_122.py",
+    "available": true,
+    "description": "lift_122.py"
+  },
+  {
+    "name": "script:tools/lift_123.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_123.py",
+    "available": true,
+    "description": "lift_123.py"
+  },
+  {
+    "name": "script:tools/lift_124.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_124.py",
+    "available": true,
+    "description": "lift_124.py"
+  },
+  {
+    "name": "script:tools/lift_125.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_125.py",
+    "available": true,
+    "description": "lift_125.py"
+  },
+  {
+    "name": "script:tools/lift_126.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_126.py",
+    "available": true,
+    "description": "lift_126.py"
+  },
+  {
+    "name": "script:tools/lift_127.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_127.py",
+    "available": true,
+    "description": "lift_127.py"
+  },
+  {
+    "name": "script:tools/lift_128.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_128.py",
+    "available": true,
+    "description": "lift_128.py"
+  },
+  {
+    "name": "script:tools/lift_129.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_129.py",
+    "available": true,
+    "description": "lift_129.py"
+  },
+  {
+    "name": "script:tools/lift_130.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_130.py",
+    "available": true,
+    "description": "lift_130.py"
+  },
+  {
+    "name": "script:tools/lift_131.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_131.py",
+    "available": true,
+    "description": "lift_131.py"
+  },
+  {
+    "name": "script:tools/lift_132.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_132.py",
+    "available": true,
+    "description": "lift_132.py"
+  },
+  {
+    "name": "script:tools/lift_133.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_133.py",
+    "available": true,
+    "description": "lift_133.py"
+  },
+  {
+    "name": "script:tools/lift_134.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_134.py",
+    "available": true,
+    "description": "lift_134.py"
+  },
+  {
+    "name": "script:tools/lift_135.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_135.py",
+    "available": true,
+    "description": "lift_135.py"
+  },
+  {
+    "name": "script:tools/lift_136.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_136.py",
+    "available": true,
+    "description": "lift_136.py"
+  },
+  {
+    "name": "script:tools/lift_137.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_137.py",
+    "available": true,
+    "description": "lift_137.py"
+  },
+  {
+    "name": "script:tools/lift_138.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_138.py",
+    "available": true,
+    "description": "lift_138.py"
+  },
+  {
+    "name": "script:tools/lift_139.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_139.py",
+    "available": true,
+    "description": "lift_139.py"
+  },
+  {
+    "name": "script:tools/lift_140.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_140.py",
+    "available": true,
+    "description": "lift_140.py"
+  },
+  {
+    "name": "script:tools/lift_141_150.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_141_150.py",
+    "available": true,
+    "description": "---------------------------------------------------------------------------"
+  },
+  {
+    "name": "script:tools/lift_151_160.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_151_160.py",
+    "available": true,
+    "description": "lift_151_160.py"
+  },
+  {
+    "name": "script:tools/lift_161_170.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_161_170.py",
+    "available": true,
+    "description": "lift_161_170.py"
+  },
+  {
+    "name": "script:tools/lift_171_180.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_171_180.py",
+    "available": true,
+    "description": "lift_171_180.py"
+  },
+  {
+    "name": "script:tools/lift_181_190.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_181_190.py",
+    "available": true,
+    "description": "---------------------------------------------------------------------------"
+  },
+  {
+    "name": "script:tools/lift_191_200.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_191_200.py",
+    "available": true,
+    "description": "lift_191_200.py"
+  },
+  {
+    "name": "script:tools/lift_201_210.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_201_210.py",
+    "available": true,
+    "description": "lift_201_210.py"
+  },
+  {
+    "name": "script:tools/lift_211_250.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_211_250.py",
+    "available": true,
+    "description": "lift_211_250.py"
+  },
+  {
+    "name": "script:tools/lift_251_300.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_251_300.py",
+    "available": true,
+    "description": "lift_251_300.py"
+  },
+  {
+    "name": "script:tools/lift_316_330.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_316_330.py",
+    "available": true,
+    "description": "lift_316_330.py"
+  },
+  {
+    "name": "script:tools/lift_331_350.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_331_350.py",
+    "available": true,
+    "description": "lift_331_350.py"
+  },
+  {
+    "name": "script:tools/lift_34.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_34.py",
+    "available": true,
+    "description": "---- sigma: the structural observation ------------------------------------"
+  },
+  {
+    "name": "script:tools/lift_35.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_35.py",
+    "available": true,
+    "description": "lift_35.py"
+  },
+  {
+    "name": "script:tools/lift_36.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_36.py",
+    "available": true,
+    "description": "lift_36.py"
+  },
+  {
+    "name": "script:tools/lift_37.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_37.py",
+    "available": true,
+    "description": "lift_37.py"
+  },
+  {
+    "name": "script:tools/lift_38.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_38.py",
+    "available": true,
+    "description": "lift_38.py"
+  },
+  {
+    "name": "script:tools/lift_39.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_39.py",
+    "available": true,
+    "description": "lift_39.py"
+  },
+  {
+    "name": "script:tools/lift_40.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_40.py",
+    "available": true,
+    "description": "lift_40.py"
+  },
+  {
+    "name": "script:tools/lift_41.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_41.py",
+    "available": true,
+    "description": "lift_41.py"
+  },
+  {
+    "name": "script:tools/lift_42.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_42.py",
+    "available": true,
+    "description": "lift_42.py"
+  },
+  {
+    "name": "script:tools/lift_43.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_43.py",
+    "available": true,
+    "description": "lift_43.py"
+  },
+  {
+    "name": "script:tools/lift_44.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_44.py",
+    "available": true,
+    "description": "lift_44.py"
+  },
+  {
+    "name": "script:tools/lift_45.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_45.py",
+    "available": true,
+    "description": "lift_45.py"
+  },
+  {
+    "name": "script:tools/lift_46.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_46.py",
+    "available": true,
+    "description": "lift_46.py"
+  },
+  {
+    "name": "script:tools/lift_47.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_47.py",
+    "available": true,
+    "description": "lift_47.py"
+  },
+  {
+    "name": "script:tools/lift_48.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_48.py",
+    "available": true,
+    "description": "lift_48.py"
+  },
+  {
+    "name": "script:tools/lift_49.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_49.py",
+    "available": true,
+    "description": "lift_49.py"
+  },
+  {
+    "name": "script:tools/lift_50.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_50.py",
+    "available": true,
+    "description": "lift_50.py"
+  },
+  {
+    "name": "script:tools/lift_51.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_51.py",
+    "available": true,
+    "description": "lift_51.py"
+  },
+  {
+    "name": "script:tools/lift_52.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_52.py",
+    "available": true,
+    "description": "lift_52.py"
+  },
+  {
+    "name": "script:tools/lift_53.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_53.py",
+    "available": true,
+    "description": "lift_53.py"
+  },
+  {
+    "name": "script:tools/lift_54.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_54.py",
+    "available": true,
+    "description": "lift_54.py"
+  },
+  {
+    "name": "script:tools/lift_55.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_55.py",
+    "available": true,
+    "description": "lift_55.py"
+  },
+  {
+    "name": "script:tools/lift_56.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_56.py",
+    "available": true,
+    "description": "lift_56.py"
+  },
+  {
+    "name": "script:tools/lift_57.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_57.py",
+    "available": true,
+    "description": "lift_57.py"
+  },
+  {
+    "name": "script:tools/lift_58.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_58.py",
+    "available": true,
+    "description": "lift_58.py"
+  },
+  {
+    "name": "script:tools/lift_59.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_59.py",
+    "available": true,
+    "description": "lift_59.py"
+  },
+  {
+    "name": "script:tools/lift_60.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_60.py",
+    "available": true,
+    "description": "lift_60.py"
+  },
+  {
+    "name": "script:tools/lift_61.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_61.py",
+    "available": true,
+    "description": "lift_61.py"
+  },
+  {
+    "name": "script:tools/lift_62.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_62.py",
+    "available": true,
+    "description": "lift_62.py"
+  },
+  {
+    "name": "script:tools/lift_63.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_63.py",
+    "available": true,
+    "description": "lift_63.py"
+  },
+  {
+    "name": "script:tools/lift_64.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_64.py",
+    "available": true,
+    "description": "lift_64.py"
+  },
+  {
+    "name": "script:tools/lift_65.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_65.py",
+    "available": true,
+    "description": "lift_65.py"
+  },
+  {
+    "name": "script:tools/lift_66.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_66.py",
+    "available": true,
+    "description": "lift_66.py"
+  },
+  {
+    "name": "script:tools/lift_67.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_67.py",
+    "available": true,
+    "description": "lift_67.py"
+  },
+  {
+    "name": "script:tools/lift_68.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_68.py",
+    "available": true,
+    "description": "lift_68.py"
+  },
+  {
+    "name": "script:tools/lift_69.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_69.py",
+    "available": true,
+    "description": "lift_69.py"
+  },
+  {
+    "name": "script:tools/lift_70.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_70.py",
+    "available": true,
+    "description": "lift_70.py"
+  },
+  {
+    "name": "script:tools/lift_71.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_71.py",
+    "available": true,
+    "description": "lift_71.py"
+  },
+  {
+    "name": "script:tools/lift_72.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_72.py",
+    "available": true,
+    "description": "lift_72.py"
+  },
+  {
+    "name": "script:tools/lift_73.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_73.py",
+    "available": true,
+    "description": "lift_73.py"
+  },
+  {
+    "name": "script:tools/lift_74.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_74.py",
+    "available": true,
+    "description": "lift_74.py"
+  },
+  {
+    "name": "script:tools/lift_75.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_75.py",
+    "available": true,
+    "description": "lift_75.py"
+  },
+  {
+    "name": "script:tools/lift_76.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_76.py",
+    "available": true,
+    "description": "Post-step register values from native `vox sixteen3 check`."
+  },
+  {
+    "name": "script:tools/lift_77.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_77.py",
+    "available": true,
+    "description": "lift_77.py"
+  },
+  {
+    "name": "script:tools/lift_78.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_78.py",
+    "available": true,
+    "description": "lift_78.py"
+  },
+  {
+    "name": "script:tools/lift_80.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_80.py",
+    "available": true,
+    "description": "lift_80.py"
+  },
+  {
+    "name": "script:tools/lift_81.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_81.py",
+    "available": true,
+    "description": "lift_81.py"
+  },
+  {
+    "name": "script:tools/lift_82.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_82.py",
+    "available": true,
+    "description": "lift_82.py"
+  },
+  {
+    "name": "script:tools/lift_83.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_83.py",
+    "available": true,
+    "description": "lift_83.py"
+  },
+  {
+    "name": "script:tools/lift_84.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_84.py",
+    "available": true,
+    "description": "lift_84.py"
+  },
+  {
+    "name": "script:tools/lift_85.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_85.py",
+    "available": true,
+    "description": "lift_85.py"
+  },
+  {
+    "name": "script:tools/lift_86.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_86.py",
+    "available": true,
+    "description": "lift_86.py"
+  },
+  {
+    "name": "script:tools/lift_87.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_87.py",
+    "available": true,
+    "description": "name, raw, final, cleared, restored"
+  },
+  {
+    "name": "script:tools/lift_88.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_88.py",
+    "available": true,
+    "description": "lift_88.py"
+  },
+  {
+    "name": "script:tools/lift_89.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_89.py",
+    "available": true,
+    "description": "lift_89.py"
+  },
+  {
+    "name": "script:tools/lift_90.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_90.py",
+    "available": true,
+    "description": "lift_90.py"
+  },
+  {
+    "name": "script:tools/lift_91.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_91.py",
+    "available": true,
+    "description": "lift_91.py"
+  },
+  {
+    "name": "script:tools/lift_92.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_92.py",
+    "available": true,
+    "description": "lift_92.py"
+  },
+  {
+    "name": "script:tools/lift_93.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_93.py",
+    "available": true,
+    "description": "lift_93.py"
+  },
+  {
+    "name": "script:tools/lift_94.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_94.py",
+    "available": true,
+    "description": "lift_94.py"
+  },
+  {
+    "name": "script:tools/lift_95.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_95.py",
+    "available": true,
+    "description": "lift_95.py"
+  },
+  {
+    "name": "script:tools/lift_96.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_96.py",
+    "available": true,
+    "description": "lift_96.py"
+  },
+  {
+    "name": "script:tools/lift_96_landed.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_96_landed.py",
+    "available": true,
+    "description": "lift_96_landed.py"
+  },
+  {
+    "name": "script:tools/lift_97.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_97.py",
+    "available": true,
+    "description": "lift_97.py"
+  },
+  {
+    "name": "script:tools/lift_98.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_98.py",
+    "available": true,
+    "description": "lift_98.py"
+  },
+  {
+    "name": "script:tools/lift_98_landed.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_98_landed.py",
+    "available": true,
+    "description": "lift_98_landed.py"
+  },
+  {
+    "name": "script:tools/lift_99.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_99.py",
+    "available": true,
+    "description": "lift_99.py"
+  },
+  {
+    "name": "script:tools/lift_fork.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_fork.py",
+    "available": true,
+    "description": "---- partial vs total -----------------------------------------------------"
+  },
+  {
+    "name": "script:tools/lift_reentry.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/lift_reentry.py",
+    "available": true,
+    "description": "lift_reentry.py"
+  },
+  {
+    "name": "script:tools/measure_recycled_qpe.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/measure_recycled_qpe.py",
+    "available": true,
+    "description": "measure_recycled_qpe.py"
+  },
+  {
+    "name": "script:tools/native_profile_summary.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/native_profile_summary.py",
+    "available": true,
+    "description": "native_profile_summary.py"
+  },
+  {
+    "name": "script:tools/probe_78.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/probe_78.py",
+    "available": true,
+    "description": "probe_78.py"
+  },
+  {
+    "name": "script:tools/probe_78_v2.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/probe_78_v2.py",
+    "available": true,
+    "description": "probe_78_v2.py"
+  },
+  {
+    "name": "script:tools/rewire_fold_cadence.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/rewire_fold_cadence.py",
+    "available": true,
+    "description": "rewire_fold_cadence.py"
+  },
+  {
+    "name": "script:tools/stage_151_160_run.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/stage_151_160_run.sh",
+    "available": true,
+    "description": "stage_151_160_run.sh"
+  },
+  {
+    "name": "script:tools/stage_316_330_run.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/stage_316_330_run.sh",
+    "available": true,
+    "description": "stage_316_330_run.sh"
+  },
+  {
+    "name": "script:tools/test_vox_binary_rewire.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/test_vox_binary_rewire.py",
+    "available": true,
+    "description": "test_vox_binary_rewire.py"
+  },
+  {
+    "name": "script:tools/vox_binary_rewire.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/vox_binary_rewire.py",
+    "available": true,
+    "description": "vox_binary_rewire.py"
+  },
+  {
+    "name": "script:tools/vox_guest_unwind.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/tools/vox_guest_unwind.py",
+    "available": true,
+    "description": "vox_guest_unwind.py"
+  },
+  {
+    "name": "script:verify_ququart_membrane.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/verify_ququart_membrane.py",
+    "available": true,
+    "description": "verify_ququart_membrane.py"
+  },
+  {
+    "name": "script:vox_phase_factor_build.sh",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/vox_phase_factor_build.sh",
+    "available": true,
+    "description": "vox_phase_factor_build.sh"
+  },
+  {
+    "name": "script:word_tuple_model.py",
+    "kind": "script",
+    "source": "/home/mrnob0dy666/imsgct/G-mOMonadOS/word_tuple_model.py",
+    "available": true,
+    "description": "word_tuple_model.py"
+  }
+]

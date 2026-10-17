@@ -1,6 +1,0 @@
-rewired 160122 instructions in 6010 functions
-Frobenius wiring: 16887 closed, 0 open; arm-entry work witness: 16885/16887
-coverage: 683806/683806 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 4789
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/toroidal_shot_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/toroidal_shot_cli.rewired.json.gz)

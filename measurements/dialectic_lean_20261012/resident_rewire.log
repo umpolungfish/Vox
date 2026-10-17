@@ -1,6 +1,0 @@
-rewired 86420 instructions in 4070 functions
-Frobenius wiring: 8453 closed, 0 open; arm-entry work witness: 8451/8453
-coverage: 347358/347358 bytes; opaque bytes: 8; unresolved transfers: 5; symbolic transfers preserved: 1746
-Diagrammar: Vox/measurements/dialectic_lean_20261012/resident_rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (Vox/measurements/dialectic_lean_20261012/resident_rewired.json.gz)

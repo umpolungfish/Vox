@@ -9,7 +9,7 @@
 # Usage: ./sweep_binaries.sh OUT.bin ROOT [ROOT...]
 #        ./sweep_binaries.sh MicrosoftMega.bin /mnt/c/Windows/SystemApps
 set -uo pipefail
-VOX="$(cd "$(dirname "$0")" && pwd)/target/release/vox"
+VOX="$(cd "$(dirname "$0")" && pwd)/target/x86_64-unknown-linux-musl/release/vox"
 OUT="${1:?usage: sweep_binaries.sh OUT.bin ROOT [ROOT...]}"; shift
 [ -x "$VOX" ] || { echo "no vox at $VOX — cargo build --release first" >&2; exit 1; }
 

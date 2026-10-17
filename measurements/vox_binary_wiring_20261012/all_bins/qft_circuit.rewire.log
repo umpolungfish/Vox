@@ -1,6 +1,0 @@
-rewired 67863 instructions in 3131 functions
-Frobenius wiring: 6525 closed, 0 open; arm-entry work witness: 6523/6525
-coverage: 268412/268412 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1066
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/qft_circuit.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/qft_circuit.rewired.json.gz)

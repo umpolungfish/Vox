@@ -17,7 +17,43 @@ vox self
 vox pyc module.pyc
 ```
 
+## Operating programs
+
+Start with `./programs` for help or `./programs menu` to choose a program
+interactively. The launcher lists programs, reads their usage, builds the selected
+Rust target and runs it without requiring a driver script.
+
+```bash
+./programs list
+./programs list --all phase
+./programs bake --list
+./programs doctor
+```
+
+Use `./programs help NAME` before `./programs run NAME [arguments]`.
+`./programs cli --help` shows the main command interface.
+See [Operating programs](USER_GUIDE.md#operating-programs) for tested commands,
+input formats, baking, output paths and stopping execution.
+
 ## Build and run
+
+Hosted workspace builds default to standalone executables with statically linked
+Rust dependencies and C runtime, configured in `.cargo/config.toml`.
+The default Linux output is `target/x86_64-unknown-linux-musl/release/vox`
+(statically-linked static-pie). Membrane inputs, prepared state and required
+computational assets belong inside the emitted executable. Platform GPU drivers
+remain a hardware interface.
+
+Every live membrane baker must emit a static, self-contained native executable by
+default. Bakers check the resulting ELF and reject an external interpreter or
+shared-library dependency. Source words and prepared records are build inputs;
+the emitted image contains them. IMASM and glyph files remain available as
+additional executable serializations.
+
+Ordinary one-shot wrappers print the executable path after baking. Set
+`MEMBRANE_RUN=1` to run those outputs immediately; Shor and toroidal wrappers
+retain their explicit `--run` option. See the [user guide](USER_GUIDE.md#baked-membranes)
+and [complete baker policy and inventory](../ig-docs/membrane_bakers_static_20261015.md).
 
 Complete executable [glyph-only membrane words](membranes/glyphs/README.md) are
 available alongside the annotated modules. `vox run file.glyphs` executes them;
@@ -59,6 +95,24 @@ sum of carry values. The exact identity is
 `sum(carry_out[k]) = popcount(p) * popcount(q) - popcount(N)`; the difference
 `popcount(N) - popcount(p) - popcount(q)` is not a carry count. Per-input
 period and cut residuals are reported as measured values for each input.
+
+## Lean Kernel Integration
+
+Vox integrates with the Lean 4 kernel through the `lean_kernel` bridge module, exposing two Lean functions for resident factor synthesis:
+
+**Oscillation Clock:**
+```lean
+resident_clock : UInt64 → UInt8 → (UInt8 × Bool)
+-- ticks → state → (new_state, is_reverse)
+```
+
+**Y-combinator Decision:**
+```lean
+resident_y_combinator : String → String
+-- "state ticks forward_calls" → "1" (continue) | "0" (done)
+```
+
+These are invoked via `lean_kernel::run_to` from the `resident_glut` module for resident factor synthesis with unrestricted Y-combinator, Spencer Brown re-entry, and oscillation dynamics.
 
 ## Verdicts and B-cost
 
