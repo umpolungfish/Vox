@@ -3,14 +3,14 @@
 On RSA-100..260 we have p, q; on 270+ we don't. So the checks here are all
 factor-revealing on their own — any non-trivial gcd with N, any exact square
 relation, any clean k in N = k*A*B is a candidate."""
-import re, subprocess, sys
+import os, re, subprocess, sys
 from math import gcd, isqrt
 
 VOX = "/home/mrnob0dy666/imsgct/Vox"
 TIMEOUT = 900  # generous; depth-2 runs at ~3 s, so this is pure safety
 
 def run(n):
-    return subprocess.check_output(["./perfect_one.sh", str(n), "2"],
+    return subprocess.check_output(["./perfect_one.sh", str(n), "2"], env=dict(os.environ, MEMBRANE_RUN="1"),
                                    cwd=VOX, text=True, timeout=TIMEOUT)
 
 def parse(out):

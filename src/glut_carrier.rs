@@ -11,9 +11,17 @@ pub struct PreparedGlutMembrane {
     collapsed: Vec<char>,
     body: Vec<(char, Option<Port>)>,
     resident: Rc<RefCell<Resident>>,
+    returned: Option<crate::phase_word::Readout<Rc<RefCell<Resident>>>>,
 }
-impl PreparedGlutMembrane {
-    pub fn prepare(n: &[char]) -> Result<Self, String> {
+/// The canonical component wiring, shared by resident preparation and device
+/// compilation. Building this program performs no factor production.
+pub struct GlutComponentProgram {
+    pub nested: Vec<char>,
+    pub collapsed: Vec<char>,
+    body: Vec<(char, Option<Port>)>,
+}
+impl GlutComponentProgram {
+    pub fn compile() -> Result<Self, String> {
         // Skin -> GLUT -> component protocols. Consume each component's source
         // and terminal ports; retain its work and dyad inside the GLUT frame.
         let mut nested: Vec<char> = "⊢∈∈".chars().collect();
@@ -49,7 +57,7 @@ impl PreparedGlutMembrane {
         if !open.is_empty() || !overfused.is_empty() {
             return Err("assembled GLUT protocol has unmatched boundaries".into());
         }
-        let collapsed = crate::fixed_point_hypernest::collapse_to_nested(&nested);
+        let collapsed = crate::fixed_point_hypernest::collapse_for_execution(&nested);
         let mut expected: Vec<char> = "⊢∈".chars().collect();
         expected.extend(body.iter().map(|&(mark, _)| mark));
         expected.extend("∋⊡⊣".chars());
@@ -60,8 +68,19 @@ impl PreparedGlutMembrane {
             nested,
             collapsed,
             body,
-            resident: Rc::new(RefCell::new(Resident::new(n, |_| {}))),
         })
+    }
+    /// Bindings are body addresses and original Port constructor indices.
+    pub fn component_bindings(&self) -> Vec<(usize, u32)> {
+        self.body.iter().enumerate().filter_map(|(address, &(_, port))|
+            port.map(|port|(address,port as u32))).collect()
+    }
+}
+impl PreparedGlutMembrane {
+    pub fn prepare(n: &[char]) -> Result<Self, String> {
+        let program=GlutComponentProgram::compile()?;
+        Ok(Self {nested:program.nested,collapsed:program.collapsed,body:program.body,
+            resident:Rc::new(RefCell::new(Resident::new(n, |_| {}))),returned:None})
     }
     pub fn nested_word(&self) -> &[char] {
         &self.nested
@@ -74,6 +93,17 @@ impl PreparedGlutMembrane {
     pub fn advance(&mut self) -> bool {
         self.advance_observed(|_| {})
     }
+    /// Execute the existing first component on the same resident object.
+    pub fn advance_frames(&mut self) -> Option<super::GlutFrameObservation> {
+        let mut resident = self.resident.borrow_mut();
+        resident.activate_frames(|_| {});
+        resident.frame_observation()
+    }
+    /// Execute the Square component with the work assigned by Frames, retaining
+    /// its phase state and any emitted pair in the same resident register.
+    pub fn advance_square_observed(&mut self, observe: impl FnMut(&super::FoldStats)) {
+        self.resident.borrow_mut().activate_square(observe);
+    }
     pub fn advance_observed(&mut self, mut observe: impl FnMut(&super::FoldStats)) -> bool {
         let mut resident = self.resident.borrow_mut();
         for port in Port::ORDER {
@@ -81,11 +111,19 @@ impl PreparedGlutMembrane {
         }
         resident.finished() && resident.quantum_phase_closed()
     }
-    pub fn execute(self) -> Result<Option<GlutExecution>, String> {
+    pub fn execute(mut self) -> Result<Option<GlutExecution>, String> {
+        self.execute_retained()
+    }
+    /// Keep the complete resident object and its enclosing observations after
+    /// readout. Re-reading a closed return does not run its components again.
+    pub fn execute_retained(&mut self) -> Result<Option<GlutExecution>, String> {
+        if self.returned.is_some() {
+            return Ok(self.resident.borrow().execution());
+        }
         let binding = Rc::new(Cell::new(None));
         let address = Rc::new(Cell::new(None));
         let walk = CarrierWalk {
-            body: self.body,
+            body: self.body.clone(),
             position: 0,
             prefix: 0,
             tail: None,
@@ -118,14 +156,31 @@ impl PreparedGlutMembrane {
         {
             return Err("GLUT return changed its resident register".into());
         }
-        let mut resident = self.resident.borrow_mut();
+        let resident = self.resident.borrow();
         if !resident.finished() {
             return Err("GLUT fused before its verification return".into());
         }
         if !resident.quantum_phase_closed() {
             return Err("GLUT fused before its quantum factor-phase return".into());
         }
-        Ok(resident.take_execution())
+        let execution = resident.execution();
+        drop(resident);
+        self.returned = Some(returned);
+        Ok(execution)
+    }
+    /// Deposit IDs, lane supports and actual resident addresses at readout.
+    pub fn retained_readout(&self) -> Option<crate::phase_word::Readout<usize>> {
+        let read = self.returned.as_ref()?;
+        Some(crate::phase_word::Readout {
+            register: read.register,
+            surviving: read.surviving.iter().map(|deposit| crate::phase_word::Deposit {
+                id: deposit.id, lane: deposit.lane,
+                observation: Rc::as_ptr(&deposit.observation) as usize,
+            }).collect(),
+            cleared: read.cleared, restored: read.restored, exposed: read.exposed,
+            deposits: read.deposits, seeded: read.seeded, inert: read.inert,
+            restore_supports: read.restore_supports.clone(),
+        })
     }
 }
 
@@ -172,6 +227,33 @@ impl Iterator for CarrierWalk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn retained_gpu_emission_keeps_its_register_and_observations_after_readout() {
+        // Post-production control from the retained 200-bit CUDA emission in
+        // membrane_gpu_wiring_20261013/gpu_receipt.json. No producer runs here.
+        let tape = |s| crate::morphism_factor::decimal_to_tape(s).unwrap();
+        let n = tape("752801617958890719975170228002419627780316816610845271542051");
+        let p = tape("867641410929014337335571954827");
+        let q = tape("867641410929014337335571955913");
+        let mut prepared = PreparedGlutMembrane::prepare(&n).unwrap();
+        let resident = prepared.resident.clone();
+        resident.borrow_mut().accept_emitted_pair_for_return_test(p.clone(), q.clone());
+        let first = prepared.execute_retained().unwrap().unwrap();
+        let read = prepared.retained_readout().unwrap();
+        assert_eq!((first.p.clone(), first.q.clone()), (p, q));
+        assert_eq!(read.exposed, 0);
+        assert!(!read.surviving.is_empty());
+        assert_eq!(read.surviving.iter().fold(0, |mask, d| mask | d.lane), read.register);
+        assert!(read.surviving.iter().all(|d| d.observation == Rc::as_ptr(&resident) as usize));
+        assert_eq!(resident.borrow().source(), n);
+        assert_eq!(resident.borrow().execution(), Some(first.clone()));
+        assert_eq!(prepared.execute_retained().unwrap(), Some(first));
+        let repeated = prepared.retained_readout().unwrap();
+        assert_eq!(read.surviving, repeated.surviving);
+        assert_eq!(read.restored, repeated.restored);
+        assert_eq!(read.restore_supports, repeated.restore_supports);
+        assert!(Rc::ptr_eq(&resident, &prepared.resident));
+    }
     #[test]
     fn random_2048_source_is_resident_in_the_component_derived_carrier() {
         let n = crate::morphism_factor::parse_numeral(

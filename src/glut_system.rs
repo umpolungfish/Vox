@@ -43,6 +43,63 @@ pub use fold::FoldStats;
 #[path = "glut_carrier.rs"]
 mod carrier;
 pub use carrier::PreparedGlutMembrane;
+pub use carrier::GlutComponentProgram;
+
+/// Readback of the resident evaluation-frame coordinates.
+pub struct GlutFrameObservation {
+    pub boundary: Vec<char>,
+    pub multiplier: Vec<char>,
+    pub base: Vec<char>,
+    pub phase: Vec<char>,
+    pub phase_entries: usize,
+}
+
+/// Prepared multiplier relation for a device interpreter. Shared cell IDs
+/// retain factor, product and carry correlations; masks hold both alternatives
+/// until propagation or a retained decision frame restricts them.
+pub struct DeviceCorrelation {
+    pub gates: Vec<DeviceCorrelationGate>,
+    pub masks: Vec<u32>,
+    pub p: Vec<usize>,
+    pub q: Vec<usize>,
+    pub empty: bool,
+    pub parity: Vec<(Vec<usize>, bool)>,
+    /// (factor width, cofactor width, shared selector cell) in source order.
+    pub admission: Vec<(usize, usize, usize)>,
+    /// Shared square coordinates: a^2 = N+b^2, p+b=a and a+b=q.
+    pub midpoint: Vec<usize>,
+    pub gap: Vec<usize>,
+}
+pub struct DeviceCorrelationGate {
+    pub cells: Vec<usize>,
+    pub supports: Vec<[u8; 2]>,
+    pub all: u8,
+}
+
+/// Preparation exports the existing nested construction before any decision
+/// or candidate-producing advance. Only N determines its source constraints.
+pub fn prepare_device_correlation(n:&[char])->DeviceCorrelation {
+    fold::device_correlation(n)
+}
+
+/// The Admission component alone, compiled from source-derived geometries.
+/// The same bound selectors are included in the complete nested relation.
+pub fn prepare_device_admission(n:&[char])->DeviceCorrelation {
+    fold::device_admission(n)
+}
+
+/// Reference for the device Masks interval operation. This only intersects
+/// existing supports; it never advances a factor decision or enumerates pairs.
+pub fn device_mask_interval_step(n:&[char],p:&[u32],q:&[u32])
+ ->Option<(Vec<u32>,Vec<u32>)> {
+    fold::device_mask_interval_step(n,p,q)
+}
+
+/// Reference for the full source-bound carry envelope, without any branching.
+pub fn device_carry_envelope_step(n:&[char],p:&[u32],q:&[u32])
+ ->Option<(Vec<u32>,Vec<u32>)> {
+    fold::device_carry_envelope_step(n,p,q)
+}
 
 /// Source-derived factor geometries shared by the resident constraint and
 /// coherent glut backends. No reference factor width enters this enumeration.

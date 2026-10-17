@@ -1,6 +1,0 @@
-rewired 69898 instructions in 3373 functions
-Frobenius wiring: 6679 closed, 0 open; arm-entry work witness: 6677/6679
-coverage: 276478/276478 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1236
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/orbit_uncapped.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/orbit_uncapped.rewired.json.gz)

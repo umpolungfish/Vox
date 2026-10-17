@@ -2,6 +2,7 @@
 # Convert N to its IMASM numeral, bake it into a contained membrane binary,
 # and print the path of that binary. The produced binary takes no input.
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/static_membrane.sh"
 cd "$(dirname "$0")"
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
@@ -38,15 +39,15 @@ if [[ ! "$RADIX" =~ ^[0-9]+$ ]]; then
   exit 2
 fi
 
-RUSTFLAGS='-D warnings' cargo build --release --bin vox >/dev/null
-N_WORD="$(./target/release/vox numeral "$N")"
-BASE_WORD="$(./target/release/vox numeral "$BASE")"
-RADIX_WORD="$(./target/release/vox numeral "$RADIX")"
+cargo build --target-dir target --release --target x86_64-unknown-linux-musl --bin vox >/dev/null
+N_WORD="$(./target/x86_64-unknown-linux-musl/release/vox numeral "$N")"
+BASE_WORD="$(./target/x86_64-unknown-linux-musl/release/vox numeral "$BASE")"
+RADIX_WORD="$(./target/x86_64-unknown-linux-musl/release/vox numeral "$RADIX")"
 if [[ -z "$N_WORD" || -z "$BASE_WORD" || -z "$RADIX_WORD" ]]; then
   echo "vox numeral returned an empty word" >&2
   exit 2
 fi
-./target/release/vox coprime "$BASE" "$N" >/dev/null
+./target/x86_64-unknown-linux-musl/release/vox coprime "$BASE" "$N" >/dev/null
 FINGERPRINT="$(printf '%s\n%s\n%s' "$N_WORD" "$BASE_WORD" "$RADIX_WORD" | sha256sum | cut -d' ' -f1)"
 OUTPUT="${2:-membranes/factor_2adic_${FINGERPRINT}}"
 if [[ -e "$OUTPUT" ]]; then
@@ -60,11 +61,11 @@ BUILD_DIR="target/factor_2adic_membranes/${FINGERPRINT}"
 mkdir -p "$BUILD_DIR"
 printf '%s\n%s\n%s\nunit\n' "$N_WORD" "$BASE_WORD" "$RADIX_WORD" > "$BUILD_DIR/baked_inputs.txt"
 VOX_BAKED_INPUT_FILE="$BUILD_DIR/baked_inputs.txt" \
-RUSTFLAGS="-D warnings -C target-feature=+crt-static -C relocation-model=static" \
-cargo build --release --bin factor_2adic --target x86_64-unknown-linux-gnu --target-dir "$BUILD_DIR"
+cargo build --release --bin factor_2adic --target x86_64-unknown-linux-musl --target-dir "$BUILD_DIR"
 
 mkdir -p "$(dirname "$OUTPUT")"
-cp "$BUILD_DIR/x86_64-unknown-linux-gnu/release/factor_2adic" "$OUTPUT"
+require_static_membrane "$BUILD_DIR/x86_64-unknown-linux-musl/release/factor_2adic"
+cp "$BUILD_DIR/x86_64-unknown-linux-musl/release/factor_2adic" "$OUTPUT"
 chmod +x "$OUTPUT"
-./target/release/vox imasm "$OUTPUT" >/dev/null 2>&1
+./target/x86_64-unknown-linux-musl/release/vox imasm "$OUTPUT" >/dev/null 2>&1
 printf '%s\n' "$OUTPUT"

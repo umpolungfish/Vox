@@ -1,6 +1,0 @@
-rewired 79248 instructions in 4052 functions
-Frobenius wiring: 7625 closed, 0 open; arm-entry work witness: 7622/7625
-coverage: 313923/313923 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1694
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/gpu_bvalsd.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/gpu_bvalsd.rewired.json.gz)

@@ -16,6 +16,12 @@ pub(super) struct Frames {
 }
 
 impl Frames {
+    pub(super) fn observation(&self) -> super::super::GlutFrameObservation {
+        super::super::GlutFrameObservation {
+            boundary: self.boundary.clone(), multiplier: self.multiplier.clone(),
+            base: self.base.clone(), phase: self.phase.clone(), phase_entries: self.halves.len(),
+        }
+    }
     pub(super) fn new(n: &[char], root: &[char]) -> Self {
         let boundary = if mf::mul(root, root) == n {
             root.to_vec()

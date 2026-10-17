@@ -1,6 +1,0 @@
-rewired 72836 instructions in 3411 functions
-Frobenius wiring: 7019 closed, 0 open; arm-entry work witness: 7017/7019
-coverage: 289981/289981 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1359
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/self_repair_word_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/self_repair_word_cli.rewired.json.gz)

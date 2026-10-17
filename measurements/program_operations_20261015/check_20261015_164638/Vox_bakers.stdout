@@ -1,0 +1,8 @@
+factor       Vox source-only factor membrane
+resident     Cargo-prepared resident register with native Y and clock
+rust-phase   Rust phase membrane
+c-phase      C phase membrane plus IMASM and glyph sidecars
+ququart      Prepared ququart membrane and independent verifier
+gpu          Prepared GPU idempotent membrane with embedded device code
+cpu          CPU membrane from an existing prepared GPU source directory
+word         Native executable from a saved IMASM word

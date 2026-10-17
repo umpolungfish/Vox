@@ -440,7 +440,10 @@ fn remainder_u32(n: u32, modulus: u32, reciprocal: u64) -> u32 {
 /// SSE2 compares four scores per instruction on x86-64; the tail stays scalar.
 fn threshold_positions(scores: &[i32], threshold: i32, positions: &mut Vec<usize>) {
     positions.clear();
+    #[cfg(target_arch = "x86_64")]
     let mut offset = 0;
+    #[cfg(not(target_arch = "x86_64"))]
+    let offset = 0;
     #[cfg(target_arch = "x86_64")]
     unsafe {
         use core::arch::x86_64::*;

@@ -94,6 +94,9 @@ pub(super) struct Correlation {
     watches: BTreeMap<usize, Vec<usize>>,
     p: Vec<usize>,
     q: Vec<usize>,
+    admission: Vec<(usize, usize, usize)>,
+    midpoint: Vec<usize>,
+    gap: Vec<usize>,
     source: Vec<char>,
     factor_root: Vec<char>,
     cofactor_floor: Vec<char>,
@@ -114,6 +117,27 @@ pub(super) struct Correlation {
     support_q: Vec<Option<char>>,
 }
 impl Correlation {
+    pub(super) fn admission_only(n:&[char])->Self {
+        let mut s=Self::blank(n.len()<2);
+        let width=n.len().div_ceil(2);
+        s.p=(0..width).map(|i|if i==0 {1}else{s.cell()}).collect();
+        s.q=(0..width+1).map(|i|if i==0 {1}else{s.cell()}).collect();
+        s.bind_admission(n);s.connect_observed(&mut |_,_,_|{});s
+    }
+    pub(super) fn into_device_relation(self)->super::super::DeviceCorrelation {
+        super::super::DeviceCorrelation {
+            gates:self.gates.into_iter().map(|gate|super::super::DeviceCorrelationGate {
+                cells:gate.cells,supports:gate.supports.to_vec(),all:gate.all,
+            }).collect(),
+            masks:self.values.into_iter().map(|value|match value {
+                Some(ZERO)=>1,Some(ONE)=>2,None=>3,_=>unreachable!(),
+            }).collect(),
+            p:self.p,q:self.q,empty:self.empty,
+            admission:self.admission,
+            midpoint:self.midpoint,gap:self.gap,
+            parity:self.parity.into_iter().map(|row|(row.cells,row.mark==ONE)).collect(),
+        }
+    }
     fn blank(empty: bool) -> Self {
         let mut s = Self {
             gates: Vec::new(),
@@ -140,6 +164,9 @@ impl Correlation {
             watches: BTreeMap::new(),
             p: Vec::new(),
             q: Vec::new(),
+            admission: Vec::new(),
+            midpoint: Vec::new(),
+            gap: Vec::new(),
             source: Vec::new(),
             factor_root: Vec::new(),
             cofactor_floor: Vec::new(),
@@ -376,6 +403,27 @@ impl Correlation {
             self.complements.insert(out, a);
             out
         }
+    }
+    /// Width alternatives are predicates on these same factor cells. The
+    /// disjunction holds the complete source-derived family in one register.
+    pub(super) fn bind_admission(&mut self,n:&[char]) {
+        let widths=|s:&mut Self,cells:&[usize]| {
+            let mut labels=vec![0;cells.len()+1];let mut higher_zero=1;
+            for i in (0..cells.len()).rev() {
+                labels[i+1]=s.and(higher_zero,cells[i]);
+                let negated=s.not(cells[i]);higher_zero=s.and(higher_zero,negated);
+            }
+            labels
+        };
+        let p=self.p.clone();let q=self.q.clone();
+        let left=widths(self,&p);let right=widths(self,&q);
+        let mut none=1;
+        for (pw,qw) in super::super::source_factor_geometries(n.len()) {
+            let selector=self.and(left.get(pw).copied().unwrap_or(0),right.get(qw).copied().unwrap_or(0));
+            self.admission.push((pw,qw,selector));
+            let excluded=self.not(selector);none=self.and(none,excluded);
+        }
+        self.equal_cells(none,0);
     }
     fn adder(&mut self, a: usize, b: usize, c: usize) -> (usize, usize) {
         if a == b {

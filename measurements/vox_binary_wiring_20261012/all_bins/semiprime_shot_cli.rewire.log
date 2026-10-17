@@ -1,6 +1,0 @@
-rewired 71252 instructions in 3375 functions
-Frobenius wiring: 6868 closed, 0 open; arm-entry work witness: 6866/6868
-coverage: 283326/283326 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1324
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/semiprime_shot_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/semiprime_shot_cli.rewired.json.gz)

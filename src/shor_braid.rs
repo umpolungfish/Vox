@@ -17,7 +17,7 @@
 //! (x^(2l)−1 = (x^l−1)(x^l+1) at the polynomial level = one counter bit at the
 //! word level), so level count is O(log r) = O(log N).
 
-use crate::morphism_factor::{cmp, divmod, gcd, modulo, mul, one, tape_u64, trim, zero};
+use crate::morphism_factor::{cmp, divmod, gcd, modulo, mul, one, tape_u64, trim, zero, add, isqrt, sub};
 use crate::vox::{AFWD, AREV, CLINK, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH, VINIT, ENGAGR};
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -47,8 +47,11 @@ fn pow_tape(base: &[char], e_in: &[char], n: &[char]) -> Vec<char> {
     r
 }
 
-/// Walk until the modular orbit closes. Invalid inputs fail explicitly.
-fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
+/// Walk until the modular orbit closes. Uses Baby-step Giant-step: baby
+/// table of size isqrt(n), giant steps in multiples of m0. Total O(isqrt(n))
+/// instead of the linear walk's O(order) which was the bottleneck for
+/// semiprimes whose order is near N.
+pub fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
     if zero(n) { return Err("modulus is zero".into()); }
     if eq(n, &one()) { return Err("modulus is one".into()); }
     if !eq(&gcd(a.to_vec(), n.to_vec()), &one()) {
@@ -56,18 +59,53 @@ fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
     }
     let ared = modulo(a, n);
     if eq(&ared, &one()) { return Ok(one()); }
-    let mut state = ared.clone();
-    let mut i = one();
+
+    // BSGS: m0 = ceil(sqrt(N)) baby steps, then giant steps.
+    // We want to find r such that a^r = 1. Write r = i*m0 - j where 0 <= j < m0.
+    // Baby steps: compute and store (a^j, j) for j = 0..m0
+    // Giant steps: compute a^(i*m0) for i = 0..m0 and look for matches
+    let m0 = add(&isqrt(n), &one());
+    let mut baby: Vec<(Vec<char>, Vec<char>)> = Vec::new();
+    let mut cur = one();  // a^0 = 1
+    let mut j = tape_u64(0);
+    while cmp(&j, &m0) != core::cmp::Ordering::Greater {
+        baby.push((trim(cur.clone()), trim(j.clone())));
+        cur = modulo(&mul(&cur, &ared), n);
+        j = add(&j, &one());
+    }
+    baby.sort_by(|x, y| cmp(&x.0, &y.0));
+
+    // Giant steps: start at a^0=1 (i*m0=0), then multiply by step=a^m0 each iteration
+    let step = modulo(&pow_tape(&ared, &m0, n), n);
+    let mut i = tape_u64(0);  // i starts at 0
+    let mut giant = one();
     loop {
-        if eq(&state, &one()) { break; }
-        state = modulo(&mul(&state, &ared), n);
-        i = crate::morphism_factor::add(&i, &one());
+        if let Ok(mut idx) = baby.binary_search_by(|probe| cmp(&probe.0, &giant)) {
+            while idx + 1 < baby.len() && baby[idx + 1].0 == giant { idx += 1; }
+            let j_val = &baby[idx].1;
+            let m0i = mul(&m0, &i);
+            let r = if cmp(&m0i, j_val) != core::cmp::Ordering::Less {
+                sub(&m0i, j_val)
+            } else {
+                sub(j_val, &m0i)
+            };
+            if zero(&r) {
+                // r=0 means a^0=1, which is the identity — skip
+                giant = modulo(&mul(&giant, &step), n);
+                i = add(&i, &one());
+                continue;
+            }
+            if !eq(&pow_tape(a, &r, n), &one()) {
+                return Err("BSGS order verification failed (a^r != 1)".into());
+            }
+            return Ok(trim(r));
+        }
+        giant = modulo(&mul(&giant, &step), n);
+        i = add(&i, &one());
+        if cmp(&i, &m0) == core::cmp::Ordering::Greater {
+            return Err("order not found within BSGS bound".into());
+        }
     }
-    let r = trim(i);
-    if !eq(&pow_tape(a, &r, n), &one()) {
-        return Err("order lane verification failed (a^r != 1)".into());
-    }
-    Ok(r)
 }
 
 /// The Shor closing step on tapes: order r -> factors via gcd(a^(r/2) -/+ 1, n).
@@ -390,4 +428,15 @@ mod tests {
             &decimal_to_tape("1").unwrap(), &decimal_to_tape("1").unwrap(),
         ).is_err());
     }
+
+#[test]
+fn order_lane_n91_base2() {
+    use crate::morphism_factor::decimal_to_tape;
+    let a = decimal_to_tape("2").unwrap();
+    let n = decimal_to_tape("91").unwrap();
+    let r = order_lane(&a, &n).unwrap();
+    let r_dec = crate::morphism_factor::dec_of(&r);
+    assert_eq!(r_dec, "12", "order of 2 mod 91 should be 12, got {}", r_dec);
+}
+
 }

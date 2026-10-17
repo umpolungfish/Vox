@@ -1,0 +1,14 @@
+[target.x86_64-unknown-linux-musl]
+linker = "gcc"
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[build]
+rustflags = ["-C", "target-feature=+crt-static"]
+target = "x86_64-unknown-linux-musl"
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
+panic = "abort"
+strip = true

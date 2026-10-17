@@ -9,6 +9,11 @@ import re
 import shutil
 import time
 from hsoa_membrane_check import ROOT, call
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 
 
 def main():
@@ -26,8 +31,8 @@ def main():
         if len(matches)!=1 or matches[0]['status']!='success':
             parser.error(f'need exactly one successful sample zero for {bits} bits / {args.family}')
         selected.append(matches[0])
-    call(['cargo','build','--release','--bin','vox'])
-    vox = ROOT/'target/release/vox'
+    call(['cargo','build','--release','--bin','vox', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'])
+    vox = ROOT/'target/x86_64-unknown-linux-musl/release/vox'
     root = ROOT/'membranes/hsoa'/f'factor-{time.time_ns()}'
     root.mkdir(parents=True)
     with Path(args.output).open('x') as report:
@@ -48,7 +53,8 @@ def main():
             with (ROOT/'target/baked-case.lock').open('a') as lock:
                 fcntl.flock(lock,fcntl.LOCK_EX)
                 call(['cargo','build','--release','--target','x86_64-unknown-linux-musl',
-                      '--bin','semiprime_probe'],env=env)
+                      '--bin','semiprime_probe', '--target-dir', 'target'],env=env)
+                require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/semiprime_probe')
                 shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/semiprime_probe',binary)
             audit = call([vox,'lift',binary])
             (case/'audit.stdout').write_text(audit.stdout)

@@ -1,0 +1,1771 @@
+[2;37m[boot][0m Interrupts: none — the host owns the IDT, no periodic slot
+[2;37m[boot][0m Heap: host allocator, 1548 bytes counted, 48MB declared budget
+[2;37m[boot][0m IG Catalog: 8752 entries loaded
+[2;37m[boot][0m Kernel online — graph execution, token-arity driven
+[2;37m[boot][0m Canonical ordinal check...
+[2;37m[boot][0m Ordinal faithfulness: [1;32mall 44 values match Lean canonical[0m
+[2;37m[boot][0m Clay Millennium status: 2 closed, 1 one-bump-short, 3 unclosed
+[2;37m[boot][0m SIC-POVM d=12: Crystal-forced (dual lattice), Shavian count 49=7², WH group |orbit|=144
+[2;37m[boot][0m Frobenius identity check...
+[2;37m[boot][0m Frobenius identity: hamming=3, weighted=3.1000 — kernel is grammar operationalized
+[2;37m[boot][0m Bootstrap: IMSCRIB→AREV→FSPLIT→AFWD→FFUSE→CLINK→IFIX→IMSCRIB (cyclic)
+                       F unitary: PASS
+  Pentagon form (F^2=I, anti-diag, a^2+b^2=1): PASS
+            Braid relation (Y-B): PASS
+                 Spin-statistics: PASS
+                       S unitary: PASS
+        Charge conjugation S^2=I: PASS
+                 TQFT identities: PASS
+                Verlinde formula: PASS
+              Braid Artin B_n<=8: PASS
+  Phase lattice = tenths of a winding: PASS
+    Constants derivable from PHI: PASS
+[2;37m[boot][0m Fibonacci anyon QC: algebra verified = true
+[36m[TORUS][0m kernel wound: ⊢⊙∈⊤⋈∋⊡⊞≺⋈⊣  (11 tokens, pinch=0.0000)
+[2;37m[boot][0m Crystal FS: 17280000 addresses
+[2;37m[boot][0m 29 total programs (I–XXIX): 12 canonical + 4 continuous + 4 novel + 9 shunted
+
+
+   [1;35m⊙[0m   [1;37mG-mOMonadOS[0m
+   [2;37mGPU-native build, mOMonadOS ported to run via CUDA[0m
+   [1;33mμ∘δ = id[0m
+
+   [2;37mFrobenius core · Belnap FOUR · crystal FS · graph execution[0m
+
+   [1;34mhelp[0m for commands, [1;34m?[0m for the menu, Tab completes.
+
+   [1;34mask[0m runs a structural dry-run here; the full wet-run is on the host:
+   [2;37m./ask --file <path> | ./ask --ask "…" | ./ask -i[0m
+
+⊙> vox run /home/mrnob0dy666/imsgct/G-mOMonadOS/measurements/idempotent_baked_20261015/semiprime_128_sic_zeta_silent
+vox-host open path="/proc/self/maps" flags=0x80000 result=100
+vox-host open path="/usr/lib/wsl/lib/libcuda.so" flags=0x80000 result=101
+vox-host open path="/usr/lib/wsl/lib/libc.so.6" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=102
+vox-host open path="/lib/x86_64-linux-gnu/libc.so.6" flags=0x80000 result=103
+vox-host open path="/usr/lib/wsl/lib/libdl.so.2" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu/libdl.so.2" flags=0x80000 result=104
+vox-host open path="/usr/lib/wsl/lib/libpthread.so.0" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu/libpthread.so.0" flags=0x80000 result=105
+vox-host open path="/usr/lib/wsl/lib/ld-linux-x86-64.so.2" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2" flags=0x80000 result=106
+vox-host open path="/usr/lib/wsl/lib/libcuda64.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=107
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64.so" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu" flags=0x0 result=108
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu" flags=0x0 result=109
+vox-host open path="/lib/libcuda64.so" flags=0x80000 result=-2
+vox-host open path="/lib" flags=0x0 result=110
+vox-host open path="/usr/lib/libcuda64.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib" flags=0x0 result=111
+vox-host open path="/usr/lib/wsl/lib/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=112
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=113
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=114
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=115
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=116
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=117
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=118
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=119
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=120
+vox-host open path="/lib/x86_64-linux-gnu/libcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=121
+vox-host open path="/lib/x86_64-linux-gnu/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=122
+vox-host open path="/lib/x86_64-linux-gnu/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=123
+vox-host open path="/lib/x86_64-linux-gnu/libcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=124
+vox-host open path="/lib/x86_64-linux-gnu/libcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=125
+vox-host open path="/lib/x86_64-linux-gnu/libcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/lib/libcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libcuda.so.1" flags=0x80000 result=126
+vox-host open path="/usr/lib/wsl/lib/libc.so.6" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=127
+vox-host open path="/lib/x86_64-linux-gnu/libc.so.6" flags=0x80000 result=128
+vox-host open path="/usr/lib/wsl/lib/libdl.so.2" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu/libdl.so.2" flags=0x80000 result=129
+vox-host open path="/usr/lib/wsl/lib/libpthread.so.0" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu/libpthread.so.0" flags=0x80000 result=130
+vox-host open path="/usr/lib/wsl/lib/ld-linux-x86-64.so.2" flags=0x80000 result=-2
+vox-host open path="/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2" flags=0x80000 result=131
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=132
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=133
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=134
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=135
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_124.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=136
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_124_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=137
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_120_4.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=138
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_10.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=139
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_11.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=140
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_12.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=141
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_120_0.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=142
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda64_9.so" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=143
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=144
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so.12" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=145
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so.11" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=146
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so.10" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=147
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so.9" flags=0x80000 result=-2
+vox-host open path="/usr/lib/wsl/lib/libnvcuda.so.1" flags=0x80000 result=-2
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=148
+vox-host open path="/lib/x86_64-linux-gnu/libnvcuda.so.1" flags=0x80000 result=-2
+vox-host open path="/usr/lib/x86_64-linux-gnu/libnvcuda.so.1" flags=0x80000 result=-2
+vox-host open path="/lib/libnvcuda.so.1" flags=0x80000 result=-2
+vox-host open path="/usr/lib/libnvcuda.so.1" flags=0x80000 result=-2
+
+thread 'main' (0) panicked at /home/mrnob0dy666/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cudarc-0.19.9/src/lib.rs:200:5:
+Unable to dynamically load the "cuda" shared library - searched for library names: ["libcuda.so", "libcuda64.so", "libcuda64_12.so", "libcuda64_124.so", "libcuda64_124_0.so", "libcuda64_120_4.so", "libcuda64_10.so", "libcuda64_11.so", "libcuda64_12.so", "libcuda64_120_0.so", "libcuda64_9.so", "libcuda.so.12", "libcuda.so.12", "libcuda.so.11", "libcuda.so.10", "libcuda.so.9", "libcuda.so.1", "libnvcuda.so", "libnvcuda64.so", "libnvcuda64_12.so", "libnvcuda64_124.so", "libnvcuda64_124_0.so", "libnvcuda64_120_4.so", "libnvcuda64_10.so", "libnvcuda64_11.so", "libnvcuda64_12.so", "libnvcuda64_120_0.so", "libnvcuda64_9.so", "libnvcuda.so.12", "libnvcuda.so.12", "libnvcuda.so.11", "libnvcuda.so.10", "libnvcuda.so.9", "libnvcuda.so.1"]. Ensure that `LD_LIBRARY_PATH` has the correct path to the installed library. If the shared library is present on the system under a different name than one of those listed above, please open a GitHub issue.
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+entry(...) halted: no instruction at 0x194b0c after 515700 steps
+  previous 12:
+  1922f2: ⋈ movzx r:ecx m:r10:rax:1:0x0:1
+  1922f7: ⊤ cmp r:ecx i:0x8
+  1922fa: ∈ ae i:0x192320
+  192320: ⋈ mov r:rdi m:rsi::1:0x0:8
+  192323: ⊞ add r:rax i:0x1
+  192327: ⋈ mov m:rdx::1:0x0:8 r:rdi
+  19232a: ⋈ mov r:rdi m:rsi:rcx:1:-0x8:8
+  19232f: ⋈ mov m:rdx:rcx:1:-0x8:8 r:rdi
+  192334: ⊞ lea r:rdi m:rdx::1:0x8:8
+  192338: ⊞ and r:rdi i:-0x8
+  19233c: ⊞ sub r:rdx r:rdi
+  19233f: ⊞ add r:ecx r:edx
+  192341: ⊞ sub r:rsi r:rdx
+  192344: ⊞ shr r:ecx i:0x3
+  192347: ⊡ rep_movs i:0x8
+  19234a: ⊤ cmp r:rax i:0x11
+  19234e: ∈ ne i:0x1922b9
+  1922b9: ⊤ cmp m:r9:rax:1:0xd8:1 i:0x0
+  1922c2: ⋈ mov r:rdx m:r9:rax:8:0x0:8
+  1922c6: ⋈ mov r:rsi m:r8:rax:8:0x0:8
+  1922ca: ∈ ne i:0x195153
+  1922d0: ⊤ cmp m:r8:rax:1:0xd8:1 i:0x0
+  1922d9: ∈ ne i:0x192298
+  1922db: ⊤ test r:rsi r:rsi
+  1922de: ⊥ ne set r:dil
+  1922e2: ⊤ test r:rdx r:rdx
+  1922e5: ⊥ ne set r:cl
+  1922e8: ⊤ test r:dil r:cl
+  1922eb: ∈ e i:0x1922ab
+  1922ed: ⊤ cmp r:rdx r:rsi
+  1922f0: ∈ e i:0x1922ab
+  1922f2: ⋈ movzx r:ecx m:r10:rax:1:0x0:1
+  1922f7: ⊤ cmp r:ecx i:0x8
+  1922fa: ∈ ae i:0x192320
+  192320: ⋈ mov r:rdi m:rsi::1:0x0:8
+  192323: ⊞ add r:rax i:0x1
+  192327: ⋈ mov m:rdx::1:0x0:8 r:rdi
+  19232a: ⋈ mov r:rdi m:rsi:rcx:1:-0x8:8
+  19232f: ⋈ mov m:rdx:rcx:1:-0x8:8 r:rdi
+  192334: ⊞ lea r:rdi m:rdx::1:0x8:8
+  192338: ⊞ and r:rdi i:-0x8
+  19233c: ⊞ sub r:rdx r:rdi
+  19233f: ⊞ add r:ecx r:edx
+  192341: ⊞ sub r:rsi r:rdx
+  192344: ⊞ shr r:ecx i:0x3
+  192347: ⊡ rep_movs i:0x8
+  19234a: ⊤ cmp r:rax i:0x11
+  19234e: ∈ ne i:0x1922b9
+  192354: ⊞ nop
+  192358: ⊞ xor r:eax r:eax
+  19235a: ⊤ test m:r9::1:0xc7:1 i:0x40
+  192362: ∈ e i:0x19236e
+  192364: ⊤ cmp m:r9::1:0xdf:1 i:0x0
+  19236c: ∈ ne i:0x192375
+  19236e: ⊤ cmp m:r9::1:0x38:8 i:0x0
+  192373: ∈ e i:0x1923c4
+  1923c4: ⋈ movzx r:edx m:rip::1:0x259bc:1
+  1923cb: ⋈ mov r:rax m:r8::1:0x38:8
+  1923cf: ⊤ test m:r8::1:0xc7:1 i:0x40
+  1923d7: ∈ e i:0x1923e3
+  1923d9: ⊤ cmp m:r8::1:0xdf:1 i:0x0
+  1923e1: ∈ ne i:0x1923ef
+  1923e3: ⊤ cmp r:dl i:0x8
+  1923e6: ∈ ne i:0x195153
+  1923ec: ⋈ mov r:rax m:rax::1:0x0:8
+  1923ef: ⊞ sub r:rax m:r9::1:0x90:8
+  1923f6: ⊞ add r:rax m:r8::1:0xd0:8
+  1923fd: ≺ jmp i:0x192375
+  192375: ⊞ add r:rsp i:0x18
+  192379: ⊣ ret
+  194ac4: ⋈ mov r:rsi m:rbp::1:-0x218:8
+  194acb: ⋈ mov r:rdi m:rbp::1:-0x220:8
+  194ad2: ⋈ mov r:rdx r:rax
+  194ad5: ⊞ xor r:eax r:eax
+  194ad7: ≻ call i:0x194790
+  194790: ⊞ endbr64
+  194794: ⊣ ret
+  194adc: ⊞ nop
+  194ae1: ⊤ test r:rax r:rax
+  194ae4: ∈ e i:0x194b0c   [515700 steps]
+syscall 107 a0=0x0 a1=0x0 a2=0x7ffeff58 @step 180
+syscall 102 a0=0x0 a1=0x0 a2=0x7ffeff58 @step 186
+syscall 108 a0=0x0 a1=0x0 a2=0x7ffeff58 @step 195
+syscall 104 a0=0x0 a1=0x0 a2=0x7ffeff58 @step 201
+syscall 158 a0=0x3001 a1=0x7ffefe70 a2=0x1916a0 @step 1790
+syscall 12 a0=0x0 a1=0x7ffefd18 a2=0x27 @step 32790
+syscall 12 a0=0x200000e00 a1=0x7ffefd18 a2=0x27 @step 32808
+syscall 158 a0=0x1002 a1=0x200000400 a2=0x48 @step 32880
+syscall 218 a0=0x2000006d0 a1=0x200000400 a2=0x1b7a90 @step 32899
+syscall 273 a0=0x2000006e0 a1=0x18 a2=0x1b7a90 @step 32913
+syscall 334 a0=0x200000da0 a1=0x20 a2=0x0 @step 32947
+syscall 63 a0=0x7ffefc00 a1=0x20 a2=0x0 @step 33005
+syscall 302 a0=0x0 a1=0x3 a2=0x0 @step 33126
+syscall 89 a0=0x11a18 a1=0x7ffeecc0 a2=0x1000 @step 33400
+   __libc_malloc rdi=0x28 rsi=0x145b1 rdx=0x0 @step 33730
+syscall 318 a0=0x1b6e28 a1=0x8 a2=0x1 @step 33755
+syscall 12 a0=0x200021e00 a1=0x1b0300 a2=0xfffffffffffff000 @step 35054
+syscall 12 a0=0x200022000 a1=0x0 a2=0x200021e00 @step 35135
+   __libc_malloc rdi=0x140 rsi=0x2000010c0 rdx=0x0 @step 35416
+   __libc_malloc rdi=0x10 rsi=0x7ffeff85 rdx=0x7ffefcb0 @step 35847
+   __libc_malloc rdi=0x11 rsi=0x24 rdx=0xf0f0fff8f8f10000 @step 36291
+   __libc_malloc rdi=0x3e rsi=0x7ffefca0 rdx=0xfffffffff8ff0000 @step 36583
+     __libc_free rdi=0x200001240 rsi=0x0 rdx=0x11 @step 36813
+   __libc_malloc rdi=0x80 rsi=0x7ffefca0 rdx=0x0 @step 37942
+syscall 10 a0=0x1a6000 a1=0x8000 a2=0x1 @step 38524
+syscall 7 a0=0x7ffefbf0 a1=0x3 a2=0x0 @step 38911
+syscall 13 a0=0xd a1=0x7ffef950 a2=0x7ffef9f0 @step 39026
+   __libc_malloc rdi=0x1d8 rsi=0x13ad6 rdx=0x0 @step 39213
+syscall 257 a0=0xffffff9c a1=0x118b9 a2=0x80000 @step 39668
+syscall 302 a0=0x0 a1=0x3 a2=0x0 @step 39825
+   __libc_malloc rdi=0x78 rsi=0x7ffefb78 rdx=0x0 @step 39886
+syscall 262 a0=0x64 a1=0x120ce a2=0x7ffef9d0 @step 40194
+   __libc_malloc rdi=0x1000 rsi=0x120ce rdx=0x7ffef9d0 @step 40211
+syscall 0 a0=0x64 a1=0x2000015a0 a2=0x1000 @step 40497
+  __libc_realloc rdi=0x200001520 rsi=0xf0 rdx=0x384 @step 45535
+syscall 0 a0=0x64 a1=0x2000015a0 a2=0x1000 @step 73658
+     __libc_free rdi=0x2000025b0 rsi=0x2000015a0 rdx=0xfbada498 @step 73703
+syscall 3 a0=0x64 a1=0xfbada418 a2=0x540 @step 73939
+     __libc_free rdi=0x2000015a0 rsi=0x0 rdx=0x0 @step 73969
+     __libc_free rdi=0x200001340 rsi=0x0 rdx=0x1b0000 @step 74199
+syscall 13 a0=0xb a1=0x0 a2=0x7ffefb40 @step 74374
+syscall 131 a0=0x0 a1=0x7ffefb40 a2=0x7ffefb40 @step 74444
+syscall 13 a0=0xb a1=0x7ffefaa0 a2=0x0 @step 74525
+syscall 13 a0=0x7 a1=0x0 a2=0x7ffefb40 @step 74564
+syscall 13 a0=0x7 a1=0x7ffefaa0 a2=0x0 @step 74659
+   __libc_malloc rdi=0x18 rsi=0x8 rdx=0x18 @step 74747
+   __libc_malloc rdi=0x69 rsi=0x1 rdx=0x69 @step 74890
+     __libc_free rdi=0x200001520 rsi=0x69 rdx=0x1 @step 75017
+     __libc_free rdi=0x200001240 rsi=0x18 rdx=0x8 @step 75118
+syscall 228 a0=0x1 a1=0x7ffef870 a2=0x1 @step 75222
+   __libc_malloc rdi=0x20 rsi=0x8 rdx=0x20 @step 75400
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 76127
+  __libc_realloc rdi=0x200001240 rsi=0x10 rdx=0x1 @step 76461
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 76992
+  __libc_realloc rdi=0x2000015d0 rsi=0x10 rdx=0x1 @step 77484
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 78168
+  __libc_realloc rdi=0x2000015f0 rsi=0x10 rdx=0x1 @step 78660
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 79539
+  __libc_realloc rdi=0x200001610 rsi=0x10 rdx=0x1 @step 80031
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 81021
+  __libc_realloc rdi=0x200001630 rsi=0x10 rdx=0x1 @step 81513
+  __libc_realloc rdi=0x200001630 rsi=0x20 rdx=0x1 @step 82156
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 82929
+  __libc_realloc rdi=0x200001660 rsi=0x10 rdx=0x1 @step 83582
+  __libc_realloc rdi=0x200001660 rsi=0x20 rdx=0x1 @step 84225
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 84923
+  __libc_realloc rdi=0x200001690 rsi=0x10 rdx=0x1 @step 85576
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 86284
+  __libc_realloc rdi=0x2000016b0 rsi=0x10 rdx=0x1 @step 86776
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 87484
+  __libc_realloc rdi=0x2000016d0 rsi=0x10 rdx=0x1 @step 87976
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 88727
+  __libc_realloc rdi=0x2000016f0 rsi=0x10 rdx=0x1 @step 89219
+  __libc_realloc rdi=0x2000016f0 rsi=0x20 rdx=0x1 @step 89759
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 90456
+  __libc_realloc rdi=0x200001720 rsi=0x10 rdx=0x1 @step 91109
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 91818
+  __libc_realloc rdi=0x200001740 rsi=0x10 rdx=0x1 @step 92310
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 92983
+  __libc_realloc rdi=0x200001760 rsi=0x10 rdx=0x1 @step 93475
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 94045
+  __libc_realloc rdi=0x200001780 rsi=0x10 rdx=0x1 @step 94537
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 95107
+  __libc_realloc rdi=0x2000017a0 rsi=0x10 rdx=0x1 @step 95599
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 96169
+  __libc_realloc rdi=0x2000017c0 rsi=0x10 rdx=0x1 @step 96661
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 97229
+  __libc_realloc rdi=0x2000017e0 rsi=0x10 rdx=0x1 @step 97721
+   __libc_malloc rdi=0x198 rsi=0x8 rdx=0x198 @step 98104
+   __libc_malloc rdi=0x198 rsi=0x8 rdx=0x198 @step 98504
+     __libc_free rdi=0x200001800 rsi=0x198 rdx=0x8 @step 99565
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 99971
+  __libc_realloc rdi=0x200001b40 rsi=0x10 rdx=0x1 @step 100361
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 100994
+  __libc_realloc rdi=0x200001b60 rsi=0x10 rdx=0x1 @step 101384
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 102170
+  __libc_realloc rdi=0x200001b80 rsi=0x10 rdx=0x1 @step 102560
+  __libc_realloc rdi=0x200001b80 rsi=0x20 rdx=0x1 @step 103144
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 103909
+  __libc_realloc rdi=0x200001bb0 rsi=0x10 rdx=0x1 @step 104559
+  __libc_realloc rdi=0x200001bb0 rsi=0x20 rdx=0x1 @step 105246
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 106019
+  __libc_realloc rdi=0x200001be0 rsi=0x10 rdx=0x1 @step 106664
+  __libc_realloc rdi=0x200001be0 rsi=0x20 rdx=0x1 @step 107305
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 108182
+  __libc_realloc rdi=0x200001c10 rsi=0x10 rdx=0x1 @step 108822
+  __libc_realloc rdi=0x200001c10 rsi=0x20 rdx=0x1 @step 109464
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 110265
+  __libc_realloc rdi=0x200001c40 rsi=0x10 rdx=0x1 @step 110900
+  __libc_realloc rdi=0x200001c40 rsi=0x20 rdx=0x1 @step 111381
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 112078
+  __libc_realloc rdi=0x200001c70 rsi=0x10 rdx=0x1 @step 112713
+  __libc_realloc rdi=0x200001c70 rsi=0x20 rdx=0x1 @step 113194
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 113891
+  __libc_realloc rdi=0x200001ca0 rsi=0x10 rdx=0x1 @step 114521
+  __libc_realloc rdi=0x200001ca0 rsi=0x20 rdx=0x1 @step 115002
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 115742
+  __libc_realloc rdi=0x200001cd0 rsi=0x10 rdx=0x1 @step 116367
+  __libc_realloc rdi=0x200001cd0 rsi=0x20 rdx=0x1 @step 116905
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 117706
+  __libc_realloc rdi=0x200001d00 rsi=0x10 rdx=0x1 @step 118326
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 119137
+  __libc_realloc rdi=0x200001d20 rsi=0x10 rdx=0x1 @step 119527
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 120302
+  __libc_realloc rdi=0x200001d40 rsi=0x10 rdx=0x1 @step 120692
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 121364
+  __libc_realloc rdi=0x200001d60 rsi=0x10 rdx=0x1 @step 121754
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 122426
+  __libc_realloc rdi=0x200001d80 rsi=0x10 rdx=0x1 @step 122816
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 123488
+  __libc_realloc rdi=0x200001da0 rsi=0x10 rdx=0x1 @step 123878
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 124548
+  __libc_realloc rdi=0x200001dc0 rsi=0x10 rdx=0x1 @step 124938
+   __libc_malloc rdi=0x198 rsi=0x8 rdx=0x198 @step 125423
+  __libc_realloc rdi=0x2000019a0 rsi=0x330 rdx=0x8 @step 125728
+     __libc_free rdi=0x200001800 rsi=0x198 rdx=0x8 @step 127063
+   __libc_malloc rdi=0xb rsi=0x1 rdx=0xb @step 127351
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 128483
+syscall 0 a0=0x65 a1=0x7ffeebc8 a2=0x340 @step 128509
+     __libc_free rdi=0x0 rsi=0xfffffffffffffffc rdx=0x24 @step 128676
+   __libc_malloc rdi=0x1c rsi=0xfffffffffffffffc rdx=0x24 @step 128706
+syscall 262 a0=0x65 a1=0x120ce a2=0x7ffeea70 @step 129007
+   __libc_calloc rdi=0x4b3 rsi=0x1 rdx=0xb @step 129085
+   __libc_malloc rdi=0x1c rsi=0x200002a28 rdx=0xf8f8fcfff8000000 @step 129898
+syscall 9 a0=0x0 a1=0x2e718 a2=0x1 @step 130683
+            mmap len=0x2e718 -> 0x300000000 @step 130683
+syscall 9 a0=0x300010000 a1=0x17000 a2=0x5 @step 130752
+            mmap len=0x17000 -> 0x300010000 @step 130752
+syscall 9 a0=0x300027000 a1=0x5000 a2=0x1 @step 130795
+            mmap len=0x5000 -> 0x300027000 @step 130795
+syscall 9 a0=0x30002c000 a1=0x3000 a2=0x3 @step 130834
+            mmap len=0x3000 -> 0x30002c000 @step 130834
+syscall 3 a0=0x65 a1=0x29 a2=0x238 @step 131308
+syscall 257 a0=0xffffff9c a1=0x7ffee370 a2=0x80000 @step 132345
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 132487
+syscall 262 a0=0x66 a1=0x120ce a2=0x7ffee3b0 @step 132511
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 132533
+            mmap len=0x18a00 -> 0x30002f000 @step 132533
+syscall 3 a0=0x66 a1=0x18a00 a2=0x1 @step 132543
+   __libc_malloc rdi=0x20 rsi=0x30003ccb8 rdx=0xf9f8ec80000000 @step 134034
+syscall 257 a0=0xffffff9c a1=0x2000021a0 a2=0x80000 @step 134309
+syscall 0 a0=0x67 a1=0x7ffee548 a2=0x340 @step 134335
+syscall 17 a0=0x67 a1=0x7ffee160 a2=0x310 @step 134408
+syscall 17 a0=0x67 a1=0x7ffee120 a2=0x30 @step 134526
+syscall 17 a0=0x67 a1=0x7ffee0d0 a2=0x44 @step 134603
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 134662
+syscall 262 a0=0x67 a1=0x120ce a2=0x7ffee3f0 @step 134745
+   __libc_calloc rdi=0x4b2 rsi=0x1 rdx=0xa @step 134830
+   __libc_malloc rdi=0x20 rsi=0x200002ee8 rdx=0xf8f8fcff80000000 @step 135406
+syscall 17 a0=0x67 a1=0x7ffee040 a2=0x310 @step 135903
+syscall 9 a0=0x0 a1=0x228e50 a2=0x1 @step 136415
+            mmap len=0x228e50 -> 0x300048000 @step 136415
+syscall 10 a0=0x300070000 a1=0x1ee000 a2=0x0 @step 136445
+syscall 9 a0=0x300070000 a1=0x195000 a2=0x5 @step 136486
+            mmap len=0x195000 -> 0x300070000 @step 136486
+syscall 9 a0=0x300205000 a1=0x58000 a2=0x1 @step 136529
+            mmap len=0x58000 -> 0x300205000 @step 136529
+syscall 9 a0=0x30025e000 a1=0x6000 a2=0x3 @step 136568
+            mmap len=0x6000 -> 0x30025e000 @step 136568
+syscall 9 a0=0x300264000 a1=0xce50 a2=0x3 @step 136845
+            mmap len=0xce50 -> 0x300264000 @step 136845
+syscall 3 a0=0x67 a1=0x4 a2=0x300048380 @step 137456
+syscall 257 a0=0xffffff9c a1=0x7ffee350 a2=0x80000 @step 138543
+   __libc_malloc rdi=0x21 rsi=0x3000404fc rdx=0xf9f8ff00000000 @step 139975
+syscall 257 a0=0xffffff9c a1=0x200002200 a2=0x80000 @step 140258
+syscall 0 a0=0x68 a1=0x7ffee528 a2=0x340 @step 140284
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 140489
+syscall 262 a0=0x68 a1=0x120ce a2=0x7ffee3d0 @step 140572
+   __libc_calloc rdi=0x4b3 rsi=0x1 rdx=0xb @step 140666
+   __libc_malloc rdi=0x21 rsi=0x2000033a8 rdx=0xf8f8fcff00000000 @step 141242
+syscall 9 a0=0x0 a1=0x4028 a2=0x1 @step 142149
+            mmap len=0x4028 -> 0x300271000 @step 142149
+syscall 9 a0=0x300272000 a1=0x1000 a2=0x5 @step 142218
+            mmap len=0x1000 -> 0x300272000 @step 142218
+syscall 9 a0=0x300273000 a1=0x1000 a2=0x1 @step 142261
+            mmap len=0x1000 -> 0x300273000 @step 142261
+syscall 9 a0=0x300274000 a1=0x2000 a2=0x3 @step 142300
+            mmap len=0x2000 -> 0x300274000 @step 142300
+syscall 3 a0=0x68 a1=0x4 a2=0x3002712d8 @step 142922
+syscall 257 a0=0xffffff9c a1=0x7ffee320 a2=0x80000 @step 144085
+   __libc_malloc rdi=0x26 rsi=0x300045d72 rdx=0xf9f8e000000000 @step 145628
+syscall 257 a0=0xffffff9c a1=0x200002260 a2=0x80000 @step 145911
+syscall 0 a0=0x69 a1=0x7ffee508 a2=0x340 @step 145937
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 146142
+syscall 262 a0=0x69 a1=0x120ce a2=0x7ffee3b0 @step 146225
+   __libc_calloc rdi=0x4b8 rsi=0x1 rdx=0x10 @step 146328
+   __libc_malloc rdi=0x26 rsi=0x200003868 rdx=0xf8f8fce000000000 @step 146904
+syscall 9 a0=0x0 a1=0x4028 a2=0x1 @step 147801
+            mmap len=0x4028 -> 0x300276000 @step 147801
+syscall 9 a0=0x300277000 a1=0x1000 a2=0x5 @step 147870
+            mmap len=0x1000 -> 0x300277000 @step 147870
+syscall 9 a0=0x300278000 a1=0x1000 a2=0x1 @step 147913
+            mmap len=0x1000 -> 0x300278000 @step 147913
+syscall 9 a0=0x300279000 a1=0x2000 a2=0x3 @step 147952
+            mmap len=0x2000 -> 0x300279000 @step 147952
+syscall 3 a0=0x69 a1=0x4 a2=0x3002762d8 @step 148574
+syscall 257 a0=0xffffff9c a1=0x7ffee300 a2=0x80000 @step 150555
+   __libc_malloc rdi=0x2b rsi=0x300040c88 rdx=0xf8fffc0000000000 @step 151906
+syscall 257 a0=0xffffff9c a1=0x2000022c0 a2=0x80000 @step 152189
+syscall 0 a0=0x6a a1=0x7ffee4e8 a2=0x340 @step 152215
+     __libc_free rdi=0x0 rsi=0xfffffffffffffffc rdx=0x24 @step 152436
+syscall 262 a0=0x6a a1=0x120ce a2=0x7ffee390 @step 152519
+   __libc_calloc rdi=0x4bd rsi=0x1 rdx=0x15 @step 152649
+   __libc_malloc rdi=0x2b rsi=0x200003d28 rdx=0xfcfffc0000000000 @step 153229
+syscall 9 a0=0x0 a1=0x3b2d8 a2=0x1 @step 154111
+            mmap len=0x3b2d8 -> 0x30027b000 @step 154111
+syscall 10 a0=0x30027d000 a1=0x36000 a2=0x0 @step 154141
+syscall 9 a0=0x30027d000 a1=0x2a000 a2=0x5 @step 154201
+            mmap len=0x2a000 -> 0x30027d000 @step 154201
+syscall 9 a0=0x3002a7000 a1=0xb000 a2=0x1 @step 154244
+            mmap len=0xb000 -> 0x3002a7000 @step 154244
+syscall 9 a0=0x3002b3000 a1=0x4000 a2=0x3 @step 154283
+            mmap len=0x4000 -> 0x3002b3000 @step 154283
+syscall 3 a0=0x6a a1=0x0 a2=0x30027b2c8 @step 154885
+   __libc_malloc rdi=0x28 rsi=0x7ffeeb10 rdx=0x0 @step 155359
+   __libc_malloc rdi=0x28 rsi=0x7ffeeb10 rdx=0x0 @step 156410
+   __libc_malloc rdi=0x28 rsi=0x7ffeeb10 rdx=0x0 @step 157625
+   __libc_malloc rdi=0x18 rsi=0x7ffeeb10 rdx=0x0 @step 157935
+   __libc_malloc rdi=0x58 rsi=0x2000026b0 rdx=0x8 @step 158202
+   __libc_calloc rdi=0x5 rsi=0x18 rdx=0x3 @step 160527
+   __libc_calloc rdi=0x29 rsi=0x18 rdx=0x300068208 @step 162447
+   __libc_calloc rdi=0x6 rsi=0x18 rdx=0x30027158c @step 164155
+   __libc_calloc rdi=0xf rsi=0x18 rdx=0x3002769b8 @step 165282
+   __libc_calloc rdi=0x8 rsi=0x18 rdx=0x30027bd30 @step 166257
+inspect:_dl_signal_error rdi=0x0 rsi=0x2000021a0 rdx=0x12654 @step 166963
+inspect:_dl_signal_error rdi_text="\u{7f}ELF\u{2}\u{1}\u{1}" rdi_map_name="\u{7f}ELF\u{2}\u{1}\u{1}" rsi_map_name=""
+   __libc_malloc rdi=0x45 rsi=0x2000021a0 rdx=0xffc000f000000000 @step 167074
+inspect:_dl_signal_exception rdi=0x0 rsi=0x7ffef0e0 rdx=0x0 @step 167405
+inspect:_dl_signal_exception rdi_text="\u{7f}ELF\u{2}\u{1}\u{1}" rdi_map_name="\u{7f}ELF\u{2}\u{1}\u{1}" rsi_map_name="CPU ISA level is lower than required"
+syscall 11 a0=0x30002f000 a1=0x18a00 a2=0x18defd @step 167476
+syscall 11 a0=0x300000000 a1=0x2e718 a2=0x0 @step 168738
+     __libc_free rdi=0x200002450 rsi=0x2e718 rdx=0x1b78a0 @step 168767
+     __libc_free rdi=0x200002170 rsi=0x200201522 rdx=0x2 @step 168878
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 168967
+     __libc_free rdi=0x200002140 rsi=0x200002 rdx=0x1 @step 168975
+     __libc_free rdi=0x2000023f0 rsi=0x200202172 rdx=0x2 @step 169073
+     __libc_free rdi=0x2000026b0 rsi=0x200002 rdx=0x1 @step 169177
+syscall 11 a0=0x300271000 a1=0x4028 a2=0x0 @step 169398
+     __libc_free rdi=0x2000024d0 rsi=0x4028 rdx=0x1b78a0 @step 169427
+     __libc_free rdi=0x200002230 rsi=0x200002 rdx=0x1 @step 169525
+     __libc_free rdi=0x0 rsi=0x200202142 rdx=0x3 @step 169614
+     __libc_free rdi=0x200002200 rsi=0x200202142 rdx=0x3 @step 169622
+     __libc_free rdi=0x200002370 rsi=0x200202232 rdx=0x4 @step 169720
+     __libc_free rdi=0x0 rsi=0x200202202 rdx=0x5 @step 169817
+     __libc_free rdi=0x0 rsi=0x200202202 rdx=0x5 @step 169825
+     __libc_free rdi=0x200003030 rsi=0x200202202 rdx=0x5 @step 169834
+syscall 11 a0=0x300276000 a1=0x4028 a2=0x0 @step 170055
+     __libc_free rdi=0x200004260 rsi=0x4028 rdx=0x1b78a0 @step 170084
+     __libc_free rdi=0x200002290 rsi=0x200004 rdx=0x1 @step 170182
+     __libc_free rdi=0x0 rsi=0x200202372 rdx=0x6 @step 170271
+     __libc_free rdi=0x200002260 rsi=0x200202372 rdx=0x6 @step 170279
+     __libc_free rdi=0x2000023a0 rsi=0x200202292 rdx=0x7 @step 170377
+     __libc_free rdi=0x0 rsi=0x7 rdx=0x0 @step 170493
+     __libc_free rdi=0x0 rsi=0x7 rdx=0x0 @step 170501
+     __libc_free rdi=0x2000034f0 rsi=0x7 rdx=0x0 @step 170510
+syscall 11 a0=0x300048000 a1=0x228e50 a2=0x0 @step 170817
+     __libc_free rdi=0x200003e80 rsi=0x228e50 rdx=0x1b78a0 @step 170846
+     __libc_free rdi=0x2000021d0 rsi=0x200003 rdx=0x1 @step 170944
+     __libc_free rdi=0x0 rsi=0x7 rdx=0x200002390 @step 171054
+     __libc_free rdi=0x2000021a0 rsi=0x7 rdx=0x200002390 @step 171062
+     __libc_free rdi=0x200002340 rsi=0x7 rdx=0x2000021c0 @step 171181
+     __libc_free rdi=0x200002b70 rsi=0x7 rdx=0x200002190 @step 171306
+syscall 11 a0=0x30027b000 a1=0x3b2d8 a2=0x0 @step 171589
+     __libc_free rdi=0x2000043d0 rsi=0x3b2d8 rdx=0x1b78a0 @step 171617
+     __libc_free rdi=0x200002300 rsi=0x200004 rdx=0x1 @step 171715
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 171804
+     __libc_free rdi=0x2000022c0 rsi=0x200002 rdx=0x1 @step 171812
+     __libc_free rdi=0x2000023d0 rsi=0x200202302 rdx=0x2 @step 171910
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 172014
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 172022
+     __libc_free rdi=0x2000039b0 rsi=0x200002 rdx=0x1 @step 172031
+inspect:_dl_signal_exception rdi=0x0 rsi=0x7ffef260 rdx=0x0 @step 172339
+inspect:_dl_signal_exception rdi_text="\u{7f}ELF\u{2}\u{1}\u{1}" rdi_map_name="\u{7f}ELF\u{2}\u{1}\u{1}" rsi_map_name="CPU ISA level is lower than required"
+   __libc_malloc rdi=0x18 rsi=0x1 rdx=0x0 @step 172422
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 172973
+   __libc_malloc rdi=0x64 rsi=0x141df rdx=0x7ffef420 @step 173135
+  __libc_realloc rdi=0x2000026b0 rsi=0x46 rdx=0x0 @step 174513
+     __libc_free rdi=0x2000044a0 rsi=0x200002 rdx=0x0 @step 174743
+   __libc_malloc rdi=0x46 rsi=0x1 rdx=0x46 @step 174934
+     __libc_free rdi=0x200002120 rsi=0xb rdx=0x1 @step 175033
+     __libc_free rdi=0x2000044a0 rsi=0x46 rdx=0x1 @step 175159
+   __libc_malloc rdi=0xd rsi=0x1 rdx=0xd @step 175406
+     __libc_free rdi=0x2000026b0 rsi=0x7ffef4f0 rdx=0x1 @step 175541
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 176480
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 176614
+syscall 262 a0=0x6b a1=0x120ce a2=0x7ffeea30 @step 176638
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 176660
+            mmap len=0x18a00 -> 0x3002b7000 @step 176660
+syscall 3 a0=0x6b a1=0x18a00 a2=0x1 @step 176670
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 178001
+syscall 262 a0=0xffffff9c a1=0x7ffee9f0 a2=0x7ffeea80 @step 178058
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 178192
+syscall 262 a0=0xffffff9c a1=0x7ffee9f0 a2=0x7ffeea80 @step 178249
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 178385
+syscall 262 a0=0xffffff9c a1=0x7ffee9f0 a2=0x7ffeea80 @step 178442
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 178576
+syscall 262 a0=0xffffff9c a1=0x7ffee9f0 a2=0x7ffeea80 @step 178633
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 178708
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2c rsi=0x200002120 rdx=0xc0000000 @step 178801
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 178980
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3002b7000 a1=0x18a00 a2=0x18defd @step 179051
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 179117
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 179205
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 179719
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 179881
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 181610
+  __libc_realloc rdi=0x200002720 rsi=0x48 rdx=0x0 @step 181955
+     __libc_free rdi=0x2000022c0 rsi=0x200202702 rdx=0x2 @step 182207
+   __libc_malloc rdi=0x48 rsi=0x1 rdx=0x48 @step 182398
+     __libc_free rdi=0x200002120 rsi=0xd rdx=0x1 @step 182497
+     __libc_free rdi=0x2000026b0 rsi=0x48 rdx=0x1 @step 182623
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 182885
+     __libc_free rdi=0x200002720 rsi=0x7ffef4f0 rdx=0x1 @step 183020
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 183959
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 184093
+syscall 262 a0=0x70 a1=0x120ce a2=0x7ffeea30 @step 184117
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 184139
+            mmap len=0x18a00 -> 0x3002d0000 @step 184139
+syscall 3 a0=0x70 a1=0x18a00 a2=0x1 @step 184149
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 185480
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 185628
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 185778
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 185926
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 186015
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 186108
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 186287
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3002d0000 a1=0x18a00 a2=0x18defd @step 186358
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 186424
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 186512
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 187026
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 187188
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 188927
+  __libc_realloc rdi=0x200002790 rsi=0x4b rdx=0x0 @step 189272
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 189433
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 189624
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 189723
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 189849
+   __libc_malloc rdi=0x11 rsi=0x1 rdx=0x11 @step 190116
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 190251
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 191280
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 191414
+syscall 262 a0=0x71 a1=0x120ce a2=0x7ffeea30 @step 191438
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 191460
+            mmap len=0x18a00 -> 0x3002e9000 @step 191460
+syscall 3 a0=0x71 a1=0x18a00 a2=0x1 @step 191470
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 192801
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 192949
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 193099
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 193247
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 193336
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x30 rsi=0x200002120 rdx=0xc0000000 @step 193447
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 193626
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3002e9000 a1=0x18a00 a2=0x18defd @step 193697
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 193763
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 193851
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 194365
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 194527
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 196098
+  __libc_realloc rdi=0x200002790 rsi=0x4c rdx=0x0 @step 196443
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 196604
+   __libc_malloc rdi=0x4c rsi=0x1 rdx=0x4c @step 196795
+     __libc_free rdi=0x200002120 rsi=0x11 rdx=0x1 @step 196894
+     __libc_free rdi=0x2000023f0 rsi=0x4c rdx=0x1 @step 197020
+   __libc_malloc rdi=0x13 rsi=0x1 rdx=0x13 @step 197263
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 197398
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 198427
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 198561
+syscall 262 a0=0x72 a1=0x120ce a2=0x7ffeea30 @step 198585
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 198607
+            mmap len=0x18a00 -> 0x300302000 @step 198607
+syscall 3 a0=0x72 a1=0x18a00 a2=0x1 @step 198617
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 199948
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 200096
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 200246
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 200394
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 200483
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x32 rsi=0x200002120 rdx=0xc0000000 @step 200594
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 200773
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300302000 a1=0x18a00 a2=0x18defd @step 200844
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 200910
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 200998
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 201512
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 201674
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 203253
+  __libc_realloc rdi=0x200002790 rsi=0x4e rdx=0x0 @step 203598
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 203759
+   __libc_malloc rdi=0x4e rsi=0x1 rdx=0x4e @step 203950
+     __libc_free rdi=0x200002120 rsi=0x13 rdx=0x1 @step 204049
+     __libc_free rdi=0x2000023f0 rsi=0x4e rdx=0x1 @step 204175
+   __libc_malloc rdi=0x13 rsi=0x1 rdx=0x13 @step 204418
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 204553
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 205582
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 205716
+syscall 262 a0=0x73 a1=0x120ce a2=0x7ffeea30 @step 205740
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 205762
+            mmap len=0x18a00 -> 0x30031b000 @step 205762
+syscall 3 a0=0x73 a1=0x18a00 a2=0x1 @step 205772
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 207103
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 207251
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 207401
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 207549
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 207638
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x32 rsi=0x200002120 rdx=0xc0000000 @step 207749
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 207928
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x30031b000 a1=0x18a00 a2=0x18defd @step 207999
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 208065
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 208153
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 208667
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 208829
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 210408
+  __libc_realloc rdi=0x200002790 rsi=0x4e rdx=0x0 @step 210753
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 210914
+   __libc_malloc rdi=0x4e rsi=0x1 rdx=0x4e @step 211105
+     __libc_free rdi=0x200002120 rsi=0x13 rdx=0x1 @step 211204
+     __libc_free rdi=0x2000023f0 rsi=0x4e rdx=0x1 @step 211330
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 211592
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 211727
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 212666
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 212800
+syscall 262 a0=0x74 a1=0x120ce a2=0x7ffeea30 @step 212824
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 212846
+            mmap len=0x18a00 -> 0x300334000 @step 212846
+syscall 3 a0=0x74 a1=0x18a00 a2=0x1 @step 212856
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 214187
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 214335
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 214485
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 214633
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 214722
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 214815
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 214994
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300334000 a1=0x18a00 a2=0x18defd @step 215065
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 215131
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 215219
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 215733
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 215895
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 217474
+  __libc_realloc rdi=0x200002790 rsi=0x4b rdx=0x0 @step 217819
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 217980
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 218171
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 218270
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 218396
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 218658
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 218793
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 219732
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 219866
+syscall 262 a0=0x75 a1=0x120ce a2=0x7ffeea30 @step 219890
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 219912
+            mmap len=0x18a00 -> 0x30034d000 @step 219912
+syscall 3 a0=0x75 a1=0x18a00 a2=0x1 @step 219922
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 221253
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 221401
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 221551
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 221699
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 221788
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 221881
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 222060
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x30034d000 a1=0x18a00 a2=0x18defd @step 222131
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 222197
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 222285
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 222799
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 222961
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 224540
+  __libc_realloc rdi=0x200002790 rsi=0x4b rdx=0x0 @step 224885
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 225046
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 225237
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 225336
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 225462
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 225724
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 225859
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 226798
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 226932
+syscall 262 a0=0x76 a1=0x120ce a2=0x7ffeea30 @step 226956
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 226978
+            mmap len=0x18a00 -> 0x300366000 @step 226978
+syscall 3 a0=0x76 a1=0x18a00 a2=0x1 @step 226988
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 228319
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 228467
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 228617
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 228765
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 228854
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 228947
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 229126
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300366000 a1=0x18a00 a2=0x18defd @step 229197
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 229263
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 229351
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 229865
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 230027
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 231606
+  __libc_realloc rdi=0x200002790 rsi=0x4b rdx=0x0 @step 231951
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 232112
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 232303
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 232402
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 232528
+   __libc_malloc rdi=0x13 rsi=0x1 rdx=0x13 @step 232771
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 232906
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 233935
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 234069
+syscall 262 a0=0x77 a1=0x120ce a2=0x7ffeea30 @step 234093
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 234115
+            mmap len=0x18a00 -> 0x30037f000 @step 234115
+syscall 3 a0=0x77 a1=0x18a00 a2=0x1 @step 234125
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 235456
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 235604
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 235754
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 235902
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 235991
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x32 rsi=0x200002120 rdx=0xc0000000 @step 236102
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 236281
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x30037f000 a1=0x18a00 a2=0x18defd @step 236352
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 236418
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 236506
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 237020
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 237182
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 238761
+  __libc_realloc rdi=0x200002790 rsi=0x4e rdx=0x0 @step 239106
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 239267
+   __libc_malloc rdi=0x4e rsi=0x1 rdx=0x4e @step 239458
+     __libc_free rdi=0x200002120 rsi=0x13 rdx=0x1 @step 239557
+     __libc_free rdi=0x2000023f0 rsi=0x4e rdx=0x1 @step 239683
+   __libc_malloc rdi=0xf rsi=0x1 rdx=0xf @step 239940
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 240075
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 241014
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 241148
+syscall 262 a0=0x78 a1=0x120ce a2=0x7ffeea30 @step 241172
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 241194
+            mmap len=0x18a00 -> 0x300398000 @step 241194
+syscall 3 a0=0x78 a1=0x18a00 a2=0x1 @step 241204
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 242535
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 242683
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 242833
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 242981
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 243070
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2e rsi=0x200002120 rdx=0xc0000000 @step 243163
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 243342
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300398000 a1=0x18a00 a2=0x18defd @step 243413
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 243479
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 243567
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 244081
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 244243
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 245820
+  __libc_realloc rdi=0x200002790 rsi=0x4a rdx=0x0 @step 246165
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 246326
+   __libc_malloc rdi=0x4a rsi=0x1 rdx=0x4a @step 246517
+     __libc_free rdi=0x200002120 rsi=0xf rdx=0x1 @step 246616
+     __libc_free rdi=0x2000023f0 rsi=0x4a rdx=0x1 @step 246742
+   __libc_malloc rdi=0xe rsi=0x1 rdx=0xe @step 246994
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 247129
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 248068
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 248202
+syscall 262 a0=0x79 a1=0x120ce a2=0x7ffeea30 @step 248226
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 248248
+            mmap len=0x18a00 -> 0x3003b1000 @step 248248
+syscall 3 a0=0x79 a1=0x18a00 a2=0x1 @step 248258
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 249781
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 249929
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 250079
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 250227
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 250316
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2d rsi=0x200002120 rdx=0xc0000000 @step 250409
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 250588
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3003b1000 a1=0x18a00 a2=0x18defd @step 250659
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 250725
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 250813
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 251327
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 251489
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 253062
+  __libc_realloc rdi=0x200002790 rsi=0x49 rdx=0x0 @step 253407
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 253568
+   __libc_malloc rdi=0x49 rsi=0x1 rdx=0x49 @step 253759
+     __libc_free rdi=0x200002120 rsi=0xe rdx=0x1 @step 253858
+     __libc_free rdi=0x2000023f0 rsi=0x49 rdx=0x1 @step 253984
+   __libc_malloc rdi=0xe rsi=0x1 rdx=0xe @step 254236
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 254371
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 255310
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 255444
+syscall 262 a0=0x7a a1=0x120ce a2=0x7ffeea30 @step 255468
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 255490
+            mmap len=0x18a00 -> 0x3003ca000 @step 255490
+syscall 3 a0=0x7a a1=0x18a00 a2=0x1 @step 255500
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 257023
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 257171
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 257321
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 257469
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 257558
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2d rsi=0x200002120 rdx=0xc0000000 @step 257651
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 257830
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3003ca000 a1=0x18a00 a2=0x18defd @step 257901
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 257967
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 258055
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 258569
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 258731
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 260304
+  __libc_realloc rdi=0x200002790 rsi=0x49 rdx=0x0 @step 260649
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 260810
+   __libc_malloc rdi=0x49 rsi=0x1 rdx=0x49 @step 261001
+     __libc_free rdi=0x200002120 rsi=0xe rdx=0x1 @step 261100
+     __libc_free rdi=0x2000023f0 rsi=0x49 rdx=0x1 @step 261226
+   __libc_malloc rdi=0xe rsi=0x1 rdx=0xe @step 261478
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 261613
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 262552
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 262686
+syscall 262 a0=0x7b a1=0x120ce a2=0x7ffeea30 @step 262710
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 262732
+            mmap len=0x18a00 -> 0x3003e3000 @step 262732
+syscall 3 a0=0x7b a1=0x18a00 a2=0x1 @step 262742
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 264265
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 264413
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 264563
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 264711
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 264800
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2d rsi=0x200002120 rdx=0xc0000000 @step 264893
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 265072
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3003e3000 a1=0x18a00 a2=0x18defd @step 265143
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 265209
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 265297
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 265811
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 265973
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 267546
+  __libc_realloc rdi=0x200002790 rsi=0x49 rdx=0x0 @step 267891
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 268052
+   __libc_malloc rdi=0x49 rsi=0x1 rdx=0x49 @step 268243
+     __libc_free rdi=0x200002120 rsi=0xe rdx=0x1 @step 268342
+     __libc_free rdi=0x2000023f0 rsi=0x49 rdx=0x1 @step 268468
+   __libc_malloc rdi=0xe rsi=0x1 rdx=0xe @step 268720
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 268855
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 269794
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 269928
+syscall 262 a0=0x7c a1=0x120ce a2=0x7ffeea30 @step 269952
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 269974
+            mmap len=0x18a00 -> 0x3003fc000 @step 269974
+syscall 3 a0=0x7c a1=0x18a00 a2=0x1 @step 269984
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 271507
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 271655
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 271805
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 271953
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 272042
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2d rsi=0x200002120 rdx=0xc0000000 @step 272135
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 272314
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3003fc000 a1=0x18a00 a2=0x18defd @step 272385
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 272451
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 272539
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 273053
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 273215
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 274788
+  __libc_realloc rdi=0x200002790 rsi=0x49 rdx=0x0 @step 275133
+     __libc_free rdi=0x2000022c0 rsi=0x1681 rdx=0x2 @step 275294
+   __libc_malloc rdi=0x49 rsi=0x1 rdx=0x49 @step 275485
+     __libc_free rdi=0x200002120 rsi=0xe rdx=0x1 @step 275584
+     __libc_free rdi=0x2000023f0 rsi=0x49 rdx=0x1 @step 275710
+   __libc_malloc rdi=0xd rsi=0x1 rdx=0xd @step 275957
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 276092
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 277031
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 277165
+syscall 262 a0=0x7d a1=0x120ce a2=0x7ffeea30 @step 277189
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 277211
+            mmap len=0x18a00 -> 0x300415000 @step 277211
+syscall 3 a0=0x7d a1=0x18a00 a2=0x1 @step 277221
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 278736
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 278884
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 279034
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 279182
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 279271
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2c rsi=0x200002120 rdx=0xc0000000 @step 279364
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 279543
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300415000 a1=0x18a00 a2=0x18defd @step 279614
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 279680
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 279768
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 280282
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 280444
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 282013
+  __libc_realloc rdi=0x200002790 rsi=0x48 rdx=0x0 @step 282358
+     __libc_free rdi=0x2000022c0 rsi=0x200202772 rdx=0x2 @step 282624
+   __libc_malloc rdi=0x48 rsi=0x1 rdx=0x48 @step 282815
+     __libc_free rdi=0x200002120 rsi=0xd rdx=0x1 @step 282914
+     __libc_free rdi=0x200002720 rsi=0x48 rdx=0x1 @step 283040
+   __libc_malloc rdi=0xd rsi=0x1 rdx=0xd @step 283287
+     __libc_free rdi=0x200002790 rsi=0x7ffef4f0 rdx=0x1 @step 283422
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 284361
+syscall 0 a0=0x7e a1=0x7ffeebc8 a2=0x340 @step 284387
+     __libc_free rdi=0x0 rsi=0xfffffffffffffffc rdx=0x24 @step 284554
+   __libc_malloc rdi=0x1e rsi=0xfffffffffffffffc rdx=0x24 @step 284586
+syscall 262 a0=0x7e a1=0x120ce a2=0x7ffeea70 @step 284727
+   __libc_calloc rdi=0x4b5 rsi=0x1 rdx=0xd @step 284805
+   __libc_malloc rdi=0x1e rsi=0x200002b78 rdx=0xffe8fee020000000 @step 285968
+syscall 9 a0=0x0 a1=0x2e718 a2=0x1 @step 286545
+            mmap len=0x2e718 -> 0x30042e000 @step 286545
+syscall 9 a0=0x30043e000 a1=0x17000 a2=0x5 @step 286614
+            mmap len=0x17000 -> 0x30043e000 @step 286614
+syscall 9 a0=0x300455000 a1=0x5000 a2=0x1 @step 286657
+            mmap len=0x5000 -> 0x300455000 @step 286657
+syscall 9 a0=0x30045a000 a1=0x3000 a2=0x3 @step 286696
+            mmap len=0x3000 -> 0x30045a000 @step 286696
+syscall 3 a0=0x7e a1=0x29 a2=0x238 @step 287170
+syscall 257 a0=0xffffff9c a1=0x7ffee370 a2=0x80000 @step 288207
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 288349
+syscall 262 a0=0x7f a1=0x120ce a2=0x7ffee3b0 @step 288373
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 288395
+            mmap len=0x18a00 -> 0x30045d000 @step 288395
+syscall 3 a0=0x7f a1=0x18a00 a2=0x1 @step 288405
+   __libc_malloc rdi=0x20 rsi=0x30046acb8 rdx=0xf9f8e880000000 @step 289896
+syscall 257 a0=0xffffff9c a1=0x200002370 a2=0x80000 @step 290013
+syscall 0 a0=0x80 a1=0x7ffee548 a2=0x340 @step 290039
+syscall 17 a0=0x80 a1=0x7ffee160 a2=0x310 @step 290112
+syscall 17 a0=0x80 a1=0x7ffee120 a2=0x30 @step 290230
+syscall 17 a0=0x80 a1=0x7ffee0d0 a2=0x44 @step 290307
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 290366
+syscall 262 a0=0x80 a1=0x120ce a2=0x7ffee3f0 @step 290449
+   __libc_calloc rdi=0x4b2 rsi=0x1 rdx=0xa @step 290534
+   __libc_malloc rdi=0x20 rsi=0x200003038 rdx=0xf8ecfeec80000000 @step 291199
+syscall 17 a0=0x80 a1=0x7ffee040 a2=0x310 @step 291360
+syscall 9 a0=0x0 a1=0x228e50 a2=0x1 @step 291872
+            mmap len=0x228e50 -> 0x300476000 @step 291872
+syscall 10 a0=0x30049e000 a1=0x1ee000 a2=0x0 @step 291902
+syscall 9 a0=0x30049e000 a1=0x195000 a2=0x5 @step 291943
+            mmap len=0x195000 -> 0x30049e000 @step 291943
+syscall 9 a0=0x300633000 a1=0x58000 a2=0x1 @step 291986
+            mmap len=0x58000 -> 0x300633000 @step 291986
+syscall 9 a0=0x30068c000 a1=0x6000 a2=0x3 @step 292025
+            mmap len=0x6000 -> 0x30068c000 @step 292025
+syscall 9 a0=0x300692000 a1=0xce50 a2=0x3 @step 292302
+            mmap len=0xce50 -> 0x300692000 @step 292302
+syscall 3 a0=0x80 a1=0x4 a2=0x300476380 @step 292913
+syscall 257 a0=0xffffff9c a1=0x7ffee350 a2=0x80000 @step 294000
+   __libc_malloc rdi=0x21 rsi=0x30046e4fc rdx=0xf9f8ff00000000 @step 295432
+syscall 257 a0=0xffffff9c a1=0x200002230 a2=0x80000 @step 295557
+syscall 0 a0=0x81 a1=0x7ffee528 a2=0x340 @step 295583
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 295788
+syscall 262 a0=0x81 a1=0x120ce a2=0x7ffee3d0 @step 295871
+   __libc_calloc rdi=0x4b3 rsi=0x1 rdx=0xb @step 295965
+   __libc_malloc rdi=0x21 rsi=0x2000034f8 rdx=0xfeff00000000 @step 296620
+syscall 9 a0=0x0 a1=0x4028 a2=0x1 @step 297221
+            mmap len=0x4028 -> 0x30069f000 @step 297221
+syscall 9 a0=0x3006a0000 a1=0x1000 a2=0x5 @step 297290
+            mmap len=0x1000 -> 0x3006a0000 @step 297290
+syscall 9 a0=0x3006a1000 a1=0x1000 a2=0x1 @step 297333
+            mmap len=0x1000 -> 0x3006a1000 @step 297333
+syscall 9 a0=0x3006a2000 a1=0x2000 a2=0x3 @step 297372
+            mmap len=0x2000 -> 0x3006a2000 @step 297372
+syscall 3 a0=0x81 a1=0x4 a2=0x30069f2d8 @step 297994
+syscall 257 a0=0xffffff9c a1=0x7ffee320 a2=0x80000 @step 299157
+   __libc_malloc rdi=0x26 rsi=0x300473d72 rdx=0xf9f8e000000000 @step 300700
+syscall 257 a0=0xffffff9c a1=0x200002170 a2=0x80000 @step 300825
+syscall 0 a0=0x82 a1=0x7ffee508 a2=0x340 @step 300851
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 301056
+syscall 262 a0=0x82 a1=0x120ce a2=0x7ffee3b0 @step 301139
+   __libc_calloc rdi=0x4b8 rsi=0x1 rdx=0x10 @step 301242
+   __libc_malloc rdi=0x26 rsi=0x2000039b8 rdx=0xf8f8fee000000000 @step 301938
+syscall 9 a0=0x0 a1=0x4028 a2=0x1 @step 302661
+            mmap len=0x4028 -> 0x3006a4000 @step 302661
+syscall 9 a0=0x3006a5000 a1=0x1000 a2=0x5 @step 302730
+            mmap len=0x1000 -> 0x3006a5000 @step 302730
+syscall 9 a0=0x3006a6000 a1=0x1000 a2=0x1 @step 302773
+            mmap len=0x1000 -> 0x3006a6000 @step 302773
+syscall 9 a0=0x3006a7000 a1=0x2000 a2=0x3 @step 302812
+            mmap len=0x2000 -> 0x3006a7000 @step 302812
+syscall 3 a0=0x82 a1=0x4 a2=0x3006a42d8 @step 303434
+syscall 257 a0=0xffffff9c a1=0x7ffee300 a2=0x80000 @step 305415
+   __libc_malloc rdi=0x2b rsi=0x30046ec88 rdx=0xf8fffc0000000000 @step 306766
+syscall 257 a0=0xffffff9c a1=0x2000022c0 a2=0x80000 @step 306891
+syscall 0 a0=0x83 a1=0x7ffee4e8 a2=0x340 @step 306917
+     __libc_free rdi=0x0 rsi=0xfffffffffffffffc rdx=0x24 @step 307138
+syscall 262 a0=0x83 a1=0x120ce a2=0x7ffee390 @step 307221
+   __libc_calloc rdi=0x4bd rsi=0x1 rdx=0x15 @step 307351
+   __libc_malloc rdi=0x2b rsi=0x200004868 rdx=0xfefe3c0000000000 @step 308089
+syscall 9 a0=0x0 a1=0x3b2d8 a2=0x1 @step 308730
+            mmap len=0x3b2d8 -> 0x3006a9000 @step 308730
+syscall 10 a0=0x3006ab000 a1=0x36000 a2=0x0 @step 308760
+syscall 9 a0=0x3006ab000 a1=0x2a000 a2=0x5 @step 308820
+            mmap len=0x2a000 -> 0x3006ab000 @step 308820
+syscall 9 a0=0x3006d5000 a1=0xb000 a2=0x1 @step 308863
+            mmap len=0xb000 -> 0x3006d5000 @step 308863
+syscall 9 a0=0x3006e1000 a1=0x4000 a2=0x3 @step 308902
+            mmap len=0x4000 -> 0x3006e1000 @step 308902
+syscall 3 a0=0x83 a1=0x0 a2=0x3006a92c8 @step 309504
+   __libc_malloc rdi=0x28 rsi=0x7ffeeb10 rdx=0x0 @step 309978
+   __libc_malloc rdi=0x28 rsi=0x7ffeeb10 rdx=0x0 @step 310871
+   __libc_malloc rdi=0x28 rsi=0x7ffeeb10 rdx=0x0 @step 312079
+   __libc_malloc rdi=0x18 rsi=0x7ffeeb10 rdx=0x0 @step 312427
+   __libc_malloc rdi=0x58 rsi=0x200002800 rdx=0x8 @step 312536
+   __libc_calloc rdi=0x5 rsi=0x18 rdx=0x3 @step 314703
+   __libc_calloc rdi=0x29 rsi=0x18 rdx=0x300496208 @step 316854
+   __libc_calloc rdi=0x6 rsi=0x18 rdx=0x30069f58c @step 318534
+   __libc_calloc rdi=0xf rsi=0x18 rdx=0x3006a49b8 @step 319738
+   __libc_calloc rdi=0x8 rsi=0x18 rdx=0x3006a9d30 @step 320432
+inspect:_dl_signal_error rdi=0x0 rsi=0x200002370 rdx=0x12654 @step 321239
+inspect:_dl_signal_error rdi_text="\u{7f}ELF\u{2}\u{1}\u{1}" rdi_map_name="\u{7f}ELF\u{2}\u{1}\u{1}" rsi_map_name=""
+   __libc_malloc rdi=0x45 rsi=0x200002370 rdx=0xffc000f000000000 @step 321350
+inspect:_dl_signal_exception rdi=0x0 rsi=0x7ffef0e0 rdx=0x0 @step 321537
+inspect:_dl_signal_exception rdi_text="\u{7f}ELF\u{2}\u{1}\u{1}" rdi_map_name="\u{7f}ELF\u{2}\u{1}\u{1}" rsi_map_name="CPU ISA level is lower than required"
+syscall 11 a0=0x30045d000 a1=0x18a00 a2=0x18defd @step 321608
+syscall 11 a0=0x30042e000 a1=0x2e718 a2=0x0 @step 322870
+     __libc_free rdi=0x200003b00 rsi=0x2e718 rdx=0x1b78a0 @step 322899
+     __libc_free rdi=0x200002290 rsi=0x200202453 rdx=0x3 @step 323024
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 323113
+     __libc_free rdi=0x200002260 rsi=0x200002 rdx=0x1 @step 323121
+     __libc_free rdi=0x2000023f0 rsi=0x200202292 rdx=0x2 @step 323219
+     __libc_free rdi=0x200002800 rsi=0x200002 rdx=0x1 @step 323323
+syscall 11 a0=0x30069f000 a1=0x4028 a2=0x0 @step 323544
+     __libc_free rdi=0x200003b80 rsi=0x4028 rdx=0x1b78a0 @step 323573
+     __libc_free rdi=0x200002140 rsi=0x2002024d3 rdx=0x2 @step 323684
+     __libc_free rdi=0x0 rsi=0x200202262 rdx=0x3 @step 323773
+     __libc_free rdi=0x200002230 rsi=0x200202262 rdx=0x3 @step 323781
+     __libc_free rdi=0x200002570 rsi=0x200202142 rdx=0x4 @step 323879
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 323976
+     __libc_free rdi=0x0 rsi=0x200002 rdx=0x1 @step 323984
+     __libc_free rdi=0x200003180 rsi=0x200002 rdx=0x1 @step 323993
+syscall 11 a0=0x3006a4000 a1=0x4028 a2=0x0 @step 324214
+     __libc_free rdi=0x200003c20 rsi=0x4028 rdx=0x1b78a0 @step 324243
+     __libc_free rdi=0x200002340 rsi=0x200204263 rdx=0x2 @step 324354
+     __libc_free rdi=0x0 rsi=0x200202232 rdx=0x5 @step 324443
+     __libc_free rdi=0x200002170 rsi=0x200202232 rdx=0x5 @step 324451
+     __libc_free rdi=0x2000021a0 rsi=0x200202342 rdx=0x6 @step 324549
+     __libc_free rdi=0x0 rsi=0x200202172 rdx=0x7 @step 324646
+     __libc_free rdi=0x0 rsi=0x200202172 rdx=0x7 @step 324654
+     __libc_free rdi=0x200003640 rsi=0x200202172 rdx=0x7 @step 324663
+syscall 11 a0=0x300476000 a1=0x228e50 a2=0x0 @step 324970
+     __libc_free rdi=0x2000049c0 rsi=0x228e50 rdx=0x1b78a0 @step 324999
+     __libc_free rdi=0x200002200 rsi=0x200203e84 rdx=0x2 @step 325110
+     __libc_free rdi=0x0 rsi=0x7 rdx=0x0 @step 325218
+     __libc_free rdi=0x200002370 rsi=0x7 rdx=0x0 @step 325226
+     __libc_free rdi=0x2000023a0 rsi=0x7 rdx=0x2000021f0 @step 325345
+     __libc_free rdi=0x200002cc0 rsi=0x7 rdx=0x200002360 @step 325470
+syscall 11 a0=0x3006a9000 a1=0x3b2d8 a2=0x0 @step 325753
+     __libc_free rdi=0x200003d90 rsi=0x3b2d8 rdx=0x1b78a0 @step 325781
+     __libc_free rdi=0x200002300 rsi=0x2002043d3 rdx=0x2 @step 325892
+     __libc_free rdi=0x0 rsi=0x200202572 rdx=0x2 @step 325981
+     __libc_free rdi=0x2000022c0 rsi=0x200202572 rdx=0x2 @step 325989
+     __libc_free rdi=0x2000027e0 rsi=0x200202302 rdx=0x3 @step 326087
+     __libc_free rdi=0x0 rsi=0x200202772 rdx=0x3 @step 326218
+     __libc_free rdi=0x0 rsi=0x200202772 rdx=0x3 @step 326226
+     __libc_free rdi=0x2000044f0 rsi=0x200202772 rdx=0x3 @step 326235
+inspect:_dl_signal_exception rdi=0x0 rsi=0x7ffef260 rdx=0x0 @step 326509
+inspect:_dl_signal_exception rdi_text="\u{7f}ELF\u{2}\u{1}\u{1}" rdi_map_name="\u{7f}ELF\u{2}\u{1}\u{1}" rsi_map_name="CPU ISA level is lower than required"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 326597
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 327109
+   __libc_malloc rdi=0x64 rsi=0x141df rdx=0x7ffef420 @step 327271
+  __libc_realloc rdi=0x2000044f0 rsi=0x46 rdx=0x0 @step 328972
+     __libc_free rdi=0x200002790 rsi=0x2002027e4 rdx=0x0 @step 329202
+   __libc_malloc rdi=0x46 rsi=0x1 rdx=0x46 @step 329393
+     __libc_free rdi=0x200002120 rsi=0xd rdx=0x1 @step 329492
+     __libc_free rdi=0x200002790 rsi=0x46 rdx=0x1 @step 329618
+   __libc_malloc rdi=0xd rsi=0x1 rdx=0xd @step 329865
+     __libc_free rdi=0x2000044f0 rsi=0x7ffef4f0 rdx=0x1 @step 330000
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 330939
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 331073
+syscall 262 a0=0x84 a1=0x120ce a2=0x7ffeea30 @step 331097
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 331119
+            mmap len=0x18a00 -> 0x3006e5000 @step 331119
+syscall 3 a0=0x84 a1=0x18a00 a2=0x1 @step 331129
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 332476
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 332624
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 332774
+syscall 257 a0=0xffffff9c a1=0x7ffee9f0 a2=0x80000 @step 332922
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 333011
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2c rsi=0x200002120 rdx=0xc0000000 @step 333104
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 333283
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3006e5000 a1=0x18a00 a2=0x18defd @step 333354
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 333420
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 333508
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 334022
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 334184
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 335911
+  __libc_realloc rdi=0x200004560 rsi=0x48 rdx=0x0 @step 336256
+     __libc_free rdi=0x2000022c0 rsi=0x200204544 rdx=0x2 @step 336550
+   __libc_malloc rdi=0x48 rsi=0x1 rdx=0x48 @step 336741
+     __libc_free rdi=0x200002120 rsi=0xd rdx=0x1 @step 336840
+     __libc_free rdi=0x2000044f0 rsi=0x48 rdx=0x1 @step 336966
+   __libc_malloc rdi=0xf rsi=0x1 rdx=0xf @step 337223
+     __libc_free rdi=0x200004560 rsi=0x7ffef4f0 rdx=0x1 @step 337358
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 338297
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 338431
+syscall 262 a0=0x85 a1=0x120ce a2=0x7ffeea30 @step 338455
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 338477
+            mmap len=0x18a00 -> 0x3006fe000 @step 338477
+syscall 3 a0=0x85 a1=0x18a00 a2=0x1 @step 338487
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 339834
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 339982
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 340132
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 340280
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 340369
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2e rsi=0x200002120 rdx=0xc0000000 @step 340462
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 340641
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3006fe000 a1=0x18a00 a2=0x18defd @step 340712
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 340778
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 340866
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 341380
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 341542
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 343277
+  __libc_realloc rdi=0x2000045d0 rsi=0x4a rdx=0x0 @step 343622
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 343783
+   __libc_malloc rdi=0x4a rsi=0x1 rdx=0x4a @step 343974
+     __libc_free rdi=0x200002120 rsi=0xf rdx=0x1 @step 344073
+     __libc_free rdi=0x2000023f0 rsi=0x4a rdx=0x1 @step 344199
+   __libc_malloc rdi=0x12 rsi=0x1 rdx=0x12 @step 344436
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 344571
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 345600
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 345734
+syscall 262 a0=0x86 a1=0x120ce a2=0x7ffeea30 @step 345758
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 345780
+            mmap len=0x18a00 -> 0x300717000 @step 345780
+syscall 3 a0=0x86 a1=0x18a00 a2=0x1 @step 345790
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 347137
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 347285
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 347435
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 347583
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 347672
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x31 rsi=0x200002120 rdx=0xc0000000 @step 347783
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 347962
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300717000 a1=0x18a00 a2=0x18defd @step 348033
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 348099
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 348187
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 348701
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 348863
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 350438
+  __libc_realloc rdi=0x2000045d0 rsi=0x4d rdx=0x0 @step 350783
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 350944
+   __libc_malloc rdi=0x4d rsi=0x1 rdx=0x4d @step 351135
+     __libc_free rdi=0x200002120 rsi=0x12 rdx=0x1 @step 351234
+     __libc_free rdi=0x2000023f0 rsi=0x4d rdx=0x1 @step 351360
+   __libc_malloc rdi=0x13 rsi=0x1 rdx=0x13 @step 351603
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 351738
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 352767
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 352901
+syscall 262 a0=0x87 a1=0x120ce a2=0x7ffeea30 @step 352925
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 352947
+            mmap len=0x18a00 -> 0x300730000 @step 352947
+syscall 3 a0=0x87 a1=0x18a00 a2=0x1 @step 352957
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 354304
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 354452
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 354602
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 354750
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 354839
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x32 rsi=0x200002120 rdx=0xc0000000 @step 354950
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 355129
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300730000 a1=0x18a00 a2=0x18defd @step 355200
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 355266
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 355354
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 355868
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 356030
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 357609
+  __libc_realloc rdi=0x2000045d0 rsi=0x4e rdx=0x0 @step 357954
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 358115
+   __libc_malloc rdi=0x4e rsi=0x1 rdx=0x4e @step 358306
+     __libc_free rdi=0x200002120 rsi=0x13 rdx=0x1 @step 358405
+     __libc_free rdi=0x2000023f0 rsi=0x4e rdx=0x1 @step 358531
+   __libc_malloc rdi=0x15 rsi=0x1 rdx=0x15 @step 358784
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 358919
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 359948
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 360082
+syscall 262 a0=0x88 a1=0x120ce a2=0x7ffeea30 @step 360106
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 360128
+            mmap len=0x18a00 -> 0x300749000 @step 360128
+syscall 3 a0=0x88 a1=0x18a00 a2=0x1 @step 360138
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 361485
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 361633
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 361783
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 361931
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 362020
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x34 rsi=0x200002120 rdx=0xc0000000 @step 362131
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 362310
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300749000 a1=0x18a00 a2=0x18defd @step 362381
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 362447
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 362535
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 363049
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 363211
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 364798
+  __libc_realloc rdi=0x2000045d0 rsi=0x50 rdx=0x0 @step 365143
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 365304
+   __libc_malloc rdi=0x50 rsi=0x1 rdx=0x50 @step 365495
+     __libc_free rdi=0x200002120 rsi=0x15 rdx=0x1 @step 365594
+     __libc_free rdi=0x2000023f0 rsi=0x50 rdx=0x1 @step 365720
+   __libc_malloc rdi=0x15 rsi=0x1 rdx=0x15 @step 365973
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 366108
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 367137
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 367271
+syscall 262 a0=0x89 a1=0x120ce a2=0x7ffeea30 @step 367295
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 367317
+            mmap len=0x18a00 -> 0x300762000 @step 367317
+syscall 3 a0=0x89 a1=0x18a00 a2=0x1 @step 367327
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 368674
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 368822
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 368972
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 369120
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 369209
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x34 rsi=0x200002120 rdx=0xc0000000 @step 369320
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 369499
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300762000 a1=0x18a00 a2=0x18defd @step 369570
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 369636
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 369724
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 370238
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 370400
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 371987
+  __libc_realloc rdi=0x2000045d0 rsi=0x50 rdx=0x0 @step 372332
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 372493
+   __libc_malloc rdi=0x50 rsi=0x1 rdx=0x50 @step 372684
+     __libc_free rdi=0x200002120 rsi=0x15 rdx=0x1 @step 372783
+     __libc_free rdi=0x2000023f0 rsi=0x50 rdx=0x1 @step 372909
+   __libc_malloc rdi=0x12 rsi=0x1 rdx=0x12 @step 373146
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 373281
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 374310
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 374444
+syscall 262 a0=0x8a a1=0x120ce a2=0x7ffeea30 @step 374468
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 374490
+            mmap len=0x18a00 -> 0x30077b000 @step 374490
+syscall 3 a0=0x8a a1=0x18a00 a2=0x1 @step 374500
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 375847
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 375995
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 376145
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 376293
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 376382
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x31 rsi=0x200002120 rdx=0xc0000000 @step 376493
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 376672
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x30077b000 a1=0x18a00 a2=0x18defd @step 376743
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 376809
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 376897
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 377411
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 377573
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 379148
+  __libc_realloc rdi=0x2000045d0 rsi=0x4d rdx=0x0 @step 379493
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 379654
+   __libc_malloc rdi=0x4d rsi=0x1 rdx=0x4d @step 379845
+     __libc_free rdi=0x200002120 rsi=0x12 rdx=0x1 @step 379944
+     __libc_free rdi=0x2000023f0 rsi=0x4d rdx=0x1 @step 380070
+   __libc_malloc rdi=0x12 rsi=0x1 rdx=0x12 @step 380307
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 380442
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 381471
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 381605
+syscall 262 a0=0x8b a1=0x120ce a2=0x7ffeea30 @step 381629
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 381651
+            mmap len=0x18a00 -> 0x300794000 @step 381651
+syscall 3 a0=0x8b a1=0x18a00 a2=0x1 @step 381661
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 383008
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 383156
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 383306
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 383454
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 383543
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x31 rsi=0x200002120 rdx=0xc0000000 @step 383654
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 383833
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300794000 a1=0x18a00 a2=0x18defd @step 383904
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 383970
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 384058
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 384572
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 384734
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 386309
+  __libc_realloc rdi=0x2000045d0 rsi=0x4d rdx=0x0 @step 386654
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 386815
+   __libc_malloc rdi=0x4d rsi=0x1 rdx=0x4d @step 387006
+     __libc_free rdi=0x200002120 rsi=0x12 rdx=0x1 @step 387105
+     __libc_free rdi=0x2000023f0 rsi=0x4d rdx=0x1 @step 387231
+   __libc_malloc rdi=0x12 rsi=0x1 rdx=0x12 @step 387468
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 387603
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 388632
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 388766
+syscall 262 a0=0x8c a1=0x120ce a2=0x7ffeea30 @step 388790
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 388812
+            mmap len=0x18a00 -> 0x3007ad000 @step 388812
+syscall 3 a0=0x8c a1=0x18a00 a2=0x1 @step 388822
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 390169
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 390317
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 390467
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 390615
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 390704
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x31 rsi=0x200002120 rdx=0xc0000000 @step 390815
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 390994
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3007ad000 a1=0x18a00 a2=0x18defd @step 391065
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 391131
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 391219
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 391733
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 391895
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 393470
+  __libc_realloc rdi=0x2000045d0 rsi=0x4d rdx=0x0 @step 393815
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 393976
+   __libc_malloc rdi=0x4d rsi=0x1 rdx=0x4d @step 394167
+     __libc_free rdi=0x200002120 rsi=0x12 rdx=0x1 @step 394266
+     __libc_free rdi=0x2000023f0 rsi=0x4d rdx=0x1 @step 394392
+   __libc_malloc rdi=0x15 rsi=0x1 rdx=0x15 @step 394645
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 394780
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 395809
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 395943
+syscall 262 a0=0x8d a1=0x120ce a2=0x7ffeea30 @step 395967
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 395989
+            mmap len=0x18a00 -> 0x3007c6000 @step 395989
+syscall 3 a0=0x8d a1=0x18a00 a2=0x1 @step 395999
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 397346
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 397494
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 397644
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 397792
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 397881
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x34 rsi=0x200002120 rdx=0xc0000000 @step 397992
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 398171
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3007c6000 a1=0x18a00 a2=0x18defd @step 398242
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 398308
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 398396
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 398910
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 399072
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 400659
+  __libc_realloc rdi=0x2000045d0 rsi=0x50 rdx=0x0 @step 401004
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 401165
+   __libc_malloc rdi=0x50 rsi=0x1 rdx=0x50 @step 401356
+     __libc_free rdi=0x200002120 rsi=0x15 rdx=0x1 @step 401455
+     __libc_free rdi=0x2000023f0 rsi=0x50 rdx=0x1 @step 401581
+   __libc_malloc rdi=0x11 rsi=0x1 rdx=0x11 @step 401848
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 401983
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 403012
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 403146
+syscall 262 a0=0x8e a1=0x120ce a2=0x7ffeea30 @step 403170
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 403192
+            mmap len=0x18a00 -> 0x3007df000 @step 403192
+syscall 3 a0=0x8e a1=0x18a00 a2=0x1 @step 403202
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 404549
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 404697
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 404847
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 404995
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 405084
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x30 rsi=0x200002120 rdx=0xc0000000 @step 405195
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 405374
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3007df000 a1=0x18a00 a2=0x18defd @step 405445
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 405511
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 405599
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 406113
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 406275
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 407846
+  __libc_realloc rdi=0x2000045d0 rsi=0x4c rdx=0x0 @step 408191
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 408352
+   __libc_malloc rdi=0x4c rsi=0x1 rdx=0x4c @step 408543
+     __libc_free rdi=0x200002120 rsi=0x11 rdx=0x1 @step 408642
+     __libc_free rdi=0x2000023f0 rsi=0x4c rdx=0x1 @step 408768
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 409030
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 409165
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 410104
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 410238
+syscall 262 a0=0x8f a1=0x120ce a2=0x7ffeea30 @step 410262
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 410284
+            mmap len=0x18a00 -> 0x3007f8000 @step 410284
+syscall 3 a0=0x8f a1=0x18a00 a2=0x1 @step 410294
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 411641
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 411789
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 411939
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 412087
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 412176
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 412269
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 412448
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x3007f8000 a1=0x18a00 a2=0x18defd @step 412519
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 412585
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 412673
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 413187
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 413349
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 414928
+  __libc_realloc rdi=0x2000045d0 rsi=0x4b rdx=0x0 @step 415273
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 415434
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 415625
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 415724
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 415850
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 416112
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 416247
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 417186
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 417320
+syscall 262 a0=0x90 a1=0x120ce a2=0x7ffeea30 @step 417344
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 417366
+            mmap len=0x18a00 -> 0x300811000 @step 417366
+syscall 3 a0=0x90 a1=0x18a00 a2=0x1 @step 417376
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 418723
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 418871
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 419021
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 419169
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 419258
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 419351
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 419530
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300811000 a1=0x18a00 a2=0x18defd @step 419601
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 419667
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 419755
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 420269
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 420431
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 422010
+  __libc_realloc rdi=0x2000045d0 rsi=0x4b rdx=0x0 @step 422355
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 422516
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 422707
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 422806
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 422932
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 423194
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 423329
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 424268
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 424402
+syscall 262 a0=0x91 a1=0x120ce a2=0x7ffeea30 @step 424426
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 424448
+            mmap len=0x18a00 -> 0x30082a000 @step 424448
+syscall 3 a0=0x91 a1=0x18a00 a2=0x1 @step 424458
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 425805
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 425953
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 426103
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 426251
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 426340
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 426433
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 426612
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x30082a000 a1=0x18a00 a2=0x18defd @step 426683
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 426749
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 426837
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 427351
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 427513
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 429092
+  __libc_realloc rdi=0x2000045d0 rsi=0x4b rdx=0x0 @step 429437
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 429598
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 429789
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 429888
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 430014
+   __libc_malloc rdi=0x10 rsi=0x1 rdx=0x10 @step 430276
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 430411
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 431350
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 431484
+syscall 262 a0=0x92 a1=0x120ce a2=0x7ffeea30 @step 431508
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 431530
+            mmap len=0x18a00 -> 0x300843000 @step 431530
+syscall 3 a0=0x92 a1=0x18a00 a2=0x1 @step 431540
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 432887
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 433035
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 433185
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 433333
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 433422
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2f rsi=0x200002120 rdx=0xc0000000 @step 433515
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 433694
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300843000 a1=0x18a00 a2=0x18defd @step 433765
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 433831
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 433919
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 434433
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 434595
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 436174
+  __libc_realloc rdi=0x2000045d0 rsi=0x4b rdx=0x0 @step 436519
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 436680
+   __libc_malloc rdi=0x4b rsi=0x1 rdx=0x4b @step 436871
+     __libc_free rdi=0x200002120 rsi=0x10 rdx=0x1 @step 436970
+     __libc_free rdi=0x2000023f0 rsi=0x4b rdx=0x1 @step 437096
+   __libc_malloc rdi=0xf rsi=0x1 rdx=0xf @step 437353
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 437488
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 438427
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 438561
+syscall 262 a0=0x93 a1=0x120ce a2=0x7ffeea30 @step 438585
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 438607
+            mmap len=0x18a00 -> 0x30085c000 @step 438607
+syscall 3 a0=0x93 a1=0x18a00 a2=0x1 @step 438617
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 439964
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 440112
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 440262
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 440410
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 440499
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2e rsi=0x200002120 rdx=0xc0000000 @step 440592
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 440771
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x30085c000 a1=0x18a00 a2=0x18defd @step 440842
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 440908
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 440996
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 441510
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 441672
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 443249
+  __libc_realloc rdi=0x2000045d0 rsi=0x4a rdx=0x0 @step 443594
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 443755
+   __libc_malloc rdi=0x4a rsi=0x1 rdx=0x4a @step 443946
+     __libc_free rdi=0x200002120 rsi=0xf rdx=0x1 @step 444045
+     __libc_free rdi=0x2000023f0 rsi=0x4a rdx=0x1 @step 444171
+   __libc_malloc rdi=0xf rsi=0x1 rdx=0xf @step 444428
+     __libc_free rdi=0x2000045d0 rsi=0x7ffef4f0 rdx=0x1 @step 444563
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 445502
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 445636
+syscall 262 a0=0x94 a1=0x120ce a2=0x7ffeea30 @step 445660
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 445682
+            mmap len=0x18a00 -> 0x300875000 @step 445682
+syscall 3 a0=0x94 a1=0x18a00 a2=0x1 @step 445692
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 447039
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 447187
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 447337
+syscall 257 a0=0xffffff9c a1=0x7ffee9e0 a2=0x80000 @step 447485
+inspect:_dl_signal_error rdi=0x2 rsi=0x200002120 rdx=0x0 @step 447574
+inspect:_dl_signal_error rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name=""
+   __libc_malloc rdi=0x2e rsi=0x200002120 rdx=0xc0000000 @step 447667
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef0e0 rdx=0x0 @step 447846
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+syscall 11 a0=0x300875000 a1=0x18a00 a2=0x18defd @step 447917
+inspect:_dl_signal_exception rdi=0x2 rsi=0x7ffef260 rdx=0x0 @step 447983
+inspect:_dl_signal_exception rdi_text="LF\u{2}\u{1}\u{1}" rdi_map_name="" rsi_map_name="cannot open shared object file"
+     __libc_free rdi=0x0 rsi=0x1 rdx=0x0 @step 448071
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffef3c1 @step 448585
+   __libc_malloc rdi=0x64 rsi=0x11f3f rdx=0x7ffef420 @step 448747
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeec21 @step 450324
+  __libc_realloc rdi=0x2000045d0 rsi=0x4a rdx=0x0 @step 450669
+     __libc_free rdi=0x2000022c0 rsi=0x381 rdx=0x2 @step 450830
+   __libc_malloc rdi=0x4a rsi=0x1 rdx=0x4a @step 451021
+     __libc_free rdi=0x200002120 rsi=0xf rdx=0x1 @step 451120
+     __libc_free rdi=0x2000023f0 rsi=0x4a rdx=0x1 @step 451246
+   __libc_malloc rdi=0x20 rsi=0x1 rdx=0x20 @step 451588
+  __libc_realloc rdi=0x2000021a0 rsi=0x40 rdx=0x1 @step 451840
+  __libc_realloc rdi=0x2000021a0 rsi=0x80 rdx=0x1 @step 452169
+  __libc_realloc rdi=0x200004640 rsi=0x100 rdx=0x1 @step 453880
+  __libc_realloc rdi=0x200004640 rsi=0x200 rdx=0x1 @step 457386
+  __libc_realloc rdi=0x200002800 rsi=0x400 rdx=0x1 @step 463648
+syscall 186 a0=0x14cdc a1=0x4 a2=0x4 @step 469622
+syscall 1 a0=0x2 a1=0x11b1a a2=0x9 @step 471443
+syscall 1 a0=0x2 a1=0x14cdc a2=0x4 @step 471555
+syscall 1 a0=0x2 a1=0x11b25 a2=0x3 @step 471622
+syscall 1 a0=0x2 a1=0x7ffeef9f a2=0x1 @step 471821
+syscall 1 a0=0x2 a1=0x11b2a a2=0xe @step 471893
+syscall 1 a0=0x2 a1=0x14272 a2=0x5f @step 472067
+syscall 1 a0=0x2 a1=0x1476f a2=0x1 @step 472134
+syscall 1 a0=0x2 a1=0x7ffeeedd a2=0x3 @step 472351
+syscall 1 a0=0x2 a1=0x14772 a2=0x1 @step 472423
+syscall 1 a0=0x2 a1=0x7ffeeedf a2=0x1 @step 472624
+syscall 1 a0=0x2 a1=0x11b3a a2=0x2 @step 472718
+syscall 1 a0=0x2 a1=0x200002800 a2=0x3b1 @step 472830
+syscall 1 a0=0x2 a1=0x11b3e a2=0x1 @step 472897
+syscall 1 a0=0x2 a1=0x5a747 a2=0x4e @step 473048
+   __libc_malloc rdi=0x18 rsi=0x8 rdx=0x18 @step 473188
+   __libc_malloc rdi=0x38 rsi=0x8 rdx=0x38 @step 473258
+syscall 202 a0=0x1b7d70 a1=0x81 a2=0x7fffffff @step 475149
+structure word (feed to weight/banked/cycle):
+  ⊢⊞⊞⋈⋈⋈⊞⋈⋈⊞⊞⋈≻⊣   verdict N
+⊙> quit
+Halting. μ∘δ=id.
+[SHUTDOWN] μ∘δ=id. Goodbye.

@@ -1,0 +1,10 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized] target(s) in 8.16s
+     Running unittests src/lib.rs (target/x86_64-unknown-linux-musl/debug/deps/vox-92c6f5036c4e7011)
+
+running 2 tests
+test imasm_vm::membrane_simd_tests::streaming_stores_commit_all_bytes_and_preserve_adjacent_banks ... ok
+test x86::membrane_decode_tests::streaming_stores_keep_extended_registers_displacements_and_fences ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 400 filtered out; finished in 0.00s
+

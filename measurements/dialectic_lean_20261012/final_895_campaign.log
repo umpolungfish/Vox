@@ -1,1 +1,0 @@
-regression_895 [{"exit_status": -9, "timed_out": true, "bound_seconds": 90.0, "driver_seconds": 90.00079942602315, "product_verified": false, "measurements": {"preparation_seconds": 3.95e-05}, "stdout": "final_regression_895.0.stdout", "stderr": "final_regression_895.0.stderr"}]

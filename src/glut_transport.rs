@@ -88,7 +88,10 @@ impl Correlation {
         }
         loop {
             let mut changed = false;
-            let mut expressions: BTreeMap<Vec<usize>, Vec<usize>> = BTreeMap::new();
+            // Elementary gates have at most three inputs and two outputs.
+            // Keep their congruence keys inline so folding the same resident
+            // relation does not allocate three temporary vectors per gate.
+            let mut expressions: BTreeMap<[usize; 4], [usize; 2]> = BTreeMap::new();
             let mut opposite = BTreeMap::new();
             for gate in &self.gates {
                 if let &[a, b] = gate.cells.as_slice() {
@@ -101,16 +104,16 @@ impl Correlation {
                 }
             }
             for gate in &self.gates {
-                let cells: Vec<_> = gate
-                    .cells
-                    .iter()
-                    .map(|&cell| representative(&mut parent, cell))
-                    .collect();
+                let mut storage = [0; 5];
+                for (slot, &cell) in storage.iter_mut().zip(&gate.cells) {
+                    *slot = representative(&mut parent, cell);
+                }
+                let cells = &storage[..gate.cells.len()];
                 if cells.len() == 2 && gate.supports[1][0] == 0b01 {
                     changed |= join(&mut parent, cells[0], cells[1]);
                     continue;
                 }
-                match cells.as_slice() {
+                match cells {
                     &[a, b, out] => {
                         let folded = if a == 0 || b == 0 || opposite.get(&a) == Some(&b) {
                             Some(0)
@@ -177,15 +180,18 @@ impl Correlation {
                     5 => 3,
                     _ => unreachable!(),
                 };
-                let mut key = cells[..inputs].to_vec();
-                key.sort_unstable();
-                key.insert(0, cells.len());
+                let mut key = [0; 4];
+                key[0] = cells.len();
+                key[1..=inputs].copy_from_slice(&cells[..inputs]);
+                key[1..=inputs].sort_unstable();
                 if let Some(outputs) = expressions.get(&key) {
                     for (&left, &right) in outputs.iter().zip(&cells[inputs..]) {
                         changed |= join(&mut parent, left, right);
                     }
                 } else {
-                    expressions.insert(key, cells[inputs..].to_vec());
+                    let mut outputs = [0; 2];
+                    outputs[..cells.len() - inputs].copy_from_slice(&cells[inputs..]);
+                    expressions.insert(key, outputs);
                 }
             }
             if !changed {
@@ -213,6 +219,8 @@ impl Correlation {
         for &cell in self.p.iter().chain(&self.q) {
             retained.insert(parent[cell]);
         }
+        for &(_,_,cell) in &self.admission {retained.insert(parent[cell]);}
+        for &cell in self.midpoint.iter().chain(&self.gap){retained.insert(parent[cell]);}
         let mut dense = vec![None; parent.len()];
         for (index, root) in retained.iter().copied().enumerate() {
             dense[root] = Some(index);
@@ -242,6 +250,8 @@ impl Correlation {
         for cell in self.p.iter_mut().chain(&mut self.q) {
             *cell = dense[parent[*cell]].unwrap();
         }
+        for (_,_,cell) in &mut self.admission {*cell=dense[parent[*cell]].unwrap();}
+        for cell in self.midpoint.iter_mut().chain(&mut self.gap){*cell=dense[parent[*cell]].unwrap();}
         self.activity.clear();
         self.priority.clear();
         self.products.clear();
@@ -260,7 +270,10 @@ impl Correlation {
             for cell in &mut gate.cells {
                 *cell = dense[parent[*cell]].unwrap();
             }
-            seen.insert(gate.cells.clone())
+            let mut key = [0; 6];
+            key[0] = gate.cells.len();
+            key[1..=gate.cells.len()].copy_from_slice(&gate.cells);
+            seen.insert(key)
         });
         for gate in &self.gates {
             match gate.cells.as_slice() {

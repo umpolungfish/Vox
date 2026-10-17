@@ -47,7 +47,7 @@ pub fn classify(i: &x86::Insn) -> char {
 fn fields(ops: &[Op]) -> Vec<String> { ops.iter().map(|o| o.field()).collect() }
 
 /// One instruction → its module lines. A merge emits a bare ∋ first.
-fn encode(i: &x86::Insn, is_merge: bool) -> Vec<String> {
+pub(crate) fn encode(i: &x86::Insn, is_merge: bool) -> Vec<String> {
     let mut lines: Vec<String> = Vec::new();
     if is_merge { lines.push(FUSE.to_string()); }
     let mn = i.mnemonic.as_str();
@@ -131,6 +131,19 @@ pub fn emit(raw: &[u8]) -> String {
         }
     }
     let mut s = out.join("\n"); s.push('\n'); s
+}
+
+/// The default membrane export admits only self-contained native images.
+pub fn emit_standalone(raw: &[u8]) -> Result<String, String> {
+    loader::standalone(raw)?;
+    Ok(format!("; standalone static-v1\n{}", emit(raw)))
+}
+
+pub fn validate_standalone(module: &str) -> Result<(), String> {
+    if !module.lines().any(|line| line == "; standalone static-v1") {
+        return Err("module has no standalone linkage boundary; re-emit its static executable with vox imasm".into());
+    }
+    Ok(())
 }
 
 /// Just the structure word (glyphs), per function.

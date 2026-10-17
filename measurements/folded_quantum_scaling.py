@@ -6,10 +6,15 @@ from pathlib import Path
 import shutil
 import subprocess
 import time
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/('membranes/folded_quantum_scaling_'+os.environ.get('FOLDED_SCALING_RUN','2026-09-30'))
 OUT.mkdir(exist_ok=False)
-VOX=ROOT/'target/release/vox'
+VOX=ROOT/'target/x86_64-unknown-linux-musl/release/vox'
 def word(value):
     return subprocess.check_output([str(VOX),'numeral',str(value)],text=True,timeout=60).strip()
 rows=[]
@@ -20,9 +25,10 @@ for n,p,q in [(21,3,7),(35,5,7),(77,7,11)]:
              FACTOR_PHASE_QUANTILE_WORD=word(1),FACTOR_PHASE_DENOMINATOR_WORD=word(2))
     (folder/'prepared.json').write_text(json.dumps(dict(n=n,rounds=rounds,quantile='1/2'),indent=2)+'\n')
     with (folder/'build.stdout').open('w') as log:
-        subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--example','factor_phase_baked'],
+        subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--example','factor_phase_baked', '--target-dir', 'target'],
                        cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
     elf=folder/'payload.elf'
+    require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/examples/factor_phase_baked')
     shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/examples/factor_phase_baked',elf)
     start=time.monotonic()
     with (folder/'native.stdout').open('w') as out,(folder/'native.stderr').open('w') as err:

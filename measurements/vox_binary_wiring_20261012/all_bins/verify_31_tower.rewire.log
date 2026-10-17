@@ -1,6 +1,0 @@
-rewired 77997 instructions in 3581 functions
-Frobenius wiring: 7587 closed, 0 open; arm-entry work witness: 7585/7587
-coverage: 315294/315294 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1414
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/verify_31_tower.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/verify_31_tower.rewired.json.gz)

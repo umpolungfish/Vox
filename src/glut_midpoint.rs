@@ -108,15 +108,13 @@ impl Correlation {
         root: &[char],
         mut observe: impl FnMut(char, usize, usize),
     ) -> Self {
-        // All nested constraints share one root preparation. Building the
-        // midpoint basis first and rebuilding it after product binding repeats
-        // the wide elimination without adding a constraint.
-        // p+b=a, a+b=q and p*q=N already imply a²=N+b² by
-        // (a-b)(a+b)=a²-b². Keep that square identity structural instead
-        // of expanding two additional multiplication circuits.
-        let mut s = Self::midpoint_cells(n, width, root, false, &mut observe);
+        // The square and product views act on the same source and coordinates.
+        // Use the existing folded square-column machinery as an executing
+        // constraint, then connect its midpoint/gap cells to both factor lanes.
+        let mut s = Self::midpoint_cells(n, width, root, true, &mut observe);
         let midpoint = s.p.clone();
         let gap = s.q.clone();
+        s.midpoint=midpoint.clone();s.gap=gap.clone();
         let p: Vec<_> = (0..width)
             .map(|i| if i == 0 { 1 } else { s.cell() })
             .collect();
@@ -131,6 +129,7 @@ impl Correlation {
         let lower = s.bind_factor_phase(n, &p, &q, root);
         s.p = p;
         s.q = q;
+        s.bind_admission(n);
         s.conjugate = false;
         s.source = n.to_vec();
         s.factor_root = root.to_vec();

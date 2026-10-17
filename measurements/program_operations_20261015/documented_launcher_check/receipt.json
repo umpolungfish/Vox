@@ -1,0 +1,144 @@
+{
+  "source": "/home/mrnob0dy666/imsgct/Vox/measurements/static_bakers_20261015/source.decimal",
+  "source_bits": 224,
+  "gpu_execution": false,
+  "checks": [
+    {
+      "name": "Vox_help",
+      "command": [
+        "/home/mrnob0dy666/imsgct/Vox/programs",
+        "--help"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Vox_catalog",
+      "command": [
+        "/home/mrnob0dy666/imsgct/Vox/programs",
+        "list",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Vox_bakers",
+      "command": [
+        "/home/mrnob0dy666/imsgct/Vox/programs",
+        "bake",
+        "--list"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Vox_bake_help",
+      "command": [
+        "/home/mrnob0dy666/imsgct/Vox/programs",
+        "bake",
+        "--help"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Vox_cli_help",
+      "command": [
+        "/home/mrnob0dy666/imsgct/Vox/programs",
+        "--no-build",
+        "cli",
+        "--help"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Vox_numeral",
+      "command": [
+        "/home/mrnob0dy666/imsgct/Vox/programs",
+        "--no-build",
+        "cli",
+        "numeral",
+        "24067241928114400276743427938087228122449193727371390534074004100947"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Vox_menu",
+      "command": [
+        "bash",
+        "-c",
+        "printf \"q\\n\" | \"$1\" menu",
+        "menu-check",
+        "/home/mrnob0dy666/imsgct/Vox/programs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_help",
+      "command": [
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+        "--help"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_catalog",
+      "command": [
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+        "list",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_bakers",
+      "command": [
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+        "bake",
+        "--list"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_bake_help",
+      "command": [
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+        "bake",
+        "--help"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_cli_help",
+      "command": [
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+        "--no-build",
+        "cli",
+        "--help"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_numeral",
+      "command": [
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs",
+        "--no-build",
+        "cli",
+        "numeral",
+        "encode",
+        "24067241928114400276743427938087228122449193727371390534074004100947"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "G-mOMonadOS_menu",
+      "command": [
+        "bash",
+        "-c",
+        "printf \"q\\n\" | \"$1\" menu",
+        "menu-check",
+        "/home/mrnob0dy666/imsgct/G-mOMonadOS/programs"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

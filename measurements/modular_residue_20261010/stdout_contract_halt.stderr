@@ -1,6 +1,0 @@
-regs at halt: rax=1 rbx=0 rcx=0 rdx=0 rsi=0 rdi=1 rbp=0 rsp=7ffeff40 r12=0 r13=0 r14=0 r15=0
-call chain:
-entry(...) halted: step budget 1 reached, still running at 0x40100a
-  previous 12:
-  401000: ⋈ mov r:eax i:0x1
-  401005: ⋈ mov r:edi i:0x1   [2 steps]

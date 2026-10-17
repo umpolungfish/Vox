@@ -1,5 +1,116 @@
 #![deny(warnings)]
-use std::process::Command;
+use num_bigint::BigUint;
+use std::{
+    env,
+    io::{Read, BufRead, BufReader},
+    path::PathBuf,
+    process::{Command, Stdio},
+    thread,
+    time::Duration,
+};
+
+/// Replace N-only production with the demonstrated CUDA arithmetic membrane.
+/// Vox remains the validator and carry-trace closer; a missing device receipt
+/// is an error, never a CPU fallback.
+pub fn route_n_only_to_gpu(args: &[String]) -> Result<(Vec<String>, Option<String>), String> {
+    let entry=env::var("VOX_GPU_MEMBRANE_ENTRY").unwrap_or_else(|_| "word".into());
+    route_n_only_to_gpu_entry(args,&entry)
+}
+
+pub fn route_n_only_to_gpu_entry(args:&[String],entry:&str)->Result<(Vec<String>,Option<String>),String> {
+    let Some(n_text) = vox::membrane_factor::source_for_gpu_producer(args)? else {
+        return Ok((args.to_vec(), None));
+    };
+    let n = n_text.parse::<BigUint>().map_err(|_| "invalid decoded GPU source".to_string())?;
+    let executable = env::var_os("VOX_GPU_FACTORIZER").map(PathBuf::from).unwrap_or_else(|| {
+        let sibling = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../G-mOMonadOS/target/release/g-momonados");
+        if sibling.is_file() { sibling } else { PathBuf::from("g-momonados") }
+    });
+    let word=env::var("VOX_GPU_MEMBRANE_WORD")
+        .unwrap_or_else(|_| "⊢⊙∈≻⊤≺⊥⊞⋈∋⊡⊣".into());
+    let mut producer_command=Command::new(&executable);
+    let program=match entry {
+        "glut"=>{
+            producer_command.args(["gpu_glut",&n_text]);
+            String::from("GLUT shared factor/product/carry register")
+        }
+        "word"=>{
+            producer_command.args(["membrane_family","run",&word,&n_text]);
+            word.clone()
+        }
+        "make"=>{
+            let template=env::var("VOX_GPU_MEMBRANE_TEMPLATE").unwrap_or_else(|_| "carry_fuse_closure".into());
+            producer_command.args(["make",&n_text,&template]);
+            template
+        }
+        "hyperstack"=>{
+            let types=env::var("VOX_GPU_HYPERSTACK_TYPES").unwrap_or_else(|_| "phase shor fib".into());
+            producer_command.args(["hyperstack",&n_text]).args(types.split_whitespace());
+            types
+        }
+        _=>return Err(format!("unknown CUDA membrane entry {entry}")),
+    };
+    let run_seconds=env::var("MEMBRANE_RUN_SECONDS").ok()
+        .and_then(|s|s.parse::<u64>().ok()).unwrap_or(300);
+    let mut child = producer_command
+        .stdout(Stdio::piped())
+        .env("MEMBRANE_RUN_SECONDS", run_seconds.to_string())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("could not start GPU factor producer {}: {error}", executable.display()))?;
+    let stdout = child.stdout.take().ok_or("GPU producer stdout unavailable")?;
+    let stderr = child.stderr.take().ok_or("GPU producer stderr unavailable")?;
+    let output_reader = thread::spawn(move || {
+        let mut text = String::new();
+        let mut pipe = stdout;
+        pipe.read_to_string(&mut text).map(|_| text)
+    });
+    let error_reader = thread::spawn(move || {
+        let mut pipe = BufReader::new(stderr);
+        let mut line = String::new();
+        loop {
+            line.clear();
+            if pipe.read_line(&mut line)? == 0 { return Ok::<(), std::io::Error>(()); }
+            eprint!("{line}");
+        }
+    });
+    let status = loop {
+        if let Some(status) = child.try_wait().map_err(|error| format!("GPU producer wait failed: {error}"))? {
+            break status;
+        }
+        thread::sleep(Duration::from_millis(100));
+    };
+    let output = output_reader.join().map_err(|_| "GPU output reader panicked")?
+        .map_err(|error| format!("could not read GPU factor receipt: {error}"))?;
+    error_reader.join().map_err(|_| "GPU diagnostics reader panicked")?
+        .map_err(|error| format!("could not read GPU diagnostics: {error}"))?;
+    if !status.success() {
+        return Err(format!("GPU factor producer exited with {status}: {}", output.trim()));
+    }
+    let device=output.lines().find_map(|line| {
+        let field=line.trim().strip_prefix("CUDA device=")?;
+        field.split(';').next()?.trim().parse::<usize>().ok()
+    });
+    if !matches!(device,Some(0)|Some(1)) || !output.contains("GPU product closure verified") {
+        return Err(format!("GPU factor receipt has no completed CUDA product closure: {}", output.trim()));
+    }
+    let product_row = output.lines().find(|line| line.contains(" = ") && line.contains(" x "))
+        .ok_or_else(|| "CUDA membrane receipt has no factor row".to_string())?;
+    let pair = product_row.split_once(" = ").unwrap().1
+        .split(" (GPU product closure verified)").next().unwrap_or("");
+    let (p_text, q_text) = pair.split_once(" x ")
+        .ok_or_else(|| "CUDA membrane receipt has malformed factor row".to_string())?;
+    let p = p_text.trim().parse::<BigUint>().map_err(|_| "CUDA receipt has invalid first factor".to_string())?;
+    let q = q_text.trim().parse::<BigUint>().map_err(|_| "CUDA receipt has invalid second factor".to_string())?;
+    if p <= BigUint::from(1u8) || q <= BigUint::from(1u8) || &p * &q != n {
+        return Err("GPU factor receipt failed exact product closure".into());
+    }
+    let mut routed = args.to_vec();
+    routed.extend(["--factors".into(), p.to_string(), q.to_string()]);
+    let producer = format!("{} entry={entry} program={program} CUDA device={}", executable.display(),device.unwrap());
+    Ok((routed, Some(producer)))
+}
 
 pub fn append_trilattice_reads(report: &str) {
     let values: Vec<(&str, String)> = ["N", "p", "q"]

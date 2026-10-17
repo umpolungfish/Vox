@@ -4,6 +4,10 @@ import hashlib
 import json
 import shutil
 import subprocess
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone
+
 ROOT = Path(__file__).resolve().parents[1]
 FOLDER = ROOT / 'membranes/folded_quantum_pair_2026-09-30'
 elf = FOLDER / 'payload.elf'
@@ -12,7 +16,8 @@ glyphs = FOLDER / 'payload.glyphs'
 recovered = FOLDER / 'recovered.imasm'
 if glyphs.exists():
     raise RuntimeError('Preserve the preceding carrier emission')
-vox = ROOT / 'target/release/vox'
+require_standalone(elf)
+vox = ROOT / 'target/x86_64-unknown-linux-musl/release/vox'
 with (FOLDER / 'emission.stdout').open('w') as log:
     subprocess.run([str(vox), 'imasm', str(elf)], stdout=subprocess.DEVNULL,
                    stderr=log, check=True, timeout=60)

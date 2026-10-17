@@ -1,6 +1,0 @@
-rewired 71229 instructions in 3300 functions
-Frobenius wiring: 6897 closed, 0 open; arm-entry work witness: 6895/6897
-coverage: 284845/284845 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1262
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/cluster_factor_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/cluster_factor_cli.rewired.json.gz)

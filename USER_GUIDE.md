@@ -7,6 +7,151 @@ This guide covers every command, binary, script, Python entry point, data file
 and directory in this repo, with worked examples. All example outputs below were
 captured by running the commands in this tree.
 
+## Operating programs
+
+Run these commands from this directory. Python 3.11 or newer runs the launcher;
+Rust and the selected target are needed when building Rust programs. `doctor`
+prints available build tools and installed Rust targets. GPU execution requires
+a compatible CUDA device and driver.
+
+```bash
+./programs --help
+./programs doctor
+./programs list
+./programs list --all phase
+./programs menu
+./programs cli --help
+```
+
+`list` shows named Rust binaries. `--all` also includes examples, shell and
+Python tools, and the live nested Cargo projects under `membranes/` and
+`gpu_port/`. Search by part of a name or description. Use the full name printed
+by the list when names collide, for example `bin:NAME`, `example:NAME`,
+`script:tools/NAME.sh` or `membranes/bin:NAME`.
+
+| Action | Command |
+| --- | --- |
+| Read usage without starting a computation | `./programs help NAME` |
+| Build one Rust program | `./programs build NAME` |
+| Build as needed and run with arguments | `./programs run NAME ARGUMENTS` |
+| Use the main command interface | `./programs cli ARGUMENTS` |
+| Run an already built program | `./programs --no-build run NAME ARGUMENTS` |
+| Use a debug build | `./programs --debug run NAME ARGUMENTS` |
+| Run a saved native membrane or serialization | `./programs execute PATH` |
+| Choose a program and enter its arguments | `./programs menu` |
+
+Global options such as `--no-build` go before the action. Arguments after a
+program name are passed through as separate arguments. Quote an IMASM word or
+an argument containing spaces. Program arguments use this repository as their
+working directory. `execute` and `bake` resolve supplied paths relative to the
+calling directory, so absolute launcher paths also work from elsewhere.
+
+The launcher checks static ELF linkage before returning or running a native
+image. A `.imasm` or `.glyphs` input to `execute` runs through Vox. Baking never
+starts the resulting factor search. Press Ctrl+C to stop a running program;
+the launcher imposes no time limit. Computations can retain their own algorithmic
+bounds and return an open state. A user-selected profiling duration is separate
+from a baked execution timeout.
+
+### Bake from ordinary inputs
+
+```bash
+./programs bake --list
+./programs bake --help
+```
+
+Choose a family explicitly to get the same behavior from either directory.
+`--number` accepts decimal N. `--input` accepts a file containing decimal N
+alone. `--word-file` accepts saved IMASM for the word and ququart families.
+`--output` must name a fresh path. Without it, a fresh timestamped path is
+created under the family repository's `membranes/` directory. The final
+`Ready:` and `Run:` lines give the native image path and direct execution
+command. Build logs and preparation records remain beside the image.
+
+| Family | Example using an existing source file | Native output at `--output CASE` |
+| --- | --- | --- |
+| Source-only factor | `./programs bake factor --input SOURCE.decimal --output CASE` | `CASE/factor_one` |
+| Prepared resident | `./programs bake resident --input SOURCE.decimal --output CASE` | `CASE/resident_factor_baked` |
+| Rust phase | `./programs bake rust-phase --input SOURCE.decimal --output CASE` | `CASE` |
+| C phase | `./programs bake c-phase --input SOURCE.decimal --output CASE` | `CASE`, plus `.imasm` and `.glyphs` sidecars |
+| Ququart | `./programs bake ququart --word-file SOURCE.imasm --native-fourier --output CASE` | `CASE/membrane` |
+| GPU idempotent | `./programs bake gpu --input SOURCE.decimal --output CASE` | `CASE`, with embedded device code |
+| CPU idempotent | `./programs bake cpu --prepared PREPARED_DIRECTORY --output CASE` | `CASE`, plus preparation and serialization records |
+| Saved IMASM word | `./programs bake word --word-file SOURCE.imasm --output CASE` | `CASE` |
+
+The default family is `factor` in Vox and `resident` in G-mOMonadOS. Phase and
+ququart bases default to 2; `--base` changes that compilation input. Ququart
+`--retained-case DIRECTORY` reuses compatible preparation instead of
+`--native-fourier`. Word baking selects the first nonempty source line by
+default; `--line` selects another. CPU baking needs the source directory emitted
+by the GPU preparer, including `membrane.cu` and `preparation.json`. Its default
+compilation prepares through closure; `CPU_PREPARE_TO_CLOSURE=0` selects an open
+diagnostic preparation. Neither mode has a wall-clock cutoff.
+
+A baked native image carries its instance inputs and required computation.
+Run the image directly with no source argument. Python, Cargo and the source
+files are build tools and inputs; GPU device execution uses the host driver.
+Use `python3 ../Vox/standalone.py PATH_TO_IMAGE` to inspect linkage independently.
+
+### Check the operating interface
+
+The retained operating checks use CPU commands and an N-only near-balanced
+224-bit source. From either directory:
+
+```bash
+./programs run tools/check_program_operations.py
+```
+
+Add `--bake` to check word, factor, resident, Rust phase, C phase and ququart
+baking. This retains native images and checks static linkage. It executes the
+word image from an empty directory and environment. Factor searches and GPU
+execution are outside this check. Logs and `receipt.json` remain under
+`Vox/measurements/program_operations_20261015/`; `--output` selects a fresh
+results directory. There is no imposed execution timeout.
+
+### Extend the CPU isolation checks
+
+From Vox, bake two fresh near-balanced 224-bit sources through the shell
+perfect-membrane and Python sparse-readout bakers:
+
+```bash
+./programs run tools/check_baked_isolation.py
+```
+
+The final line prints the retained receipt. Set `RESULTS` to its containing
+directory, then extend the same run:
+
+```bash
+./programs run tools/check_baked_isolation.py --glyphs --output "$RESULTS"
+./programs run tools/check_baked_isolation.py --trace --output "$RESULTS"
+```
+
+From G-mOMonadOS, use `../Vox/programs` for these commands. The shell tests
+exercise two nesting depths with inherited flags requesting dynamic linkage.
+The images must still be static, retain their baked input, and ignore runtime
+source overrides. The sparse queries are compared with independent arithmetic.
+Glyph checks require exact module recovery, agreement with native output and
+rejection of a corrupted image. The trace pass requires permission to trace CPU
+processes; it rejects source-file opens and helper launches. It does not perform
+GPU execution or factor searches. Reference factors remain separate from the
+N-only build inputs.
+
+### Tested entry points
+
+```bash
+./programs help vox
+./programs --no-build cli --help
+./programs --no-build cli numeral 266175155279792434973506259190185380993589458872977057421959357
+```
+
+The decimal example is the retained balanced 208-bit source. The numeral command
+reads N alone and prints its source word. To bake the retained fresh 224-bit
+source with a new output path:
+
+```bash
+./programs bake factor --input measurements/static_bakers_20261015/source.decimal
+```
+
 ## Contents
 
 1. [What Vox is](#what-vox-is)
@@ -522,6 +667,14 @@ do not establish the objective for arbitrary inputs.
 
 ## Baked membranes
 
+Every live baker must output a static, self-contained native executable by default.
+The build checks that its ELF has no external interpreter or shared-library
+dependencies. Static PIE is accepted. An output that fails this check is a failed
+bake. Inherited Rust flags cannot silently turn a baker's retained output dynamic.
+The checker runs during baking; the emitted binary does not need Python, Cargo,
+the source tree or its original input files to load its baked computation.
+GPU execution uses the host's CUDA driver and compatible device.
+
 The house pattern for factorization binaries: the decimal is consumed at BUILD
 time by `vox numeral` (encode-before-compile), the resulting IMASM word is
 baked into the binary by `build.rs` (via `RUSTFLAGS`/env at compile), and the
@@ -529,7 +682,7 @@ run is pure execution of a word that already contains N — no runtime input, no
 decimals. Every script in [§7](#shell-scripts) is a variant of this pattern.
 
 ```bash
-$ ./factor_one.sh 1000036000099     # bakes N, rebuilds, runs factor_one
+$ ./factor_one.sh 1000036000099     # bakes N and prints the static executable path
 $ ./membrane_one.sh 1000036000099   # same shape for `membrane`
 $ ./perfect_one.sh 105 3            # depth-n perfect membrane, default depth 2
 $ ./eml_factor_one.sh 105 7         # EML-first carrier, optional phase base
@@ -538,10 +691,31 @@ $ ./frame_factor_build.sh 105 4     # N + eval-frame width imscribed, no input
 $ ./factor_2adic_membrane.sh 1000036000099 membranes/case 7 10
 ```
 
-`hyperstack_one.sh` and `frame_factor_build.sh` EMIT the baked binary rather
-than run it; the emitted path is printed. `factor_2adic_membrane.sh` prints
+The baker scripts emit static, self-contained binaries and print their paths.
+Set `MEMBRANE_RUN=1` to execute the ordinary one-shot outputs after baking.
+The Shor and toroidal scripts use their explicit `--run` option. `factor_2adic_membrane.sh` prints
 the path of a self-contained membrane binary (phase base and lift radix both
 default to 2).
+
+`vox_factor.sh` bakes the saved `membrane_words.imasm` into
+`target/x86_64-unknown-linux-musl/release/membrane`. `vox_membrane.sh [OUTPUT]`
+emits a native image at `OUTPUT`, defaulting to `membranes/vox_membrane`.
+Its build-time word comes from `VOX_MEMBRANE_WORD_FILE`, or
+`membrane_word.imasm` with `membrane_word.imasm.ref` as the default fallback.
+`glyph_membranes.sh` retains checked native `.elf` images alongside their IMASM
+and glyph forms. The circuit baker preserves its resident switching interface
+and the exported preparation symbols in its static payload.
+
+The Python bakers, including `baked_case.py` and executable-building measurement
+recipes, apply the same static output check. G-mOMonadOS supplies the resident,
+phase, ququart, raw ELF and CPU/GPU idempotent builders described in its
+[user guide](../G-mOMonadOS/USER_GUIDE.md). The
+[shared inventory and validation](../ig-docs/membrane_bakers_static_20261015.md)
+records the live recipes, source hashes, build logs and retained images.
+G-mOMonadOS's resident and ququart baked paths use their
+[native resident runtime](../G-mOMonadOS/USER_GUIDE.md#native-resident-execution),
+including the retained Vox Y reducer, and execute without an external Lean
+process. Formal Lean bridge commands remain separate interactive instruments.
 
 ## The Rust binaries
 
@@ -606,9 +780,10 @@ every one was read in full.
 
 | Script | Usage | Notes |
 |--------|-------|-------|
-| `bench.sh` | `./bench.sh <file of "label decimal" lines>` | Bakes a batch of IMASM numerals into one sealed `factor_bench` binary; prints the table only when the whole batch is done — sealed, no peeking |
+| `bench.sh` | `./bench.sh <file of "label decimal" lines>` | Bakes a batch of IMASM numerals into one static `factor_bench` binary and prints its path |
 | `bake_factor.sh` | `./bake_factor.sh N [OUT]` or `./bake_factor.sh --input SINGLE_CASE.jsonl [OUT]` | Builds and retains a fresh executable without running it |
-| `factor_one.sh` | `./factor_one.sh <decimal N>` | Bakes N, rebuilds `factor_one`, runs it once |
+| `factor_one.sh` | `./factor_one.sh <decimal N>` | Bakes N, rebuilds static `factor_one`, prints its path |
+| `shor_one.sh`   | `./shor_one.sh <decimal N>`   | Bakes N into a static executable; `--run` executes it |
 | `membrane_one.sh` | `./membrane_one.sh <decimal N>` | Same shape for `membrane` |
 | `perfect_one.sh` | `./perfect_one.sh <decimal value> [depth]` | Depth-n perfect membrane (default depth 2) |
 | `eml_factor_one.sh` | `./eml_factor_one.sh <decimal N> [phase-base]` | EML-first full carrier; emits `membranes/baked_eml/factor_<id>/` with input words + binary |

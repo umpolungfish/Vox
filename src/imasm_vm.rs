@@ -54,6 +54,8 @@ fn reg_info(name: &str) -> (&'static str, u8, u8) {
 
 pub enum Stop { Halt(String), SysExit(i32) }
 
+pub struct FileStat { pub device: u64, pub inode: u64, pub size: u64, pub mode: u32 }
+
 /// The bridge for syscalls the no_std VM cannot fulfill on its own: real files.
 /// A bare-metal kernel build supplies no `Host`, so `open`/`read`/`write`/
 /// `close` on any fd — including 0/1/2 — answer -EBADF/-ENOSYS exactly as
@@ -68,6 +70,12 @@ pub trait Host {
     fn close(&mut self, fd: i32) -> i32;
     fn pipe(&mut self, _flags: i32) -> Result<(i32, i32), i32> { Err(-38) }
     fn clock_gettime(&mut self, _clock: i32) -> Result<(i64,i64),i32> { Err(-38) }
+    fn file_stat(&mut self, _fd: i32) -> Result<FileStat, i32> { Err(-38) }
+    fn pread(&mut self, _fd: i32, _buf: &mut [u8], _offset: u64) -> i64 { -38 }
+    /// Pointer-bearing device requests carry explicitly bounded guest buffers.
+    /// Each tuple names a pointer field in `argument` and its pointed-to bytes.
+    fn ioctl(&mut self, _fd: i32, _request: u64, _argument: &mut [u8],
+        _buffers: &mut [(usize, Vec<u8>)]) -> i64 { -38 }
     fn dup2(&mut self, _oldfd: i32, _newfd: i32) -> i32 { -38 }
     fn chdir(&mut self, _path: &str) -> i32 { -38 }
     fn exec(&mut self, _path: &str, _argv: &[String], _envp: &[String]) -> Result<i32,i32> { Err(-38) }
@@ -139,6 +147,7 @@ pub struct Machine {
     /// or data, since `mem` is a sparse map and reads of never-written bytes
     /// already come back zero — a freshly "mapped" page needs no zeroing.
     mmap_next: u64,
+    executable_maps: Vec<(u64, u64)>,
     brk_cur: u64,
     /// IRELATIVE relocations (slot, resolver) carried by the module. Applied
     /// once before a process runs: each resolver is called and its pointer
@@ -173,7 +182,7 @@ impl Machine {
             code: BTreeMap::new(), addrs: Vec::new(), next_of: BTreeMap::new(), entry: 0, phdr: 0, phent: 0, phnum: 0,
             reg: BTreeMap::new(), mem: Memory::default(), flags: (0,0,1), kind: "cmp", steps: 0, bits: 64,
             symbols: BTreeMap::new(),
-            mmap_next: 0x0003_0000_0000, brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
+            mmap_next: 0x0003_0000_0000, executable_maps: Vec::new(), brk_cur: 0x0002_0000_0000, irelative: Vec::new(), relative: Vec::new(), host: None,
             watch: BTreeMap::new(), syslog: alloc::collections::VecDeque::new(), trace_lo: 0, trace_hi: 0, wmem: 0, wmem_lo: 0, wmem_hi: 0, df: false, cur_pc: 0, fork_child: false, fork_exec_pid: None,
         };
         for r in ["rax","rcx","rdx","rbx","rsp","rbp","rsi","rdi","r8","r9","r10","r11","r12","r13","r14","r15","rip","fs","gs"] {
@@ -427,6 +436,92 @@ impl Machine {
             self.syslog.push_back(format!("syscall {} a0=0x{:x} a1=0x{:x} a2=0x{:x} @step {}", num, a0, a1, a2, self.steps));
         }
         match num {
+            16 => { // ioctl: the WSL GPU interface uses real retained file handles.
+                let request = a1 as u64;
+                let size = ((request >> 16) & 0x3fff) as usize;
+                let kind = (request >> 8) & 255;
+                let number = request & 255;
+                // Layouts follow the installed WSL d3dkmthk.h. Only admitted
+                // layouts cross the host boundary; unknown ioctls never fake success.
+                let layout = match (kind, number, size) {
+                    (0x47, 0x3e, 24) => Some(Some((16, 8, 20))), // enumadapters3
+                    (0x47, 0x14, 16) => Some(Some((8, 0, 20))), // enumadapters2
+                    (0x47, 0x09, 24) => Some(Some((8, 16, 1))), // queryadapterinfo
+                    (0x47, 0x0d, 32) => Some(Some((16, 24, 1))), // escape
+                    (0x47, 0x01, 12) | (0x47, 0x15, 4) => Some(None),
+                    _ => None,
+                };
+                let Some(layout) = layout else {
+                    self.set_reg("rax", (-38i64) as u64 as u128);
+                    return Ok(());
+                };
+                let mut argument = self.peek(a2 as u64, size as u64);
+                let mut buffers = Vec::new();
+                let mut destinations = Vec::new();
+                if let Some((pointer, count, stride)) = layout {
+                    let address = self.load(a2 as u64 + pointer as u64, 8) as u64;
+                    let count = self.load(a2 as u64 + count as u64, 4) as usize;
+                    let limit = if stride == 20 { 64 } else { 1 << 24 };
+                    if count > limit || address == 0 && count != 0 {
+                        self.set_reg("rax", (-22i64) as u64 as u128);
+                        return Ok(());
+                    }
+                    if address != 0 {
+                        let length = count * stride;
+                        buffers.push((pointer, self.peek(address, length as u64)));
+                        destinations.push(address);
+                    }
+                }
+                let result = self.host.as_mut().map(|host|
+                    host.ioctl(a0 as i32, request, &mut argument, &mut buffers)).unwrap_or(-38);
+                for (index, &byte) in argument.iter().enumerate() {
+                    self.store(a2 as u64 + index as u64, byte as u128, 1);
+                }
+                for ((_, bytes), address) in buffers.iter().zip(destinations) {
+                    for (index, &byte) in bytes.iter().enumerate() {
+                        self.store(address + index as u64, byte as u128, 1);
+                    }
+                }
+                self.set_reg("rax", result as u64 as u128);
+            }
+            5 | 262 => { // fstat / newfstatat, using the actual hosted file.
+                let path = if num == 262 { self.read_cstr(a1 as u64) } else { String::new() };
+                let output = if num == 262 { a2 as u64 } else { a1 as u64 };
+                let result = self.host.as_mut().map(|host| {
+                    if num == 262 && !path.is_empty() {
+                        if !path.starts_with('/') && a0 as i32 != -100 { return Err(-38); }
+                        let fd = host.open(&path, 0, 0);
+                        if fd < 0 { return Err(fd); }
+                        let stat = host.file_stat(fd);
+                        host.close(fd);
+                        stat
+                    } else { host.file_stat(a0 as i32) }
+                }).unwrap_or(Err(-38));
+                match result {
+                    Ok(stat) => {
+                        for offset in 0..144 { self.store(output + offset, 0, 1); }
+                        self.store(output, stat.device as u128, 8);
+                        self.store(output + 8, stat.inode as u128, 8);
+                        self.store(output + 16, 1, 8);
+                        self.store(output + 24, stat.mode as u128, 4);
+                        self.store(output + 48, stat.size as u128, 8);
+                        self.store(output + 56, 4096, 8);
+                        self.store(output + 64, stat.size.div_ceil(512) as u128, 8);
+                        self.set_reg("rax", 0);
+                    }
+                    Err(errno) => self.set_reg("rax", errno as i64 as u64 as u128),
+                }
+            }
+            17 => { // pread64: loading an ELF header must not advance its fd.
+                let mut bytes = vec![0; (a2 as usize).min(1 << 24)];
+                let result = self.host.as_mut().map(|h| h.pread(a0 as i32, &mut bytes, a3 as u64)).unwrap_or(-38);
+                if result > 0 {
+                    for (index, byte) in bytes[..result as usize].iter().enumerate() {
+                        self.store(a1 as u64 + index as u64, *byte as u128, 1);
+                    }
+                }
+                self.set_reg("rax", result as u64 as u128);
+            }
             22 | 293 => { // pipe / pipe2: return both descriptors through guest memory.
                 let result = if a0 == 0 { Err(-14) } else {
                     self.host.as_mut().map(|h| h.pipe(if num == 293 { a1 as i32 } else { 0 })).unwrap_or(Err(-38))
@@ -583,15 +678,58 @@ impl Machine {
             }
             9 => { // mmap(addr,length,prot,flags,fd,offset)
                 let length = a1 as u64; let fd = sign(a4, 8);
-                if fd != -1 { self.set_reg("rax", (-38i128 as u128) & mask(8)); }
-                else {
+                {
                     let page = 4096u64;
-                    let n = (((length.max(1) + page - 1) / page) * page).max(page);
-                    let addr = self.mmap_next; self.mmap_next += n;
+                    let n = match length.checked_add(page - 1) {
+                        Some(value) if length > 0 => value / page * page,
+                        _ => { self.set_reg("rax", (-22i64) as u64 as u128); return Ok(()); }
+                    };
+                    let addr = if a3 as u64 & 0x10 != 0 { a0 as u64 }
+                        else { self.mmap_next };
+                    let Some(end) = addr.checked_add(n) else {
+                        self.set_reg("rax", (-12i64) as u64 as u128); return Ok(());
+                    };
+                    if addr % page != 0 { self.set_reg("rax", (-22i64) as u64 as u128); return Ok(()); }
+                    if a3 as u64 & 0x20 == 0 {
+                        if fd < 0 { self.set_reg("rax", (-9i64) as u64 as u128); return Ok(()); }
+                        if length > 1 << 30 { self.set_reg("rax", (-12i64) as u64 as u128); return Ok(()); }
+                        let mut bytes = vec![0; length as usize];
+                        let offset = self.get_reg("r9") as u64;
+                        let result = self.host.as_mut().map(|h| h.pread(fd as i32, &mut bytes, offset)).unwrap_or(-38);
+                        if result < 0 { self.set_reg("rax", result as u64 as u128); return Ok(()); }
+                        // A replacement mapping discards its previous pages,
+                        // including the final partial page beyond the file.
+                        self.unmap(addr, n).expect("validated mapping range");
+                        for (index, byte) in bytes.into_iter().enumerate() { self.mem.insert(addr + index as u64, byte); }
+                    } else {
+                        // MAP_FIXED anonymous storage is fresh zeroed memory.
+                        // Retaining an earlier file's bytes corrupts ELF BSS.
+                        self.unmap(addr, n).expect("validated mapping range");
+                    }
+                    if a3 as u64 & 0x10 == 0 { self.mmap_next = end; }
+                    self.code.retain(|address, _| *address < addr || *address >= end);
+                    self.next_of.retain(|address, _| *address < addr || *address >= end);
+                    let previous = core::mem::take(&mut self.executable_maps);
+                    for (start, stop) in previous {
+                        if stop <= addr || start >= end { self.executable_maps.push((start, stop)); }
+                        else {
+                            if start < addr { self.executable_maps.push((start, addr)); }
+                            if stop > end { self.executable_maps.push((end, stop)); }
+                        }
+                    }
                     self.set_reg("rax", addr as u128);
+                    if a2 as u64 & 4 != 0 { self.executable_maps.push((addr, end)); }
                     if !self.watch.is_empty() && self.syslog_room() {
                         self.syslog.push_back(format!("            mmap len=0x{:x} -> 0x{:x} @step {}", length, addr, self.steps));
                     }
+                }
+            }
+            10 => { // mprotect: executable pages remain inside this VM.
+                if a0 as u64 % 4096 != 0 || (a0 as u64).checked_add(a1 as u64).is_none() {
+                    self.set_reg("rax", (-22i64) as u64 as u128);
+                } else {
+                    if a2 as u64 & 4 != 0 { self.executable_maps.push((a0 as u64, a0 as u64 + a1 as u64)); }
+                    self.set_reg("rax", 0);
                 }
             }
             25 => { // mremap: musl uses this when a large Vec grows.
@@ -700,7 +838,33 @@ impl Machine {
     // ── ALU ──
     fn alu(&mut self, op: &str, f: &[String]) {
         match op {
-            "nop"|"endbr64"|"endbr32" => return,
+            // Guest instructions commit in order in this single-threaded VM.
+            "nop"|"endbr64"|"endbr32"|"lfence"|"mfence"|"sfence" => return,
+            "cpuid" => {
+                // Advertise the integer/SSE2 ISA this machine implements.
+                // Leaving these registers untouched corrupts libc dispatch.
+                let leaf = self.get_reg("eax") as u32;
+                let values: [u32; 4] = match leaf {
+                    0 => [1, 0x756e6547, 0x6c65746e, 0x49656e69],
+                    1 => [0x600, 1 << 16, 0, (1 << 0) | (1 << 4) | (1 << 8) | (1 << 15) | (1 << 23) | (1 << 24) | (1 << 25) | (1 << 26)],
+                    0x80000000 => [0x80000001, 0, 0, 0],
+                    // Long mode and SYSCALL are part of the executing x86-64
+                    // baseline. The ELF loader checks these extended flags
+                    // before admitting baseline shared libraries.
+                    0x80000001 => [0, 0, 0, (1 << 11) | (1 << 29)],
+                    _ => [0, 0, 0, 0],
+                };
+                for (register, value) in ["eax", "ebx", "ecx", "edx"].into_iter().zip(values) {
+                    self.set_reg(register, value as u128);
+                }
+                return;
+            }
+            "xgetbv" => { self.set_reg("eax", 0); self.set_reg("edx", 0); return; }
+            "rdtsc" => {
+                self.set_reg("eax", self.steps as u32 as u128);
+                self.set_reg("edx", (self.steps >> 32) as u128);
+                return;
+            }
             "lea" => { let (a,_) = self.ea(&f[1]); self.write(&f[0], a as u128); return; }
             // Bit scan: index of the lowest (bsf) or highest (bsr) set bit, with
             // ZF flagging a zero source. String routines read these off pmovmskb.
@@ -995,7 +1159,7 @@ impl Machine {
     fn simd(&mut self, op: &str, f: &[String]) {
         let dst = f[0].clone();
         match op {
-            "movdqa"|"movdqu"|"movaps"|"movups" => { let v = self.read(&f[1], 16).0; self.write(&dst, v & mask(16)); }
+            "movdqa"|"movdqu"|"movaps"|"movups"|"movntdq"|"movntps"|"movntpd" => { let v = self.read(&f[1], 16).0; self.write(&dst, v & mask(16)); }
             "movlps"|"movhps"|"movhlps"|"movlhps" => {
                 let source = self.read(&f[1],16).0;
                 let high = op == "movhps" || op == "movlhps";
@@ -1422,6 +1586,9 @@ impl Machine {
             if let Some(&a) = self.symbols.get(name) { self.watch.insert(a, name.to_string()); }
         }
     }
+    pub fn watch_symbol(&mut self, name: &str) {
+        if let Some(&address) = self.symbols.get(name) { self.watch.insert(address, format!("inspect:{name}")); }
+    }
 
     /// Read a register by name and a byte from guest memory, for host-side
     /// diagnostics after a run.
@@ -1452,6 +1619,11 @@ impl Machine {
                     if self.syslog_room() {
                         let (di, si, dx) = (self.get_reg("rdi"), self.get_reg("rsi"), self.get_reg("rdx"));
                         self.syslog.push_back(format!("{:>16} rdi=0x{:x} rsi=0x{:x} rdx=0x{:x} @step {}", name, di, si, dx, self.steps));
+                        if name.starts_with("inspect:") {
+                            self.syslog.push_back(format!("{} rdi_text={:?} rdi_map_name={:?} rsi_map_name={:?}", name,
+                                self.read_cstr(di as u64), self.read_cstr(self.load(di as u64 + 8, 8) as u64),
+                                self.read_cstr(self.load(si as u64 + 8, 8) as u64)));
+                        }
                     }
                 }
             }
@@ -1462,6 +1634,21 @@ impl Machine {
                     self.get_reg("rsi"), self.get_reg("rdi"), self.get_reg("rbp"), self.get_reg("r8"),
     self.get_reg("r9"), self.get_reg("r10"), self.get_reg("r11"), self.get_reg("r12"),
     self.get_reg("r13"), self.get_reg("r14"), self.get_reg("r15"), insn_txt));
+            }
+            if !self.code.contains_key(&pc) && self.executable_maps.iter().any(|&(start, end)| pc >= start && pc < end) {
+                let bytes = self.peek(pc, 15);
+                if let Some(instruction) = crate::x86::decode_mode(&bytes, pc, self.bits) {
+                    if instruction.len > 0 {
+                        let lines = crate::imasm_module::encode(&instruction, false);
+                        let instructions = lines.iter().filter_map(|line| {
+                            let mut fields = line.split('\t');
+                            let glyph = fields.next()?.chars().next()?;
+                            Some((glyph, fields.map(str::to_string).collect()))
+                        }).collect();
+                        self.code.insert(pc, Rc::new(instructions));
+                        self.next_of.insert(pc, pc + instruction.len as u64);
+                    }
+                }
             }
             if !self.code.contains_key(&pc) {
                 return Err(Stop::Halt(format!("no instruction at 0x{:x} after {} steps\n  previous 12:\n{}", pc, self.steps, self.render_trace(&trace))));
@@ -1570,7 +1757,7 @@ impl Machine {
 }
 
 fn is_simd(op: &str) -> bool {
-    matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
+    matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movntdq"|"movntps"|"movntpd"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"|"movmskps"|"movmskpd"
@@ -1578,6 +1765,192 @@ fn is_simd(op: &str) -> bool {
         |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
         |"xorps"|"andps"|"andnps"|"orps"|"xorpd"|"andpd"|"andnpd"|"orpd"
         |"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
+}
+
+#[cfg(test)]
+mod hosted_loader_tests {
+    extern crate std;
+    use super::{FileStat, Host, Machine, Stop};
+    struct Image;
+    impl Host for Image {
+        fn open(&mut self, _: &str, _: i32, _: i32) -> i32 { 7 }
+        fn read(&mut self, _: i32, _: &mut [u8]) -> i64 { -38 }
+        fn write(&mut self, _: i32, _: &[u8]) -> i64 { -38 }
+        fn close(&mut self, _: i32) -> i32 { 0 }
+        fn file_stat(&mut self, fd: i32) -> Result<FileStat, i32> {
+            if fd != 7 { return Err(-9); }
+            Ok(FileStat { device: 11, inode: 19, size: 24576, mode: 0o100644 })
+        }
+        fn pread(&mut self, fd: i32, bytes: &mut [u8], offset: u64) -> i64 {
+            if fd != 7 { return -9; }
+            let value = match offset { 8192 => 42, 16384 => 99, _ => return -22 };
+            bytes[..6].copy_from_slice(&[0xb8, value, 0, 0, 0, 0xc3]);
+            6
+        }
+    }
+    fn map(machine: &mut Machine, address: u64, offset: u64, executable: bool) -> u64 {
+        for (register, value) in [("rax", 9), ("rdi", address), ("rsi", 4096),
+            ("rdx", if executable { 5 } else { 1 }), ("r10", if address == 0 { 2 } else { 0x12 }),
+            ("r8", 7), ("r9", offset)] { machine.set_reg(register, value as u128); }
+        assert!(machine.do_syscall().is_ok());
+        machine.reg("rax") as u64
+    }
+    #[test]
+    fn mapped_file_code_executes_and_remaps_without_changing_retained_banks() {
+        let mut machine = Machine::new("");
+        machine.set_host(alloc::boxed::Box::new(Image));
+        machine.store(0x9000, 0xfeed_beef, 8);
+        let address = map(&mut machine, 0, 8192, true);
+        assert!(matches!(machine.call(address, &[], 20), Ok(42)));
+        assert_eq!(map(&mut machine, address, 16384, true), address);
+        assert!(matches!(machine.call(address, &[], 20), Ok(99)));
+        assert_eq!(machine.load(0x9000, 8), 0xfeed_beef);
+        map(&mut machine, address, 8192, false);
+        assert!(matches!(machine.call(address, &[], 20), Err(Stop::Halt(_))));
+    }
+    #[test]
+    fn anonymous_fixed_mapping_clears_old_file_bytes_and_retains_neighbor_banks() {
+        let mut machine = Machine::new("");
+        machine.set_host(alloc::boxed::Box::new(Image));
+        let address = map(&mut machine, 0, 8192, true);
+        machine.store(address + 4096, 0xfeed_beef, 8);
+        for (register, value) in [("rax", 9), ("rdi", address), ("rsi", 1),
+            ("rdx", 3), ("r10", 0x32), ("r8", u64::MAX), ("r9", 0)] {
+            machine.set_reg(register, value as u128);
+        }
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.reg("rax"), address as u128);
+        assert_eq!(machine.load(address, 8), 0);
+        assert_eq!(machine.load(address + 4095, 1), 0);
+        assert_eq!(machine.load(address + 4096, 8), 0xfeed_beef);
+        assert!(matches!(machine.call(address, &[], 20), Err(Stop::Halt(_))));
+    }
+    #[test]
+    fn gpu_adapter_ioctl_transports_bounded_buffers_and_preserves_guest_pointers() {
+        struct Device;
+        impl Host for Device {
+            fn open(&mut self, _: &str, _: i32, _: i32) -> i32 { 7 }
+            fn read(&mut self, _: i32, _: &mut [u8]) -> i64 { -38 }
+            fn write(&mut self, _: i32, _: &[u8]) -> i64 { -38 }
+            fn close(&mut self, _: i32) -> i32 { 0 }
+            fn ioctl(&mut self, fd: i32, request: u64, argument: &mut [u8],
+                buffers: &mut [(usize, alloc::vec::Vec<u8>)]) -> i64 {
+                assert_eq!((fd, request), (7, 0xc018473e));
+                assert_eq!(u64::from_le_bytes(argument[16..24].try_into().unwrap()), 0x9000);
+                assert_eq!(buffers[0].0, 16);
+                assert_eq!(buffers[0].1.len(), 40);
+                buffers[0].1[0..4].copy_from_slice(&123u32.to_le_bytes());
+                argument[8..12].copy_from_slice(&1u32.to_le_bytes());
+                0
+            }
+        }
+        let mut machine = Machine::new("");
+        machine.set_host(alloc::boxed::Box::new(Device));
+        machine.store(0x8008, 2, 4);
+        machine.store(0x8010, 0x9000, 8);
+        machine.store(0xa000, 0xfeed_beef, 8);
+        for (register, value) in [("rax",16), ("rdi",7), ("rsi",0xc018473e), ("rdx",0x8000)] {
+            machine.set_reg(register, value);
+        }
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.reg("rax"), 0);
+        assert_eq!(machine.load(0x8008, 4), 1);
+        assert_eq!(machine.load(0x8010, 8), 0x9000);
+        assert_eq!(machine.load(0x9000, 4), 123);
+        assert_eq!(machine.load(0xa000, 8), 0xfeed_beef);
+        machine.set_reg("rax", 16);
+        machine.set_reg("rsi", 0xc01847ff);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.reg("rax") as u64 as i64, -38);
+    }
+    #[test]
+    fn fstat_transports_file_identity_size_and_errors() {
+        let mut machine = Machine::new("");
+        machine.set_host(alloc::boxed::Box::new(Image));
+        machine.set_reg("rax", 5); machine.set_reg("rdi", 7); machine.set_reg("rsi", 0x9000);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.reg("rax"), 0);
+        assert_eq!(machine.load(0x9000, 8), 11);
+        assert_eq!(machine.load(0x9008, 8), 19);
+        assert_eq!(machine.load(0x9030, 8), 24576);
+        machine.set_reg("rax", 5); machine.set_reg("rdi", 8);
+        assert!(machine.do_syscall().is_ok());
+        assert_eq!(machine.reg("rax") as u64 as i64, -9);
+    }
+    #[test]
+    fn cpu_discovery_clears_stale_registers_and_advertises_the_virtual_isa() {
+        let mut machine = Machine::new("");
+        for register in ["eax", "ebx", "ecx", "edx"] { machine.set_reg(register, u32::MAX as u128); }
+        machine.set_reg("eax", 0);
+        machine.alu("cpuid", &[]);
+        assert_eq!(machine.reg("eax"), 1);
+        assert_eq!(machine.reg("ebx"), 0x756e6547);
+        assert_eq!(machine.reg("ecx"), 0x6c65746e);
+        assert_eq!(machine.reg("edx"), 0x49656e69);
+        machine.set_reg("eax", 1);
+        machine.alu("cpuid", &[]);
+        assert_eq!(machine.reg("ecx"), 0);
+        assert_ne!(machine.reg("edx") & (1 << 26), 0);
+        machine.set_reg("eax", 0x80000000);
+        machine.alu("cpuid", &[]);
+        assert_eq!(machine.reg("eax"), 0x80000001);
+        machine.set_reg("eax", 0x80000001);
+        machine.alu("cpuid", &[]);
+        assert_eq!(machine.reg("edx"), (1 << 11) | (1 << 29));
+        assert_eq!(machine.reg("ecx"), 0);
+        machine.set_reg("eax", 7);
+        machine.alu("cpuid", &[]);
+        for register in ["eax", "ebx", "ecx", "edx"] { assert_eq!(machine.reg(register), 0); }
+    }
+    #[test]
+    #[ignore = "requires VOX_LOADER_TEST_IMAGE naming the retained glibc membrane"]
+    fn actual_glibc_loader_name_matching_handles_aligned_and_unaligned_strings() {
+        let path = std::env::var_os("VOX_LOADER_TEST_IMAGE").expect("set VOX_LOADER_TEST_IMAGE");
+        let raw = std::fs::read(&path).unwrap();
+        let mut machine = Machine::new(&crate::imasm_module::emit(&raw));
+        let routine = machine.resolve("_dl_name_match_p").expect("glibc loader symbol");
+        // Exercise the implementation selected by libc startup, including its
+        // CPU-dispatched string routines and retained loader state.
+        match machine.run_process(&[path.to_string_lossy().into_owned()],
+            &["LD_LIBRARY_PATH=/usr/lib/wsl/lib".into()], 40000) {
+            Err(Stop::Halt(message)) => assert!(message.contains("step budget"), "{message}"),
+            _ => panic!("startup did not reach the requested instruction boundary"),
+        }
+        machine.set_reg("rsp", 0x70000000);
+        let name = 0x60003000;
+        for (index, byte) in b"LD_LIBRARY_PATH\0".iter().enumerate() {
+            machine.store(name + index as u64, *byte as u128, 1);
+        }
+        let getenv = machine.resolve("getenv").unwrap();
+        let result = match machine.call(getenv, &[name as i64], 10000) {
+            Ok(value) => value,
+            Err(_) => panic!("getenv did not return"),
+        };
+        assert_eq!(machine.read_cstr(result as u64), "/usr/lib/wsl/lib");
+        for offset in 0u64..64 {
+            for same in [false, true] {
+              for library in ["libcuda.so.1", "libdl.so.2", "librt.so.1", "libm.so.6"] {
+                let name = 0x60000001 + offset;
+                let candidate = 0x60001007 + offset;
+                let map = 0x60002000;
+                for (at, text) in [(name, library),
+                    (candidate, if same { library } else { "libc.so.6" })] {
+                    for (index, byte) in text.bytes().chain(core::iter::once(0)).enumerate() {
+                        machine.store(at + index as u64, byte as u128, 1);
+                    }
+                }
+                machine.store(map + 8, candidate as u128, 8);
+                machine.store(map + 56, 0, 8);
+                let result = match machine.call(routine, &[name as i64, map as i64], 10000) {
+                    Ok(value) => value,
+                    Err(Stop::Halt(error)) => panic!("{error}"),
+                    Err(Stop::SysExit(code)) => panic!("unexpected exit {code}"),
+                };
+                assert_eq!(result, i64::from(same), "offset={offset} same={same} library={library}");
+              }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1957,6 +2330,20 @@ mod membrane_simd_tests {
         assert_eq!(machine.reg("xmm0"), (33u128 << 64) | 44);
         machine.simd("punpckhqdq", &["r:xmm0".into(), "r:xmm1".into()]);
         assert_eq!(machine.reg("xmm0"), (44u128 << 64) | 33);
+    }
+    #[test]
+    fn streaming_stores_commit_all_bytes_and_preserve_adjacent_banks() {
+        let mut machine = Machine::new("");
+        let value = 0x00112233445566778899aabbccddeeffu128;
+        machine.write("r:xmm8", value);
+        for op in ["movntdq","movntps","movntpd"] {
+            machine.store(0x3000, 17, 8);
+            machine.store(0x3018, 29, 8);
+            machine.simd(op, &["m:::1:0x3008:16".into(), "r:xmm8".into()]);
+            assert_eq!(machine.load(0x3008, 16), value);
+            assert_eq!(machine.load(0x3000, 8), 17);
+            assert_eq!(machine.load(0x3018, 8), 29);
+        }
     }
 
     #[test]

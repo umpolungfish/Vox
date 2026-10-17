@@ -333,6 +333,24 @@ mod membrane_decode_tests {
     use super::*;
 
     #[test]
+    fn short_accumulator_exchange_preserves_width_and_extended_registers() {
+        for (bytes, left, right) in [
+            (&[0x91][..], "r:eax", "r:ecx"),
+            (&[0x66, 0x91][..], "r:ax", "r:cx"),
+            (&[0x48, 0x91][..], "r:rax", "r:rcx"),
+            (&[0x49, 0x90][..], "r:rax", "r:r8"),
+            (&[0x41, 0x97][..], "r:eax", "r:r15d"),
+        ] {
+            let instruction = decode(bytes, 0).unwrap();
+            assert_eq!(instruction.mnemonic, "xchg");
+            assert_eq!(instruction.len, bytes.len());
+            assert_eq!(instruction.ops[0].field(), left);
+            assert_eq!(instruction.ops[1].field(), right);
+        }
+        assert_eq!(decode(&[0x90], 0).unwrap().mnemonic, "nop");
+    }
+
+    #[test]
     fn indirect_stack_and_control_operands_keep_host_pointer_width() {
         for (group, name) in [(2, "call"), (4, "jmp"), (6, "push")] {
             let bytes = [0xff, 0x84 | (group << 3), 0x24, 0x80, 0, 0, 0];
@@ -391,6 +409,20 @@ mod membrane_decode_tests {
             let instruction = decode(bytes, 0).unwrap();
             assert_eq!(instruction.len, bytes.len());
             assert_eq!(instruction.mnemonic, "nop");
+        }
+    }
+    #[test]
+    fn streaming_stores_keep_extended_registers_displacements_and_fences() {
+        let bytes = [0x66,0x44,0x0f,0xe7,0x87,0x00,0x20,0x00,0x00];
+        let instruction = decode(&bytes, 0).unwrap();
+        assert_eq!(instruction.len, bytes.len());
+        assert_eq!(instruction.mnemonic, "movntdq");
+        assert_eq!(instruction.ops[0].field(), "m:rdi::1:0x2000:16");
+        assert_eq!(instruction.ops[1].field(), "r:xmm8");
+        for (sub,name) in [(0xe8,"lfence"),(0xf0,"mfence"),(0xf8,"sfence")] {
+            let instruction = decode(&[0x0f,0xae,sub], 0).unwrap();
+            assert_eq!(instruction.len, 3);
+            assert_eq!(instruction.mnemonic, name);
         }
     }
 }
@@ -498,7 +530,11 @@ pub fn decode_mode(b: &[u8], addr: u64, bits: u8) -> Option<Insn> {
         0x8B => { let (rm,r)=modrm(&mut c,&rex,osz,osz)?; ins!(addr,c,"mov",vec![rop(r,osz,rex.p),rm],false,None) }
         0x8D => { let (rm,r)=modrm(&mut c,&rex,osz,osz)?; ins!(addr,c,"lea",vec![rop(r,osz,rex.p),rm],false,None) }
         0x8F => { let (rm,_)=modrm(&mut c,&rex,8,8)?; let wm=rm.is_mem(); ins!(addr,c,"pop",vec![rm],wm,None) }
-        0x90 => ins!(addr,c,"nop",vec![],false,None),
+        0x90 if !rex.b => ins!(addr,c,"nop",vec![],false,None),
+        0x90..=0x97 => {
+            let register = (op - 0x90) | if rex.b { 8 } else { 0 };
+            ins!(addr,c,"xchg",vec![rop(0,osz,rex.p),rop(register,osz,rex.p)],false,None)
+        }
         0x98 => ins!(addr,c,if rex.w{"cdqe"}else{"cwde"},vec![],false,None),
         0x99 => ins!(addr,c,if rex.w{"cqo"}else{"cdq"},vec![],false,None),
         0xC0|0xC1 => { let sz=if op==0xC0{1}else{osz}; let (rm,g)=modrm(&mut c,&rex,sz,sz)?; let im=c.imm(1,false)?; let wm=rm.is_mem();
@@ -574,6 +610,11 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0x18 => { let (_rm,_)=modrm(c,rex,1,1)?; ins!(addr,c,"nop",vec![],false,None) }
         0x1E => { let m=c.u8()?; ins!(addr,c,if m==0xFA{"endbr64"}else{"nop"},vec![],false,None) }
         0x1F => { let (_rm,_)=modrm(c,rex,osz,osz)?; ins!(addr,c,"nop",vec![],false,None) }
+        0xAE => {
+            let sub=c.u8()?;
+            let name=match sub { 0xE8=>"lfence",0xF0=>"mfence",0xF8=>"sfence",_=>return None };
+            ins!(addr,c,name,vec![],false,None)
+        }
         0x40..=0x4F => { let (rm,r)=modrm(c,rex,osz,osz)?; ins!(addr,c,format!("cmov{}",CC[(op2-0x40) as usize]),vec![rop(r,osz,rex.p),rm],false,None) }
         0x80..=0x8F => { let d=c.imm(4,true)?; let t=(addr as i64 + c.i as i64 + d) as u64; ins!(addr,c,format!("j{}",CC[(op2-0x80) as usize]),vec![Op::Imm(t as i64)],false,Some(t)) }
         0x90..=0x9F => { let (rm,_)=modrm(c,rex,1,1)?; let wm=rm.is_mem(); ins!(addr,c,format!("set{}",CC[(op2-0x90) as usize]),vec![rm],wm,None) }
@@ -678,6 +719,16 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
             ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None)
         }
         0x6F => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if f3{"movdqu"}else{"movdqa"},vec![rop(r,16,rex.p),rm],false,None) }
+        0xE7 if o66 => {
+            let (rm,r)=modrm(c,rex,16,16)?;
+            if !rm.is_mem(){return None;}
+            ins!(addr,c,"movntdq",vec![rm,rop(r,16,rex.p)],true,None)
+        }
+        0x2B => {
+            let (rm,r)=modrm(c,rex,16,16)?;
+            if !rm.is_mem(){return None;}
+            ins!(addr,c,if o66{"movntpd"}else{"movntps"},vec![rm,rop(r,16,rex.p)],true,None)
+        }
         0x7E => { if f3 { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,"movq",vec![rop(r,16,rex.p),rm],false,None) }
                   else { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; let wm=rm.is_mem(); ins!(addr,c,if rex.w{"movq"}else{"movd"},vec![rm,rop(r,16,rex.p)],wm,None) } }
         0x7F => { let (rm,r)=modrm(c,rex,16,16)?; let wm=rm.is_mem(); ins!(addr,c,if f3{"movdqu"}else{"movdqa"},vec![rm,rop(r,16,rex.p)],wm,None) }

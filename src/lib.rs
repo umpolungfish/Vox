@@ -70,6 +70,7 @@ pub mod safetensors;
 pub mod membrane_state;
 pub mod winding_readout;
 pub mod shor_braid;
+pub mod shor_membrane;
 pub mod hadamard_gate;
 pub mod hadamard_factor_bridge;
 pub mod fixed_point_protocol;

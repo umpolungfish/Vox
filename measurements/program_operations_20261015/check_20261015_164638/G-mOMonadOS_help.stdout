@@ -1,0 +1,25 @@
+usage: ./programs [-h] [--debug] [--no-build]
+                  {list,help,run,build,cli,execute,bake,doctor,menu} ...
+
+Discover, build and operate the local programs without writing driver code.
+
+positional arguments:
+  {list,help,run,build,cli,execute,bake,doctor,menu}
+    list                search programs without building or running them
+    help                read a program's usage without executing it
+    run                 run one named program
+    build               build one named program
+    cli                 open the main CLI or pass it arguments
+    execute             run a saved static membrane, IMASM or glyph file
+    bake                bake a static membrane from ordinary inputs
+    doctor              check local build tools and target availability
+    menu                choose a program and enter its arguments interactively
+
+options:
+  -h, --help            show this help message and exit
+  --debug               use a debug build instead of release
+  --no-build            reuse existing Rust tools; bake recipes still compile
+                        their outputs
+
+Start with list, help PROGRAM, bake --help, or menu. No program runs when no
+command is supplied.

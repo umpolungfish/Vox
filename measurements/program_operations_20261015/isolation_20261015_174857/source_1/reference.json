@@ -1,0 +1,19 @@
+{
+  "name": "rsa_224_1_cf8b1097bb404c6090d62d228dfa1e03",
+  "fixture_id": "cf8b1097bb404c6090d62d228dfa1e03",
+  "generator": "glut-rsa-independent-v2",
+  "seed": "fc497c51578b81f55d3a280ecebd7bd9113d84275e27ac5c6bd918eeb42bc15d",
+  "p": "3149537270468395980241543896609329",
+  "q": "5120361197754638891208564210308777",
+  "n": "16126768430588432105665898202302226685421568814381828581278428780633",
+  "bits": 224,
+  "factor_bits": 112,
+  "factor_bit_widths": [
+    112,
+    112
+  ],
+  "factor_gap_bits": 111,
+  "public_exponent": 65537,
+  "primality": "probable prime",
+  "primality_instrument": "Vox morphism_factor::miller_rabin"
+}

@@ -1,0 +1,10 @@
+test_child_failure_and_argument_boundaries_survive (test_programs.ProgramOperations.test_child_failure_and_argument_boundaries_survive) ... ok
+test_dynamic_saved_executable_is_rejected (test_programs.ProgramOperations.test_dynamic_saved_executable_is_rejected) ... ok
+test_invalid_inputs_fail_before_building (test_programs.ProgramOperations.test_invalid_inputs_fail_before_building) ... ok
+test_nested_targets_and_short_name_resolution (test_programs.ProgramOperations.test_nested_targets_and_short_name_resolution) ... ok
+test_public_help_and_catalogs (test_programs.ProgramOperations.test_public_help_and_catalogs) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 31.484s
+
+OK

@@ -1,0 +1,76 @@
+{
+  "requirements": {
+    "all_live_baker_output_policy": {
+      "evidence": "Vox/measurements/program_operations_20261015/source_policy_audit.json",
+      "recipes": 46,
+      "source_binding_verified": true
+    },
+    "static_native_outputs": {
+      "evidence": "Vox/measurements/program_operations_20261015/check_20261015_164638/receipt.json",
+      "families": [
+        "word",
+        "factor",
+        "resident",
+        "rust-phase",
+        "c-phase",
+        "ququart"
+      ]
+    },
+    "simple_program_operation": {
+      "evidence": "Vox/measurements/program_operations_20261015/programs_tests.log",
+      "catalog_help_and_nested_builds": "passed",
+      "documented_launcher_receipt": "Vox/measurements/program_operations_20261015/documented_launcher_check/receipt.json",
+      "nested_build_receipt": "Vox/measurements/program_operations_20261015/nested_build.json"
+    },
+    "both_readmes_and_guides": {
+      "evidence": "Vox/measurements/program_operations_20261015/documentation_check.json",
+      "source_binding_verified": true
+    },
+    "gpu_execution": {
+      "scope": "excluded"
+    },
+    "no_hardcoded_execution_timeouts": {
+      "review": "CPU runner continues while status is pending; resident continues until work closure; launcher and CPU check driver supply no subprocess timeout; timing calls report clocks. User-selected instrument durations and retained historical driver limits remain separate from baked execution.",
+      "sources": [
+        {
+          "path": "G-mOMonadOS/src/idempotent_cpu_runner.hpp",
+          "sha256": "4749cad92f2f6b695ecaf081fd02d93694b4431a9fa54cf44760c54e0192a8ed"
+        },
+        {
+          "path": "G-mOMonadOS/src/idempotent_gpu_runner.in.rs",
+          "sha256": "6beee717e4362d2a7935cbfbd95a0b58b464a3f7320a0cf24090e706ead7be5f"
+        },
+        {
+          "path": "G-mOMonadOS/examples/resident_prepared.rs",
+          "sha256": "b81c5e3acb64fadb1bcde745b6c97be8479673e99f4809bae4f35bb8480c0a91"
+        },
+        {
+          "path": "G-mOMonadOS/src/membrane_kernel.rs",
+          "sha256": "8e8f4ab1e713042c05188e98ea09c9aefee3f4901d23929950e2b868c684ec68"
+        },
+        {
+          "path": "G-mOMonadOS/src/bin/ququart_factor_baked.rs",
+          "sha256": "6081ac6585a3e2253105b4e5d2fa03d66be762b24e582e2851c7a06603d92986"
+        },
+        {
+          "path": "Vox/src/bin/factor_one.rs",
+          "sha256": "5677316c43064dc7a852910038b59954d13fda34cce630de93820b9ead643609"
+        },
+        {
+          "path": "Vox/tools/programs.py",
+          "sha256": "33acbdfac5f07ec3d236d6b35a2ed7e3361652c2abe464524f7fc014ab316fc4"
+        },
+        {
+          "path": "Vox/tools/check_program_operations.py",
+          "sha256": "91d5f4451f5332f1f36f5d531344106839e1997d752c4930c589930e2df4c6ee"
+        }
+      ]
+    },
+    "reference_pdf": {
+      "path": "ig-docs/membrane_bakers_static_20261015.pdf",
+      "sha256": "abdddbcba1d4c9cf1bf09bfa2085038693cd4f680d106500057b960c15235d1a",
+      "text_checked": true
+    }
+  },
+  "factor_searches_executed": false
+}

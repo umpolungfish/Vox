@@ -1,5 +1,3 @@
-I observe Vox membrane loading and instruction progress
+I extend CPU baked-membrane isolation testing on fresh balanced inputs.
 
-I add optional host-side loading clocks and sparse guest instruction address samples through VOX_PROGRESS. I preserve the guest register and memory execution path and retain the locked 512-bit membrane for the bounded integration run.
-
-I trace the reachable dialectic entry with Vox and exercise the requested small N-only source through the current prepared membrane. I compile the existing arithmetic-cell words into their complete carry and borrow returns. I retain each build and execution boundary.
+I test shell static-linkage overrides, Python sparse readouts, runtime input isolation, exact glyph recovery and corruption rejection. I retain the executables, sources and process traces and document the repeatable commands.

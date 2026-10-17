@@ -4,7 +4,14 @@ mod support;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    match vox::membrane_factor::command(&args) {
+    let (routed_args, gpu_producer) = match support::route_n_only_to_gpu(&args) {
+        Ok(route) => route,
+        Err(error) => {
+            eprintln!("factor-membrane GPU producer: {error}");
+            std::process::exit(2);
+        }
+    };
+    match vox::membrane_factor::command(&routed_args) {
         Ok(report) => {
             if let Some(pos) = report.find("[EMITTED_MODULE_DESTINATION: ") {
                 let after = &report[pos + "[EMITTED_MODULE_DESTINATION: ".len()..];
@@ -19,6 +26,9 @@ fn main() {
                 }
             }
             print!("{report}");
+            if let Some(producer) = gpu_producer {
+                println!("GPU factor producer = {producer}");
+            }
             support::append_trilattice_reads(&report);
         }
         Err(error) => {

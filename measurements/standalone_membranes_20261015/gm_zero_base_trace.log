@@ -1,0 +1,404 @@
+[2;37m[boot][0m Interrupts: none — the host owns the IDT, no periodic slot
+[2;37m[boot][0m Heap: host allocator, 1548 bytes counted, 48MB declared budget
+[2;37m[boot][0m IG Catalog: 8752 entries loaded
+[2;37m[boot][0m Kernel online — graph execution, token-arity driven
+[2;37m[boot][0m Canonical ordinal check...
+[2;37m[boot][0m Ordinal faithfulness: [1;32mall 44 values match Lean canonical[0m
+[2;37m[boot][0m Clay Millennium status: 2 closed, 1 one-bump-short, 3 unclosed
+[2;37m[boot][0m SIC-POVM d=12: Crystal-forced (dual lattice), Shavian count 49=7², WH group |orbit|=144
+[2;37m[boot][0m Frobenius identity check...
+[2;37m[boot][0m Frobenius identity: hamming=3, weighted=3.1000 — kernel is grammar operationalized
+[2;37m[boot][0m Bootstrap: IMSCRIB→AREV→FSPLIT→AFWD→FFUSE→CLINK→IFIX→IMSCRIB (cyclic)
+                       F unitary: PASS
+  Pentagon form (F^2=I, anti-diag, a^2+b^2=1): PASS
+            Braid relation (Y-B): PASS
+                 Spin-statistics: PASS
+                       S unitary: PASS
+        Charge conjugation S^2=I: PASS
+                 TQFT identities: PASS
+                Verlinde formula: PASS
+              Braid Artin B_n<=8: PASS
+  Phase lattice = tenths of a winding: PASS
+    Constants derivable from PHI: PASS
+[2;37m[boot][0m Fibonacci anyon QC: algebra verified = true
+[36m[TORUS][0m kernel wound: ⊢⊙∈⊤⋈∋⊡⊞≺⋈⊣  (11 tokens, pinch=0.0000)
+[2;37m[boot][0m Crystal FS: 17280000 addresses
+[2;37m[boot][0m 29 total programs (I–XXIX): 12 canonical + 4 continuous + 4 novel + 9 shunted
+
+
+   [1;35m⊙[0m   [1;37mG-mOMonadOS[0m
+   [2;37mGPU-native build, mOMonadOS ported to run via CUDA[0m
+   [1;33mμ∘δ = id[0m
+
+   [2;37mFrobenius core · Belnap FOUR · crystal FS · graph execution[0m
+
+   [1;34mhelp[0m for commands, [1;34m?[0m for the menu, Tab completes.
+
+   [1;34mask[0m runs a structural dry-run here; the full wet-run is on the host:
+   [2;37m./ask --file <path> | ./ask --ask "…" | ./ask -i[0m
+
+⊙> vox run /home/mrnob0dy666/imsgct/G-mOMonadOS/measurements/idempotent_baked_20261015/semiprime_128_sic_zeta_silent
+vox-host open path="/proc/self/maps" flags=0x80000 result=100
+vox-host open path="/etc/ld.so.cache" flags=0x80000 result=101
+vox-host open path="/lib/x86_64-linux-gnu/libcuda.so" flags=0x80000 result=102
+vox-host open path="/lib/x86_64-linux-gnu/libm.so.6" flags=0x80000 result=103
+vox-host open path="/lib/x86_64-linux-gnu/libc.so.6" flags=0x80000 result=104
+vox-host open path="/lib/x86_64-linux-gnu/libdl.so.2" flags=0x80000 result=105
+vox-host open path="/lib/x86_64-linux-gnu/libpthread.so.0" flags=0x80000 result=106
+vox-host open path="/lib/x86_64-linux-gnu/librt.so.1" flags=0x80000 result=107
+semiprime_128_sic_zeta_silent: dl-version.c:204: _dl_check_map_versions: Assertion `needed != NULL' failed.
+entry(...) halted: no instruction at 0x20 after 178858 steps
+  previous 12:
+  eef8f: ⋈ mov r:r9d r:eax
+  eef92: ⊤ test r:r8 r:r8
+  eef95: ∈ e i:0xef03c
+  ef03c: ⋈ mov r:rax m:rsp::1:0x138:8
+  ef044: ⊞ sub r:rax m:fs::1:0x28:8
+  ef04d: ∈ ne i:0xef094
+  ef04f: ⋈ mov r:eax r:r9d
+  ef052: ⊞ add r:rsp i:0x148
+  ef059: ⊣ ret
+  ef24d: ⊤ cmp m:rip::1:0xc362c:4 i:0x3
+  ef254: ∈ ne i:0xef26a
+  ef256: ⋈ mov m:rip::1:0xc3620:4 i:0x4
+  ef260: ⋈ mov r:edi i:0x6
+  ef265: ≻ call i:0xeee20
+  eee20: ⊞ endbr64
+  eee24: ⋈ push r:rbp
+  eee25: ⋈ mov r:ebp r:edi
+  eee27: ≻ call i:0x127c30
+  127c30: ⊞ endbr64
+  127c34: ⋈ mov r:rax m:fs::1:0x10:8
+  127c3d: ⊣ ret
+  eee2c: ⋈ mov r:esi r:ebp
+  eee2e: ⋈ mov r:rdi r:rax
+  eee31: ≻ call i:0x125dc0
+  125dc0: ⊞ endbr64
+  125dc4: ⋈ push r:r14
+  125dc6: ⊞ lea r:edx m:rsi::1:-0x20:4
+  125dc9: ⋈ push r:r13
+  125dcb: ⋈ mov r:r13d i:0x16
+  125dd1: ⋈ push r:r12
+  125dd3: ⋈ push r:rbp
+  125dd4: ⋈ push r:rbx
+  125dd5: ⊞ sub r:rsp i:0x90
+  125ddc: ⋈ mov r:rax m:fs::1:0x28:8
+  125de5: ⋈ mov m:rsp::1:0x88:8 r:rax
+  125ded: ⊞ xor r:eax r:eax
+  125def: ⊤ cmp r:edx i:0x1
+  125df2: ∈ be i:0x125e72
+  125df4: ⋈ mov r:rbx r:rdi
+  125df7: ⋈ mov r:r12d r:esi
+  125dfa: ⊤ cmp r:rdi m:fs::1:0x10:8
+  125e03: ∈ e i:0x125ed0
+  125ed0: ⋈ mov r:eax i:0xba
+  125ed5: ⊙ syscall
+  125ed7: ⋈ mov r:ebp r:eax
+  125ed9: ≻ call i:0x168ec0
+  168ec0: ⊞ endbr64
+  168ec4: ⋈ mov r:eax i:0x27
+  168ec9: ⊙ syscall
+  168ecb: ⊣ ret
+  125ede: ⋈ mov r:edx r:r12d
+  125ee1: ⋈ mov r:esi r:ebp
+  125ee3: ⋈ mov r:edi r:eax
+  125ee5: ⋈ mov r:eax i:0xea
+  125eea: ⊙ syscall
+  125eec: ⋈ mov r:r13d r:eax
+  125eef: ⊞ neg r:r13d
+  125ef2: ⊤ cmp r:eax i:-0x1000
+  125ef7: ⋈ mov r:eax i:0x0
+  125efc: ⊥ be cmov r:r13d r:eax
+  125f00: ≺ jmp i:0x125e72
+  125e72: ⋈ mov r:rax m:rsp::1:0x88:8
+  125e7a: ⊞ sub r:rax m:fs::1:0x28:8
+  125e83: ∈ ne i:0x125f25
+  125e89: ⊞ add r:rsp i:0x90
+  125e90: ⋈ mov r:eax r:r13d
+  125e93: ⋈ pop r:rbx
+  125e94: ⋈ pop r:rbp
+  125e95: ⋈ pop r:r12
+  125e97: ⋈ pop r:r13
+  125e99: ⋈ pop r:r14
+  125e9b: ⊣ ret
+  eee36: ⊤ test r:eax r:eax
+  eee38: ∈ ne i:0xeee40
+  eee3a: ⋈ pop r:rbp
+  eee3b: ⊣ ret
+  ef26a: ⊤ cmp m:rip::1:0xc360f:4 i:0x4
+  ef271: ∈ ne i:0xef27e
+  ef273: ⋈ mov m:rip::1:0xc3603:4 i:0x5
+  ef27d: ⊣ hlt   [178858 steps]
+syscall 107 a0=0x0 a1=0x0 a2=0x7ffeff08 @step 180
+syscall 102 a0=0x0 a1=0x0 a2=0x7ffeff08 @step 186
+syscall 108 a0=0x0 a1=0x0 a2=0x7ffeff08 @step 195
+syscall 104 a0=0x0 a1=0x0 a2=0x7ffeff08 @step 201
+syscall 158 a0=0x3001 a1=0x7ffefe20 a2=0x1916a0 @step 1612
+syscall 12 a0=0x0 a1=0x7ffefcc8 a2=0x27 @step 32612
+syscall 12 a0=0x200000e00 a1=0x7ffefcc8 a2=0x27 @step 32630
+syscall 158 a0=0x1002 a1=0x200000400 a2=0x48 @step 32702
+syscall 218 a0=0x2000006d0 a1=0x200000400 a2=0x1b7a90 @step 32721
+syscall 273 a0=0x2000006e0 a1=0x18 a2=0x1b7a90 @step 32735
+syscall 334 a0=0x200000da0 a1=0x20 a2=0x0 @step 32769
+syscall 63 a0=0x7ffefbb0 a1=0x20 a2=0x0 @step 32827
+syscall 302 a0=0x0 a1=0x3 a2=0x0 @step 32948
+syscall 89 a0=0x11a18 a1=0x7ffeec70 a2=0x1000 @step 33222
+   __libc_malloc rdi=0x28 rsi=0x145b1 rdx=0x0 @step 33498
+syscall 318 a0=0x1b6e28 a1=0x8 a2=0x1 @step 33523
+syscall 12 a0=0x200021e00 a1=0x1b0300 a2=0xfffffffffffff000 @step 34822
+syscall 12 a0=0x200022000 a1=0x0 a2=0x200021e00 @step 34903
+   __libc_malloc rdi=0x140 rsi=0x2000010c0 rdx=0x0 @step 35184
+   __libc_malloc rdi=0x80 rsi=0x7ffefc50 rdx=0x0 @step 36372
+syscall 10 a0=0x1a6000 a1=0x8000 a2=0x1 @step 36954
+syscall 7 a0=0x7ffefba0 a1=0x3 a2=0x0 @step 37341
+syscall 13 a0=0xd a1=0x7ffef900 a2=0x7ffef9a0 @step 37456
+   __libc_malloc rdi=0x1d8 rsi=0x13ad6 rdx=0x0 @step 37643
+syscall 257 a0=0xffffff9c a1=0x118b9 a2=0x80000 @step 38098
+syscall 302 a0=0x0 a1=0x3 a2=0x0 @step 38255
+   __libc_malloc rdi=0x78 rsi=0x7ffefb28 rdx=0x0 @step 38316
+syscall 262 a0=0x64 a1=0x120ce a2=0x7ffef980 @step 38624
+   __libc_malloc rdi=0x1000 rsi=0x120ce rdx=0x7ffef980 @step 38641
+syscall 0 a0=0x64 a1=0x200001510 a2=0x1000 @step 38927
+  __libc_realloc rdi=0x200001490 rsi=0xf0 rdx=0x3e5 @step 43952
+syscall 0 a0=0x64 a1=0x200001510 a2=0x1000 @step 74189
+     __libc_free rdi=0x200002520 rsi=0x200001510 rdx=0xfbada498 @step 74234
+syscall 3 a0=0x64 a1=0xfbada418 a2=0x540 @step 74470
+     __libc_free rdi=0x200001510 rsi=0x0 rdx=0x0 @step 74500
+     __libc_free rdi=0x2000012b0 rsi=0x0 rdx=0x1b0000 @step 74730
+syscall 13 a0=0xb a1=0x0 a2=0x7ffefaf0 @step 74905
+syscall 131 a0=0x0 a1=0x7ffefaf0 a2=0x7ffefaf0 @step 74975
+syscall 13 a0=0xb a1=0x7ffefa50 a2=0x0 @step 75056
+syscall 13 a0=0x7 a1=0x0 a2=0x7ffefaf0 @step 75095
+syscall 13 a0=0x7 a1=0x7ffefa50 a2=0x0 @step 75190
+   __libc_malloc rdi=0x18 rsi=0x8 rdx=0x18 @step 75278
+   __libc_malloc rdi=0x69 rsi=0x1 rdx=0x69 @step 75747
+     __libc_free rdi=0x200001490 rsi=0x69 rdx=0x1 @step 75874
+     __libc_free rdi=0x200001510 rsi=0x18 rdx=0x8 @step 75975
+syscall 228 a0=0x1 a1=0x7ffef820 a2=0x1 @step 76079
+   __libc_malloc rdi=0x20 rsi=0x8 rdx=0x20 @step 76257
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 76818
+  __libc_realloc rdi=0x200001510 rsi=0x10 rdx=0x1 @step 77152
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 77683
+  __libc_realloc rdi=0x200001560 rsi=0x10 rdx=0x1 @step 78175
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 78859
+  __libc_realloc rdi=0x200001580 rsi=0x10 rdx=0x1 @step 79351
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 80230
+  __libc_realloc rdi=0x2000015a0 rsi=0x10 rdx=0x1 @step 80722
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 81712
+  __libc_realloc rdi=0x2000015c0 rsi=0x10 rdx=0x1 @step 82204
+  __libc_realloc rdi=0x2000015c0 rsi=0x20 rdx=0x1 @step 82847
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 83620
+  __libc_realloc rdi=0x2000015f0 rsi=0x10 rdx=0x1 @step 84273
+  __libc_realloc rdi=0x2000015f0 rsi=0x20 rdx=0x1 @step 84916
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 85614
+  __libc_realloc rdi=0x200001620 rsi=0x10 rdx=0x1 @step 86267
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 86975
+  __libc_realloc rdi=0x200001640 rsi=0x10 rdx=0x1 @step 87467
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 88175
+  __libc_realloc rdi=0x200001660 rsi=0x10 rdx=0x1 @step 88667
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 89418
+  __libc_realloc rdi=0x200001680 rsi=0x10 rdx=0x1 @step 89910
+  __libc_realloc rdi=0x200001680 rsi=0x20 rdx=0x1 @step 90450
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 91147
+  __libc_realloc rdi=0x2000016b0 rsi=0x10 rdx=0x1 @step 91800
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 92509
+  __libc_realloc rdi=0x2000016d0 rsi=0x10 rdx=0x1 @step 93001
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 93674
+  __libc_realloc rdi=0x2000016f0 rsi=0x10 rdx=0x1 @step 94166
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 94736
+  __libc_realloc rdi=0x200001710 rsi=0x10 rdx=0x1 @step 95228
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 95798
+  __libc_realloc rdi=0x200001730 rsi=0x10 rdx=0x1 @step 96290
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 96860
+  __libc_realloc rdi=0x200001750 rsi=0x10 rdx=0x1 @step 97352
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 97920
+  __libc_realloc rdi=0x200001770 rsi=0x10 rdx=0x1 @step 98412
+   __libc_malloc rdi=0x198 rsi=0x8 rdx=0x198 @step 98795
+   __libc_malloc rdi=0x198 rsi=0x8 rdx=0x198 @step 99195
+     __libc_free rdi=0x200001790 rsi=0x198 rdx=0x8 @step 100256
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 100662
+  __libc_realloc rdi=0x200001ad0 rsi=0x10 rdx=0x1 @step 101052
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 101685
+  __libc_realloc rdi=0x200001af0 rsi=0x10 rdx=0x1 @step 102075
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 102861
+  __libc_realloc rdi=0x200001b10 rsi=0x10 rdx=0x1 @step 103251
+  __libc_realloc rdi=0x200001b10 rsi=0x20 rdx=0x1 @step 103835
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 104600
+  __libc_realloc rdi=0x200001b40 rsi=0x10 rdx=0x1 @step 105245
+  __libc_realloc rdi=0x200001b40 rsi=0x20 rdx=0x1 @step 105932
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 106705
+  __libc_realloc rdi=0x200001b70 rsi=0x10 rdx=0x1 @step 107345
+  __libc_realloc rdi=0x200001b70 rsi=0x20 rdx=0x1 @step 107986
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 108863
+  __libc_realloc rdi=0x200001ba0 rsi=0x10 rdx=0x1 @step 109503
+  __libc_realloc rdi=0x200001ba0 rsi=0x20 rdx=0x1 @step 110145
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 110946
+  __libc_realloc rdi=0x200001bd0 rsi=0x10 rdx=0x1 @step 111581
+  __libc_realloc rdi=0x200001bd0 rsi=0x20 rdx=0x1 @step 112062
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 112759
+  __libc_realloc rdi=0x200001c00 rsi=0x10 rdx=0x1 @step 113389
+  __libc_realloc rdi=0x200001c00 rsi=0x20 rdx=0x1 @step 113870
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 114567
+  __libc_realloc rdi=0x200001c30 rsi=0x10 rdx=0x1 @step 115192
+  __libc_realloc rdi=0x200001c30 rsi=0x20 rdx=0x1 @step 115673
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 116413
+  __libc_realloc rdi=0x200001c60 rsi=0x10 rdx=0x1 @step 117038
+  __libc_realloc rdi=0x200001c60 rsi=0x20 rdx=0x1 @step 117576
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 118377
+  __libc_realloc rdi=0x200001c90 rsi=0x10 rdx=0x1 @step 118997
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 119808
+  __libc_realloc rdi=0x200001cb0 rsi=0x10 rdx=0x1 @step 120198
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 120973
+  __libc_realloc rdi=0x200001cd0 rsi=0x10 rdx=0x1 @step 121363
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 122035
+  __libc_realloc rdi=0x200001cf0 rsi=0x10 rdx=0x1 @step 122425
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 123097
+  __libc_realloc rdi=0x200001d10 rsi=0x10 rdx=0x1 @step 123487
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 124159
+  __libc_realloc rdi=0x200001d30 rsi=0x10 rdx=0x1 @step 124549
+   __libc_malloc rdi=0x8 rsi=0x1 rdx=0x8 @step 125219
+  __libc_realloc rdi=0x200001d50 rsi=0x10 rdx=0x1 @step 125609
+   __libc_malloc rdi=0x198 rsi=0x8 rdx=0x198 @step 126094
+  __libc_realloc rdi=0x200001930 rsi=0x330 rdx=0x8 @step 126399
+     __libc_free rdi=0x200001790 rsi=0x198 rdx=0x8 @step 127734
+   __libc_malloc rdi=0xb rsi=0x1 rdx=0xb @step 128022
+syscall 257 a0=0xffffff9c a1=0x12869 a2=0x80000 @step 129070
+syscall 262 a0=0x65 a1=0x120ce a2=0x7ffee9e0 @step 129094
+syscall 9 a0=0x0 a1=0x18a00 a2=0x1 @step 129116
+            mmap len=0x18a00 -> 0x300000000 @step 129116
+syscall 3 a0=0x65 a1=0x18a00 a2=0x1 @step 129126
+   __libc_malloc rdi=0x21 rsi=0x30000bfa7 rdx=0xf9f8ed00000000 @step 130799
+syscall 257 a0=0xffffff9c a1=0x2000020d0 a2=0x80000 @step 131084
+syscall 0 a0=0x66 a1=0x7ffeeb78 a2=0x340 @step 131110
+     __libc_free rdi=0x0 rsi=0xfffffffffffffffc rdx=0x8c @step 131299
+syscall 262 a0=0x66 a1=0x120ce a2=0x7ffeea20 @step 131382
+   __libc_calloc rdi=0x4b3 rsi=0x1 rdx=0xb @step 131460
+   __libc_malloc rdi=0x21 rsi=0x200002998 rdx=0xf8f8fcff00000000 @step 132249
+syscall 9 a0=0x0 a1=0x5c4b140 a2=0x1 @step 133035
+            mmap len=0x5c4b140 -> 0x300019000 @step 133035
+syscall 10 a0=0x30017f000 a1=0x5930000 a2=0x0 @step 133065
+syscall 9 a0=0x30017f000 a1=0xf84000 a2=0x5 @step 133125
+            mmap len=0xf84000 -> 0x30017f000 @step 133125
+syscall 9 a0=0x301103000 a1=0x49ab000 a2=0x1 @step 133168
+            mmap len=0x49ab000 -> 0x301103000 @step 133168
+syscall 9 a0=0x305aaf000 a1=0x13e000 a2=0x3 @step 133207
+            mmap len=0x13e000 -> 0x305aaf000 @step 133207
+syscall 9 a0=0x305bed000 a1=0x77140 a2=0x3 @step 133526
+            mmap len=0x77140 -> 0x305bed000 @step 133526
+syscall 3 a0=0x66 a1=0x29 a2=0x238 @step 133955
+   __libc_malloc rdi=0x20 rsi=0x30000da20 rdx=0xf9f8ff80000000 @step 136316
+syscall 257 a0=0xffffff9c a1=0x200002130 a2=0x80000 @step 136591
+syscall 0 a0=0x67 a1=0x7ffee4f8 a2=0x340 @step 136617
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 136825
+syscall 262 a0=0x67 a1=0x120ce a2=0x7ffee3a0 @step 136908
+   __libc_calloc rdi=0x4b2 rsi=0x1 rdx=0xa @step 136995
+   __libc_malloc rdi=0x20 rsi=0x200002e58 rdx=0xf8f8fcff80000000 @step 137564
+syscall 9 a0=0x0 a1=0xe6108 a2=0x1 @step 138479
+            mmap len=0xe6108 -> 0x305c65000 @step 138479
+syscall 9 a0=0x305c73000 a1=0x7c000 a2=0x5 @step 138548
+            mmap len=0x7c000 -> 0x305c73000 @step 138548
+syscall 9 a0=0x305cef000 a1=0x5b000 a2=0x1 @step 138591
+            mmap len=0x5b000 -> 0x305cef000 @step 138591
+syscall 9 a0=0x305d4a000 a1=0x2000 a2=0x3 @step 138630
+            mmap len=0x2000 -> 0x305d4a000 @step 138630
+syscall 3 a0=0x67 a1=0x4 a2=0x305c652d8 @step 139298
+   __libc_malloc rdi=0x20 rsi=0x30000dcb8 rdx=0xf9f8ff80000000 @step 141855
+syscall 257 a0=0xffffff9c a1=0x200002190 a2=0x80000 @step 142130
+syscall 0 a0=0x68 a1=0x7ffee4d8 a2=0x340 @step 142156
+syscall 17 a0=0x68 a1=0x7ffee0f0 a2=0x310 @step 142229
+syscall 17 a0=0x68 a1=0x7ffee0b0 a2=0x30 @step 142347
+syscall 17 a0=0x68 a1=0x7ffee060 a2=0x44 @step 142424
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 142483
+syscall 262 a0=0x68 a1=0x120ce a2=0x7ffee380 @step 142566
+   __libc_calloc rdi=0x4b2 rsi=0x1 rdx=0xa @step 142662
+   __libc_malloc rdi=0x20 rsi=0x200003318 rdx=0xf8f8fcff80000000 @step 143231
+syscall 17 a0=0x68 a1=0x7ffedfd0 a2=0x310 @step 143688
+syscall 9 a0=0x0 a1=0x228e50 a2=0x1 @step 144200
+            mmap len=0x228e50 -> 0x305d4c000 @step 144200
+syscall 10 a0=0x305d74000 a1=0x1ee000 a2=0x0 @step 144230
+syscall 9 a0=0x305d74000 a1=0x195000 a2=0x5 @step 144271
+            mmap len=0x195000 -> 0x305d74000 @step 144271
+syscall 9 a0=0x305f09000 a1=0x58000 a2=0x1 @step 144314
+            mmap len=0x58000 -> 0x305f09000 @step 144314
+syscall 9 a0=0x305f62000 a1=0x6000 a2=0x3 @step 144353
+            mmap len=0x6000 -> 0x305f62000 @step 144353
+syscall 9 a0=0x305f68000 a1=0xce50 a2=0x3 @step 144630
+            mmap len=0xce50 -> 0x305f68000 @step 144630
+syscall 3 a0=0x68 a1=0x4 a2=0x305d4c380 @step 145241
+   __libc_malloc rdi=0x21 rsi=0x3000114fc rdx=0xf9f8ff00000000 @step 147973
+syscall 257 a0=0xffffff9c a1=0x2000021f0 a2=0x80000 @step 148256
+syscall 0 a0=0x69 a1=0x7ffee4b8 a2=0x340 @step 148282
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 148487
+syscall 262 a0=0x69 a1=0x120ce a2=0x7ffee360 @step 148570
+   __libc_calloc rdi=0x4b3 rsi=0x1 rdx=0xb @step 148675
+   __libc_malloc rdi=0x21 rsi=0x2000037d8 rdx=0xf8f8fcff00000000 @step 149244
+syscall 9 a0=0x0 a1=0x4028 a2=0x1 @step 150111
+            mmap len=0x4028 -> 0x305f75000 @step 150111
+syscall 9 a0=0x305f76000 a1=0x1000 a2=0x5 @step 150180
+            mmap len=0x1000 -> 0x305f76000 @step 150180
+syscall 9 a0=0x305f77000 a1=0x1000 a2=0x1 @step 150223
+            mmap len=0x1000 -> 0x305f77000 @step 150223
+syscall 9 a0=0x305f78000 a1=0x2000 a2=0x3 @step 150262
+            mmap len=0x2000 -> 0x305f78000 @step 150262
+syscall 3 a0=0x69 a1=0x4 a2=0x305f752d8 @step 150884
+   __libc_malloc rdi=0x26 rsi=0x300016d72 rdx=0xf9f8e000000000 @step 153512
+syscall 257 a0=0xffffff9c a1=0x200002250 a2=0x80000 @step 153795
+syscall 0 a0=0x6a a1=0x7ffee498 a2=0x340 @step 153821
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 154026
+syscall 262 a0=0x6a a1=0x120ce a2=0x7ffee340 @step 154109
+   __libc_calloc rdi=0x4b8 rsi=0x1 rdx=0x10 @step 154223
+   __libc_malloc rdi=0x26 rsi=0x200003c98 rdx=0xf8f8fce000000000 @step 154792
+syscall 9 a0=0x0 a1=0x4028 a2=0x1 @step 155649
+            mmap len=0x4028 -> 0x305f7a000 @step 155649
+syscall 9 a0=0x305f7b000 a1=0x1000 a2=0x5 @step 155718
+            mmap len=0x1000 -> 0x305f7b000 @step 155718
+syscall 9 a0=0x305f7c000 a1=0x1000 a2=0x1 @step 155761
+            mmap len=0x1000 -> 0x305f7c000 @step 155761
+syscall 9 a0=0x305f7d000 a1=0x2000 a2=0x3 @step 155800
+            mmap len=0x2000 -> 0x305f7d000 @step 155800
+syscall 3 a0=0x6a a1=0x4 a2=0x305f7a2d8 @step 156422
+   __libc_malloc rdi=0x21 rsi=0x300012a3e rdx=0xf9f8ff00000000 @step 159006
+syscall 257 a0=0xffffff9c a1=0x2000022b0 a2=0x80000 @step 159289
+syscall 0 a0=0x6b a1=0x7ffee478 a2=0x340 @step 159315
+     __libc_free rdi=0x0 rsi=0x60800 rdx=0x0 @step 159520
+syscall 262 a0=0x6b a1=0x120ce a2=0x7ffee320 @step 159603
+   __libc_calloc rdi=0x4b3 rsi=0x1 rdx=0xb @step 159726
+   __libc_malloc rdi=0x21 rsi=0x200004158 rdx=0xf8f8fcff00000000 @step 160295
+syscall 9 a0=0x0 a1=0x4038 a2=0x1 @step 161102
+            mmap len=0x4038 -> 0x305f7f000 @step 161102
+syscall 9 a0=0x305f80000 a1=0x1000 a2=0x5 @step 161171
+            mmap len=0x1000 -> 0x305f80000 @step 161171
+syscall 9 a0=0x305f81000 a1=0x1000 a2=0x1 @step 161214
+            mmap len=0x1000 -> 0x305f81000 @step 161214
+syscall 9 a0=0x305f82000 a1=0x2000 a2=0x3 @step 161253
+            mmap len=0x2000 -> 0x305f82000 @step 161253
+syscall 3 a0=0x6b a1=0x4 a2=0x305f7f2d8 @step 161923
+   __libc_malloc rdi=0x38 rsi=0x7ffeeac0 rdx=0x1 @step 163788
+   __libc_malloc rdi=0x28 rsi=0x7ffeeac0 rdx=0x0 @step 164759
+   __libc_malloc rdi=0x28 rsi=0x7ffeeac0 rdx=0x0 @step 165946
+   __libc_malloc rdi=0x28 rsi=0x7ffeeac0 rdx=0x0 @step 167371
+   __libc_malloc rdi=0x28 rsi=0x7ffeeac0 rdx=0x0 @step 168841
+   __libc_malloc rdi=0x68 rsi=0x200002620 rdx=0x10 @step 169108
+     __libc_free rdi=0x0 rsi=0x6362696c rdx=0x7ffeecb1 @step 173469
+   __libc_malloc rdi=0x64 rsi=0x5d820 rdx=0x7ffeeca0 @step 173674
+   __libc_malloc rdi=0x12c rsi=0x64 rdx=0x2000024e4 @step 176140
+     __libc_free rdi=0x200002480 rsi=0x200002480 rdx=0x64 @step 176682
+   __libc_malloc rdi=0x6d rsi=0x5d848 rdx=0x0 @step 177123
+     __libc_free rdi=0x2000042a0 rsi=0x2000042a0 rdx=0x6c @step 177200
+syscall 1 a0=0x2 a1=0x7ffecc00 a2=0x6c @step 178079
+syscall 9 a0=0x0 a1=0x1000 a2=0x3 @step 178283
+            mmap len=0x1000 -> 0x305f84000 @step 178283
+     __libc_free rdi=0x200001490 rsi=0x200001500 rdx=0x305f84070 @step 178486
+syscall 14 a0=0x1 a1=0x7ffeec60 a2=0x0 @step 178617
+syscall 186 a0=0x200000400 a1=0x6 a2=0xffffffe6 @step 178675
+syscall 39 a0=0x200000400 a1=0x6 a2=0xffffffe6 @step 178680
+syscall 234 a0=0x0 a1=0x0 a2=0x6 @step 178686
+syscall 13 a0=0x6 a1=0x7ffeeb10 a2=0x0 @step 178775
+syscall 186 a0=0x200000400 a1=0x6 a2=0xffffffe6 @step 178821
+syscall 39 a0=0x200000400 a1=0x6 a2=0xffffffe6 @step 178826
+syscall 234 a0=0x0 a1=0x0 a2=0x6 @step 178832
+structure word (feed to weight/banked/cycle):
+  ⊢⊞⊞⋈⋈⋈⊞⋈⋈⊞⊞⋈≻⊣   verdict N
+⊙> quit
+Halting. μ∘δ=id.
+[SHUTDOWN] μ∘δ=id. Goodbye.

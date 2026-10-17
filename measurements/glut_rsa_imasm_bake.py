@@ -8,8 +8,13 @@ import shutil
 import signal
 import subprocess
 import time
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT=Path(__file__).resolve().parents[1]
-VOX=ROOT/'target/release/vox'
+VOX=ROOT/'target/x86_64-unknown-linux-musl/release/vox'
 OUT=ROOT/('membranes/glut_rsa_imasm_'+os.environ.get('GLUT_RSA_IMASM_RUN','2026-09-29'))
 OUT.mkdir(exist_ok=True)
 ALPHABET=set('⊢⊣≻≺⋈⊤∈∋⊙⊥⊞⊡')
@@ -47,8 +52,9 @@ for name in os.environ.get('GLUT_RSA_IMASM_CASES','rsa_48_0,rsa_2048_0').split('
     with (ROOT/'measurements/glut_bake.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX)
         with (folder/'build.stdout').open('w') as log:
-            subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','glut_one'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
+            subprocess.run(['cargo','build','--release','--target','x86_64-unknown-linux-musl','--bin','glut_one', '--target-dir', 'target'],cwd=ROOT,env=env,stdout=log,stderr=log,check=True,timeout=60)
         assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest for name,digest in hashes.items()), 'Runtime source changed during bake.'
+        require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/glut_one')
         elf=folder/'payload.elf'; shutil.copy2(ROOT/'target/x86_64-unknown-linux-musl/release/glut_one',elf)
     native=observe(elf,folder,'native',[],NATIVE_SECONDS)
     native_closed=native['returncode']==0 and not native['interrupted']

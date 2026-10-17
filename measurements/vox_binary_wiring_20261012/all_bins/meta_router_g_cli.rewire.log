@@ -1,6 +1,0 @@
-rewired 67903 instructions in 3285 functions
-Frobenius wiring: 6456 closed, 0 open; arm-entry work witness: 6454/6456
-coverage: 267965/267965 bytes; opaque bytes: 0; unresolved transfers: 0; symbolic transfers preserved: 1164
-Diagrammar: measurements/vox_binary_wiring_20261012/all_bins/meta_router_g_cli.rewired.diagrammar.txt.gz
-IMASM tape: not emitted
-result: INCOMPLETE (measurements/vox_binary_wiring_20261012/all_bins/meta_router_g_cli.rewired.json.gz)

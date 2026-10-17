@@ -9,14 +9,18 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from standalone import require_standalone, static_env
+os.environ.update(static_env())
+
 ROOT = Path(__file__).resolve().parents[1]
 if len(sys.argv) != 2:
     raise SystemExit(f'usage: {Path(sys.argv[0]).name} INPUT.jsonl')
 INPUT = ROOT / sys.argv[1]
 OUT = ROOT / (os.environ.get('GODEL_BAKED_RUN',
                              'membranes/godel_random_semiprime_baked_20261001'))
-VOX = ROOT / 'target/release/vox'
-GODEL = ROOT / 'target/release/godel'
+VOX = ROOT / 'target/x86_64-unknown-linux-musl/release/vox'
+GODEL = ROOT / 'target/x86_64-unknown-linux-musl/release/godel'
 ALPHABET = set('⊢⊣≻≺⋈⊤∈∋⊙⊥⊞⊡')
 
 
@@ -63,18 +67,19 @@ def main():
         (case / 'fixture.json').write_text(json.dumps(fixture, indent=2) + '\n')
 
         env = dict(os.environ, FACTOR_N_WORD=word,
-                   RUSTFLAGS='-D warnings')
+                   RUSTFLAGS='-D warnings -C target-feature=+crt-static')
         os.utime(ROOT / 'src/bin/factor_one.rs', None)
         build_start = time.monotonic()
         try:
-            build = run(['cargo', 'build', '--release', '--bin', 'factor_one'], env=env)
+            build = run(['cargo', 'build', '--release', '--bin', 'factor_one', '--target', 'x86_64-unknown-linux-musl', '--target-dir', 'target'], env=env)
         except subprocess.CalledProcessError as error:
             (case / 'build.stderr').write_text(error.stderr or '')
             raise
         build_seconds = time.monotonic() - build_start
         (case / 'build.stderr').write_text(build.stderr)
         binary = case / 'factor_one'
-        shutil.copy2(ROOT / 'target/release/factor_one', binary)
+        require_standalone(ROOT / 'target/x86_64-unknown-linux-musl/release/factor_one')
+        shutil.copy2(ROOT / 'target/x86_64-unknown-linux-musl/release/factor_one', binary)
         binary_digest = hashlib.sha256(binary.read_bytes()).hexdigest()
 
         emit = run([str(VOX), 'imasm', str(binary)], cwd=case,

@@ -1,0 +1,22 @@
+[
+  {
+    "path": "Vox/README.md",
+    "sha256": "6da756fdf20d89061c98f9510ed9946368a04d0705e8a1692a893b99283be060",
+    "operation_contract_present": true
+  },
+  {
+    "path": "Vox/USER_GUIDE.md",
+    "sha256": "f1f4827b924db0f70b18d2a8d1cfa9fdb3b8b244c7b3b004470ae4a6290b1069",
+    "operation_contract_present": true
+  },
+  {
+    "path": "G-mOMonadOS/README.md",
+    "sha256": "76945c0b32cd08927aa8ba444c16d2196794feffb3e33fe8d0a2e7dd5f4c9c0a",
+    "operation_contract_present": true
+  },
+  {
+    "path": "G-mOMonadOS/USER_GUIDE.md",
+    "sha256": "4fb6dd0a918964659a2303197db7be30904da9c0c38d6f193ed399439eae0b9f",
+    "operation_contract_present": true
+  }
+]

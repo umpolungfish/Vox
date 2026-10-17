@@ -7,6 +7,11 @@ const ALPHABET: &str = "⊢⊣⊤⊥⊡≻≺∈∋⋈⊙⊞";
 pub const PREFIX: &str = "⊢∈⊙∈⊢∈";
 const VERSION: &str = "VOXGLYPH1";
 
+fn executable_module(module: &str) -> bool {
+    module.strip_prefix("; standalone static-v1\n").unwrap_or(module)
+        .starts_with("; ⊙ module (")
+}
+
 fn checksum(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf29ce484222325u64, |h, &b| (h ^ b as u64).wrapping_mul(0x100000001b3))
 }
@@ -28,7 +33,7 @@ fn record(out: &mut String, glyph: char, bytes: &[u8]) {
 }
 
 pub fn encode(module: &str) -> Result<String, String> {
-    if !module.starts_with("; ⊙ module (") {
+    if !executable_module(module) {
         return Err("expected a complete executable IMASM module".into());
     }
     let mut out = String::from("⊢∈");
@@ -93,7 +98,7 @@ pub fn decode(word: &str) -> Result<String, String> {
     if module.len()!=expected_len || checksum(module.as_bytes())!=expected_hash {
         return Err("glyph module length/checksum mismatch".into());
     }
-    if !module.starts_with("; ⊙ module (") { return Err("payload is not an executable IMASM module".into()); }
+    if !executable_module(&module) { return Err("payload is not an executable IMASM module".into()); }
     Ok(module)
 }
 
@@ -110,6 +115,15 @@ mod tests {
             assert_eq!(decode(&word).unwrap(),module);
         }
         assert!(encode("⊢⊙⊡⊣").is_err());
+    }
+
+    #[test]
+    fn standalone_linkage_boundary_survives_serialization() {
+        let module = format!("; standalone static-v1\n{MODULE}");
+        let returned = decode(&encode(&module).unwrap()).unwrap();
+        assert_eq!(returned, module);
+        assert!(crate::imasm_module::validate_standalone(&returned).is_ok());
+        assert!(encode("; standalone static-v1\n⊢⊙⊡⊣").is_err());
     }
 
     #[test]
