@@ -79,19 +79,19 @@ if __name__ == "__main__":
     # reversal ever clears a live register. vox verdict alone cannot tell them
     # apart; the `banked` razor through the kernel is the instrument that does.
     print("form concentrated (one exterior frame banks the whole nest), rungs 1..6:")
-    for L in range(1, 7):
+    for L in range(1, 31):
         w = form_concentrated(L)
         print(f"  rungs={L}  len={len(w)}  verdict={verdict(w)}  {w}")
     print("form banked (one clear per rung), rungs 1..6:")
-    for L in range(1, 7):
+    for L in range(1, 31):
         w = form_banked(L)
         print(f"  rungs={L}  len={len(w)}  verdict={verdict(w)}  {w}")
     print("form C (r-cycle, phase-bearing, banking vacuous), length 1..4:")
-    for L in range(1, 5):
+    for L in range(1, 25):
         w = form_C(L)
         print(f"  len={L}  verdict={verdict(w)}  {w}")
     print("form K (weight-sector), rungs 1..4:")
-    for L in range(1, 5):
+    for L in range(1, 25):
         w = form_K(L)
         print(f"  rungs={L}  verdict={verdict(w)}  {w}")
     print("control (OPI word):", verdict("⊢⊙≻⊙∈⊤⊙≺⊥∋⋈⊙⊤⊥∈∋∈∈⊤⊥∋⋈≺⊤⊥∋∈⊤⊥∋⋈⊙⊤⊥⊞⊡⊣⊙"))

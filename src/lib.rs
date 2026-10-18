@@ -15,6 +15,7 @@ extern crate alloc;
 pub mod vox;
 pub mod godel_calculus;
 pub mod semiprime_descent;
+pub mod hsoa_winding;
 pub mod godel_analyzer;
 pub mod godel_product;
 pub mod vox_decode;
@@ -102,3 +103,7 @@ pub mod coupled_factor;
 
 #[cfg(test)]
 mod hadamard_retraction_tests;
+
+pub mod peptide_geometry;
+
+pub mod peptide_closure;

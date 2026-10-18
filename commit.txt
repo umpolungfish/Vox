@@ -1,3 +1,5 @@
-I extend CPU baked-membrane isolation testing on fresh balanced inputs.
-
-I test shell static-linkage overrides, Python sparse readouts, runtime input isolation, exact glyph recovery and corruption rejection. I retain the executables, sources and process traces and document the repeatable commands.
+I bind vox compile closure to the emitted peptide coordinates.
+I retain complete inventory, bond, ring, angle, planarity, stereochemistry, backbone torsion and nonbonded-clash evidence in the REPL and PDB.
+I correct natural alpha and Ile/Thr handedness and distinguish sequence-fold labels from the retained B4 backbone.
+I retain valid dialetheic secondary-structure B states independently of coordinate conflicts.
+I preserve the factor-module edits while repairing their blocking build integration.

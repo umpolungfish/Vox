@@ -197,15 +197,36 @@ fn compile(args: &[String]) -> i32 {
         let n_s = f.residues.iter().filter(|r| r.secondary == fold::SecondaryLabel::Sheet).count();
         let n_c = f.residues.len() - n_h - n_s;
         println!();
-        println!("fold     helix {}  sheet {}  coil {}   ({} contacts, SerpentRod invariant {})",
+        println!("sequence fold: helix {}  sheet {}  coil {}   ({} contacts, SerpentRod contact invariant {})",
             n_h, n_s, n_c, f.contacts.len(), if f.frobenius_ok { "PASS" } else { "FAIL" });
         let steps = fold3d::rama_steps(b4_path);
         let backbone = fold3d::build_backbone(&steps);
         println!("backbone {} residues placed (B4-Ramachandran-NeRF)", backbone.len());
+        let sidechain_count: usize = chain.iter()
+            .map(|residue| fold3d::sidechain_topology(residue).len()).sum();
+        println!("sidechain {} heavy atoms (complete residue inventory)", sidechain_count);
+        let coordinates: Vec<_> = backbone.iter().map(|bb| [bb.n, bb.ca, bb.c, bb.o]).collect();
+        let sidechains: Vec<Vec<(&str, fold3d::Vec3)>> = chain.iter().zip(&backbone).zip(&steps)
+            .map(|((residue, bb), step)| fold3d::build_sidechain(residue, bb, step)).collect();
+        let retained_steps: Vec<_> = steps.iter().map(|s| (s.phi, s.psi)).collect();
+        let geometry = ::vox::peptide_closure::assess(chain, &coordinates, &sidechains, &retained_steps);
+        print!("{}", geometry.report(false));
+        let b_h = steps.iter().filter(|s| s.ss == "helix" || s.ss == "helix_l").count();
+        let b_s = steps.iter().filter(|s| s.ss == "sheet").count();
+        println!("retained B4 backbone labels: helix {}  sheet {}  other {}", b_h, b_s, steps.len()-b_h-b_s);
+        let sequence_labels: Vec<&str> = f.residues.iter().map(|r| match r.secondary {
+            fold::SecondaryLabel::Helix => "helix", fold::SecondaryLabel::Sheet => "sheet", fold::SecondaryLabel::Coil => "other",
+        }).collect();
+        let retained_labels: Vec<&str> = steps.iter().map(|s| s.ss).collect();
+        let secondary = ::vox::peptide_closure::secondary_evidence(&sequence_labels, &retained_labels);
+        print!("{}", ::vox::peptide_closure::secondary_report(&secondary, false));
         if let Some(path) = pdb_path {
             let elements = fold3d::group_ss_elements(&steps);
             let winding = f.residues.iter().map(|r| r.winding_number).max().unwrap_or(0);
-            let pdb = fold3d::write_pdb(chain, &backbone, &elements, f.frobenius_ok, winding, "COMPILED THROUGH VOX", 'A');
+            let mut pdb = fold3d::write_pdb_with_steps(chain, &backbone, &steps, &elements, f.frobenius_ok, winding, "COMPILED THROUGH VOX", 'A');
+            let evidence_remarks: String = ::vox::peptide_closure::secondary_report(&secondary, true).lines()
+                .map(|line| format!("REMARK 900 {}\n", line)).collect();
+            pdb = pdb.replacen("END\n", &(evidence_remarks + "END\n"), 1);
             match std::fs::write(path, pdb.as_bytes()) {
                 Ok(()) => println!("pdb      written to {}", path),
                 Err(e) => println!("pdb      could not write to {}: {}", path, e),

@@ -22,6 +22,7 @@ extern crate alloc;
 
 use vox::phase_partners;
 use vox::morphism_factor::{parse_numeral, dec_of, tape_u64, one, cmp, modulo, mul};
+#[cfg(test)] use vox::morphism_factor;
 use vox::shor_braid::factor_close_public;
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
