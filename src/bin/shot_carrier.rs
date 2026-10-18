@@ -1,136 +1,234 @@
-//! Resident order-finding carrier for the Shor state.
-//! Holds the index register as an amplitude vector of length m (O(m) memory);
-//! the output register |a^x mod N> is carried implicitly (deterministic per x),
-//! so the readout is not bounded by the dense O(m*N) joint vector.
+//! shot_carrier.rs — BigUint N, arbitrary q, bitfolded Shor, no silent fallback.
 #![deny(warnings)]
 use std::env;
-use std::f64::consts::PI;
+use std::process;
+use num_bigint::BigUint;
+use num_traits::{One, Zero};
 
-fn mod_pow(mut a: u64, mut e: u64, n: u64) -> u64 {
-    let mut r = 1u64; a %= n;
-    while e > 0 {
-        if e & 1 == 1 { r = (r as u128 * a as u128 % n as u128) as u64; }
-        a = (a as u128 * a as u128 % n as u128) as u64;
-        e >>= 1;
+fn mod_pow(mut a: BigUint, mut e: BigUint, n: &BigUint) -> BigUint {
+    a %= n;
+    let mut r = BigUint::one();
+    while !e.is_zero() {
+        if e.bit(0) { r = (&r * &a) % n; }
+        a = (&a * &a) % n;
+        e >>= 1u64;
     }
     r
 }
 
-fn gcd(mut a: u64, mut b: u64) -> u64 { while b != 0 { let t = a % b; a = b; b = t; } a }
+fn gcd(mut a: BigUint, mut b: BigUint) -> BigUint {
+    while !b.is_zero() { let t = &a % &b; a = b; b = t; }
+    a
+}
 
-fn fft(re: &mut [f64], im: &mut [f64]) {
-    let n = re.len();
-    let mut j = 0usize;
-    for i in 1..n {
-        let mut bit = n >> 1;
-        while j & bit != 0 { j ^= bit; bit >>= 1; }
-        j |= bit;
-        if i < j { re.swap(i, j); im.swap(i, j); }
+// ===== Bitfold #1: precomputed a^(2^k) =====
+struct FoldedPow { powers: Vec<BigUint> }
+impl FoldedPow {
+    fn new(a: &BigUint, n: &BigUint, q: usize) -> Self {
+        let mut powers = Vec::with_capacity(q);
+        let mut cur = a % n;
+        for _ in 0..q { powers.push(cur.clone()); cur = (&cur * &cur) % n; }
+        Self { powers }
     }
-    let mut len = 2;
-    while len <= n {
-        let ang = -2.0 * PI / (len as f64);
-        let (wr, wi) = (ang.cos(), ang.sin());
-        let mut i = 0;
-        while i < n {
-            let (mut wrk, mut wik) = (1.0f64, 0.0f64);
-            for k in 0..len / 2 {
-                let ur = re[i + k]; let ui = im[i + k];
-                let xr = re[i + k + len / 2]; let xi = im[i + k + len / 2];
-                let vr = xr * wrk - xi * wik;
-                let vi = xr * wik + xi * wrk;
-                re[i + k] = ur + vr; im[i + k] = ui + vi;
-                re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
-                let nwr = wrk * wr - wik * wi;
-                wik = wrk * wi + wik * wr; wrk = nwr;
-            }
-            i += len;
+    fn eval(&self, mut x: u64, n: &BigUint) -> BigUint {
+        let mut r = BigUint::one();
+        let mut k = 0usize;
+        while x > 0 {
+            if x & 1 == 1 { r = (&r * &self.powers[k]) % n; }
+            x >>= 1; k += 1;
         }
-        len <<= 1;
+        r
     }
 }
 
-fn period_from_peak(k: usize, m: usize, a: u64, n: u64) -> Option<u64> {
-    let (mut p_prev, mut p_curr) = (0i128, 1i128);
-    let (mut q_prev, mut q_curr) = (1i128, 0i128);
+// ===== Bitfold #2: sparse register =====
+struct SparseState { positions: Vec<u64>, m: u64 }
+impl SparseState {
+    fn build(a: &BigUint, n: &BigUint, q: usize) -> Self {
+        let m = 1u64 << q;
+        let fp = FoldedPow::new(a, n, q);
+        let mut positions = Vec::new();
+        for x in 0..m {
+            if fp.eval(x, n).is_one() { positions.push(x); }
+        }
+        Self { positions, m }
+    }
+    fn cnt(&self) -> usize { self.positions.len() }
+    fn fft_prob(&self, k: u64) -> f64 {
+        let cnt = self.cnt() as f64;
+        let (mut re, mut im) = (0.0f64, 0.0f64);
+        for &p in &self.positions {
+            let ang = -2.0 * std::f64::consts::PI * (k as f64) * (p as f64) / (self.m as f64);
+            re += ang.cos(); im += ang.sin();
+        }
+        (re * re + im * im) / (cnt * cnt)
+    }
+}
+
+// ===== Direct order: smallest nonzero position =====
+fn order_direct(s: &SparseState, a: &BigUint, n: &BigUint) -> Option<u64> {
+    if s.cnt() >= 2 {
+        let r = s.positions[1];
+        if mod_pow(a.clone(), BigUint::from(r), n).is_one() { return Some(r); }
+    }
+    None
+}
+
+// ===== FFT peak → continued fraction =====
+fn period_from_peak(k: u64, m: u64, a: &BigUint, n: &BigUint) -> Option<u64> {
+    let (mut pp, mut pc) = (0i128, 1i128);
+    let (mut qp, mut qc) = (1i128, 0i128);
     let (mut kk, mut mm) = (k as i128, m as i128);
     while mm != 0 {
         let aa = kk / mm;
-        let p_next = aa * p_curr + p_prev;
-        let q_next = aa * q_curr + q_prev;
-        if q_next > 0 && (q_next as u128) < n as u128 && mod_pow(a, q_next as u64, n) == 1 {
-            return Some(q_next as u64);
+        let pn = aa * pc + pp;
+        let qn = aa * qc + qp;
+        if qn > 0 {
+            let qb = BigUint::from(qn as u64);
+            if &qb < n && mod_pow(a.clone(), qb.clone(), n).is_one() {
+                return Some(qn as u64);
+            }
         }
-        p_prev = p_curr; p_curr = p_next;
-        q_prev = q_curr; q_curr = q_next;
+        pp = pc; pc = pn;
+        qp = qc; qc = qn;
         let rem = kk % mm; kk = mm; mm = rem;
     }
     None
 }
 
-fn shot_order(a: u64, n: u64, q: u32) -> Option<u64> {
-    let m = 1usize << q;
-    let mut re = vec![0.0f64; m];
-    let mut im = vec![0.0f64; m];
-    let mut v = 1u64;
-    let mut cnt = 0usize;
-    for x in 0..m {
-        if v == 1 { re[x] = 1.0; cnt += 1; }
-        v = (v as u128 * a as u128 % n as u128) as u64;
-    }
-    if cnt == 0 { return None; }
-    let norm = (cnt as f64).sqrt();
-    for x in 0..m { re[x] /= norm; }
-    fft(&mut re, &mut im);
-    let probs: Vec<f64> = (0..m).map(|k| re[k] * re[k] + im[k] * im[k]).collect();
-    let mut idx: Vec<usize> = (1..m).collect();
-    idx.sort_by(|&x, &y| probs[y].partial_cmp(&probs[x]).unwrap());
-    for &k in idx.iter().take(64) {
-        if let Some(r) = period_from_peak(k, m, a, n) { return Some(r); }
+fn factor_from_order(a: &BigUint, n: &BigUint, r: u64) -> Option<(BigUint, BigUint)> {
+    if r == 0 || r % 2 != 0 { return None; }
+    let half = mod_pow(a.clone(), BigUint::from(r / 2), n);
+    let one = BigUint::one();
+    let n_minus_1 = n - &one;
+    if half == n_minus_1 { return None; }
+    let g1 = gcd((&half + &n_minus_1) % n, n.clone());
+    if g1 > one && g1 < *n { return Some((g1.clone(), n.clone() / &g1)); }
+    let g2 = gcd((&half + &one) % n, n.clone());
+    if g2 > one && g2 < *n { return Some((g2.clone(), n.clone() / &g2)); }
+    None
+}
+
+fn small_factor(n: &BigUint, bound: u64) -> Option<BigUint> {
+    if !n.bit(0) { return Some(BigUint::from(2u64)); }
+    let mut p = 3u64;
+    while p <= bound {
+        let pb = BigUint::from(p);
+        if &pb * &pb > *n { break; }
+        if (n % &pb).is_zero() { return Some(pb); }
+        p += 2;
     }
     None
 }
 
-fn factor_close(a: u64, n: u64, r: u64) -> Option<(u64, u64)> {
-    if r == 0 || r % 2 != 0 { return None; }
-    let half = vox::modular_residue::certified_modular_residue_u64_step(r / 2, a, n, r).ok()?;
-    if half == n - 1 { return None; }
-    let g1 = gcd((half + n - 1) % n, n);
-    if g1 > 1 && g1 < n { return Some((g1, n / g1)); }
-    let g2 = gcd((half + 1) % n, n);
-    if g2 > 1 && g2 < n { return Some((g2, n / g2)); }
+fn perfect_power(n: &BigUint) -> Option<(BigUint, u32)> {
+    for k in 2u32..=64 {
+        let bits = n.bits();
+        let rb = (bits + k as u64 - 1) / k as u64;
+        if rb == 0 { continue; }
+        let mut m = BigUint::one() << (rb as usize);
+        for _ in 0..200 {
+            let mk1 = m.pow(k - 1);
+            if mk1.is_zero() { break; }
+            let num = &m * BigUint::from(k as u64 - 1) + (n / &mk1);
+            let nm = num / BigUint::from(k as u64);
+            if nm == m || nm.is_zero() { break; }
+            m = nm;
+        }
+        for c in [m.clone(), m + BigUint::one()] {
+            if c.pow(k) == *n { return Some((c, k)); }
+        }
+    }
+    None
+}
+
+// ===== Bitfold #3: try a^k for small k =====
+fn try_base_folded(a: &BigUint, n: &BigUint, q: usize, folds: &[u64])
+    -> Option<(BigUint, u64, u64)>
+{
+    let g = gcd(a.clone(), n.clone());
+    if g > BigUint::one() && g < *n {
+        return Some((g.clone(), 1, 0));
+    }
+    for &k in folds {
+        let a_fold = mod_pow(a.clone(), BigUint::from(k), n);
+        if a_fold.is_one() { continue; }
+        let state = SparseState::build(&a_fold, n, q);
+        if let Some(r) = order_direct(&state, &a_fold, n) {
+            if let Some((p, _f)) = factor_from_order(&a_fold, n, r) {
+                return Some((p, k, r));
+            }
+        }
+        let sample = state.m.min(1024);
+        let mut peaks: Vec<(u64, f64)> = (1..sample).map(|kk| (kk, state.fft_prob(kk))).collect();
+        peaks.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        for &(kk, _) in peaks.iter().take(32) {
+            if let Some(r) = period_from_peak(kk, state.m, &a_fold, n) {
+                if let Some((p, _f)) = factor_from_order(&a_fold, n, r) {
+                    return Some((p, k, r));
+                }
+            }
+        }
+    }
     None
 }
 
 fn main() {
-    let args: Vec<u64> = env::args().skip(1).filter_map(|s| s.parse().ok()).collect();
-    let cases: Vec<(u64, u32)> = if args.len() >= 2 {
-        vec![(args[0], args[1] as u32)]
-    } else {
-        vec![(15, 10), (21, 10), (35, 10), (91, 10), (143, 14), (713, 11)]
+    let raw: Vec<String> = env::args().skip(1).collect();
+    if raw.len() < 2 {
+        eprintln!("usage: shot_carrier <N> <q>   (q < 63)");
+        process::exit(2);
+    }
+    let n = match BigUint::parse_bytes(raw[0].as_bytes(), 10) {
+        Some(v) if !v.is_zero() && !v.is_one() => v,
+        _ => { eprintln!("bad N: {:?}", raw[0]); process::exit(2); }
     };
+    let q: usize = match raw[1].parse() {
+        Ok(v) if v < 63 => v,
+        _ => { eprintln!("bad q (0 < q < 63): {:?}", raw[1]); process::exit(2); }
+    };
+    let t0 = std::time::Instant::now();
+    let m = 1u64 << q;
+
+    println!("N = {}", n);
+    println!("q = {}, m = {}, carrier = {} B", q, m, (m as u128) * 16);
+
+    print!("\n[1] trial division < 10^7 ... ");
+    if let Some(p) = small_factor(&n, 10_000_000) {
+        let qq = &n / &p;
+        println!("FOUND  N = {} × {}", p, qq);
+        println!("Time: {:?}", t0.elapsed());
+        return;
+    }
+    println!("none");
+
+    print!("[2] perfect power ... ");
+    if let Some((b, e)) = perfect_power(&n) {
+        println!("FOUND  N = {} ^ {}", b, e);
+        println!("Time: {:?}", t0.elapsed());
+        return;
+    }
+    println!("none");
+
+    println!("[3] bitfolded Shor  (q={}, m={})", q, m);
     let bases: [u64; 8] = [2, 3, 5, 7, 11, 13, 17, 19];
-    for (n, q) in cases {
-        let m = 1usize << q;
-        let t0 = std::time::Instant::now();
-        match shot_factor(n, q, &bases) {
-            Some((p, f, a)) => println!(
-                "N={n:>8} m=2^{q:<2} carrier={:>9} B (dense {:>10} B)  a={a:<3} -> {p} x {f}  ok={}  {}us",
-                irect_mem(m), m * (n as usize) * 16, p * f == n, t0.elapsed().as_micros()),
-            None => println!("N={n:>8} m=2^{q:<2}  no factor any base  {}us", t0.elapsed().as_micros()),
+    let folds: [u64; 25] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 18, 20, 21, 22, 24, 27, 28, 30, 32, 36];
+    for &a in &bases {
+        let ab = BigUint::from(a);
+        print!("  a={:>2}: ", a);
+        std::io::Write::flush(&mut std::io::stdout()).ok();
+        match try_base_folded(&ab, &n, q, &folds) {
+            Some((p, k, r)) => {
+                let qq = &n / &p;
+                println!("FOLD k={} r={} => p={}", k, r, p);
+                println!("\nFOUND: N = {} × {}", p, qq);
+                println!("Time: {:?}", t0.elapsed());
+                return;
+            }
+            None => println!("—"),
         }
     }
-}
 
-fn shot_factor(n: u64, q: u32, bases: &[u64]) -> Option<(u64, u64, u64)> {
-    for &a in bases {
-        let g = gcd(a, n);
-        if g > 1 && g < n { return Some((g, n / g, a)); }
-        if let Some(r) = shot_order(a, n, q) {
-            if let Some((p, f)) = factor_close(a, n, r) { return Some((p, f, a)); }
-        }
-    }
-    None
+    println!("\n[FAIL] no factor with q={}. N may be a large semiprime; try larger q.", q);
+    println!("Time: {:?}", t0.elapsed());
 }
-
-fn irect_mem(m: usize) -> usize { 2 * m * 8 }

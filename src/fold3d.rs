@@ -21,18 +21,21 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-fn sqrt_f64(x: f64) -> f64 {
+pub(crate) fn sqrt_f64(x: f64) -> f64 {
     if x <= 0.0 { return 0.0; }
     let mut guess = if x > 1.0 { x / 2.0 } else { 1.0 };
     for _ in 0..40 { guess = 0.5 * (guess + x / guess); }
     guess
 }
 
-fn sin_f64(x: f64) -> f64 {
+pub(crate) fn sin_f64(mut x: f64) -> f64 {
     // Every call site here hands in |x| <= pi (Ramachandran angles in
     // degrees converted to radians, or the fixed trans dihedral pi itself),
     // so a plain Taylor series needs no range reduction to reach double
     // precision.
+    x %= 2.0 * core::f64::consts::PI;
+    if x > core::f64::consts::PI { x -= 2.0 * core::f64::consts::PI; }
+    if x < -core::f64::consts::PI { x += 2.0 * core::f64::consts::PI; }
     let x2 = x * x;
     let mut term = x;
     let mut sum = x;
@@ -43,7 +46,10 @@ fn sin_f64(x: f64) -> f64 {
     sum
 }
 
-fn cos_f64(x: f64) -> f64 {
+pub(crate) fn cos_f64(mut x: f64) -> f64 {
+    x %= 2.0 * core::f64::consts::PI;
+    if x > core::f64::consts::PI { x -= 2.0 * core::f64::consts::PI; }
+    if x < -core::f64::consts::PI { x += 2.0 * core::f64::consts::PI; }
     let x2 = x * x;
     let mut term = 1.0;
     let mut sum = 1.0;
@@ -172,25 +178,15 @@ pub fn build_backbone(steps: &[RamaEntry]) -> Vec<BackboneAtom> {
     let n0: Vec3 = (0.0, 0.0, 0.0);
     let ca0: Vec3 = (BOND_N_CA, 0.0, 0.0);
     let c0 = place_atom(ca0, n0, BOND_CA_C, ANGLE_N_CA_C, 0.0);
-    let o_dir = vec_sub(ca0, c0);
-    let o_len = vec_norm(o_dir);
-    let o0 = if o_len > 0.01 {
-        (c0.0 + o_dir.0 * BOND_C_O / o_len, c0.1 + o_dir.1 * BOND_C_O / o_len, c0.2 + o_dir.2 * BOND_C_O / o_len)
-    } else { (c0.0, c0.1 + BOND_C_O, c0.2) };
+    let o0 = crate::peptide_geometry::nerf(n0, ca0, c0, BOND_C_O, 120.8 * DEG, (steps[0].psi + 180.0) * DEG);
     residues.push(BackboneAtom { n: n0, ca: ca0, c: c0, o: o0 });
 
     for i in 1..n_res {
-        let (pr_c, pr_ca) = { let pr = &residues[residues.len() - 1]; (pr.c, pr.ca) };
-        let phi_i = steps[i].phi * DEG;
-        let psi_i = steps[i].psi * DEG;
-        let ni = place_atom(pr_c, pr_ca, BOND_C_N, ANGLE_CA_C_N, core::f64::consts::PI);
-        let cai = place_atom(ni, pr_c, BOND_N_CA, ANGLE_C_N_CA, phi_i);
-        let ci = place_atom(cai, ni, BOND_CA_C, ANGLE_N_CA_C, psi_i);
-        let od = vec_sub(cai, ci);
-        let ol = vec_norm(od);
-        let oi = if ol > 0.01 {
-            (ci.0 + od.0 * BOND_C_O / ol, ci.1 + od.1 * BOND_C_O / ol, ci.2 + od.2 * BOND_C_O / ol)
-        } else { (ci.0, ci.1 + BOND_C_O, ci.2) };
+        let previous = &residues[i-1];
+        let ni = crate::peptide_geometry::nerf(previous.n, previous.ca, previous.c, BOND_C_N, ANGLE_CA_C_N, steps[i-1].psi * DEG);
+        let cai = crate::peptide_geometry::nerf(previous.ca, previous.c, ni, BOND_N_CA, ANGLE_C_N_CA, core::f64::consts::PI);
+        let ci = crate::peptide_geometry::nerf(previous.c, ni, cai, BOND_CA_C, ANGLE_N_CA_C, steps[i].phi * DEG);
+        let oi = crate::peptide_geometry::nerf(ni, cai, ci, BOND_C_O, 120.8 * DEG, (steps[i].psi + 180.0) * DEG);
         residues.push(BackboneAtom { n: ni, ca: cai, c: ci, o: oi });
     }
     residues
@@ -233,13 +229,64 @@ fn format_atom(serial: u32, name: &str, res_name: &str, chain_id: char, res_seq:
     )
 }
 
+/// Complete standard-residue sidechain heavy atoms in parent-before-child order.
+/// The last field separates siblings around their shared parent in degrees.
+/// This inventory specifies atoms; B4 steps still supply coordinate torsions.
+pub fn sidechain_topology(residue: &str) -> &'static [(&'static str, &'static str, f64)] {
+    match residue {
+        "Ala" | "ALA" => &[(" CB ", "CA", 0.0)],
+        "Arg" | "ARG" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD ", "CG", 0.0), (" NE ", "CD", 0.0), (" CZ ", "NE", 0.0), (" NH1", "CZ", 0.0), (" NH2", "CZ", 180.0)],
+        "Asn" | "ASN" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" OD1", "CG", 0.0), (" ND2", "CG", 180.0)],
+        "Asp" | "ASP" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" OD1", "CG", 0.0), (" OD2", "CG", 180.0)],
+        "Cys" | "CYS" => &[(" CB ", "CA", 0.0), (" SG ", "CB", 0.0)],
+        "Gln" | "GLN" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD ", "CG", 0.0), (" OE1", "CD", 0.0), (" NE2", "CD", 180.0)],
+        "Glu" | "GLU" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD ", "CG", 0.0), (" OE1", "CD", 0.0), (" OE2", "CD", 180.0)],
+        "Gly" | "GLY" => &[],
+        "His" | "HIS" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" ND1", "CG", 0.0), (" CD2", "CG", 180.0), (" CE1", "ND1", 0.0), (" NE2", "CD2", 0.0)],
+        "Ile" | "ILE" => &[(" CB ", "CA", 0.0), (" CG1", "CB", 0.0), (" CG2", "CB", 120.0), (" CD1", "CG1", 0.0)],
+        "Leu" | "LEU" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD1", "CG", 0.0), (" CD2", "CG", 120.0)],
+        "Lys" | "LYS" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD ", "CG", 0.0), (" CE ", "CD", 0.0), (" NZ ", "CE", 0.0)],
+        "Met" | "MET" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" SD ", "CG", 0.0), (" CE ", "SD", 0.0)],
+        "Phe" | "PHE" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD1", "CG", 0.0), (" CD2", "CG", 180.0), (" CE1", "CD1", 0.0), (" CE2", "CD2", 0.0), (" CZ ", "CE1", 0.0)],
+        "Pro" | "PRO" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD ", "CG", 0.0)],
+        "Ser" | "SER" => &[(" CB ", "CA", 0.0), (" OG ", "CB", 0.0)],
+        "Thr" | "THR" => &[(" CB ", "CA", 0.0), (" OG1", "CB", 0.0), (" CG2", "CB", 120.0)],
+        "Trp" | "TRP" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD1", "CG", 0.0), (" CD2", "CG", 180.0), (" NE1", "CD1", 0.0), (" CE2", "CD2", 0.0), (" CE3", "CD2", 180.0), (" CZ2", "CE2", 0.0), (" CZ3", "CE3", 0.0), (" CH2", "CZ2", 0.0)],
+        "Tyr" | "TYR" => &[(" CB ", "CA", 0.0), (" CG ", "CB", 0.0), (" CD1", "CG", 0.0), (" CD2", "CG", 180.0), (" CE1", "CD1", 0.0), (" CE2", "CD2", 0.0), (" CZ ", "CE1", 0.0), (" OH ", "CZ", 0.0)],
+        "Val" | "VAL" => &[(" CB ", "CA", 0.0), (" CG1", "CB", 0.0), (" CG2", "CB", 120.0)],
+        _ => &[],
+    }
+}
+
+/// Build every sidechain heavy atom using the residue's B4 torsions.
+pub fn build_sidechain(residue: &str, backbone: &BackboneAtom, step: &RamaEntry)
+    -> Vec<(&'static str, Vec3)>
+{
+    crate::peptide_geometry::sidechain(residue, backbone.n, backbone.ca, backbone.c, step.phi, step.psi)
+}
+
 /// Write a full PDB structure file from a real backbone: HEADER/TITLE,
 /// REMARK secondary-structure summary, HELIX/SHEET from the Ramachandran-
-/// derived structure, ATOM records for every backbone N/CA/C/O, TER, END.
+/// derived structure, every backbone and sidechain heavy atom, TER, END.
 /// Port of pdb_writer.py's write_pdb_from_gen2.
 pub fn write_pdb(
     chain: &[&str],
     backbone: &[BackboneAtom],
+    elements: &[SsElement],
+    frobenius_verified: bool,
+    winding_number: usize,
+    title: &str,
+    chain_id: char,
+) -> String {
+    let steps = rama_steps(&alloc::vec!['N'; backbone.len()]);
+    write_pdb_with_steps(chain, backbone, &steps, elements, frobenius_verified, winding_number, title, chain_id)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn write_pdb_with_steps(
+    chain: &[&str],
+    backbone: &[BackboneAtom],
+    steps: &[RamaEntry],
     elements: &[SsElement],
     frobenius_verified: bool,
     winding_number: usize,
@@ -296,12 +343,28 @@ pub fn write_pdb(
         serial += 1; lines.push(format_atom(serial, " CA ", &res3, chain_id, res_seq, atom.ca, 0.0, " C"));
         serial += 1; lines.push(format_atom(serial, " C  ", &res3, chain_id, res_seq, atom.c, 0.0, " C"));
         serial += 1; lines.push(format_atom(serial, " O  ", &res3, chain_id, res_seq, atom.o, 0.0, " O"));
+        let residue = chain.get(i).copied().unwrap_or("Ala");
+        let step = steps.get(i).expect("one B4 step per backbone residue");
+        for (name, xyz) in build_sidechain(residue, atom, step) {
+            let element = if name.contains('S') { " S" } else if name.contains('O') { " O" }
+                else if name.contains('N') { " N" } else { " C" };
+            serial += 1;
+            lines.push(format_atom(serial, name, &res3, chain_id, res_seq, xyz, 0.0, element));
+        }
     }
     serial += 1;
     let last_res = pdb_res_name(chain.last().copied().unwrap_or("Ala"));
     lines.push(alloc::format!("TER   {:>5}      {:<3} {}{:>4} ", serial, last_res, chain_id, backbone.len()));
     lines.push(String::from("END"));
 
+    let coordinates: Vec<_> = backbone.iter().map(|bb| [bb.n, bb.ca, bb.c, bb.o]).collect();
+    let sidechains: Vec<Vec<(&str, Vec3)>> = chain.iter().zip(backbone).zip(steps)
+        .map(|((residue, bb), step)| build_sidechain(residue, bb, step)).collect();
+    let retained_steps: Vec<_> = steps.iter().map(|s| (s.phi, s.psi)).collect();
+    let geometry = crate::peptide_closure::assess(chain, &coordinates, &sidechains, &retained_steps);
+    let end = lines.pop().expect("PDB END record");
+    for line in geometry.report(true).lines() { lines.push(alloc::format!("REMARK 900 {}", line)); }
+    lines.push(end);
     let mut out = lines.join("\n");
     out.push('\n');
     out
