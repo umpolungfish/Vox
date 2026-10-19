@@ -1660,7 +1660,7 @@ impl Machine {
                 None => return Err(Stop::Halt(format!("ran off the end after {} steps\n  previous 12:\n{}", self.steps, self.render_trace(&trace)))),
             }
             self.steps += 1;
-            if self.steps > limit { return Err(Stop::Halt(format!("step budget {} reached, still running at 0x{:x}\n  previous 12:\n{}", limit, pc, self.render_trace(&trace)))); }
+            if limit != 0 && self.steps > limit { return Err(Stop::Halt(format!("step budget {} reached, still running at 0x{:x}\n  previous 12:\n{}", limit, pc, self.render_trace(&trace)))); }
         }
     }
 
@@ -1694,7 +1694,7 @@ impl Machine {
         for (slot, resolver) in &relocs {
             self.set_reg("rsp", 0x7FFF_0000u128);
             self.push_val(sentinel as u128);
-            self.run_loop(*resolver, Some(sentinel), 5_000_000)
+            self.run_loop(*resolver, Some(sentinel), 0)
                 .map_err(|e| match e {
                     Stop::Halt(reason) => Stop::Halt(format!("IRELATIVE resolver 0x{:x} for slot 0x{:x} failed: {}", resolver, slot, reason)),
                     Stop::SysExit(code) => Stop::Halt(format!("IRELATIVE resolver 0x{:x} for slot 0x{:x} exited({})", resolver, slot, code)),
