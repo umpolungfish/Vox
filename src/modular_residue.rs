@@ -168,7 +168,8 @@ pub fn certified_modular_residue_u64_step(
         return Err("period is zero".into());
     }
     let check = mod_pow_u64(base, period, modulus);
-    if check != 1 {
+    // identity of Z/modulus Z is 1 % modulus (0 when modulus == 1)
+    if check != 1 % modulus {
         return Err(format!(
             "certification failed: {} ^ {} mod {} = {} (expected 1)",
             base, period, modulus, check,

@@ -53,7 +53,7 @@ fn check_torsion(e:&mut Evidence,atoms:&[Atom<'_>],ids:[usize;4],expected:f64){
  let agreement=match(axis,u,v){(Some(axis),Some(u),Some(v))=>dot(u,v)*cos(expected*DEG)+dot(cross(u,v),axis)*sin(expected*DEG),_=>-1.0};
  if agreement<cos(1.0*DEG){e.issue("torsion",format!("{}:{}-{}-{}-{} disagrees with retained {:.3} deg",atoms[c].residue+1,atoms[a].name,atoms[b].name,atoms[c].name,atoms[d].name,expected));}
 }
-fn radius(name:&str)->f64 {match name.as_bytes().first(){Some(b'N')=>1.55,Some(b'O')=>1.52,Some(b'S')=>1.80,_=>1.70}}
+pub(crate) fn radius(name:&str)->f64 {match name.as_bytes().first(){Some(b'N')=>1.55,Some(b'O')=>1.52,Some(b'S')=>1.80,_=>1.70}}
 fn aromatic(residue:&str)->bool {matches!(residue,"Phe"|"PHE"|"Tyr"|"TYR"|"His"|"HIS"|"Trp"|"TRP")}
 fn ring_edges(residue:&str)->&'static [(&'static str,&'static str,f64)] {
  match residue {
@@ -63,6 +63,29 @@ fn ring_edges(residue:&str)->&'static [(&'static str,&'static str,f64)] {
   "Trp"|"TRP"=>&[("NE1","CE2",1.39),("CZ3","CH2",1.39)],
   _=>&[],
  }
+}
+/// Atom order and connectivity shared by the torsion producer and observation.
+pub(crate) fn steric_exclusions(chain:&[&str])->Vec<alloc::collections::BTreeSet<usize>> {
+ let mut names=Vec::new();let mut starts=Vec::new();
+ for aa in chain {
+  starts.push(names.len());names.extend(["N","CA","C","O"]);
+  names.extend(crate::fold3d::sidechain_topology(aa).iter().map(|a|a.0.trim()));
+ }
+ let mut adjacent=alloc::vec![Vec::new();names.len()];
+ let mut connect=|a:usize,b:usize|{adjacent[a].push(b);adjacent[b].push(a);};
+ for (i,aa) in chain.iter().enumerate() {
+  let start=starts[i];let end=starts.get(i+1).copied().unwrap_or(names.len());
+  let find=|name:&str|start+names[start..end].iter().position(|n|*n==name).unwrap();
+  for (a,b) in [("N","CA"),("CA","C"),("C","O")] {connect(find(a),find(b));}
+  if i>0 {connect(starts[i-1]+2,start);}
+  for &(name,parent,_) in crate::fold3d::sidechain_topology(aa) {connect(find(name.trim()),find(parent));}
+  for &(a,b,_) in ring_edges(aa) {connect(find(a),find(b));}
+ }
+ adjacent.iter().enumerate().map(|(i,neighbors)|{
+  let mut excluded=alloc::collections::BTreeSet::new();excluded.insert(i);
+  for &j in neighbors {excluded.insert(j);for &k in &adjacent[j] {excluded.insert(k);}}
+  excluded
+ }).collect()
 }
 /// Assess exactly the coordinates that are printed and exported. Keep every conflict.
 pub fn assess(chain:&[&str],backbone:&[[Point;4]],sidechains:&[Vec<(&str,Point)>],steps:&[(f64,f64)])->Evidence {

@@ -111,54 +111,55 @@ pub fn verify_ep_order(r: u64) -> (f64, Complex64, u64) {
 }
 
 /// Trace the r roots of `z^r - (1 - λ) = 0` as λ winds once around λ = 1.
-/// Returns the length of the longest cycle in the resulting permutation
-/// of roots — which equals r for this construction.
+/// Each root is followed sample-to-sample (nearest-neighbour continuity) and
+/// the permutation composed over the whole loop. Returns the length of its
+/// longest cycle — r for this construction: as λ winds once around the
+/// exceptional point the roots permute in a single r-cycle.
+///
+/// (Matching only the first and last sample degenerates to the identity: the
+/// principal branch puts the root set back exactly where it started.)
 pub fn trace_winding(r: u64, n_samples: usize) -> u64 {
     if r < 2 {
         return 1;
     }
     let ep = Complex64::new(1.0, 0.0);
     let eps = 1e-3;
-    let mut start_roots: Option<Vec<Complex64>> = None;
-    let mut end_roots: Option<Vec<Complex64>> = None;
-    for k in 0..=n_samples {
+    let roots_at = |k: usize| -> Vec<Complex64> {
         let theta = 2.0 * core::f64::consts::PI * (k as f64) / (n_samples as f64);
         let lam = ep + Complex64::from_polar(eps, theta);
         let base = (Complex64::new(1.0, 0.0) - lam).powf(1.0 / (r as f64));
-        let roots: Vec<Complex64> = (0..r)
+        (0..r)
             .map(|j| {
                 base * Complex64::from_polar(
                     1.0,
                     2.0 * core::f64::consts::PI * (j as f64) / (r as f64),
                 )
             })
-            .collect();
-        if k == 0 {
-            start_roots = Some(roots.clone());
-        }
-        if k == n_samples {
-            end_roots = Some(roots);
-        }
-    }
-    let (start, end) = match (start_roots, end_roots) {
-        (Some(s), Some(e)) => (s, e),
-        _ => return r,
+            .collect()
     };
-    // For each start root, find nearest end root.
-    let mut perm = vec![0usize; r as usize];
-    for i in 0..start.len() {
-        let mut best_j = 0;
-        let mut best_d = f64::INFINITY;
-        for j in 0..end.len() {
-            let d = (start[i] - end[j]).norm();
-            if d < best_d {
-                best_d = d;
-                best_j = j;
+    // perm[i] = where the root that started at index i is after the loop.
+    let mut perm: Vec<usize> = (0..r as usize).collect();
+    let mut prev = roots_at(0);
+    for k in 1..=n_samples {
+        let cur = roots_at(k);
+        let mut step = vec![0usize; r as usize];
+        for i in 0..prev.len() {
+            let mut best_j = 0;
+            let mut best_d = f64::INFINITY;
+            for j in 0..cur.len() {
+                let d = (prev[i] - cur[j]).norm();
+                if d < best_d {
+                    best_d = d;
+                    best_j = j;
+                }
             }
+            step[i] = best_j;
         }
-        perm[i] = best_j;
+        let new_perm = perm.iter().map(|&i| step[i]).collect();
+        perm = new_perm;
+        prev = cur;
     }
-    // Longest orbit length.
+    // Longest orbit length of the composed permutation.
     let mut visited = vec![false; r as usize];
     let mut max_orbit = 0usize;
     for s in 0..r as usize {
@@ -178,6 +179,7 @@ pub fn trace_winding(r: u64, n_samples: usize) -> u64 {
     }
     max_orbit as u64
 }
+
 
 /// Localization length ξ = sqrt(<x²> − <x>²) of the comb.
 pub fn localization_length(comb: &[Complex64]) -> f64 {
@@ -284,5 +286,246 @@ mod tests {
         let ro = read_period(&comb).unwrap();
         assert_eq!(ro.period, 12);
         assert!(ro.validated);
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// In-binary Shor post-processing: the read period yields the factors.
+// ════════════════════════════════════════════════════════════════
+
+use num_integer::gcd;
+use num_traits::Zero;
+
+/// Modular exponentiation: base^exp mod modv. Self-contained.
+pub fn powmod(base: &BigUint, exp: &BigUint, modv: &BigUint) -> BigUint {
+    if modv.is_one() {
+        return BigUint::zero();
+    }
+    let mut result = BigUint::one();
+    let mut b = base % modv;
+    let mut e = exp.clone();
+    let two = BigUint::from(2u32);
+    while !e.is_zero() {
+        if e.clone() % &two != BigUint::zero() {
+            result = &result * &b % modv;
+        }
+        e /= &two;
+        b = &b * &b % modv;
+    }
+    result
+}
+
+/// Deterministic Miller-Rabin, 12 fixed witnesses.
+/// Exact for all n < 3.3·10^24 — far beyond any 128-bit demo.
+pub fn is_prime_mr(n: &BigUint) -> bool {
+    if n < &BigUint::from(2u32) {
+        return false;
+    }
+    for p in [2u32, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37] {
+        let bp = BigUint::from(p);
+        if n == &bp {
+            return true;
+        }
+        if n % &bp == BigUint::zero() {
+            return false;
+        }
+    }
+    let two = BigUint::from(2u32);
+    let mut d = n - BigUint::one();
+    let mut k: u32 = 0;
+    while d.clone() % &two == BigUint::zero() {
+        d /= &two;
+        k += 1;
+    }
+    for w in [2u32, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37] {
+        let a = BigUint::from(w);
+        let mut x = powmod(&a, &d, n);
+        if x == BigUint::one() || x == n - BigUint::one() {
+            continue;
+        }
+        let mut reached = false;
+        for _ in 1..k {
+            x = &x * &x % n;
+            if x == n - BigUint::one() {
+                reached = true;
+                break;
+            }
+        }
+        if !reached {
+            return false;
+        }
+    }
+    true
+}
+
+/// Modular inverse of b mod m via Fermat (m prime).
+pub fn modinv(b: &BigUint, m: &BigUint) -> BigUint {
+    powmod(b, &(m.clone() - BigUint::from(2u32)), m)
+}
+
+/// Shor post-processing from the read period r: gcd(a^(r/2) − 1, N).
+/// Returns (g, N/g) when 1 < g < N, else None.
+pub fn shor_factor(a: &BigUint, n: &BigUint, r: u64) -> Option<(BigUint, BigUint)> {
+    if r % 2 != 0 {
+        return None;
+    }
+    let v = powmod(a, &BigUint::from(r / 2), n);
+    if v.is_zero() {
+        return None;
+    }
+    let g = gcd(v - BigUint::one(), n.clone());
+    if g > BigUint::one() && g < *n {
+        Some((g.clone(), n / &g))
+    } else {
+        None
+    }
+}
+
+/// Build a 128-bit demo semiprime N = p·q (p, q just under 2^64) with
+/// ord_N(a) = 2s, s prime.
+///
+///   p ≡ 1 (mod s),   ω_p of order s   mod p
+///   q ≡ 1 (mod 2s),  ω_q of order 2s  mod q
+///   a ≡ ω_p (mod p), a ≡ ω_q (mod q)  (CRT)
+///
+/// Returns (p, q, N, a), or None if no suitable pair is found.
+pub fn build_demo(s: u64) -> Option<(BigUint, BigUint, BigUint, BigUint)> {
+    if !is_prime_mr(&BigUint::from(s)) {
+        return None;
+    }
+    let two = BigUint::from(2u32);
+    let two64 = two.pow(64u32);
+    let s_b = BigUint::from(s);
+    let two_s = BigUint::from(2 * s);
+
+    // p: 64-bit prime ≡ 1 (mod s), candidate 2^64 − k with k ≡ 2^64−1 (mod s)
+    let mut k0 = (two64.clone() - BigUint::one()) % &s_b;
+    if k0.clone() % &two == BigUint::zero() {
+        k0 += &s_b;
+    }
+    let mut k = k0;
+    let mut p: Option<BigUint> = None;
+    while k < two64.clone() && p.is_none() {
+        let cand = &two64 - &k;
+        if cand > BigUint::from(2u32) && is_prime_mr(&cand) {
+            p = Some(cand);
+        }
+        k += &s_b;
+    }
+    let p = p?;
+
+    // ω_p: base g with g^((p−1)/s) of exact order s (s prime: ≠ 1 suffices)
+    let exp_p = (&p - BigUint::one()) / &s_b;
+    let mut g = BigUint::from(2u32);
+    let mut wp: Option<BigUint> = None;
+    while g < p && wp.is_none() {
+        let w = powmod(&g, &exp_p, &p);
+        if w != BigUint::one() {
+            wp = Some(w);
+        }
+        g += &BigUint::one();
+    }
+    let wp = wp?;
+
+    // q: 64-bit prime ≡ 1 (mod 2s), q ≠ p
+    let mut k0q = (two64.clone() - BigUint::one()) % &two_s;
+    if k0q.clone() % &two == BigUint::zero() {
+        k0q += &two_s;
+    }
+    let mut k = k0q;
+    let mut q: Option<BigUint> = None;
+    while k < two64.clone() && q.is_none() {
+        let cand = &two64 - &k;
+        if cand != p && is_prime_mr(&cand) {
+            q = Some(cand);
+        }
+        k += &two_s;
+    }
+    let q = q?;
+
+    // ω_q: base g with g^((q−1)/(2s)) of exact order 2s (≢ 1 at the s-power)
+    let exp_q = (&q - BigUint::one()) / &two_s;
+    let mut g = BigUint::from(2u32);
+    let mut wq: Option<BigUint> = None;
+    while g < q && wq.is_none() {
+        let w = powmod(&g, &exp_q, &q);
+        if powmod(&w, &s_b, &q) != BigUint::one() {
+            wq = Some(w);
+        }
+        g += &BigUint::one();
+    }
+    let wq = wq?;
+
+    // CRT: a ≡ wp (mod p), a ≡ wq (mod q);  a = wp + p·t, t ≡ (wq−wp)·p⁻¹ (mod q)
+    let p_inv_q = modinv(&p, &q);
+    let diff = &wq + &q - &(&wp % &q);
+    let t = &diff * &p_inv_q % &q;
+    let a = &wp + &p * &t;
+
+    // sanity: ord_N(a) = 2s  (a^(2s) ≡ 1 and a^s ≢ 1)
+    let n = &p * &q;
+    if powmod(&a, &two_s, &n) != BigUint::one() || powmod(&a, &s_b, &n) == BigUint::one() {
+        return None;
+    }
+    Some((p, q, n, a))
+}
+
+#[cfg(test)]
+mod shor_tests {
+    use super::*;
+
+    #[test]
+    fn powmod_basics() {
+        assert_eq!(
+            powmod(&BigUint::from(2u32), &BigUint::from(10u32), &BigUint::from(1000u32)),
+            BigUint::from(24u32)
+        );
+        assert_eq!(
+            powmod(&BigUint::from(3u32), &BigUint::from(6u32), &BigUint::from(91u32)),
+            BigUint::one()
+        );
+    }
+
+    #[test]
+    fn mr_known_values() {
+        for p in [2u64, 3, 5, 7, 11, 97] {
+            assert!(is_prime_mr(&BigUint::from(p)), "{p} should be prime");
+        }
+        let m61 = BigUint::from(2305843009213693951u64);
+        assert!(is_prime_mr(&m61), "M61 should be prime");
+        for c in [1u64, 4, 9, 25, 561, 1729] {
+            assert!(!is_prime_mr(&BigUint::from(c)), "{c} should be composite");
+        }
+    }
+
+    #[test]
+    fn shor_15_r4() {
+        let n = BigUint::from(15u32);
+        let (g, h) = shor_factor(&BigUint::from(2u32), &n, 4).unwrap();
+        assert_eq!(&g * &h, n);
+        assert!(g > BigUint::one() && h > BigUint::one());
+    }
+
+    #[test]
+    fn shor_91_r6() {
+        let n = BigUint::from(91u32);
+        let (g, h) = shor_factor(&BigUint::from(3u32), &n, 6).unwrap();
+        assert_eq!(&g * &h, n);
+        assert!(g > BigUint::one() && h > BigUint::one());
+    }
+
+    #[test]
+    fn shor_odd_period() {
+        assert!(shor_factor(&BigUint::from(2u32), &BigUint::from(15u32), 3).is_none());
+    }
+
+    #[test]
+    fn demo_128bit_roundtrip() {
+        if let Some((p, q, n, a)) = build_demo(3) {
+            assert_eq!(&p * &q, n);
+            assert!(n.bits() >= 127, "N should be ~128-bit, got {}", n.bits());
+            assert!(is_prime_mr(&p) && is_prime_mr(&q));
+            assert!(a < n);
+        }
     }
 }

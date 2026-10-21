@@ -1,5 +1,7 @@
 # V⊙x
 
+Primitive labels and tuple keys use `⊢ ⊣ ≻ ≺ ⋈ ⊤ ∈ ∋ ⊙ ⊥ ⊞ ⊡`, in that order, with the Shavian values defined in [`SNS_PRIME.md`](../SNS_PRIME.md).
+
 The Pancosmic Disassembling Re-Compiling Organism. Every word names something you can run. Single Rust crate, zero external crates.
 
 **Pancosmic.** One lift, every substrate: native x86-64 (ELF/PE/Mach-O, both widths), EVM bytecode, WASM function bodies, CPython `.pyc`, and coding sequences (12 promoted amino acids biject the 12 axes - a gene is already a word). A merge is a merge whether `JUMPDEST`, `end`, or two-predecessor jump target.
@@ -95,6 +97,20 @@ sum of carry values. The exact identity is
 `sum(carry_out[k]) = popcount(p) * popcount(q) - popcount(N)`; the difference
 `popcount(N) - popcount(p) - popcount(q)` is not a carry count. Per-input
 period and cut residuals are reported as measured values for each input.
+
+## Protein compilation
+
+Standalone `vox compile` and hosted `g-momonados vox compile` call the same `Vox/src/protein_compile.rs` implementation. Both accept `--fasta`, `--input`, `--code`, `--pdb`, `--carrier` and `--coords`, execute full residue/form self-marks, and export the same PDB-bound carrier. G-mOMonadOS links the sibling Vox crate; its REPL dispatch calls this compiler too. The `protein-cli` feature supplies hosted file and console I/O; `--no-default-features --lib` keeps the library available without `std`.
+
+`vox compile` preserves all twenty amino acids and their complete source-bound self-marks. Native glut, chemical-form alternatives and word executions accompany the coordinate readout. The build prepares these records from the sibling Rebis and ob3ect sources; the live Lean correspondence supplies the promoted-primitive table.
+
+```bash
+target/x86_64-unknown-linux-musl/release/vox compile --fasta protein.fasta --input protein --pdb protein.pdb
+```
+
+The current coordinate path constructs a chain from codon-driven B4 torsions. Predicted contact relations are retained in the carrier but do not drive a tertiary coordinate solve. Cross-compiler agreement therefore establishes consistent compilation and state retention; it does not establish a correctly folded protein.
+
+The result includes `protein.pdb.glut.json`, bound to the exact coordinate file by SHA-256. `--carrier` selects another carrier-output path. Geometry observations retain clashes and other conflicts. See [protein compilation](USER_GUIDE.md#substrate-lanes) in the user guide for input types and retained state, and the [Rebis guide](../ig-docs/red-hot-rebis-user-guide.md) for shared downstream coupling.
 
 ## Lean Kernel Integration
 

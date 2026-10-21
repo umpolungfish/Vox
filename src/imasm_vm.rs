@@ -98,6 +98,20 @@ impl Memory {
     fn insert(&mut self, addr: u64, byte: u8) {
         self.pages.entry(addr >> 12).or_insert_with(|| Box::new([0; 4096]))[(addr & 4095) as usize] = byte;
     }
+    fn insert_nonzero_bytes(&mut self,addr:u64,bytes:&[u8]) {
+        let mut consumed=0;
+        while consumed<bytes.len() {
+            let current=addr+consumed as u64;let offset=(current&4095) as usize;
+            let count=(bytes.len()-consumed).min(4096-offset);let chunk=&bytes[consumed..consumed+count];
+            if chunk.iter().any(|byte|*byte!=0) {
+                let page=self.pages.entry(current>>12).or_insert_with(||Box::new([0;4096]));
+                for (slot,byte) in page[offset..offset+count].iter_mut().zip(chunk) {
+                    if *byte!=0 {*slot=*byte;}
+                }
+            }
+            consumed+=count;
+        }
+    }
     fn load(&self, addr: u64, size: u8) -> u128 {
         let mut value = 0;
         let mut consumed = 0;
@@ -189,14 +203,32 @@ impl Machine {
             m.reg.insert(r, 0);
         }
         for r in ["xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7","xmm8","xmm9","xmm10","xmm11","xmm12","xmm13","xmm14","xmm15"] { m.reg.insert(r, 0); }
-        m.reg.insert("rsp", 0x7FFF_0000);
+        m.reg.insert("rsp", m.stack_top() as u128);
         m.parse(module);
         m
     }
 
+    fn stack_top(&self) -> u64 {
+        if self.bits==32 {0x7fff_0000} else {0x0000_7fff_ffff_0000}
+    }
+
+    /// Read one module line at a time while retaining its current instruction
+    /// address. Text storage is independent of the total embedded data size.
+    pub fn from_reader<E>(mut read_line: impl FnMut(&mut String) -> Result<bool,E>) -> Result<Self,E> {
+        let mut machine=Self::new("");let mut line=String::new();let mut addr=None;
+        loop {
+            line.clear();if !read_line(&mut line)? {break;}
+            machine.parse_line(line.trim_end_matches(&['\r','\n'][..]),&mut addr);
+        }
+        machine.finish_parse();Ok(machine)
+    }
+
     fn parse(&mut self, text: &str) {
-        let mut addr: Option<u64> = None;
-        for line in text.lines() {
+        let mut addr=None;
+        for line in text.lines() {self.parse_line(line,&mut addr);}
+        self.finish_parse();
+    }
+    fn parse_line(&mut self,line:&str,addr:&mut Option<u64>) {
             if let Some(rest) = line.strip_prefix(';') {
                 let t = rest.trim();
                 if let Some(e) = t.strip_prefix("entry ") {
@@ -240,15 +272,15 @@ impl Machine {
                 if let (Some(at), Some(blob)) = (it.next(), it.next()) {
                     if let Ok(a) = u64::from_str_radix(at.trim().trim_start_matches("0x"), 16) {
                         let bytes = hexbytes(blob);
-                        for (k, b) in bytes.iter().enumerate() { if *b != 0 { self.mem.insert(a + k as u64, *b); } }
+                        self.mem.insert_nonzero_bytes(a, &bytes);
                     }
                 }
             } else if let Some(rest) = line.strip_prefix('@') {
                 if let Ok(a) = u64::from_str_radix(rest.trim().trim_start_matches("0x"), 16) {
-                    addr = Some(a); self.code.entry(a).or_default();
+                    *addr = Some(a); self.code.entry(a).or_default();
                 }
             } else if !line.is_empty() {
-                if let Some(a) = addr {
+                if let Some(a) = *addr {
                     let mut parts = line.split('\t');
                     if let Some(g) = parts.next() {
                         let glyph = g.chars().next().unwrap_or('?');
@@ -257,7 +289,9 @@ impl Machine {
                     }
                 }
             }
-        }
+    }
+    fn finish_parse(&mut self) {
+        self.set_reg("rsp",self.stack_top() as u128);
         self.addrs = self.code.keys().copied().collect();
         for w in self.addrs.windows(2) { self.next_of.insert(w[0], w[1]); }
     }
@@ -507,6 +541,37 @@ impl Machine {
                         self.store(output + 48, stat.size as u128, 8);
                         self.store(output + 56, 4096, 8);
                         self.store(output + 64, stat.size.div_ceil(512) as u128, 8);
+                        self.set_reg("rax", 0);
+                    }
+                    Err(errno) => self.set_reg("rax", errno as i64 as u64 as u128),
+                }
+            }
+            332 => { // statx: Rust std's metadata()/is_file() route here; fstatat above covers glibc.
+                let path = if a1 != 0 { self.read_cstr(a1 as u64) } else { String::new() };
+                let output = a4 as u64;
+                let result = self.host.as_mut().map(|host| {
+                    if a1 != 0 && !path.is_empty() {
+                        if !path.starts_with('/') && a0 as i32 != -100 { return Err(-38); }
+                        let fd = host.open(&path, 0, 0);
+                        if fd < 0 { return Err(fd); }
+                        let stat = host.file_stat(fd);
+                        host.close(fd);
+                        stat
+                    } else { host.file_stat(a0 as i32) }
+                }).unwrap_or(Err(-38));
+                match result {
+                    Ok(stat) => {
+                        for offset in 0..280 { self.store(output + offset, 0, 1); }
+                        self.store(output, 0x61F, 4); // stx_mask: BASIC_STATS (MODE|SIZE|NLINK|UID|GID|INO|DEV)
+                        self.store(output + 4, 4096, 4); // stx_blksize
+                        self.store(output + 24, 1, 4); // stx_nlink
+                        self.store(output + 36, stat.mode as u128 & 0xFFFF, 2); // stx_mode
+                        let dev = stat.device as u64;
+                        self.store(output + 48, (dev >> 32) as u128, 4); // stx_dev_major
+                        self.store(output + 52, dev as u128 & 0xFFFF, 4); // stx_dev_minor
+                        self.store(output + 56, stat.inode as u128, 8); // stx_ino
+                        self.store(output + 64, stat.size as u128, 8); // stx_size
+                        self.store(output + 72, (stat.size.div_ceil(512) * 8) as u128, 8); // stx_blocks
                         self.set_reg("rax", 0);
                     }
                     Err(errno) => self.set_reg("rax", errno as i64 as u64 as u128),
@@ -1266,6 +1331,16 @@ impl Machine {
                 }
                 self.write(&dst,result);
             }
+            "pmulhuw" => {
+                let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
+                let mut result=0u128;
+                for lane in 0..8 {
+                    let shift=lane*16;
+                    let product=((a>>shift)&0xffff)*((b>>shift)&0xffff);
+                    result|=(product>>16)<<shift;
+                }
+                self.write(&dst,result);
+            }
             "pmuludq" => {
                 let a=self.read(&dst,16).0; let b=self.read(&f[1],16).0;
                 let x0=a&mask(4); let x2=(a>>64)&mask(4); let y0=b&mask(4); let y2=(b>>64)&mask(4);
@@ -1692,7 +1767,7 @@ impl Machine {
         let relocs = core::mem::take(&mut self.irelative);
         let sentinel = 0x7fff_dead_0000u64;
         for (slot, resolver) in &relocs {
-            self.set_reg("rsp", 0x7FFF_0000u128);
+            self.set_reg("rsp", self.stack_top() as u128);
             self.push_val(sentinel as u128);
             self.run_loop(*resolver, Some(sentinel), 0)
                 .map_err(|e| match e {
@@ -1758,7 +1833,7 @@ impl Machine {
 
 fn is_simd(op: &str) -> bool {
     matches!(op, "movdqa"|"movdqu"|"movaps"|"movups"|"movntdq"|"movntps"|"movntpd"|"movd"|"movq"|"movlps"|"movhps"|"movhlps"|"movlhps"|"pxor"|"pand"|"pandn"|"por"
-        |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"
+        |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"|"pmullw"|"pmulhuw"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"|"movmskps"|"movmskpd"
         |"packssdw"|"packsswb"|"packuswb"|"psadbw"
@@ -2016,6 +2091,24 @@ mod membrane_simd_tests {
         assert!(machine.step(0x1000).is_ok());
         assert_eq!(machine.reg("rsp"), 0x1ff8);
         assert_eq!(machine.load(0x1ff8, 8), 0x30005c5a0);
+    }
+
+    #[test]
+    fn packed_unsigned_word_products_keep_high_and_low_halves() {
+        let left=[0u128,1,65535,32768,12345,60000,256,65535];
+        let right=[65535u128,65535,65535,2,54321,60000,256,1];
+        let pack=|values:&[u128]| values.iter().enumerate().fold(0,|a,(i,v)|a|(*v<<(16*i)));
+        for (op,high) in [("pmulhuw",true),("pmullw",false)] {
+            assert!(super::is_simd(op));
+            let mut machine=Machine::new("");
+            machine.set_reg("xmm0",pack(&left));machine.set_reg("xmm1",pack(&right));
+            machine.simd(op,&vec!["r:xmm0".into(),"r:xmm1".into()]);
+            for i in 0..8 {
+                let product=left[i]*right[i];
+                assert_eq!((machine.reg("xmm0")>>(16*i))&65535,
+                           if high {product>>16} else {product&65535},"{op} lane {i}");
+            }
+        }
     }
 
     #[test]
@@ -2528,5 +2621,51 @@ mod dynamic_page_tests {
         assert_eq!(memory.load(0xABCDEF000, 16), 0);
         memory.insert(4095, 7); memory.insert(4096, 9);
         assert_eq!(memory.load(4095, 2), 0x0907);
+    }
+}
+
+#[cfg(test)]
+mod streaming_module_tests {
+    use super::{Machine,Memory};
+    use alloc::{string::String,vec};
+    #[test]
+    fn streamed_reader_preserves_addresses_metadata_and_overlapping_data() {
+        let module="; standalone static-v1\n; entry 0x1000\n; bits 64\n; phdr 0x40 56 3\n; sym entry 0x1000\n; irel 0x3000 0x4000\n; rela 0x3008 0x5000\n=0x1ffe\taabb0001\n=0x1fff\t00cc0000\n@0x1000\n⋈\tmov\tr:rax\ti:0x2a\n@0x1007\n⊣\tret\n";
+        let expected=Machine::new(module);let mut lines=module.split_inclusive('\n');
+        let actual=Machine::from_reader(|line:&mut String| -> Result<bool,()> {
+            if let Some(next)=lines.next(){line.push_str(next);Ok(true)}else{Ok(false)}
+        }).unwrap();
+        assert_eq!(actual.code,expected.code);assert_eq!(actual.addrs,expected.addrs);
+        assert_eq!(actual.next_of,expected.next_of);assert_eq!(actual.mem.pages,expected.mem.pages);
+        assert_eq!(actual.symbols,expected.symbols);assert_eq!(actual.irelative,expected.irelative);
+        assert_eq!(actual.relative,expected.relative);assert_eq!(actual.entry,expected.entry);
+        assert_eq!((actual.bits,actual.phdr,actual.phent,actual.phnum),(expected.bits,expected.phdr,expected.phent,expected.phnum));
+        assert!(Machine::from_reader(|_|Err::<bool,_>("read failure")).is_err());
+    }
+    #[test]
+    fn bulk_nonzero_data_preserves_original_page_overlay_semantics() {
+        let mut expected=Memory::default();let mut actual=Memory::default();
+        for (at,bytes) in [(4093,vec![1,2,0,4,5,0,7,8]),(4095,vec![0,9,0,0,3]),(8190,vec![0;8194])] {
+            for (index,byte) in bytes.iter().enumerate(){if *byte!=0{expected.insert(at+index as u64,*byte);}}
+            actual.insert_nonzero_bytes(at,&bytes);
+        }
+        assert_eq!(actual.pages,expected.pages);
+    }
+}
+
+#[cfg(test)]
+mod resident_stack_tests {
+    use super::Machine;
+    #[test]
+    fn archived_image_at_legacy_stack_address_survives_resolver_startup() {
+        // These eight bytes were read from the locked executable's archive
+        // segment at the previous VM stack's first push address.
+        let module="; bits 64\n; irel 0x1000 0x2000\n=0x7ffefff8\t85dd9a5a4dd1f1cc\n@0x2000\n⋈\tmov\tr:rax\ti:0x0\n@0x2007\n⊣\tret\n";
+        let mut machine=Machine::new(module);let before=machine.peek(0x7ffefff8,8);
+        assert!(machine.get_reg("rsp")>0x1accda7a8);
+        assert!(machine.initialize_relocations().is_ok());
+        assert_eq!(machine.peek(0x7ffefff8,8),before);
+        assert_eq!(machine.get_reg("rsp"),machine.stack_top() as u128);
+        assert_eq!(Machine::new("; bits 32\n").get_reg("rsp"),0x7fff0000);
     }
 }
