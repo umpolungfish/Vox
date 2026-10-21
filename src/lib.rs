@@ -9,6 +9,9 @@
 #![deny(warnings)]
 #![no_std]
 
+#[cfg(feature = "protein-cli")]
+extern crate std;
+
 #[macro_use]
 extern crate alloc;
 
@@ -22,8 +25,12 @@ pub mod vox_decode;
 pub mod lanes;
 pub mod genetic;
 pub mod protein;
+pub mod protein_glut;
+#[cfg(feature = "protein-cli")]
+pub mod protein_compile;
 pub mod fold;
 pub mod fold3d;
+pub mod protein_relax;
 pub mod pyc;
 pub mod pyc_table;
 pub mod genetic_table;
@@ -60,6 +67,7 @@ pub mod layer_stack; // Core Numeral Boolean layer axis: threshold supports, lay
 pub mod lean_evidence; // Lean Evidence registry: theorem id -> build witness (tag only)
 pub mod producer_provenance;
 pub mod dialectic_reentry;
+pub mod resident_y;
 pub mod dialectic_lean;
 pub mod dialectic_certificate;
 pub mod imscription_cycle;

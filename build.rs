@@ -2,6 +2,14 @@ use std::{env, fs, path::PathBuf};
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=tools/generate_protein_marks.py");
+    let protein_table = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("protein_marks.rs");
+    let generated = std::process::Command::new("python3")
+        .arg("tools/generate_protein_marks.py").arg(&protein_table)
+        .output().expect("run source-bound protein self-mark generator");
+    assert!(generated.status.success(), "protein self-mark preparation failed: {}",
+        String::from_utf8_lossy(&generated.stderr));
+    print!("{}", String::from_utf8_lossy(&generated.stdout));
     println!("cargo:rerun-if-env-changed=VOX_BAKED_INPUT_FILE");
     println!("cargo:rerun-if-env-changed=VOX_FACTOR_N_FILE");
     println!("cargo:rerun-if-env-changed=EXCRIBE_NUMERAL_WORD");

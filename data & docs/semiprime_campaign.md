@@ -245,3 +245,30 @@ The factor audit reports cover both families through 8192 bits and include
 Vox's full-image audit, with no F verdicts, plus module lifting. A focused VM
 run remains available with `factor_membrane_check.py --run-vox`; it is not part
 of the escalating timing battery.
+
+`python3 baked_case.py N` builds and runs the standalone single-divisor
+producer with N baked in. It returns one proper divisor, derives the quotient,
+and closes the exact product. `--radix` controls the final prefix closure
+(default: 4294967296). An optional second argument selects an older producer,
+for example `python3 baked_case.py N dialectic`. Use `--build-only` to print the retained
+executable path without running it. `--target` and `--width` are available for
+producers that need them. Build failures print Cargo's captured error output.
+The existing `build_case` import remains available to campaign scripts.
+
+The direct CLI's `--help` lists every supported mode, its operation, required
+widths, defaults, retained output location, compilation/execution boundaries,
+and examples. Invalid modes and missing required widths fail before compiling.
+Interactive terminals show a spinner while waiting for the build lock and
+compiling the encoder and selected producer. Redirected stderr receives plain
+stage messages. `--no-spinner` disables both forms of compilation progress.
+The spinner is cleared before factor execution and on compilation errors.
+Imported callers remain quiet unless they pass `progress=True` to `build_case`.
+
+The default `divisor` mode uses one resident phase state and retained Y evaluator.
+It tests proper gcd evidence while that state evolves, including partial phase
+collisions. It returns a source-bound divisor witness, banks and restores that
+witness, then derives N/d and performs the terminal product/prefix closures.
+A completed phase cycle without a divisor is retained before advancing the
+internally generated base. There is no second factor-search lane or full-return
+exponent requirement in this mode. Its help documents the composite-input
+contract and the terminal-only `--radix` option.

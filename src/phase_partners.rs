@@ -39,6 +39,45 @@ pub struct SupportClosure {
     pub q: Tape,
 }
 
+/// Production returns one divisor and its source-bound modular evidence.
+/// No quotient register is prepared or searched here.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DivisorCycle {
+    pub base: Tape,
+    pub residue: Tape,
+    pub phase_index: usize,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DivisorWitness {
+    source: Tape,
+    pub divisor: Tape,
+    pub dividend: Tape,
+    pub phase_index: usize,
+    pub arm: &'static str,
+    pub base: Tape,
+    pub preceding_cycles: Vec<DivisorCycle>,
+}
+
+impl DivisorWitness {
+    /// The quotient is derived only after production has returned a divisor.
+    pub fn derive_quotient(&self, source: &[char]) -> Result<Tape, String> {
+        if source != self.source || cmp(&self.divisor, &one()) != Ordering::Greater
+            || cmp(&self.divisor, source) != Ordering::Less {
+            return Err("divisor return is not proper or belongs to another source".into());
+        }
+        if gcd(self.dividend.clone(), source.to_vec()) != self.divisor {
+            return Err("divisor return lost its modular evidence".into());
+        }
+        let (quotient, remainder) = crate::morphism_factor::divmod(source, &self.divisor);
+        if !crate::morphism_factor::zero(&remainder)
+            || mul(&self.divisor, &quotient) != source {
+            return Err("derived quotient failed exact source closure".into());
+        }
+        Ok(quotient)
+    }
+}
+
 impl SupportPolynomial {
     fn from_tape(n: &[char]) -> Self {
         Self {
@@ -97,16 +136,19 @@ impl SupportPolynomial {
         n: &BigUint,
         width: usize,
     ) -> Option<(BigUint, BigUint, BigUint)> {
-        let residue = self.evaluate_frame(x, n, width);
-        let factor = biguint_gcd(residue.clone(), n.clone());
-        if factor <= BigUint::from(1u8) || factor >= *n {
-            return None;
-        }
+        let (residue, factor) = self.divisor_target(x, n, width)?;
         let cofactor = n / &factor;
         if &cofactor * &factor != *n {
             return None;
         }
         Some((residue, factor, cofactor))
+    }
+
+    fn divisor_target(&self, x: &BigUint, n: &BigUint, width: usize)
+        -> Option<(BigUint, BigUint)> {
+        let residue = self.evaluate_frame(x, n, width);
+        let factor = biguint_gcd(residue.clone(), n.clone());
+        (factor > BigUint::from(1u8) && factor < *n).then_some((residue, factor))
     }
 }
 
@@ -152,6 +194,9 @@ pub struct Partners {
     orbit_power: usize,
     orbit_length: usize,
     pub squarings: usize,
+    divisor_base: BigUint,
+    divisor_cycles: Vec<DivisorCycle>,
+
 }
 
 fn tape_to_biguint(tape: &[char]) -> BigUint {
@@ -201,6 +246,10 @@ fn power_of_two_exponent(index: usize) -> Tape {
 }
 
 impl Partners {
+    /// A nonunit base is already a useful one-divisor observation.
+    pub fn new_divisor(a: Tape, n: Tape) -> Result<Self, String> {
+        Self::new_inner(a, n, false)
+    }
     pub fn new(a: Tape, n: Tape) -> Result<Self, String> {
         Self::new_inner(a, n, true)
     }
@@ -220,7 +269,7 @@ impl Partners {
         if check_unit && biguint_gcd(a_big.clone(), n_big.clone()) != BigUint::from(1u8) {
             return Err("partners require N > 1 and a coprime base".into());
         }
-        let residue = a_big % &n_big;
+        let residue = &a_big % &n_big;
         let initial_residue = residue.clone();
         let support = SupportPolynomial::from_tape(&n);
         Ok(Self {
@@ -232,6 +281,8 @@ impl Partners {
             orbit_power: 1,
             orbit_length: 0,
             squarings: 0,
+            divisor_base: a_big,
+            divisor_cycles: Vec::new(),
         })
     }
 
@@ -284,6 +335,11 @@ impl Partners {
         } else {
             None
         };
+        self.advance_register();
+        Ok(relation)
+    }
+
+    fn advance_register(&mut self) {
         if self.orbit_length >= self.orbit_power {
             self.tortoise = self.residue.clone();
             self.orbit_power = self.orbit_power.saturating_mul(2);
@@ -292,7 +348,70 @@ impl Partners {
         self.residue = (&self.residue * &self.residue) % &self.n;
         self.squarings += 1;
         self.orbit_length += 1;
-        Ok(relation)
+    }
+
+    fn divisor_witness(&self, dividend: BigUint, arm: &'static str) -> Option<DivisorWitness> {
+        let divisor = biguint_gcd(dividend.clone(), self.n.clone());
+        if divisor <= BigUint::from(1u8) || divisor >= self.n { return None; }
+        Some(DivisorWitness { source: biguint_to_tape(&self.n),
+            divisor: biguint_to_tape(&divisor), dividend: biguint_to_tape(&dividend),
+            phase_index: self.squarings, arm, base: biguint_to_tape(&self.divisor_base),
+            preceding_cycles: self.divisor_cycles.clone() })
+    }
+
+    /// One retained step, terminating on a proper divisor of N. Partial
+    /// collisions modulo either factor are consumed before any full-N return.
+    /// No exponent recovery or independent quotient producer participates.
+    pub fn advance_divisor(&mut self) -> Option<DivisorWitness> {
+        if self.squarings == 0 {
+            if let Some(hit) = self.divisor_witness(self.residue.clone(), "base-nonunit") { return Some(hit); }
+        }
+        let unit = BigUint::from(1u8);
+        // Fuse the three modular predicates before one gcd read. When the
+        // joint read contains both factors, recover the separate predicates.
+        let minus = if self.residue >= unit { &self.residue - &unit }
+            else { &self.n - &unit };
+        let plus = &self.residue + &unit;
+        let difference = if self.residue >= self.tortoise { &self.residue - &self.tortoise }
+            else { &self.tortoise - &self.residue };
+        let predicates = [(minus, "phase-minus-unit"), (plus, "phase-plus-unit"),
+            (difference, "partial-phase-collision")];
+        let mut product = unit.clone();
+        for (value, _) in &predicates {
+            // A zero predicate gives gcd N and obscures the other arms.
+            if !value.is_zero() { product = (product * value) % &self.n; }
+        }
+        let joint = biguint_gcd(product.clone(), self.n.clone());
+        if joint > unit {
+            for (value, arm) in &predicates {
+                if let Some(hit) = self.divisor_witness(value.clone(), arm) { return Some(hit); }
+            }
+        }
+        if self.support_probe() {
+            if let Some((residue, divisor)) = self.support.divisor_target(&self.residue, &self.n, 8) {
+                return Some(DivisorWitness { source: biguint_to_tape(&self.n),
+                    divisor: biguint_to_tape(&divisor), dividend: biguint_to_tape(&residue),
+                    phase_index: self.squarings, arm: "support-polynomial",
+                    base: biguint_to_tape(&self.divisor_base), preceding_cycles: self.divisor_cycles.clone() });
+            }
+        }
+        if self.squarings > 0 && self.residue == self.tortoise {
+            // A whole-source cycle with no divisor is an open return, not
+            // completion. Keep its evidence and re-enter on the next base
+            // in this same resident object and the same caller's Y state.
+            self.divisor_cycles.push(DivisorCycle { base: biguint_to_tape(&self.divisor_base),
+                residue: biguint_to_tape(&self.residue), phase_index: self.squarings });
+            self.divisor_base += &unit;
+            self.residue = &self.divisor_base % &self.n;
+            self.initial_residue = self.residue.clone();
+            self.tortoise = self.residue.clone();
+            self.orbit_power = 1;
+            self.orbit_length = 0;
+            self.squarings = 0;
+            return None;
+        }
+        self.advance_register();
+        None
     }
 
     fn resolve_cycle(&self, period: usize) -> ReturnRelation {
@@ -338,7 +457,7 @@ impl Partners {
     }
 
     pub fn stored_residues(&self) -> usize {
-        3
+        3 + 2 * self.divisor_cycles.len()
     }
 }
 
@@ -346,6 +465,61 @@ impl Partners {
 mod tests {
     use super::*;
     use crate::morphism_factor::tape_u64 as t;
+
+    fn single_divisor_fixture() -> (Tape, Tape) {
+        // An operation-level collision fixture on a hard balanced 208-bit
+        // source. The expected divisor is not a production constructor input.
+        (crate::morphism_factor::decimal_to_tape("266175155279792434973506259190185380993589458872977057421959357").unwrap(),
+         crate::morphism_factor::decimal_to_tape("13419294329574030763782528217097").unwrap())
+    }
+
+    #[test]
+    fn single_divisor_partial_collision_returns_before_full_phase_collision() {
+        let (n, p) = single_divisor_fixture();
+        let mut state = Partners::new_divisor(t(2), n.clone()).unwrap();
+        state.residue = tape_to_biguint(&crate::morphism_factor::add(&p, &t(2)));
+        state.squarings = 1;
+        assert_ne!(state.residue, state.tortoise);
+        let hit = state.advance_divisor().expect("proper partial collision must return immediately");
+        assert_eq!(hit.arm, "partial-phase-collision");
+        assert_eq!(hit.divisor, p);
+        assert_eq!(state.squarings, 1, "a divisor return must not advance past its witness");
+        let q = hit.derive_quotient(&n).unwrap();
+        assert_eq!(mul(&hit.divisor, &q), n);
+        assert!(hit.derive_quotient(&crate::morphism_factor::add(&n, &t(2))).is_err());
+    }
+
+    #[test]
+    fn single_divisor_rejects_trivial_gcd_and_retains_y_continuation() {
+        let (n, _) = single_divisor_fixture();
+        let mut state = Partners::new_divisor(t(2), n.clone()).unwrap();
+        assert!(state.divisor_witness(BigUint::from(0u8), "test").is_none());
+        assert!(state.divisor_witness(BigUint::from(1u8), "test").is_none());
+        assert!(state.divisor_witness(tape_to_biguint(&n), "test").is_none());
+        let mut driver = crate::resident_y::ResidentY::from_certified_program(
+            crate::resident_y::ResidentY::certified_program()).unwrap();
+        for _ in 0..8 {
+            assert!(!driver.advance(|| Ok(state.advance_divisor().is_some())).unwrap());
+        }
+        assert_eq!(driver.calls, 8);
+        assert_eq!(state.squarings, 8);
+        assert_eq!(state.negative_support_snapshot().1,
+            power(&t(2), &power_of_two_exponent(8), &n));
+    }
+
+    #[test]
+    fn single_divisor_full_cycle_keeps_evidence_and_reenters_same_source() {
+        let (n, _) = single_divisor_fixture();
+        let mut state = Partners::new_divisor(t(1), n.clone()).unwrap();
+        assert!(state.advance_divisor().is_none());
+        assert!(state.advance_divisor().is_none());
+        assert_eq!(state.n, tape_to_biguint(&n));
+        assert_eq!(state.divisor_base, BigUint::from(2u8));
+        assert_eq!(state.divisor_cycles.len(), 1);
+        assert_eq!(state.divisor_cycles[0].base, t(1));
+        assert_eq!(state.divisor_cycles[0].residue, t(1));
+        assert_eq!(state.squarings, 0);
+    }
 
     #[test]
     fn dynamic_integer_phase_register_round_trips_tapes() {

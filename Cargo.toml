@@ -47,7 +47,8 @@ name = "vox"
 path = "src/lib.rs"
 
 [features]
-default = []
+default = ["protein-cli"]
+protein-cli = []
 resident = []
 mpqs_debug = []
 root-work-profile = []
@@ -60,6 +61,7 @@ lto = true
 [[bin]]
 name = "vox"
 path = "src/main.rs"
+required-features = ["protein-cli"]
 
 [[bin]]
 name = "abc_one"

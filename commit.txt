@@ -1,5 +1,9 @@
-I bind vox compile closure to the emitted peptide coordinates.
-I retain complete inventory, bond, ring, angle, planarity, stereochemistry, backbone torsion and nonbonded-clash evidence in the REPL and PDB.
-I correct natural alpha and Ile/Thr handedness and distinguish sequence-fold labels from the retained B4 backbone.
-I retain valid dialetheic secondary-structure B states independently of coordinate conflicts.
-I preserve the factor-module edits while repairing their blocking build integration.
+I retain full residue self-marks in native protein compilation
+
+I prepare source-bound amino-acid forms from Rebis before folding and return their native word executions, torsion alternatives and full observations with the coordinate readout.
+I derive genetic tables from live Lean without historical assignment overrides and generate both Python copies together.
+I support explicit sequence types, single-record FASTA, complete carrier exports and SHA-256-bound PDB sidecars, and propagate output failures.
+I verify the final compiler against thirty complete source chains, cross-path coordinate agreement, CLI controls and seven protein unit checks, preserving prior binaries.
+I document the canonical SNS Prime alphabet and rebuild the protein compiler against the revised source.
+
+I share the hosted protein compiler with G-mOMonadOS and preserve its coordinate-output option, full carrier exports and error handling.

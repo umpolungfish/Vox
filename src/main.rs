@@ -10,9 +10,6 @@ mod descent_cli;
 use ::vox::vox_decode;
 use ::vox::lanes;
 use ::vox::genetic;
-use ::vox::protein;
-use ::vox::fold;
-use ::vox::fold3d;
 use ::vox::x86;
 use ::vox::{imasm_module, imasm_vm, loader, safetensors, divisor_membrane};
 #[path = "bin/factor_membrane_support.rs"]
@@ -80,7 +77,7 @@ fn usage() {
     eprintln!("  vox fasta <file>          lift a protein from FASTA");
     eprintln!("  vox pdb <file>            lift a protein from a PDB (CA per residue)");
     eprintln!("  vox glyco <seq|file>      locate the glycosylation boundary interfaces");
-    eprintln!("  vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]");
+    eprintln!("  vox compile <seq> | --fasta <file> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--pdb <path>] [--carrier <path>] [--coords]");
     eprintln!("                            the full pipeline, both ends: RNA/DNA in gives a");
     eprintln!("                            compiled protein with real fold info (Chou-Fasman");
     eprintln!("                            secondary structure, heuristic tertiary contacts, a");
@@ -156,134 +153,8 @@ fn protein(seq: &str, source: &str) -> i32 {
     0
 }
 
-/// `vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]`
-///
-/// One entry point, both directions of the same pipeline. RNA/DNA in:
-/// `protein::translate_full` (every residue, not just the twelve promoted
-/// ones `genetic::lift_rna` keeps), then fold (`fold::fold_sequence` for
-/// secondary/tertiary structure, `fold3d` for a real 3D backbone). Protein
-/// in: reverse-translate with the Frobenius-preferred codon per residue
-/// (`protein::preferred_codon_for_aa`) and run the SAME fold on the input,
-/// so the "vice versa" direction carries fold info too. Direction
-/// auto-detects from the input alphabet: pure A/C/G/T/U reads as nucleic
-/// acid, anything else as protein codes.
 fn compile(args: &[String]) -> i32 {
-    let mut dialect = String::new();
-    let mut pdb_path: Option<String> = None;
-    let mut seq_parts: Vec<String> = Vec::new();
-    let mut i = 0;
-    while i < args.len() {
-        match args[i].as_str() {
-            "--code" if i + 1 < args.len() => {
-                dialect = if args[i + 1] == "mitochondrial" || args[i + 1] == "mito" {
-                    String::from("mitochondrial")
-                } else { String::new() };
-                i += 2;
-            }
-            "--pdb" if i + 1 < args.len() => { pdb_path = Some(args[i + 1].clone()); i += 2; }
-            other => { seq_parts.push(other.to_string()); i += 1; }
-        }
-    }
-    let seq = seq_parts.join(" ");
-    let dialect_name = if dialect.is_empty() { "standard" } else { "mitochondrial" };
-
-    let compact: String = seq.chars().filter(|c| !c.is_whitespace() && *c != '-' && *c != ',').collect();
-    let is_nucleic = !compact.is_empty()
-        && compact.chars().all(|c| matches!(c.to_ascii_uppercase(), 'A' | 'C' | 'G' | 'T' | 'U'));
-
-    fn report_fold(chain: &[&'static str], b4_path: &[char], pdb_path: Option<&str>) {
-        let f = fold::fold_sequence(chain);
-        let n_h = f.residues.iter().filter(|r| r.secondary == fold::SecondaryLabel::Helix).count();
-        let n_s = f.residues.iter().filter(|r| r.secondary == fold::SecondaryLabel::Sheet).count();
-        let n_c = f.residues.len() - n_h - n_s;
-        println!();
-        println!("sequence fold: helix {}  sheet {}  coil {}   ({} contacts, SerpentRod contact invariant {})",
-            n_h, n_s, n_c, f.contacts.len(), if f.frobenius_ok { "PASS" } else { "FAIL" });
-        let steps = fold3d::rama_steps(b4_path);
-        let backbone = fold3d::build_backbone(&steps);
-        println!("backbone {} residues placed (B4-Ramachandran-NeRF)", backbone.len());
-        let sidechain_count: usize = chain.iter()
-            .map(|residue| fold3d::sidechain_topology(residue).len()).sum();
-        println!("sidechain {} heavy atoms (complete residue inventory)", sidechain_count);
-        let coordinates: Vec<_> = backbone.iter().map(|bb| [bb.n, bb.ca, bb.c, bb.o]).collect();
-        let sidechains: Vec<Vec<(&str, fold3d::Vec3)>> = chain.iter().zip(&backbone).zip(&steps)
-            .map(|((residue, bb), step)| fold3d::build_sidechain(residue, bb, step)).collect();
-        let retained_steps: Vec<_> = steps.iter().map(|s| (s.phi, s.psi)).collect();
-        let geometry = ::vox::peptide_closure::assess(chain, &coordinates, &sidechains, &retained_steps);
-        print!("{}", geometry.report(false));
-        let b_h = steps.iter().filter(|s| s.ss == "helix" || s.ss == "helix_l").count();
-        let b_s = steps.iter().filter(|s| s.ss == "sheet").count();
-        println!("retained B4 backbone labels: helix {}  sheet {}  other {}", b_h, b_s, steps.len()-b_h-b_s);
-        let sequence_labels: Vec<&str> = f.residues.iter().map(|r| match r.secondary {
-            fold::SecondaryLabel::Helix => "helix", fold::SecondaryLabel::Sheet => "sheet", fold::SecondaryLabel::Coil => "other",
-        }).collect();
-        let retained_labels: Vec<&str> = steps.iter().map(|s| s.ss).collect();
-        let secondary = ::vox::peptide_closure::secondary_evidence(&sequence_labels, &retained_labels);
-        print!("{}", ::vox::peptide_closure::secondary_report(&secondary, false));
-        if let Some(path) = pdb_path {
-            let elements = fold3d::group_ss_elements(&steps);
-            let winding = f.residues.iter().map(|r| r.winding_number).max().unwrap_or(0);
-            let mut pdb = fold3d::write_pdb_with_steps(chain, &backbone, &steps, &elements, f.frobenius_ok, winding, "COMPILED THROUGH VOX", 'A');
-            let evidence_remarks: String = ::vox::peptide_closure::secondary_report(&secondary, true).lines()
-                .map(|line| format!("REMARK 900 {}\n", line)).collect();
-            pdb = pdb.replacen("END\n", &(evidence_remarks + "END\n"), 1);
-            match std::fs::write(path, pdb.as_bytes()) {
-                Ok(()) => println!("pdb      written to {}", path),
-                Err(e) => println!("pdb      could not write to {}: {}", path, e),
-            }
-        }
-    }
-
-    if is_nucleic {
-        let t = protein::translate_full(&compact, &dialect);
-        if t.protein.is_empty() {
-            eprintln!("no protein translated from '{}'; needs an ATG/AUG start codon", seq);
-            return 1;
-        }
-        let bytes: Vec<char> = t.mrna.chars().collect();
-        let b4_path: Vec<char> = (0..t.protein.len()).map(|k| {
-            let p = t.start + k * 3;
-            bytes.get(p).and_then(|&c| genetic::nuc_b4(c)).unwrap_or('N')
-        }).collect();
-
-        println!("== vox compile: RNA/DNA -> protein ({}) ==", dialect_name);
-        println!("input    {}", seq);
-        println!("mrna     {}", t.mrna);
-        println!("protein  {}", t.protein.join("-"));
-        match t.stopped {
-            Some(s) => println!("stop     {}", s),
-            None => println!("stop     (none: the sequence ran out before a stop)"),
-        }
-        report_fold(&t.protein, &b4_path, pdb_path.as_deref());
-        0
-    } else {
-        let chain = match protein::parse_chain(&seq) {
-            Some(c) if !c.is_empty() => c,
-            _ => {
-                eprintln!("could not parse '{}' as protein or nucleic acid", seq);
-                eprintln!("use 3-letter (Met-Ala) or 1-letter (MA) amino acid codes, or A/C/G/T/U");
-                return 1;
-            }
-        };
-        let reverse = match protein::reverse_translate_full(&chain, &dialect) {
-            Some(r) => r,
-            None => { eprintln!("no codon exists for some residue under the {} table", dialect_name); return 1; }
-        };
-        let dna = protein::reverse_transcribe(&reverse.mrna);
-        let bytes: Vec<char> = reverse.mrna.chars().collect();
-        let b4_path: Vec<char> = (0..chain.len()).map(|k| {
-            genetic::nuc_b4(bytes[k * 3]).unwrap_or('N')
-        }).collect();
-
-        println!("== vox compile: protein -> RNA/DNA ({}) ==", dialect_name);
-        println!("input    {}", chain.join("-"));
-        println!("mrna     {}  (Frobenius-preferred codon per residue)", reverse.mrna);
-        println!("dna      {}", dna);
-        println!("degeneracy  {} total possible mRNA sequences (product of per-residue codon counts)",
-            reverse.total_combinations);
-        report_fold(&chain, &b4_path, pdb_path.as_deref());
-        0
-    }
+    ::vox::protein_compile::run(args)
 }
 
 fn glyco(seq: &str, source: &str) -> i32 {
@@ -1289,12 +1160,41 @@ fn main() {
             let observed = std::env::var_os("VOX_PROGRESS").is_some();
             let load_started = std::time::Instant::now();
             if observed { eprintln!("vox-loading stage=read"); }
+            let stream_text_module = file.ends_with(".imasm") && {
+                use std::io::Read;
+                let mut input=std::fs::File::open(&file).unwrap_or_else(|error| {
+                    eprintln!("cannot read {}: {}",file,error);std::process::exit(1);
+                });
+                let mut prefix=vec![0;::vox::glyph_module::PREFIX.len()];
+                match input.read_exact(&mut prefix) {
+                    Ok(()) => prefix!=::vox::glyph_module::PREFIX.as_bytes(),
+                    Err(error) if error.kind()==std::io::ErrorKind::UnexpectedEof => true,
+                    Err(error) => {eprintln!("cannot read {}: {}",file,error);std::process::exit(1);}
+                }
+            };
+            let mut m = if stream_text_module {
+                let input=std::fs::File::open(&file).unwrap_or_else(|error| {
+                    eprintln!("cannot read {}: {}",file,error);std::process::exit(1);
+                });
+                let mut reader=std::io::BufReader::new(input);let mut standalone=false;
+                let machine=imasm_vm::Machine::from_reader(|line| -> std::io::Result<bool> {
+                    let count=std::io::BufRead::read_line(&mut reader,line)?;
+                    if line.trim_end_matches(&['\r','\n'][..])=="; standalone static-v1" {standalone=true;}
+                    Ok(count!=0)
+                }).unwrap_or_else(|error| {
+                    eprintln!("cannot read {}: {}",file,error);std::process::exit(1);
+                });
+                if !standalone {
+                    eprintln!("cannot run standalone membrane: module has no standalone linkage boundary");std::process::exit(2);
+                }
+                machine
+            } else {
             let raw = read_or_exit(&file);
             if observed { eprintln!("vox-loading stage=module seconds={:.6} bytes={}",load_started.elapsed().as_secs_f64(),raw.len()); }
             let is_glyph = file.ends_with(".glyphs") || raw.starts_with(::vox::glyph_module::PREFIX.as_bytes());
             let is_module = is_glyph || file.ends_with(".imasm")
                 || raw.starts_with(b"; ");
-            let mut m = if is_module {
+            if is_module {
                 let text = match String::from_utf8(raw) {
                     Ok(t) => t,
                     Err(e) => { eprintln!("cannot read {}: {}", file, e); std::process::exit(1); }
@@ -1314,6 +1214,7 @@ fn main() {
                     eprintln!("cannot run standalone membrane: {error}"); std::process::exit(2);
                 });
                 imasm_vm::Machine::new(&module)
+            }
             };
             m.set_host(Box::new(StdHost::new()));
             if observed { eprintln!("vox-loading stage=ready seconds={:.6}",load_started.elapsed().as_secs_f64()); }
@@ -1344,7 +1245,12 @@ fn main() {
                 let steps: u64 = std::env::var("VOX_STEPS").ok()
                     .and_then(|s| s.trim().parse().ok())
                     .unwrap_or(0);
-                let r = m.run_process(&argv, &[], steps);
+                // Only the resident output-archive selector crosses this
+                // boundary. Prepared source and continuation data are embedded.
+                let guest_environment: Vec<String> = std::env::var("RESIDENT_EVIDENCE_DIR")
+                    .ok().map(|value| vec![format!("RESIDENT_EVIDENCE_DIR={value}")])
+                    .unwrap_or_default();
+                let r = m.run_process(&argv, &guest_environment, steps);
                 if let Err(imasm_vm::Stop::Halt(_)) = &r {
                     eprint!("regs at halt:");
                     for rn in ["rax","rbx","rcx","rdx","rsi","rdi","rbp","rsp","r12","r13","r14","r15"] {
@@ -1428,6 +1334,19 @@ fn main() {
                 eprintln!("vox imasm <file> [--output <module.imasm>]"); return;
             }
             let raw=read_or_exit(&args[1]);
+            if args.len()==4 {
+                use std::io::Write;
+                let partial=format!("{}.partial",args[3]);
+                let output=std::fs::File::create(&partial).unwrap_or_else(|error| {
+                    eprintln!("could not write {}: {}",partial,error);std::process::exit(1);
+                });
+                let mut writer=std::io::BufWriter::new(output);
+                imasm_module::emit_standalone_to(&raw,|bytes|writer.write_all(bytes).map_err(|error|error.to_string()))
+                    .unwrap_or_else(|error| {eprintln!("cannot emit standalone membrane: {error}");std::process::exit(2);});
+                writer.flush().unwrap_or_else(|error| {eprintln!("could not write {}: {}",partial,error);std::process::exit(1);});
+                std::fs::rename(&partial,&args[3]).unwrap_or_else(|error| {eprintln!("could not publish {}: {}",args[3],error);std::process::exit(1);});
+                eprintln!("saved {}",args[3]);std::process::exit(0);
+            }
             let module = imasm_module::emit_standalone(&raw).unwrap_or_else(|error| {
                 eprintln!("cannot emit standalone membrane: {error}"); std::process::exit(2);
             });

@@ -1,5 +1,7 @@
 # Vox User Guide
 
+Primitive labels and tuple keys use `⊢ ⊣ ≻ ≺ ⋈ ⊤ ∈ ∋ ⊙ ⊥ ⊞ ⊡`, in that order, with the Shavian values defined in [`SNS_PRIME.md`](../SNS_PRIME.md).
+
 **V⊙x — the Pancosmic Disassembling Re-Compiling Organism.** Every word names
 something you can run. Single Rust crate, zero external crates.
 
@@ -519,13 +521,22 @@ BOUNDARY INTERFACES — where a glycan meets the peptide:
   O-linked candidates (Ser/Thr) — admitted, not determinate, ...: 0
 ```
 
-**`vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]`** — the
-full pipeline, both ends. RNA/DNA in gives a compiled protein with real fold
-info (Chou-Fasman secondary structure, heuristic tertiary contacts, a real 3D
-backbone via B4-Ramachandran-NeRF); protein in gives RNA/DNA back out
-(Frobenius-preferred codon per residue, full degeneracy) with the same fold on
-the input. Direction auto-detects from the alphabet. `--pdb` writes a real
-PDB file, readable by `vox pdb`.
+Standalone `vox compile` and hosted `g-momonados vox compile` call the same `Vox/src/protein_compile.rs` implementation. Both accept `--fasta`, `--input`, `--code`, `--pdb`, `--carrier` and `--coords`, execute full residue/form self-marks, and export the same PDB-bound carrier. G-mOMonadOS links the sibling Vox crate; its REPL dispatch calls this compiler too. The `protein-cli` feature supplies hosted file and console I/O; `--no-default-features --lib` keeps the library available without `std`.
+
+**`vox compile <seq> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--pdb <path>] [--carrier <path>]`** compiles the complete chain in either direction. `--fasta <file>` reads a single FASTA record. Explicit `--input protein` removes ambiguity for peptides whose alphabet also fits a nucleotide sequence.
+
+```bash
+target/x86_64-unknown-linux-musl/release/vox compile --fasta protein.fasta --input protein --pdb protein.pdb
+target/x86_64-unknown-linux-musl/release/vox compile AUGGCUUGAUAA --input rna --pdb translated.pdb
+```
+
+RNA/DNA input translates every residue; protein input constructs a canonical coding RNA and DNA sequence under the selected table. The folding path prepares every residue/form's complete self-mark before computing secondary/contact observations and codon-aligned B4 geometry. The twelve promoted-primitive annotations remain a separate audit view. Build-time preparation reads the canonical Rebis amino-acid source records; Cargo tracks those sources and rebuilds their embedded data when they change. The genetic-table generator uses the live Lean correspondence without historical overrides.
+
+PDB export writes complete heavy atoms and measured coordinate evidence. It also writes `<path>.glut.json`, containing the native protein carrier and the PDB SHA-256. `--carrier` selects the carrier-output path, including without a PDB. Keep the carrier sidecar beside its PDB when passing it to Rebis ligand coupling. The carrier retains chemical forms, word payloads and executions, all configured torsion alternatives and secondary/contact observations. Coordinate conflicts and native B are reported separately. File-write errors return failure status.
+
+The current coordinate path constructs a chain from codon-driven B4 torsions. Predicted contact relations are retained in the carrier but do not drive a tertiary coordinate solve. Cross-compiler agreement therefore establishes consistent compilation and state retention; it does not establish a correctly folded protein.
+
+The broad sequence campaign and its input provenance are retained under `../red-hot_rebis/measurements/global_protein_coverage_20261020/`. Its RNA inputs are canonical reverse translations of downloaded proteins, rather than downloaded native gene transcripts.
 
 **`vox pyc <file.pyc>`** — lift every code object in a `.pyc`, verdict each.
 The magic must match the running interpreter — opcode numbers differ between

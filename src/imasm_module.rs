@@ -139,6 +139,49 @@ pub fn emit_standalone(raw: &[u8]) -> Result<String, String> {
     Ok(format!("; standalone static-v1\n{}", emit(raw)))
 }
 
+/// Export data in address-preserving blocks directly to a caller's writer.
+/// The payload remains inside the module; no sidecar or source-file read is
+/// needed by the executing machine.
+pub fn emit_standalone_to(raw: &[u8], mut write: impl FnMut(&[u8]) -> Result<(), String>) -> Result<(), String> {
+    loader::standalone(raw)?;
+    let l = loader::load(raw);
+    let bits = bits_of(l.arch);
+    write(b"; standalone static-v1\n")?;
+    write(format!("; {} module ({} {})\n; entry 0x{:x}\n; bits {}\n", INDIRECT,l.format,l.arch,l.entry,bits).as_bytes())?;
+    if l.phdr != 0 && l.phent != 0 && l.phnum != 0 {
+        write(format!("; phdr 0x{:x} {} {}\n",l.phdr,l.phent,l.phnum).as_bytes())?;
+    }
+    for (name,addr) in &l.symbols {write(format!("; sym {} 0x{:x}\n",name,addr).as_bytes())?;}
+    for (slot,resolver) in &l.irelative {write(format!("; irel 0x{:x} 0x{:x}\n",slot,resolver).as_bytes())?;}
+    for (slot,value) in &l.relative {write(format!("; rela 0x{:x} 0x{:x}\n",slot,value).as_bytes())?;}
+    const HEX: &[u8;16] = b"0123456789abcdef";
+    let mut encoded = [0u8;8192];
+    for (at,blob) in &l.data {
+        for (index,chunk) in blob.chunks(4096).enumerate() {
+            write(format!("={:#x}\t",at+index as u64*4096).as_bytes())?;
+            for (i,byte) in chunk.iter().enumerate() {
+                encoded[2*i]=HEX[(byte>>4) as usize];encoded[2*i+1]=HEX[(byte&15) as usize];
+            }
+            write(&encoded[..chunk.len()*2])?;write(b"\n")?;
+        }
+    }
+    for (base,bytes) in &l.code {
+        let mut pos=0;
+        while pos<bytes.len() {
+            let addr=base+pos as u64;
+            match x86::decode_mode(&bytes[pos..],addr,bits) {
+                Some(d) if d.len>0 => {
+                    write(format!("@0x{:x}\n",addr).as_bytes())?;
+                    for line in encode(&d,false) {write(line.as_bytes())?;write(b"\n")?;}
+                    pos+=d.len;
+                }
+                _ => pos+=1,
+            }
+        }
+    }
+    Ok(())
+}
+
 pub fn validate_standalone(module: &str) -> Result<(), String> {
     if !module.lines().any(|line| line == "; standalone static-v1") {
         return Err("module has no standalone linkage boundary; re-emit its static executable with vox imasm".into());
@@ -166,3 +209,30 @@ pub fn words(raw: &[u8]) -> String {
 
 /// Function symbol names → address, from the file's own tables.
 pub fn symbols(raw: &[u8]) -> BTreeMap<String, u64> { loader::load(raw).symbols }
+
+#[cfg(test)]
+mod streaming_export_tests {
+    use super::{emit_standalone,emit_standalone_to};
+    use alloc::{vec,string::String};
+    #[test]
+    fn streamed_export_preserves_full_elf_data_and_instruction_payloads() {
+        let mut raw=vec![0;10240];raw[..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
+        raw[18..20].copy_from_slice(&0x3eu16.to_le_bytes());raw[24..32].copy_from_slice(&0x1000u64.to_le_bytes());
+        raw[32..40].copy_from_slice(&64u64.to_le_bytes());raw[54..56].copy_from_slice(&56u16.to_le_bytes());raw[56..58].copy_from_slice(&2u16.to_le_bytes());
+        for (index,offset,address,length,flags) in [(0,256u64,0x1000u64,6u64,5u32),(1,512,0x2000,8193,4)] {
+            let ph=64+index*56;raw[ph..ph+4].copy_from_slice(&1u32.to_le_bytes());raw[ph+4..ph+8].copy_from_slice(&flags.to_le_bytes());
+            for (field,value) in [(8,offset),(16,address),(32,length),(40,length)]{raw[ph+field..ph+field+8].copy_from_slice(&value.to_le_bytes());}
+        }
+        raw[256..262].copy_from_slice(&[0xb8,42,0,0,0,0xc3]);
+        for (index,byte) in raw[512..8705].iter_mut().enumerate(){*byte=(index%251) as u8;}
+        let original=emit_standalone(&raw).unwrap();let mut streamed=vec![];
+        emit_standalone_to(&raw,|bytes|{streamed.extend_from_slice(bytes);Ok(())}).unwrap();
+        let streamed=String::from_utf8(streamed).unwrap();
+        let expected=crate::imasm_vm::Machine::new(&original);let actual=crate::imasm_vm::Machine::new(&streamed);
+        assert_eq!(actual.entry,expected.entry);assert_eq!(actual.symbols,expected.symbols);
+        assert_eq!(actual.peek(0x2000,8193),expected.peek(0x2000,8193));
+        let code=|text:&str|text.lines().filter(|line|!line.starts_with('=')).collect::<alloc::vec::Vec<_>>().join("\n");
+        assert_eq!(code(&streamed),code(&original));
+        assert!(emit_standalone_to(&raw,|_|Err("write failure".into())).is_err());
+    }
+}

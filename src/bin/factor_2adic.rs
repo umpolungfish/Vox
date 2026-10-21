@@ -1,7 +1,7 @@
 //! Runtime for one compiled phase-winding and bit-register membrane.
 //!
 //! Base and modulus arrive as baked IMASM numeral tapes. Dyadic phase
-//! observations produce a return relation, which is closed by nesting the
+//! observations return one proper divisor, then derive its quotient before nesting the
 //! product shell around the prefix fold and then reversing that nesting.
 #![deny(warnings)]
 extern crate alloc;
@@ -14,12 +14,6 @@ use vox::morphism_factor::parse_numeral;
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 const EXTRACT_WORD: &str = "⊢∈≻⊤⋈⊙≺⊥⊞∋⊡⋈⊙⊣";
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-enum PhaseEvidence {
-    Support(phase_partners::SupportClosure),
-    Return(phase_partners::ReturnRelation),
-}
 
 /// FDE value for the proposition that the candidate pair closes on N.
 /// Prefix-first and product-first are independent support channels: agreement
@@ -96,15 +90,10 @@ fn run_baked_membrane() {
         }
     };
 
-    // Phase and support are observations of one baked numeral object. At each
-    // phase point, evaluate its support polynomial; a proper gcd is an exact
-    // factor target. A full phase return remains the second closure route.
+    // One divisor is produced on the retained phase register. The quotient
+    // is absent from this state and is derived only after the banked return.
     let phase_started = std::time::Instant::now();
-    let partner_open = if BAKED_BASE_IS_UNIT {
-        phase_partners::Partners::new_from_validated_bake(base.clone(), tape.clone())
-    } else {
-        phase_partners::Partners::new(base.clone(), tape.clone())
-    };
+    let partner_open = phase_partners::Partners::new_divisor(base.clone(), tape.clone());
     let mut partners = match partner_open {
         Ok(partners) => partners,
         Err(error) => {
@@ -114,20 +103,15 @@ fn run_baked_membrane() {
     };
     let phase_init_elapsed = phase_started.elapsed();
     let phase_orbit_started = std::time::Instant::now();
+    let mut driver = vox::resident_y::ResidentY::from_certified_program(
+        vox::resident_y::ResidentY::certified_program()).expect("load retained Y operator");
+    let mut produced = None;
     let evidence = loop {
-        if let Some(target) = partners.support_target() {
-            break PhaseEvidence::Support(target);
-        }
-        match partners.observe() {
-            Ok(Some(relation)) => break PhaseEvidence::Return(relation),
-            // Keep the baked membrane collapsed until the complete winding,
-            // factor close, and register fold are ready to emit together.
-            Ok(None) => {}
-            Err(error) => {
-                eprintln!("phase membrane failed: {error}");
-                std::process::exit(2);
-            }
-        }
+        let done = driver.advance(|| {
+            produced = partners.advance_divisor();
+            Ok(produced.is_some())
+        }).expect("execute retained divisor continuation");
+        if done { break produced.take().expect("Y closed without a divisor return"); }
     };
     let phase_orbit_elapsed = phase_orbit_started.elapsed();
     let phase_elapsed = phase_started.elapsed();
@@ -146,33 +130,14 @@ fn run_baked_membrane() {
     };
     let extract_elapsed = extract_started.elapsed();
     let evidence = transported.surviving[0].observation.clone();
-    let winding_bits = match &evidence {
-        PhaseEvidence::Support(target) => target.phase_index + 1,
-        PhaseEvidence::Return(relation) => relation.return_exponent.len(),
-    };
-    let evidence_label = match &evidence {
-        PhaseEvidence::Support(target) => format!(
-            "support-polynomial target at phase index {} (residue bits={}, evaluation bits={})",
-            target.phase_index, target.phase_register.len(), target.polynomial_residue.len(),
-        ),
-        PhaseEvidence::Return(_) => "full phase-return collision".to_string(),
-    };
+    let winding_bits = evidence.phase_index + 1;
+    let evidence_label = format!("single divisor from {} at phase index {}, base {}, {} retained cycle returns",
+        evidence.arm, evidence.phase_index, vox::morphism_factor::dec_of(&evidence.base), evidence.preceding_cycles.len());
     let factor_close_started = std::time::Instant::now();
-    let factor_pair = match &evidence {
-        PhaseEvidence::Support(target) => Ok((target.p.clone(), target.q.clone())),
-        PhaseEvidence::Return(relation) => {
-            if let Some((current_half, earlier_half)) = relation.half_residues.as_ref() {
-                vox::shor_braid::phase_factor_register_seeds(&tape, current_half, earlier_half)
-            } else {
-                vox::shor_braid::factor_close_public(&base, &tape, &relation.return_exponent)
-            }
-        }
-    };
+    let factor_pair = evidence.derive_quotient(&tape)
+        .map(|quotient| (evidence.divisor.clone(), quotient));
     let factor_close_elapsed = factor_close_started.elapsed();
-    let (factors, report) = if let Ok((mut p, mut q)) = factor_pair {
-        if vox::morphism_factor::cmp(&p, &q) == core::cmp::Ordering::Greater {
-            core::mem::swap(&mut p, &mut q);
-        }
+    let (factors, report) = if let Ok((p, q)) = factor_pair {
         let closure_started = std::time::Instant::now();
         let product_outer_started = std::time::Instant::now();
         let product_outer = vox::factor_2adic::nest_product_over_prefix(&tape, &p, &q, &radix);
@@ -188,16 +153,15 @@ fn run_baked_membrane() {
             .map(|(product_first, _)| product_first);
         let closure_value = fde_closure_value(Some(prefix_first), Some(product_first));
         let closure_elapsed = closure_started.elapsed();
-        let report = format!("factor target: {evidence_label}\nphase winding register: {winding_bits} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (product-outer-prefix={prefix_first}, prefix-outer-product={product_first})\n", partners.squarings, partners.stored_residues());
+        let report = format!("factor target: {evidence_label}\ndivisor phase: {winding_bits} indexed positions ({} current-base squarings, {} retained registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} product-outer-prefix={product_outer_exact_elapsed:?} prefix-outer-product={prefix_elapsed:?} fde-dual-closure={closure_elapsed:?}\nFDE closure: {closure_value} (product-outer-prefix={prefix_first}, prefix-outer-product={product_first})\n", partners.squarings, partners.stored_residues());
         let factors = if closure_value == 'T' {
-            factors_at_meeting.and_then(|fixed|
-                vox::factor_2adic::terminal_pair_given_semiprime_promise(&tape, fixed))
+            factors_at_meeting
         } else {
             None
         };
         (factors, report)
     } else {
-        let report = format!("factor target: {evidence_label}\nphase winding register: {winding_bits} bits ({} dyadic observations, {} phase registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-register seed: {}\n", partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
+        let report = format!("factor target: {evidence_label}\ndivisor phase: {winding_bits} indexed positions ({} current-base squarings, {} retained registers)\nmembrane timing: phase-init={phase_init_elapsed:?} phase-orbit={phase_orbit_elapsed:?} phase-winding={phase_elapsed:?} banked-extract={extract_elapsed:?} phase-dual-seed={factor_close_elapsed:?} fde-dual-closure=not-run\nphase factor-register seed: {}\n", partners.squarings, partners.stored_residues(), factor_pair.unwrap_err());
         (None, report)
     };
 
@@ -208,12 +172,12 @@ fn run_baked_membrane() {
     let output_capacity = 2048usize.saturating_add(rendered_bits.saturating_mul(20));
     let mut output = String::with_capacity(output_capacity);
     use core::fmt::Write;
-    writeln!(output, "membrane input: baked IMASM numeral registers\nnesting: phase winding ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: exact proper pair under semiprime promise\nbase register bits={}\nlift radix register bits={}\nN register bits={}", base.len(), radix.len(), tape.len()).unwrap();
+    writeln!(output, "membrane input: baked IMASM numeral registers\nnesting: single-divisor Y continuation ⊃ banked EXTRACT ⊃ (product ⊃ prefix) ∩ (prefix ⊃ product) ⊃ factor fixed point\ntermination: one proper divisor, then derived quotient and exact product\nbase register bits={}\nlift radix register bits={}\nN register bits={}", base.len(), radix.len(), tape.len()).unwrap();
     append_frames(&mut output, "N", &tape);
     if let Some(meeting) = factors {
         let p_word = vox::morphism_factor::emit_numeral(&meeting.p);
         let q_word = vox::morphism_factor::emit_numeral(&meeting.q);
-        writeln!(output, "P = {p_word}\nQ = {q_word}").unwrap();
+        writeln!(output, "divisor = {}\nquotient = {}\nP = {p_word}\nQ = {q_word}", vox::morphism_factor::dec_of(&meeting.p), vox::morphism_factor::dec_of(&meeting.q)).unwrap();
         append_frames(&mut output, "P", &meeting.p);
         append_frames(&mut output, "Q", &meeting.q);
     } else {
@@ -227,7 +191,7 @@ fn run_baked_membrane() {
     std::io::Write::flush(&mut stdout).expect("flush complete membrane report");
     let output_write_elapsed = output_write_started.elapsed();
     let total_to_flush = run_started.elapsed();
-    eprintln!("{report}membrane timing: output-render={render_elapsed:?} total-in-process={total_elapsed:?} output-write-flush={output_write_elapsed:?} total-to-flush={total_to_flush:?}");
+    eprintln!("divisor continuation: Y-calls={} contractions={}\n{report}membrane timing: output-render={render_elapsed:?} total-in-process={total_elapsed:?} output-write-flush={output_write_elapsed:?} total-to-flush={total_to_flush:?}", driver.calls, driver.contractions);
 }
 
 /// Stable no-argument entry for direct execution from a lifted IMASM module.

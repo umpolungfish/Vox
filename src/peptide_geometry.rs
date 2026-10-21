@@ -31,6 +31,17 @@ pub fn bond_length(residue:&str,name:&str,parent:&str)->f64 {
 }
 /// Complete sidechain geometry; B4 supplies torsions, topology supplies connectivity.
 pub fn sidechain(residue:&str,n:Point,ca:Point,c:Point,phi:f64,psi:f64)->Vec<(&'static str,Point)> {
+ // Solve residue geometry in one canonical local frame. Optimizing a proline
+ // ring directly in world coordinates let floating-point ties choose different
+ // ring conformers under a rigid rotation of the same backbone.
+ let x=unit(sub(n,ca));let toward_c=sub(c,ca);
+ let y=unit(sub(toward_c,scale(x,dot(toward_c,x))));let z=cross(x,y);
+ let local_n=(1.458,0.0,0.0);
+ let local_c=(1.525*cos(111.0*DEG),1.525*sin(111.0*DEG),0.0);
+ sidechain_in_frame(residue,local_n,(0.0,0.0,0.0),local_c,phi,psi).into_iter()
+  .map(|(name,p)|(name,add(ca,add(scale(x,p.0),add(scale(y,p.1),scale(z,p.2)))))).collect()
+}
+fn sidechain_in_frame(residue:&str,n:Point,ca:Point,c:Point,phi:f64,psi:f64)->Vec<(&'static str,Point)> {
  let topology=super::fold3d::sidechain_topology(residue);
  let mut atoms:Vec<(&'static str,Point)>=Vec::with_capacity(topology.len());
  if topology.is_empty(){return atoms;}
