@@ -47,7 +47,8 @@ name = "vox"
 path = "src/lib.rs"
 
 [features]
-default = ["protein-cli"]
+default = ["hosted"]
+hosted = ["protein-cli"]
 protein-cli = []
 resident = []
 mpqs_debug = []
@@ -61,7 +62,7 @@ lto = true
 [[bin]]
 name = "vox"
 path = "src/main.rs"
-required-features = ["protein-cli"]
+required-features = ["hosted"]
 
 [[bin]]
 name = "abc_one"
@@ -365,6 +366,7 @@ num-integer = "0.1"
 num-traits = "0.2"
 num-complex = "0.4"
 serde_json = "1.0"
+libm = "0.2"
 
 [[bin]]
 name = "factor_2adic_bigint"
@@ -373,6 +375,22 @@ path = "src/bin/factor_2adic_bigint.rs"
 [[bin]]
 name = "factor_membrane"
 path = "src/bin/factor_membrane.rs"
+
+[[bin]]
+name = "factorization_31_resident"
+path = "src/bin/factorization_31_resident.rs"
+
+[[bin]]
+name = "fixed_point_baked"
+path = "src/bin/fixed_point_baked.rs"
+
+[[bin]]
+name = "phase_unbraider"
+path = "src/bin/phase_unbraider.rs"
+
+[[bin]]
+name = "phase_vessel_resident"
+path = "src/bin/phase_vessel_resident.rs"
 
 [[bin]]
 name = "toroidal_shot_cli"
