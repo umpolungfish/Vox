@@ -373,6 +373,10 @@ pub struct ImasmNumeralWord(String);
 
 impl ImasmNumeralWord {
     pub fn checked(word: &str) -> Result<Self, &'static str> {
+        if let Ok(bits) = crate::combined_factor::decode_hex_bits(word) {
+            let tape: Vec<char> = bits.into_iter().map(|bit| if bit { EVALF } else { EVALT }).collect();
+            return Ok(Self(crate::morphism_factor::emit_numeral(&tape)));
+        }
         let marks: Vec<char> = word.chars().collect();
         if marks.len() < 4 || marks.first() != Some(&VINIT) || marks.last() != Some(&TANCH) {
             return Err("IMASM numeral must run from VINIT to TANCH");

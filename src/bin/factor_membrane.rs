@@ -4,6 +4,13 @@ mod support;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.iter().any(|arg| arg == "--dialectic-product") {
+        let code = match support::run_dialectic_product(&args) {
+            Ok(code) => code,
+            Err(error) => { eprintln!("factor-membrane: {error}"); 2 }
+        };
+        std::process::exit(code);
+    }
     let (routed_args, gpu_producer) = match support::route_n_only_to_gpu(&args) {
         Ok(route) => route,
         Err(error) => {

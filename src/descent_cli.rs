@@ -1,24 +1,16 @@
 #![deny(warnings)]
-use vox::godel_calculus::{decode, Structure};
 use vox::morphism_factor::{dec_of, decimal_to_tape};
 use vox::semiprime_descent::{run, until_closed, Limits, PROTOCOL};
 
 pub fn execute(args: &[String]) -> Result<bool, String> {
     if args.is_empty() || matches!(args[0].as_str(), "--help" | "-h") {
-        println!("semiprime_descent <decimal-source|cell-binary-word> [--word GLYPHS] [--seed DECIMAL] [--constant DECIMAL] [--attempts COUNT] [--steps COUNT] [--total-steps COUNT] [--until-closed]\nRuns ∈⊤⊥⊞∋ using native tape arithmetic. Bounded mode emits JSON and exits 1 on exhaustion. --until-closed traverses all cycle parameters, streams JSONL and has no attempt/time limit; --steps must be at least 2. Eventual closure assumes a semiprime and sufficient resources, without a practical runtime guarantee. Default word: {PROTOCOL}");
+        println!("semiprime_descent <decimal-source|native-or-hex-word> [--word GLYPHS] [--seed DECIMAL] [--constant DECIMAL] [--attempts COUNT] [--steps COUNT] [--total-steps COUNT] [--until-closed]\nRuns ∈⊤⊥⊞∋ using native tape arithmetic. Bounded mode emits JSON and exits 1 on exhaustion. --until-closed traverses all cycle parameters, streams JSONL and has no attempt/time limit; --steps must be at least 2. Eventual closure assumes a semiprime and sufficient resources, without a practical runtime guarantee. Default word: {PROTOCOL}");
         return Ok(true);
     }
     let source = if let Some(n) = decimal_to_tape(&args[0]) {
         n
     } else {
-        let reading = decode(&args[0]).map_err(|e| e.to_string())?;
-        match reading.structure {
-            Structure::CellBinary { bits_le } => bits_le
-                .into_iter()
-                .map(|b| if b { '⊥' } else { '⊤' })
-                .collect(),
-            _ => return Err("source must be decimal or a cell-binary numeral".to_string()),
-        }
+        vox::morphism_factor::parse_numeral(&args[0])?
     };
     let mut seed = decimal_to_tape("2").unwrap();
     let mut constant = decimal_to_tape("1").unwrap();

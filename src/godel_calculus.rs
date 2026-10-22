@@ -232,6 +232,7 @@ impl fmt::Display for Nat {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Family {
     CellBinary,
+    HexDigits,
     AffineEdit,
     ProductFusion,
 }
@@ -240,6 +241,7 @@ impl Family {
     pub fn label(self) -> &'static str {
         match self {
             Family::CellBinary => "cell-binary",
+            Family::HexDigits => "hex-digit",
             Family::AffineEdit => "affine-edit",
             Family::ProductFusion => "product-fusion",
         }
@@ -249,6 +251,7 @@ impl Family {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Structure {
     CellBinary { bits_le: Vec<bool> },
+    HexDigits,
     AffineEdit { unit: bool, branch: bool },
     ProductFusion,
 }
@@ -477,6 +480,29 @@ pub fn decode(word: &str) -> Result<Reading, DecodeError> {
     Err(DecodeError::Unrecognized)
 }
 
+/// Numeral inputs use the native binary cells or the canonical hex motifs.
+/// Keep the older affine-edit calculus separate: its single-word readings
+/// overlap hex digits and have different arithmetic meanings.
+pub fn decode_numeral(word: &str) -> Result<Reading, DecodeError> {
+    let word = word.trim();
+    let chars = validate(word)?;
+    if let Some(reading) = decode_cell(&chars) {
+        return Ok(reading);
+    }
+    // The native encoder also emits this empty support word for zero.
+    if word == "⊢⊙⊡⊣" {
+        return Ok(Reading { value: Nat::zero(), family: Family::CellBinary,
+            structure: Structure::CellBinary { bits_le: Vec::new() } });
+    }
+    let value = crate::combined_factor::decode_hex_word(word)
+        .map_err(|_| DecodeError::Unrecognized)?;
+    Ok(Reading {
+        value: Nat::from_bits_le((0..value.bits()).map(|bit| value.bit(bit)).collect()),
+        family: Family::HexDigits,
+        structure: Structure::HexDigits,
+    })
+}
+
 /// Canonical repeated-cell binary encoding for an arbitrary-length natural.
 pub fn encode_cell_binary(value: &Nat) -> String {
     let mut out = String::new();
@@ -498,6 +524,21 @@ pub fn encode_cell_binary(value: &Nat) -> String {
 
 pub fn encode_decimal(raw: &str) -> Option<String> {
     Nat::from_decimal(raw).map(|n| encode_cell_binary(&n))
+}
+
+/// Canonical hex motifs, most-significant nibble first, from the same bits.
+pub fn encode_hex_digits(value: &Nat) -> String {
+    let mut word = String::new();
+    if value.is_zero() {
+        word.push_str(crate::combined_factor::HEX_WORDS[0]);
+    } else {
+        for nibble in value.bits_le().chunks(4).rev() {
+            let digit = nibble.iter().enumerate().fold(0usize, |digit, (bit, set)|
+                digit | (usize::from(*set) << bit));
+            word.push_str(crate::combined_factor::HEX_WORDS[digit]);
+        }
+    }
+    word
 }
 
 fn push_cell(out: &mut String, one: bool) {
@@ -536,6 +577,10 @@ pub fn check(
 /// If `to` is exactly `from` with one glyph inserted, report the insertion and
 /// its exact induced numeric delta under the registered readings.
 pub fn insertion_relation(from: &str, to: &str) -> Result<Option<InsertionRelation>, DecodeError> {
+    insertion_relation_in_frame(from, to, false)
+}
+
+fn insertion_relation_in_frame(from: &str, to: &str, numeral: bool) -> Result<Option<InsertionRelation>, DecodeError> {
     let from_chars = validate(from)?;
     let to_chars = validate(to)?;
     if to_chars.len() != from_chars.len() + 1 {
@@ -550,8 +595,11 @@ pub fn insertion_relation(from: &str, to: &str) -> Result<Option<InsertionRelati
         return Ok(None);
     }
 
-    let a = decode(from)?.value;
-    let b = decode(to)?.value;
+    let read = |word: &str| if numeral {
+        decode_numeral(word).or_else(|_| decode(word))
+    } else { decode(word) };
+    let a = read(from)?.value;
+    let b = read(to)?.value;
     let delta = match b.sub(&a) {
         Some(delta) => delta,
         None => return Ok(None),
@@ -642,6 +690,9 @@ pub fn render(reading: &Reading) -> String {
                 if *branch { "present" } else { "absent" },
             ));
         }
+        Structure::HexDigits => {
+            out.push_str("rule       canonical hex motifs, most-significant digit first\n");
+        }
         Structure::ProductFusion => {
             out.push_str("fusion     3+5 = 2*4 = 8\n");
         }
@@ -652,25 +703,35 @@ pub fn render(reading: &Reading) -> String {
 pub fn help() -> &'static str {
     "godel — exact, unbounded readings of the IMASM glyph calculus\n\
      \n\
-     godel decode <word>\n\
+     godel decode <native-word|hex-digit-word>\n\
      godel encode <natural-number>\n\
      godel check add|mul <lhs-word> <rhs-word> <out-word>\n\
-     godel unbraid <natural-number|cell-binary-word>\n\
+     godel unbraid <natural-number|native-word|hex-digit-word>\n\
      godel braid <gamma-lane> <lambda-lane>\n\
      godel relation <from-word> <to-word>\n\
-     godel selftest\n"
+     godel selftest\n\
+     Numeric inputs accept decimal naturals, native words and hex-digit words.\n\
+     Braid and unbraid print both native and hex-digit words.\n"
 }
 
-fn parse_natural_word(raw: &str) -> Result<Nat, String> {
+pub fn parse_natural_word(raw: &str) -> Result<Nat, String> {
+    let raw = raw.trim();
     if raw.starts_with('⊢') {
-        let decoded = decode(raw).map_err(|error| error.to_string())?;
-        if decoded.family != Family::CellBinary {
-            return Err("braid commands require cell-binary words".to_string());
-        }
-        Ok(decoded.value)
+        Ok(decode_numeral(raw).map_err(|error| error.to_string())?.value)
     } else {
         Nat::from_decimal(raw).ok_or_else(|| format!("not a natural number: {raw}"))
     }
+}
+
+/// Admit either canonical numeral frame and return the native cell form.
+pub fn normalize_numeral_word(raw: &str) -> Result<String, String> {
+    let raw = raw.trim();
+    let reading = decode_numeral(raw).map_err(|error| error.to_string())?;
+    let native = encode_cell_binary(&reading.value);
+    if reading.family == Family::CellBinary && raw != "⊢⊙⊡⊣" && raw != native {
+        return Err("native numeral has redundant high zero cells".into());
+    }
+    Ok(native)
 }
 
 fn braid_values(gamma: &Nat, lambda: &Nat) -> Nat {
@@ -703,14 +764,14 @@ pub fn command(args: &[&str]) -> Result<String, String> {
             let word = args
                 .get(1)
                 .ok_or_else(|| "godel decode <word>".to_string())?;
-            let r = decode(word).map_err(|e| e.to_string())?;
+            let r = decode_numeral(word).or_else(|_| decode(word)).map_err(|e| e.to_string())?;
             Ok(format!("word       {word}\n{}", render(&r)))
         }
         "encode" => {
             let raw = args
                 .get(1)
                 .ok_or_else(|| "godel encode <natural-number>".to_string())?;
-            let n = Nat::from_decimal(raw).ok_or_else(|| format!("not a natural number: {raw}"))?;
+            let n = parse_natural_word(raw)?;
             let word = encode_cell_binary(&n);
             let crossing_count = word.chars().filter(|&glyph| glyph == FSPLIT).count();
             let decoded = decode(&word).map_err(|e| e.to_string())?;
@@ -736,13 +797,16 @@ pub fn command(args: &[&str]) -> Result<String, String> {
                 return Err("Γ/Λ lane braid failed to recover the source word".to_string());
             }
             Ok(format!(
-                "source                    {}\nsource.word               {}\nΓ lane                    {}\nΛ lane                    {}\nΓ.word                    {}\nΛ.word                    {}\nbraid.recovered            {}\nΓΛ-closure                closed\n",
+                "source                    {}\nsource.word               {}\nsource.hex-word           {}\nΓ lane                    {}\nΛ lane                    {}\nΓ.word                    {}\nΓ.hex-word                {}\nΛ.word                    {}\nΛ.hex-word                {}\nbraid.recovered            {}\nΓΛ-closure                closed\n",
                 value,
                 encode_cell_binary(&value),
+                encode_hex_digits(&value),
                 gamma,
                 lambda,
                 encode_cell_binary(&gamma),
+                encode_hex_digits(&gamma),
                 encode_cell_binary(&lambda),
+                encode_hex_digits(&lambda),
                 recovered,
             ))
         }
@@ -758,11 +822,16 @@ pub fn command(args: &[&str]) -> Result<String, String> {
                 return Err("braid did not return its Γ/Λ source lanes".to_string());
             }
             Ok(format!(
-                "Γ lane                    {}\nΛ lane                    {}\nbraided.value             {}\nbraided.word              {}\nunbraid.recovered          {} | {}\nΓΛ-closure                closed\n",
+                "Γ lane                    {}\nΛ lane                    {}\nΓ.word                    {}\nΓ.hex-word                {}\nΛ.word                    {}\nΛ.hex-word                {}\nbraided.value             {}\nbraided.word              {}\nbraided.hex-word          {}\nunbraid.recovered          {} | {}\nΓΛ-closure                closed\n",
                 gamma,
                 lambda,
+                encode_cell_binary(&gamma),
+                encode_hex_digits(&gamma),
+                encode_cell_binary(&lambda),
+                encode_hex_digits(&lambda),
                 value,
                 encode_cell_binary(&value),
+                encode_hex_digits(&value),
                 recovered_gamma,
                 recovered_lambda,
             ))
@@ -773,7 +842,11 @@ pub fn command(args: &[&str]) -> Result<String, String> {
             }
             let op =
                 Operator::parse(args[1]).ok_or_else(|| format!("unknown operator: {}", args[1]))?;
-            let c = check(args[2], op, args[3], args[4]).map_err(|e| e.to_string())?;
+            let numeral = |word: &str| decode_numeral(word).or_else(|_| decode(word))
+                .map(|reading| encode_cell_binary(&reading.value));
+            let c = check(&numeral(args[2]).map_err(|e| e.to_string())?, op,
+                &numeral(args[3]).map_err(|e| e.to_string())?,
+                &numeral(args[4]).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
             Ok(format!(
                 "equation   {} {} {} = {}\nexpected   {}\nstatus     {}\n",
                 c.lhs,
@@ -788,7 +861,7 @@ pub fn command(args: &[&str]) -> Result<String, String> {
             if args.len() != 3 {
                 return Err("godel relation <from-word> <to-word>".to_string());
             }
-            match insertion_relation(args[1], args[2]).map_err(|e| e.to_string())? {
+            match insertion_relation_in_frame(args[1], args[2], true).map_err(|e| e.to_string())? {
                 Some(r) => Ok(format!(
                     "relation   insert {} at glyph position {}\ndelta      +{}\n",
                     r.glyph, r.position, r.delta
@@ -895,6 +968,27 @@ pub fn selftest_report() -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn numeric_inputs_share_native_and_hex_readings() {
+        for digit in 0..16 {
+            let value = Nat::from_u64(digit);
+            let hex = crate::combined_factor::HEX_WORDS[digit as usize];
+            assert_eq!(parse_natural_word(hex).unwrap(), value);
+            assert_eq!(parse_natural_word(&encode_cell_binary(&value)).unwrap(), value);
+            assert_eq!(decode_numeral(hex).unwrap().family, Family::HexDigits);
+        }
+        let decimal = "1015108016924878389053637153369497933104718061471186354275607523839125596022372126069032951";
+        let value = Nat::from_decimal(decimal).unwrap();
+        let big = decimal.parse().unwrap();
+        let hex = crate::combined_factor::hex_word(&big);
+        assert_eq!(parse_natural_word(&hex).unwrap(), value);
+        assert_eq!(parse_natural_word(&encode_cell_binary(&value)).unwrap(), value);
+        assert_eq!(crate::godel_analyzer::parse_input(&hex).unwrap(), value);
+        assert!(parse_natural_word(&(crate::combined_factor::HEX_WORDS[0].to_string()+&hex)).is_err());
+        assert!(parse_natural_word(&hex.trim_end_matches('⊣')).is_err());
+        assert!(parse_natural_word("⊢⊙⊡⊣").unwrap().is_zero());
+    }
 
     #[test]
     fn ququart_arithmetic_preserves_products_quotients_and_remainders() {

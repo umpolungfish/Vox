@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 
 use crate::godel_analyzer::{bitlength, codec_assertions, residue_pow2, v2_plus_one, V2};
 use crate::godel_calculus::{
-    check, decode, encode_cell_binary, Family, Nat, Operator,
+    check, decode, encode_cell_binary, Nat, Operator,
 };
 use crate::morphism_factor;
 
@@ -133,16 +133,7 @@ pub fn normalize_support_product(left: &Nat, right: &Nat) -> (Nat, Nat, Nat) {
 }
 
 fn parse_input(raw: &str) -> Result<Nat, String> {
-    if raw.starts_with('⊢') {
-        let reading = decode(raw).map_err(|e| e.to_string())?;
-        if reading.family != Family::CellBinary {
-            return Err("product accepts cell-binary words or decimal naturals".to_string());
-        }
-        Ok(reading.value)
-    } else {
-        Nat::from_decimal(raw)
-            .ok_or_else(|| format!("not a natural number or cell-binary word: {raw}"))
-    }
+    crate::godel_calculus::parse_natural_word(raw)
 }
 
 fn codec_ok(value: &Nat) -> Result<bool, String> {

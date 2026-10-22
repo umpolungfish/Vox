@@ -4,6 +4,9 @@ use std::cmp::Ordering;
 use vox::morphism_factor as tape;
 
 fn trace(word: &str, source: &str, extract: bool, submitted: Option<&[String]>) -> Result<Vec<char>, String> {
+    let normalized = vox::combined_factor::decode_hex_bits(word).ok().map(|bits|
+        tape::emit_numeral(&bits.into_iter().map(|bit| if bit { '⊥' } else { '⊤' }).collect::<Vec<_>>()));
+    let word = normalized.as_deref().unwrap_or(word);
     let mut value = Vec::new();
     let mut frames = Vec::new();
     let mut fixed = false;

@@ -77,6 +77,11 @@ impl GlutComponentProgram {
     }
 }
 impl PreparedGlutMembrane {
+    pub fn prepare_dialectic(n: &[char]) -> Result<Self, String> {
+        let program = GlutComponentProgram::compile()?;
+        Ok(Self { nested: program.nested, collapsed: program.collapsed, body: program.body,
+            resident: Rc::new(RefCell::new(Resident::with_dialectic(n)?)), returned: None })
+    }
     pub fn prepare(n: &[char]) -> Result<Self, String> {
         let program=GlutComponentProgram::compile()?;
         Ok(Self {nested:program.nested,collapsed:program.collapsed,body:program.body,

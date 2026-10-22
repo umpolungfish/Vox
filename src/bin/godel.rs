@@ -5,14 +5,7 @@ use vox::godel_calculus::{Nat, Operator};
 use vox::{godel_analyzer, godel_calculus, godel_product, morphism_factor};
 
 fn tape_from_word(word: &str) -> Result<Vec<char>, String> {
-    let reading = godel_calculus::decode(word).map_err(|error| error.to_string())?;
-    match reading.structure {
-        godel_calculus::Structure::CellBinary { bits_le } => Ok(bits_le
-            .into_iter()
-            .map(|bit| if bit { vox::vox::EVALF } else { vox::vox::EVALT })
-            .collect()),
-        _ => Err("factor lane is not a cell-binary word".to_string()),
-    }
+    morphism_factor::parse_numeral(word)
 }
 
 fn folded_semiprime_pair(source_word: &str) -> Option<(Nat, Nat)> {

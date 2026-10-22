@@ -106,6 +106,12 @@ impl Correlation {
         n: &[char],
         width: usize,
         root: &[char],
+        observe: impl FnMut(char, usize, usize),
+    ) -> Self {
+        Self::new_nested_after_frontier(n, width, root, None, observe)
+    }
+    pub fn new_nested_after_frontier(
+        n: &[char], width: usize, root: &[char], midpoint_floor: Option<&[char]>,
         mut observe: impl FnMut(char, usize, usize),
     ) -> Self {
         // The square and product views act on the same source and coordinates.
@@ -134,6 +140,14 @@ impl Correlation {
         s.source = n.to_vec();
         s.factor_root = root.to_vec();
         s.cofactor_floor = lower;
+        // A completed source-bound Fermat prefix excludes these midpoint
+        // coordinates for every proper factor pair, not just one proposal.
+        // Install its returned lower bound on the existing square/product
+        // vertices before transport, parity preparation or decisions.
+        if let Some(floor) = midpoint_floor {
+            let midpoint = s.midpoint.clone();
+            s.bound(&midpoint, floor, true);
+        }
         observe('⊡', s.gate_count(), s.cell_count());
         s.connect_observed(&mut observe);
         observe('⊙', s.gate_count(), s.cell_count());

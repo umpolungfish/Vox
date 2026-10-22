@@ -25,14 +25,12 @@ def encode(n):
         n >>= 1
     return "⊢" + "".join(cells) + "⊙⊡⊣"
 
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from numeral_codec import decode_word
+
 def decode(word):
-    assert word[0] == "⊢" and word[-3:] == "⊙⊡⊣", f"bad word {word}"
-    body = word[1:-3]
-    bits = [1 if body[i+3] == "⊥" else 0 for i in range(0, len(body), 5)]
-    v = 0
-    for b in reversed(bits):
-        v = (v << 1) | b
-    return v
+    return decode_word(word)
 
 def factor(n, timeout=30):
     w = encode(n)

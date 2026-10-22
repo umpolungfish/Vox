@@ -64,6 +64,7 @@ fn usage() {
     eprintln!("  vox scout <N>                                read the shape of N and hand the factor");
     eprintln!("  vox factor <N>                               shape-routed full factorization");
     eprintln!("  vox factor-membrane <N|membrane-word> [--factors P Q]  decode and verify membrane numerals");
+    eprintln!("  vox factor-membrane N --dialectic-product [--passes COUNT]  retained Y and shared product/carry");
     eprintln!("  vox factor-glut <N>                       execute the shared GLUT factor/product/carry register on CUDA");
     eprintln!("  vox membrane tower <levels>                  build a complete bidirectional tower");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
@@ -1646,6 +1647,12 @@ fn main() {
             match parsed {
                 Some(n) => { println!("{}", ::vox::morphism_factor::repl_smart_factor(&n)); 0 }
                 None => { eprintln!("vox factor <N-word|decimal>   shape-routed full factorization"); 1 }
+            }
+        }
+        Some("factor-membrane") if args.iter().any(|arg| arg == "--dialectic-product") => {
+            match factor_membrane_support::run_dialectic_product(&args[1..]) {
+                Ok(code) => code,
+                Err(error) => { eprintln!("factor-membrane: {error}"); 2 }
             }
         }
         Some("factor-membrane") | Some("factor-glut") => {
