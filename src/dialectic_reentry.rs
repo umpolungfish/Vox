@@ -920,7 +920,23 @@ pub struct ResidentScan {
     pub rejected_cells: u64,
     pub residual_advances: u64,
     pub last_frame: Option<ResidualFrame>,
+    pub conditioned_frames: Vec<ResidualFrame>,
+    pub conditioned_bindings: u64,
+    pub conditioned_windows: u64,
+    pub conditioned_returns: u64,
+    pub conditioned_depth: usize,
+    pub(crate) factor_support: Option<FactorSupport>,
     pub failure: Option<String>,
+}
+
+/// Current support of the same source-bound factor cells. Free bits remain
+/// free; the square-frame arrow derives lower endpoints inside execution.
+#[derive(Clone, Debug)]
+pub(crate) struct FactorSupport {
+    pub source: Tape,
+    pub p: Vec<Option<Mark>>,
+    pub q: Vec<Option<Mark>>,
+    pub depth: usize,
 }
 
 /// Full-width measured state retained across the next Y re-entry.
@@ -937,7 +953,10 @@ pub struct ResidualFrame {
 impl ResidentScan {
     pub fn new(square_support: [bool; 256]) -> Self {
         Self { square_support, reverse: false, cells: 0, square_tests: 0,
-            rejected_cells: 0, residual_advances: 0, last_frame: None, failure: None }
+            rejected_cells: 0, residual_advances: 0, last_frame: None,
+            conditioned_frames: Vec::new(), conditioned_bindings: 0,
+            conditioned_windows: 0, conditioned_returns: 0, conditioned_depth: 0,
+            factor_support: None, failure: None }
     }
 }
 
@@ -1011,9 +1030,81 @@ fn resident_lattice(n: &[Mark], boundary: &[Mark], span: &[Mark],
         }
         kernel.residual_advances += 1;
     }
-    kernel.last_frame = Some(ResidualFrame { source, multiplier: boundary.to_vec(),
+    kernel.last_frame = Some(ResidualFrame { source: source.clone(), multiplier: boundary.to_vec(),
         a, residual, lattice_cell: cell, lattice });
+    if lehman {
+        if let Some(witness) = conditioned_square_return(n, &source, boundary, span, kernel) {
+            return LatticeExposure::T { write_boundary: boundary.to_vec(), witness };
+        }
+    }
     LatticeExposure::B { write_boundary: if lehman { add(boundary, &one) } else { end } }
+}
+
+/// Transport the factor-support interval to A=k*p+q (and its exchanged
+/// orientation), with A²-4*k*N=(k*p-q)². A held window never excludes an
+/// unvisited source region. The original frame remains in last_frame.
+fn conditioned_square_return(n: &[Mark], source: &[Mark], k: &[Mark], span: &[Mark],
+    kernel: &mut ResidentScan) -> Option<DialecticWitness> {
+    let support = kernel.factor_support.as_ref()?;
+    assert_eq!(support.source, n, "factor support changed source at Y return");
+    let lower = |bits: &[Option<Mark>]| trim(bits.iter().map(|bit| bit.unwrap_or(EVALT)).collect());
+    let p = lower(&support.p);
+    let q = lower(&support.q);
+    kernel.conditioned_depth = support.depth;
+    kernel.conditioned_bindings += 1;
+    let origin = fermat_origin(source);
+    let original_end = add(&origin, span);
+    let mut origins = vec![add(&mul(k, &p), &q), add(&p, &mul(k, &q))];
+    origins.sort_by(|left,right| cmp(left,right));
+    origins.dedup();
+    kernel.conditioned_frames.clear();
+    let one = tape_u64(1);
+    let two = tape_u64(2);
+    for start in origins {
+        // Lower endpoints inside the completed original window supply no
+        // new frame; preserve that observation rather than replaying it.
+        if cmp(&start, &original_end) == Ordering::Less { continue; }
+        kernel.conditioned_windows += 1;
+        let end = add(&start, span);
+        let mut a = if kernel.reverse { sub(&end,&one) } else { start };
+        let mut residual = sub(&mul(&a,&a),source);
+        let mut cell = if kernel.reverse { sub(span,&one) } else { tape_u64(0) };
+        let mut remaining = span.to_vec();
+        while !zero(&remaining) {
+            kernel.cells += 1;
+            let residue = residual.iter().take(8).enumerate().fold(0usize,
+                |r,(bit,mark)| r | (usize::from(*mark==EVALF)<<bit));
+            if kernel.square_support[residue] {
+                kernel.square_tests += 1;
+                let b = isqrt(&residual);
+                if mul(&b,&b)==residual {
+                    if let Some((p,q)) = factor_from_gcd(n,&add(&a,&b))
+                        .or_else(||factor_from_gcd(n,&sub(&a,&b))) {
+                        kernel.conditioned_frames.push(ResidualFrame {
+                            source: source.to_vec(), multiplier:k.to_vec(), a,
+                            residual, lattice_cell:cell.clone(),
+                            lattice:ImscriptionLattice::Lehman });
+                        kernel.conditioned_returns += 1;
+                        return Some(DialecticWitness {p,q,lattice_cell:cell});
+                    }
+                }
+            } else {kernel.rejected_cells += 1;}
+            remaining=sub(&remaining,&one);
+            if zero(&remaining) {break;}
+            if kernel.reverse {
+                residual=sub(&residual,&sub(&mul(&two,&a),&one));
+                a=sub(&a,&one);cell=sub(&cell,&one);
+            } else {
+                residual=add(&residual,&add(&mul(&two,&a),&one));
+                a=add(&a,&one);cell=add(&cell,&one);
+            }
+            kernel.residual_advances += 1;
+        }
+        kernel.conditioned_frames.push(ResidualFrame {
+            source:source.to_vec(),multiplier:k.to_vec(),a,residual,
+            lattice_cell:cell,lattice:ImscriptionLattice::Lehman});
+    }
+    None
 }
 
 fn fermat_lattice_from(
@@ -1245,4 +1336,41 @@ fn read_mask(encoded: &[Mark], i: &mut usize, bits: usize) -> Result<u32, String
     }
     *i += 1;
     Ok(mask)
+}
+
+#[cfg(test)]
+mod conditioned_frame_tests {
+    use super::*;
+
+    #[test]
+    fn postproduction_support_returns_through_the_same_weighted_frame() {
+        // Emitted 256-bit control pair. This calibrates the support-to-frame
+        // transport after production; these values never enter the N-only CLI.
+        let p = crate::morphism_factor::decimal_to_tape("176208904945532746883307105036546141409").unwrap();
+        let q = crate::morphism_factor::decimal_to_tape("352417809891065493766614210073092282961").unwrap();
+        let n = mul(&p,&q);
+        assert_eq!(n.len(),256);
+        for reverse in [false,true] {
+            let mut driver = crate::dialectic_lean::ResidentDialectic::new(n.clone()).unwrap();
+            let kernel = &mut driver.scan;
+            kernel.reverse=reverse;
+            let free_low = |bits:&[Mark]|bits.iter().enumerate()
+                .map(|(i,&mark)|if i<3 {None}else{Some(mark)}).collect();
+            kernel.factor_support=Some(FactorSupport {
+                source:n.clone(),p:free_low(&p),q:free_low(&q),depth:250 });
+            let outcome=resident_lattice(&n,&tape_u64(3),&tape_u64(64),
+                ImscriptionLattice::Lehman,kernel);
+            let LatticeExposure::T{witness,..}=outcome else {
+                panic!("support-conditioned frame omitted the retained factor pair");
+            };
+            assert_eq!(mul(&witness.p,&witness.q),n);
+            assert_eq!(kernel.conditioned_returns,1);
+            assert!(!kernel.conditioned_frames.is_empty());
+            let frame=kernel.conditioned_frames.last().unwrap();
+            assert_eq!(frame.source,mul(&tape_u64(12),&n));
+            assert_eq!(mul(&frame.a,&frame.a),add(&frame.source,&frame.residual));
+            let original=kernel.last_frame.as_ref().unwrap();
+            assert_eq!(mul(&original.a,&original.a),add(&original.source,&original.residual));
+        }
+    }
 }

@@ -71,6 +71,11 @@ vox verdict ⊢∈⊡⊣ | vox evm HEX | vox wasm HEX | vox rna SEQ | vox --self
 
 ### Membrane numeral factor verification
 
+Numeric commands and Python helpers accepting native numeral words also accept
+canonical hex-digit words. Shared readers preserve the value and reject malformed
+or redundant encodings. Program-word inputs retain their existing interpretation.
+`godel unbraid` prints both encodings for the source and each recovered lane.
+
 `factor-membrane` accepts a decimal or `0x` integer, the canonical
 g-mOMonadOS hex-digit word, or its native binary word. It emits both canonical
 encodings, factors the decoded value with Vox, and checks the result. Supply a

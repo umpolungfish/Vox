@@ -141,6 +141,9 @@ pub fn trim(mut a: Tape) -> Tape {
 }
 
 pub fn parse_numeral(word: &str) -> Result<Tape, String> {
+    if let Ok(bits) = crate::combined_factor::decode_hex_bits(word) {
+        return Ok(trim(bits.into_iter().map(|bit| if bit { EVALF } else { EVALT }).collect()));
+    }
     let c: Vec<char> = word.chars().collect();
     if c == [VINIT, IMSCRIB, IFIX, TANCH] {
         return Ok(vec![EVALT]);

@@ -13,7 +13,7 @@ word, joined by CLINK.
 
 Usage:
   membrane_dissolve.py enc <natural>          cell-binary word for a natural
-  membrane_dissolve.py dec <word>             strict decode of a cell-binary word
+  membrane_dissolve.py dec <word>             decode a native or hex-digit word
   membrane_dissolve.py nest <n> [<n> ...]     word of words holding those values
   membrane_dissolve.py lanes <word>           decode every lane of a word of words
   membrane_dissolve.py dissolve <word>        apply collapse_to_nested and report
@@ -25,6 +25,7 @@ Usage:
   membrane_dissolve.py selftest
 """
 import sys
+from numeral_codec import decode_hex
 
 # src/vox.rs
 VINIT, TANCH = "⊢", "⊣"
@@ -56,6 +57,13 @@ def encode_cell_binary(n):
 
 def decode_cell_binary(word):
     """godel_calculus::decode_cell, strict. Returns (value, bits_le)."""
+    try:
+        value = decode_hex(word)
+        return value, [(value >> bit) & 1 for bit in range(value.bit_length())] or [0]
+    except ValueError:
+        pass
+    if word == "⊢⊙⊡⊣":
+        return 0, [0]
     if not word:
         raise ValueError("empty glyph word")
     for c in word:
@@ -399,6 +407,13 @@ def main(argv):
         print(__doc__)
         return 1
     cmd, args = argv[1], argv[2:]
+    if cmd in {"shift", "unshift", "dissolve"} and args:
+        try:
+            value = decode_hex(args[0])
+        except ValueError:
+            pass
+        else:
+            args[0] = encode_cell_binary(value)
     if cmd == "enc" and len(args) == 1:
         print(encode_cell_binary(int(args[0])))
     elif cmd == "dec" and len(args) == 1:

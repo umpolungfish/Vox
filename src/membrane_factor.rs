@@ -189,6 +189,7 @@ fn from_lsb_bits(bits: &[bool]) -> BigUint {
 }
 
 fn decode_integer(text: &str) -> Result<BigUint, String> {
+    if text.trim().starts_with('⊢') { return crate::combined_factor::decode_numeral_word(text); }
     if let Some(hex) = text.strip_prefix("0x").or_else(|| text.strip_prefix("0X")) {
         return BigUint::parse_bytes(hex.as_bytes(), 16).ok_or_else(|| "invalid hexadecimal integer".into());
     }
@@ -213,7 +214,7 @@ fn run(args: &[String]) -> Result<String, String> {
                 let flag = args[i].as_str();
                 let value = args.get(i+1).ok_or_else(|| format!("{flag} requires a word"))?;
                 if source.is_some() { return Err("provide exactly one integer source".into()); }
-                source = Some(if flag == "--hex-word" { decode_hex_word(value)? } else { decode_native_word(value)? });
+                source = Some(crate::combined_factor::decode_numeral_word(value)?);
                 i += 2;
             }
             "--factors" => {
@@ -326,7 +327,7 @@ pub fn source_for_gpu_producer(args: &[String]) -> Result<Option<String>, String
                 let flag = args[i].as_str();
                 let value = args.get(i + 1).ok_or_else(|| format!("{flag} requires a word"))?;
                 if source.is_some() { return Err("provide exactly one integer source".into()); }
-                source = Some(if flag == "--hex-word" { decode_hex_word(value)? } else { decode_native_word(value)? });
+                source = Some(crate::combined_factor::decode_numeral_word(value)?);
                 i += 2;
             }
             value if value.starts_with('-') => return Ok(None),

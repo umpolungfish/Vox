@@ -9,6 +9,71 @@ use std::{
     time::Duration,
 };
 
+/// Execute the source-bound Y/frontier return on the shared product register.
+/// An explicit pass count selects a diagnostic; ordinary execution has no cap.
+pub fn run_dialectic_product(args: &[String]) -> Result<i32, String> {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        println!("vox factor-membrane N --dialectic-product [--passes COUNT]\nN-only retained Y descent, midpoint feedback, shared product/carry and phase return.\nOmit --passes to continue to closure; supplying it requests a bounded diagnostic.");
+        return Ok(0);
+    }
+    let mut source_args = Vec::new();
+    let mut passes = None;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--dialectic-product" => i += 1,
+            "--passes" => {
+                if passes.is_some() { return Err("--passes provided twice".into()); }
+                let count = args.get(i+1).ok_or("--passes requires COUNT")?
+                    .parse::<usize>().map_err(|_| "invalid --passes count")?;
+                if count == 0 { return Err("diagnostic pass count must be positive".into()); }
+                passes = Some(count);
+                i += 2;
+            }
+            "--factors" => return Err("dialectic-product production takes N alone".into()),
+            _ => { source_args.push(args[i].clone()); i += 1; }
+        }
+    }
+    let source = vox::membrane_factor::source_for_gpu_producer(&source_args)?
+        .ok_or("provide one N-only source")?;
+    thread::Builder::new().stack_size(64*1024*1024).spawn(move || {
+        use vox::{glut_system::PreparedGlutMembrane, morphism_factor as mf};
+        let n = mf::decimal_to_tape(&source).ok_or("invalid source")?;
+        let start = std::time::Instant::now();
+        let mut membrane = PreparedGlutMembrane::prepare_dialectic(&n)?;
+        println!("source N={source}\nsource_bits {}\nproducer dialectic-product", n.len());
+        println!("nested_word {}", membrane.nested_word().iter().collect::<String>());
+        let mut stats = vox::glut_system::FoldStats::default();
+        let mut pass = 0usize;
+        loop {
+            pass += 1;
+            let closed = membrane.advance_observed(|observation| stats=observation.clone());
+            if closed {
+                let readout = start.elapsed().as_secs_f64();
+                let result = membrane.execute_retained()?.ok_or("missing proper factor return")?;
+                result.verify(&n)?;
+                let (q,r) = mf::divmod(&n,&result.p);
+                if !mf::zero(&r) || mf::mul(&result.p,&q)!=n || q!=result.q {
+                    return Err(String::from("exact source product failed"));
+                }
+                let bank=membrane.retained_readout().ok_or("missing enclosing return")?;
+                println!("factor {}\nfactor {}",mf::dec_of(&result.p),mf::dec_of(&q));
+                println!("producing_arm {}",if stats.conditioned_returns>0 {"support-conditioned-square"}else if stats.dialectic_factor_return {"retained-dialectic"}else{"shared-product"});
+                println!("conditioned_bindings {}\nconditioned_windows {}\nconditioned_depth {}",stats.conditioned_bindings,stats.conditioned_windows,stats.conditioned_depth);
+                println!("passes {pass}\nreadout_seconds {readout:.9}\nverified_seconds {:.9}",start.elapsed().as_secs_f64());
+                println!("exact_product true\nzero_remainder true\nbank_deposits {}\nbank_restored {}\nbank_exposed {}",bank.surviving.len(),bank.restored,bank.exposed);
+                return Ok(0);
+            }
+            if passes.is_some_and(|limit|pass>=limit) {
+                println!("unresolved passes={pass} descents={} contractions={} excluded_midpoints={} decisions={} conflicts={} gates={} cells={} seconds={:.9}",stats.dialectic_descents,stats.dialectic_contractions,stats.excluded_midpoints,stats.correlation_decisions,stats.correlation_conflicts,stats.correlation_gates,stats.correlation_cells,start.elapsed().as_secs_f64());
+                println!("conditioned_bindings {}\nconditioned_windows {}\nconditioned_depth {}",stats.conditioned_bindings,stats.conditioned_windows,stats.conditioned_depth);
+                return Ok(3);
+            }
+        }
+    }).map_err(|error| error.to_string())?.join()
+        .map_err(|_| String::from("dialectic-product execution panicked"))?
+}
+
 /// Replace N-only production with the demonstrated CUDA arithmetic membrane.
 /// Vox remains the validator and carry-trace closer; a missing device receipt
 /// is an error, never a CPU fallback.

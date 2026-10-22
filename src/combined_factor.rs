@@ -34,8 +34,8 @@ pub fn hex_word(n: &BigUint) -> String {
     out
 }
 
-pub fn decode_hex_word(word: &str) -> Result<BigUint, String> {
-    let mut digits = String::new();
+fn hex_digits(word: &str) -> Result<Vec<u8>, String> {
+    let mut digits = Vec::new();
     let mut rest = word.trim();
     if rest.is_empty() { return Err("empty hex-digit word".into()); }
     while !rest.is_empty() {
@@ -43,13 +43,33 @@ pub fn decode_hex_word(word: &str) -> Result<BigUint, String> {
         let (digit_word, tail) = rest.split_at(end);
         let digit = HEX_WORDS.iter().position(|candidate| *candidate == digit_word)
             .ok_or_else(|| format!("unknown canonical hex digit block: {digit_word}"))?;
-        digits.push(char::from_digit(digit as u32, 16).unwrap());
+        digits.push(digit as u8);
         rest = tail;
     }
-    if digits.len() > 1 && digits.starts_with('0') {
+    if digits.len() > 1 && digits[0] == 0 {
         return Err("hex-digit word has a leading zero block".into());
     }
-    BigUint::parse_bytes(digits.as_bytes(), 16).ok_or_else(|| "could not decode hex-digit word".into())
+    Ok(digits)
+}
+
+/// Read the exact ordered hex motifs directly into low-to-high payload bits.
+pub fn decode_hex_bits(word: &str) -> Result<Vec<bool>, String> {
+    let mut bits = Vec::new();
+    for digit in hex_digits(word)?.into_iter().rev() {
+        bits.extend((0..4).map(|bit| digit & (1 << bit) != 0));
+    }
+    while bits.last() == Some(&false) { bits.pop(); }
+    Ok(bits)
+}
+
+pub fn decode_hex_word(word: &str) -> Result<BigUint, String> {
+    Ok(from_bits_le(&decode_hex_bits(word)?))
+}
+
+/// Public numeral inputs accept either exact word frame.
+pub fn decode_numeral_word(word: &str) -> Result<BigUint, String> {
+    if word.trim() == "⊢≻⋈∈⊤∋⊙⊡⊣" { return Ok(BigUint::zero()); }
+    decode_native_word(word.trim()).or_else(|_| decode_hex_word(word))
 }
 
 pub fn native_word(n: &BigUint) -> String {
@@ -200,7 +220,7 @@ pub fn rotat_bits(bits: &[bool], cut: usize) -> Vec<bool> {
 
 /// ROTAT orbit cyclic shift of a canonical native numeral word.
 pub fn rotat_word(word: &str, cut: usize) -> Result<String, String> {
-    let val = decode_native_word(word)?;
+    let val = decode_numeral_word(word)?;
     let bits = bits_le(&val);
     let rot = rotat_bits(&bits, cut);
     let rot_val = from_bits_le(&rot);
@@ -250,15 +270,15 @@ pub fn interlace_2adic(p: &[bool], q: &[bool]) -> Vec<bool> {
 
 /// Gamma on native words: interlaces two canonical native words.
 pub fn interlace_words(w_p: &str, w_q: &str) -> Result<String, String> {
-    let p = decode_native_word(w_p)?;
-    let q = decode_native_word(w_q)?;
+    let p = decode_numeral_word(w_p)?;
+    let q = decode_numeral_word(w_q)?;
     let merged = interlace_2adic(&bits_le(&p), &bits_le(&q));
     Ok(native_word(&from_bits_le(&merged)))
 }
 
 /// Lambda on a native word: deinterlaces into even and odd cell lanes.
 pub fn deinterlace_word(w: &str) -> Result<(String, String), String> {
-    let n = decode_native_word(w)?;
+    let n = decode_numeral_word(w)?;
     let (p_bits, q_bits) = deinterlace_2adic(&bits_le(&n));
     Ok((native_word(&from_bits_le(&p_bits)), native_word(&from_bits_le(&q_bits))))
 }

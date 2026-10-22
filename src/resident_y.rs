@@ -83,7 +83,48 @@ pub struct ResidentY {
     done: bool,
 }
 
+/// The actual retained reducer, transported by Cargo without recompiling its plan.
+pub struct PreparedResidentY {
+    pub postfix: Vec<u8>,
+    pub prefix_trace: Vec<String>,
+    pub prefix_contractions: u64,
+    pub contractions: u64,
+    pub calls: u64,
+    pub done: bool,
+}
+
 impl ResidentY {
+    pub fn prepared_state(&self)->PreparedResidentY {
+        fn emit(term:&Term,out:&mut Vec<u8>){
+            match term {
+                Term::I=>out.push(0),Term::K=>out.push(1),Term::S=>out.push(2),
+                Term::Operator=>out.push(3),Term::Payload=>out.push(4),
+                Term::Resume=>out.push(5),Term::Done=>out.push(6),
+                Term::App(f,x)=>{emit(f,out);emit(x,out);out.push(7);}
+            }
+        }
+        let mut postfix=Vec::new();emit(&self.term,&mut postfix);
+        PreparedResidentY{postfix,prefix_trace:(*self.prefix_trace).clone(),
+            prefix_contractions:self.prefix_contractions,contractions:self.contractions,
+            calls:self.calls,done:self.done}
+    }
+    pub fn from_prepared_state(state:PreparedResidentY)->Result<Self,String>{
+        let mut stack=Vec::new();
+        for token in state.postfix {
+            let term=match token {
+                0=>Rc::new(Term::I),1=>Rc::new(Term::K),2=>Rc::new(Term::S),
+                3=>Rc::new(Term::Operator),4=>Rc::new(Term::Payload),
+                5=>Rc::new(Term::Resume),6=>Rc::new(Term::Done),
+                7=>{let x=stack.pop().ok_or("compiled Y lost its argument")?;
+                    let f=stack.pop().ok_or("compiled Y lost its function")?;app(f,x)},
+                _=>return Err("compiled Y contains an invalid term".into()),
+            };stack.push(term);
+        }
+        if stack.len()!=1{return Err("compiled Y lost its retained root".into());}
+        Ok(Self{term:stack.pop().unwrap(),prefix_trace:Rc::new(state.prefix_trace),
+            prefix_contractions:state.prefix_contractions,contractions:state.contractions,
+            calls:state.calls,done:state.done})
+    }
     /// Export the actual current reducer term with a held caller payload.
     pub fn residual_program(&self) -> String {
         let mut tokens=Vec::new();

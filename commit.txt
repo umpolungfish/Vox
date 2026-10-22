@@ -1,9 +1,3 @@
-I retain full residue self-marks in native protein compilation
+I accept native and hex numeral words across numeric entrypoints
 
-I prepare source-bound amino-acid forms from Rebis before folding and return their native word executions, torsion alternatives and full observations with the coordinate readout.
-I derive genetic tables from live Lean without historical assignment overrides and generate both Python copies together.
-I support explicit sequence types, single-record FASTA, complete carrier exports and SHA-256-bound PDB sidecars, and propagate output failures.
-I verify the final compiler against thirty complete source chains, cross-path coordinate agreement, CLI controls and seven protein unit checks, preserving prior binaries.
-I document the canonical SNS Prime alphabet and rebuild the protein compiler against the revised source.
-
-I share the hosted protein compiler with G-mOMonadOS and preserve its coordinate-output option, full carrier exports and error handling.
+I normalize both encodings through shared readers, connect Python helpers and runtime commands, and show both encodings for unbraided lanes. I verify all sixteen motifs, wide numeral round trips, and malformed-input rejection while preserving program-word interpretation.

@@ -63,6 +63,14 @@ pub(super) fn device_carry_envelope_step(n:&[char],p:&[u32],q:&[u32])
 
 #[derive(Clone, Debug, Default)]
 pub struct FoldStats {
+    pub dialectic_descents: u64,
+    pub dialectic_contractions: u64,
+    pub dialectic_factor_return: bool,
+    pub conditioned_bindings: u64,
+    pub conditioned_windows: u64,
+    pub conditioned_returns: u64,
+    pub conditioned_depth: usize,
+    pub excluded_midpoints: usize,
     pub active: bool,
     pub decisions: usize,
     pub frontier: usize,
@@ -611,6 +619,8 @@ struct Lanes {
 }
 pub(super) struct Resident {
     n: Vec<char>,
+    dialectic: Option<crate::dialectic_lean::ResidentDialectic>,
+    midpoint_floor: Option<Vec<char>>,
     pub stats: FoldStats,
     pair: Option<(Vec<char>, Vec<char>)>,
     execution: Option<super::GlutExecution>,
@@ -629,6 +639,7 @@ impl Resident {
             observe(&stats);
             return Self {
                 n: n.to_vec(),
+                dialectic: None, midpoint_floor: None,
                 stats,
                 pair: None,
                 execution: None,
@@ -663,6 +674,7 @@ impl Resident {
             let proper = crate::trace_algebra::witness_valid(n, &p, &q);
             return Self {
                 n: n.to_vec(),
+                dialectic: None, midpoint_floor: None,
                 stats,
                 pair: proper.then_some((p, q)),
                 execution: None,
@@ -721,6 +733,7 @@ impl Resident {
         }
         Self {
             n: n.to_vec(),
+            dialectic: None, midpoint_floor: None,
             stats,
             pair: None,
             execution: None,
@@ -731,6 +744,46 @@ impl Resident {
     }
     pub fn finished(&self) -> bool {
         self.finished
+    }
+    /// The existing Y descent and shared factor graph inhabit one resident
+    /// return. Completed square-frontier work narrows that graph's midpoint.
+    pub fn with_dialectic(n: &[char]) -> Result<Self, alloc::string::String> {
+        let mut resident = Self::new(n, |_| {});
+        resident.dialectic = Some(crate::dialectic_lean::ResidentDialectic::new(n.to_vec())?);
+        if let Some(lanes) = resident.lanes.as_mut() {
+            lanes.square_live = false;
+            lanes.shared_live = true;
+        }
+        Ok(resident)
+    }
+    fn activate_dialectic(&mut self, mut observe: impl FnMut(&FoldStats)) {
+        use crate::dialectic_reentry::{decode_imasm_execution, ImscriptionLattice};
+        let driver = self.dialectic.as_mut().unwrap();
+        if let Some(graph) = self.lanes.as_ref().and_then(|lanes|lanes.shared.as_ref()) {
+            driver.scan.factor_support = Some(graph.factor_support());
+        }
+        let frontier = driver.object().and_then(|object| {
+            let lattice = decode_imasm_execution(object.word()).ok()?.lattice();
+            (lattice != ImscriptionLattice::Lehman).then(||
+                (mf::add(object.boundary(), object.span()),
+                 mf::dec_of(object.span()).parse::<usize>().unwrap()))
+        });
+        let closed = driver.advance().expect("resident source-bound Y descent");
+        self.stats.dialectic_descents = driver.operations.descents;
+        self.stats.dialectic_contractions = driver.operations.contractions;
+        self.stats.conditioned_bindings = driver.scan.conditioned_bindings;
+        self.stats.conditioned_windows = driver.scan.conditioned_windows;
+        self.stats.conditioned_returns = driver.scan.conditioned_returns;
+        self.stats.conditioned_depth = driver.scan.conditioned_depth;
+        if closed {
+            let closure = driver.closure().unwrap();
+            self.pair = Some((closure.carrier.p.clone(), closure.carrier.q.clone()));
+            self.stats.dialectic_factor_return = true;
+        } else if let Some((floor, count)) = frontier {
+            self.midpoint_floor = Some(floor);
+            self.stats.excluded_midpoints += count;
+        }
+        observe(&self.stats);
     }
     pub fn quantum_phase_closed(&self) -> bool {
         self.quantum_phase_closed
@@ -757,6 +810,10 @@ impl Resident {
     }
     pub fn activate_frames(&mut self, mut observe: impl FnMut(&FoldStats)) {
         if self.finished || self.pair.is_some() { return; }
+        if self.dialectic.is_some() {
+            self.activate_dialectic(observe);
+            return;
+        }
         let Some(l) = self.lanes.as_mut() else { return; };
         let scheduled_work = match option_env!("GLUT_ACTIVE_FRAME_WORD") {
             Some("⊤") => l.pending_cells / l.pending_count.max(1),
@@ -895,7 +952,7 @@ impl Resident {
                         return;
                     }
                     l.turn_work += stats.mask_work;
-                    if l.shared_live && p_width == q_width && l.shared.is_none() {
+                    if self.dialectic.is_none() && l.shared_live && p_width == q_width && l.shared.is_none() {
                         stats.diagnostic_stage = '≻';
                         observe(&stats);
                         let graph = correlation::Correlation::new_nested_observed(
@@ -921,8 +978,21 @@ impl Resident {
             }
             Port::Correlation => {
                 stats.diagnostic_stage = '⊞';
+                if self.dialectic.is_some() && stats.dialectic_descents >= 2 && l.shared.is_none() {
+                    let graph = correlation::Correlation::new_nested_after_frontier(
+                        n, l.widest, &l.factor_bound, self.midpoint_floor.as_deref(),
+                        |stage, gates, cells| {
+                            stats.correlation_prepare_stage = stage;
+                            stats.correlation_gates = gates;
+                            stats.correlation_cells = cells;
+                            observe(&stats);
+                        });
+                    stats.correlation_gates = graph.gate_count();
+                    stats.correlation_cells = graph.cell_count();
+                    l.shared = Some(graph);
+                }
                 if l.admitted == l.geometries.len() && l.shared.is_none() {
-                    l.shared_live = false;
+                    if self.dialectic.is_none() { l.shared_live = false; }
                 }
                 if l.shared_live {
                     if let Some(graph) = l.shared.as_mut() {

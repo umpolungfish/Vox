@@ -1,0 +1,9 @@
+   Compiling vox v0.1.0 (/home/mrnob0dy666/imsgct/Vox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 44.05s
+     Running tests/hex_numeral_inputs.rs (target/x86_64-unknown-linux-musl/debug/deps/hex_numeral_inputs-0bbc3f8c034f4dc6)
+
+running 1 test
+test every_numeral_reader_and_word_operation_accepts_hex ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

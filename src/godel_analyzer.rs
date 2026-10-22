@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use crate::godel_calculus::{
-    bit_support, check, decode, encode_cell_binary, polynomial_string, Family, Nat, Operator,
+    bit_support, check, decode, encode_cell_binary, polynomial_string, Nat, Operator,
     Structure,
 };
 
@@ -146,6 +146,10 @@ fn is_prime_bounded(candidate: usize, primes: &[usize]) -> bool {
 /// Read the least prime divisor directly from a canonical cell-binary word.
 /// The aperture is the largest integer whose prime columns are read.
 pub fn prime_sieve_read(word: &str, aperture: usize) -> Result<PrimeSieveRead, String> {
+    let normalized = if let Ok(bits) = crate::combined_factor::decode_hex_bits(word) {
+        Some(encode_cell_binary(&Nat::from_bits_le(bits)))
+    } else { None };
+    let word = normalized.as_deref().unwrap_or(word);
     let decoded = decode(word).map_err(|error| error.to_string())?;
     let bits = match decoded.structure {
         Structure::CellBinary { bits_le } => bits_le,
@@ -510,6 +514,10 @@ fn exact_window_period(bits: &[bool]) -> Option<Nat> {
 }
 
 fn cell_bits(word: &str) -> Result<Vec<bool>, String> {
+    let normalized = if let Ok(bits) = crate::combined_factor::decode_hex_bits(word) {
+        Some(encode_cell_binary(&Nat::from_bits_le(bits)))
+    } else { None };
+    let word = normalized.as_deref().unwrap_or(word);
     let reading = decode(word).map_err(|e| e.to_string())?;
     match reading.structure {
         Structure::CellBinary { bits_le } => Ok(bits_le),
@@ -518,6 +526,10 @@ fn cell_bits(word: &str) -> Result<Vec<bool>, String> {
 }
 
 pub fn codec_assertions(value: &Nat, word: &str) -> Result<CodecAssertions, String> {
+    let normalized = if let Ok(bits) = crate::combined_factor::decode_hex_bits(word) {
+        Some(encode_cell_binary(&Nat::from_bits_le(bits)))
+    } else { None };
+    let word = normalized.as_deref().unwrap_or(word);
     let bits = cell_bits(word)?;
     let support_from_bits: Vec<Nat> = bits
         .iter()
@@ -737,16 +749,7 @@ pub fn lte_2(a: &Nat, m: &Nat) -> Result<Nat, String> {
 }
 
 pub fn parse_input(raw: &str) -> Result<Nat, String> {
-    if raw.starts_with('⊢') {
-        let reading = decode(raw).map_err(|e| e.to_string())?;
-        if reading.family != Family::CellBinary {
-            return Err("analyze accepts cell-binary words or decimal naturals".to_string());
-        }
-        Ok(reading.value)
-    } else {
-        Nat::from_decimal(raw)
-            .ok_or_else(|| format!("not a natural number or cell-binary word: {raw}"))
-    }
+    crate::godel_calculus::parse_natural_word(raw)
 }
 
 pub fn selftest_report() -> Result<String, String> {
@@ -896,10 +899,8 @@ pub fn command(args: &[&str]) -> Result<String, String> {
             if args.len() != 3 {
                 return Err("godel lte2 <odd-a> <even-m>".to_string());
             }
-            let a = Nat::from_decimal(args[1])
-                .ok_or_else(|| format!("not a natural number: {}", args[1]))?;
-            let m = Nat::from_decimal(args[2])
-                .ok_or_else(|| format!("not a natural number: {}", args[2]))?;
+            let a = parse_input(args[1])?;
+            let m = parse_input(args[2])?;
             let value = lte_2(&a, &m)?;
             Ok(format!(
                 "a          {a}\n\

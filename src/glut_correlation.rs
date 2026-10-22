@@ -10,6 +10,8 @@ pub(super) use quantum::factor_phase_closes;
 mod parity;
 #[path = "glut_transport.rs"]
 mod transport;
+#[path = "glut_joint_support.rs"]
+mod joint_support;
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -115,8 +117,21 @@ pub(super) struct Correlation {
     frame_bank: super::frame_elimination::FrameBank,
     support_p: Vec<Option<char>>,
     support_q: Vec<Option<char>>,
+    joints: Vec<joint_support::JointSupport>,
+    joint_offsets: Vec<usize>,
+    joint_incidence: Vec<usize>,
+    pub joint_returns: usize,
+    pub joint_forced: usize,
 }
 impl Correlation {
+    pub(super) fn factor_support(&self) -> crate::dialectic_reentry::FactorSupport {
+        crate::dialectic_reentry::FactorSupport {
+            source:self.source.clone(),
+            p:self.p.iter().map(|&cell|self.values[cell]).collect(),
+            q:self.q.iter().map(|&cell|self.values[cell]).collect(),
+            depth:self.boundaries.len(),
+        }
+    }
     pub(super) fn admission_only(n:&[char])->Self {
         let mut s=Self::blank(n.len()<2);
         let width=n.len().div_ceil(2);
@@ -185,6 +200,11 @@ impl Correlation {
             frame_bank: super::frame_elimination::FrameBank::default(),
             support_p: Vec::new(),
             support_q: Vec::new(),
+            joints: Vec::new(),
+            joint_offsets: Vec::new(),
+            joint_incidence: Vec::new(),
+            joint_returns: 0,
+            joint_forced: 0,
         };
         let zero = s.cell();
         let one = s.cell();
@@ -323,6 +343,7 @@ impl Correlation {
             }
         }
         // Keep the DQI syndrome connected throughout descent and ascent.
+        self.connect_joint_support();
         // Each assignment updates only incident row residues; root substitution
         // remains valid because source-root assignments never retreat.
         observe('⊤', self.gate_count(), self.cell_count());
@@ -599,6 +620,11 @@ impl Correlation {
             {
                 let gate = self.adjacent_gates[slot];
                 self.gate_step(gate)?;
+            }
+            if !self.joint_offsets.is_empty() {
+                for slot in self.joint_offsets[assigned.cell]..self.joint_offsets[assigned.cell + 1] {
+                    self.joint_step(self.joint_incidence[slot])?;
+                }
             }
             if !self.parity_offsets.is_empty() {
                 for slot in
