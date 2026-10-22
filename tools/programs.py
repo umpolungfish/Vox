@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import signal
 import shlex
 import shutil
 import subprocess
@@ -15,6 +16,12 @@ import uuid
 
 VOX = Path(__file__).resolve().parents[1]
 WORKSPACE = VOX.parent
+G = WORKSPACE / "G-mOMonadOS"
+M3IOSIS = WORKSPACE / "m3iosis"
+M3IOSIS_CRATE = M3IOSIS / "src/m3iosis"
+M3MBR4N3S = WORKSPACE / "m3mbr4n3s"
+M3MBR4N3S_CRATE = M3MBR4N3S / "membranes"
+MEMBRANE_RUN_SECONDS = 0.851
 sys.path.insert(0, str(VOX))
 from standalone import require_standalone, static_env
 
@@ -71,10 +78,18 @@ def crate_catalog(repo, prefix=""):
 
 
 def catalog(repo):
-    entries = crate_catalog(repo)
+    if repo == M3IOSIS:
+        entries = crate_catalog(M3IOSIS_CRATE, "src/m3iosis/")
+    elif repo == M3MBR4N3S:
+        entries = crate_catalog(M3MBR4N3S_CRATE, "membranes/")
+    else:
+        entries = crate_catalog(repo)
     # These are live nested projects. Vendor and proof snapshots retain their
     # own historical build contracts and are not alternate copies to operate.
-    for directory in (repo / "membranes", repo / "gpu_port"):
+    nested_projects = [repo / "membranes", repo / "gpu_port"]
+    if repo == M3IOSIS:
+        nested_projects.append(M3IOSIS_CRATE / "membranes")
+    for directory in nested_projects:
         if directory.is_dir():
             for current, directories, files in os.walk(directory):
                 directories[:] = [name for name in directories
@@ -85,7 +100,12 @@ def catalog(repo):
                     prefix = str(crate.relative_to(repo)) + "/"
                     entries.update(crate_catalog(crate, prefix))
     scripts = set()
-    for directory in (repo, repo / "tools", repo / "scripts", repo / "py"):
+    script_directories = [repo, repo / "tools", repo / "scripts", repo / "py"]
+    if repo == M3IOSIS:
+        script_directories.extend((M3IOSIS_CRATE, M3IOSIS_CRATE / "tools", M3IOSIS_CRATE / "scripts"))
+    elif repo == M3MBR4N3S:
+        script_directories.extend((M3MBR4N3S_CRATE, M3MBR4N3S_CRATE / "tools", M3MBR4N3S_CRATE / "scripts"))
+    for directory in script_directories:
         if directory.is_dir():
             scripts.update(directory.glob("*.sh"))
             scripts.update(directory.glob("*.py"))
@@ -101,6 +121,32 @@ def catalog(repo):
         name = str(path.relative_to(repo))
         entries[f"script:{name}"] = ("script", name, path)
     return entries
+
+
+def membrane_catalog(repo):
+    selected = {}
+    for key, (kind, name, path) in catalog(repo).items():
+        relative = str(path.relative_to(repo)) if path.is_relative_to(repo) else str(path)
+        if kind == "bin":
+            package_target = "/membranes/" in f"/{relative}/"
+            mentions_membrane = path.is_file() and re.search(
+                r"\bmembrane\b", path.read_text(errors="replace"), re.IGNORECASE
+            )
+            if package_target or "membrane" in name.lower() or mentions_membrane:
+                selected[key] = (kind, name, path)
+        elif kind == "script" and path.suffix in (".py", ".sh"):
+            source = path.read_text(errors="replace") if path.is_file() else ""
+            filename = path.name.lower()
+            if (
+                "membrane" in filename
+                or filename == "baked_case.py"
+                or (filename == "imasm_emit.py" and repo == G)
+                or (path.suffix == ".py" and re.search(
+                    r"class\s+\w*Membrane|def\s+build_case\s*\(", source
+                ))
+            ):
+                selected[key] = (kind, name, path)
+    return selected
 
 
 def resolve(repo, name):
@@ -194,6 +240,27 @@ def bake(args):
     if args.list:
         for name, text in FAMILIES.items():
             print(f"{name:12} {text}")
+        return
+    if getattr(args, "mode", None):
+        if not args.number or not re.fullmatch(r"[1-9][0-9]*", args.number) or int(args.number) <= 1:
+            raise ValueError("Supply --number DECIMAL_N greater than 1 for mode baking.")
+        if args.width is not None and args.width < 1:
+            raise ValueError("--width must be positive.")
+        import baked_case
+        if args.mode not in baked_case.MODES:
+            raise ValueError(f"Unknown mode {args.mode}; choose from: {', '.join(baked_case.MODES)}")
+        baked_case.TARGET_DIR = args.repo / "target"
+        image, _ = baked_case.build_case(int(args.number), args.mode, args.width, radix=args.radix)
+        image = image.resolve()
+        if args.output:
+            destination = args.output.expanduser().resolve()
+            if destination.exists():
+                raise ValueError(f"Output already exists: {destination}")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(image, destination)
+            image = destination
+        require_standalone(image)
+        print(f"\nReady: {image}\nRun: {shlex.quote(str(image))}")
         return
     family = args.family or ("factor" if args.repo == VOX else "resident")
     gm = WORKSPACE / "G-mOMonadOS"
@@ -290,12 +357,47 @@ def parser():
     source.add_argument("--input", type=Path, help="file containing decimal N alone")
     source.add_argument("--word-file", type=Path, help="saved IMASM source for ququart or word")
     b.add_argument("--output", type=Path, help="fresh output path, relative to your current directory")
+    b.add_argument("--mode", help="baked_case per-instance mode")
+    b.add_argument("--list-modes", action="store_true", help="list per-instance baked_case modes")
+    b.add_argument("--width", type=int, help="mode-specific width")
+    b.add_argument("--radix", type=int, help="divisor mode prefix-closure radix")
     b.add_argument("--base", type=int, default=2, help="decimal phase base (default: 2)")
     b.add_argument("--prepared", type=Path, help="prepared source directory for the CPU baker")
     b.add_argument("--line", type=int, default=1, help="nonempty source line for word baking (default: 1)")
     modes = b.add_mutually_exclusive_group()
     modes.add_argument("--native-fourier", action="store_true", help="use the ququart baker's native Fourier preparation")
     modes.add_argument("--retained-case", type=Path, help="reuse a compatible retained ququart preparation")
+    membranes = sub.add_parser("membranes", help="list, build, run or inspect membrane programs")
+    membrane_actions = membranes.add_subparsers(dest="membrane_action")
+    membrane_list = membrane_actions.add_parser("list", help="list membrane binaries and Python bakers")
+    membrane_list.add_argument("query", nargs="?", default="")
+    membrane_list.add_argument("--examples", action="store_true", help="show a command example for every entry")
+    membrane_list.add_argument("--json", action="store_true")
+    membrane_help = membrane_actions.add_parser("help", help="show source usage and options")
+    membrane_help.add_argument("program")
+    membrane_build = membrane_actions.add_parser("build", help="emit a standalone Rust membrane binary")
+    membrane_build.add_argument("program")
+    membrane_run = membrane_actions.add_parser("run", help="run an entry with the hard membrane time bound")
+    membrane_run.add_argument("program")
+    membrane_run.add_argument("arguments", nargs=argparse.REMAINDER)
+    membrane_bake = membrane_actions.add_parser("bake", help="emit a source-bound standalone membrane")
+    membrane_bake.add_argument("family", choices=FAMILIES, nargs="?")
+    membrane_bake.add_argument("--list", action="store_true")
+    source = membrane_bake.add_mutually_exclusive_group()
+    source.add_argument("--number", help="decimal source N")
+    source.add_argument("--input", type=Path, help="file containing decimal N alone")
+    source.add_argument("--word-file", type=Path, help="saved IMASM source for ququart or word bakers")
+    membrane_bake.add_argument("--output", type=Path, help="fresh output path")
+    membrane_bake.add_argument("--mode", help="baked_case mode")
+    membrane_bake.add_argument("--list-modes", action="store_true", help="list baked_case modes")
+    membrane_bake.add_argument("--width", type=int, help="mode-specific width")
+    membrane_bake.add_argument("--radix", type=int, help="divisor mode prefix-closure radix")
+    membrane_bake.add_argument("--base", type=int, default=2, help="decimal phase base")
+    membrane_bake.add_argument("--prepared", type=Path, help="prepared source directory for CPU baking")
+    membrane_bake.add_argument("--line", type=int, default=1, help="source line for word baking")
+    modes = membrane_bake.add_mutually_exclusive_group()
+    modes.add_argument("--native-fourier", action="store_true")
+    modes.add_argument("--retained-case", type=Path)
     sub.add_parser("doctor", help="check local build tools and target availability")
     sub.add_parser("menu", help="choose a program and enter its arguments interactively")
     return p
@@ -305,8 +407,8 @@ def main(argv=None):
     p = parser()
     args = p.parse_args(argv)
     args.repo = args.repo.resolve()
-    if args.repo not in (VOX, WORKSPACE / "G-mOMonadOS"):
-        p.error("Select the G-mOMonadOS or Vox directory.")
+    if args.repo not in (VOX, G, M3IOSIS, M3MBR4N3S):
+        p.error("Select Vox, G-mOMonadOS, m3iosis or m3mbr4n3s.")
     try:
         if not args.command:
             p.print_help()
@@ -336,9 +438,80 @@ def main(argv=None):
             print("Rust bakers need their Linux target. C/CPU bakers also need a static C/C++ runtime.\nGPU execution needs a compatible CUDA driver and device. No computation was started.")
             return int(missing)
         elif args.command == "bake":
+            if args.repo not in (VOX, G) and not args.mode:
+                raise ValueError("Baking families are available in Vox and G-mOMonadOS.")
             if args.base < 2 or args.line < 1:
                 raise ValueError("--base must be at least 2; --line must be positive.")
             bake(args)
+        elif args.command == "membranes":
+            if args.membrane_action == "list":
+                rows = []
+                for key, (kind, name, path) in sorted(membrane_catalog(args.repo).items()):
+                    if args.query.lower() not in f"{key} {description(path)}".lower():
+                        continue
+                    action = "build" if kind == "bin" else "run"
+                    invocation = f"./programs --repo {shlex.quote(str(args.repo))} membranes {action} {shlex.quote(key)}"
+                    if kind == "script" and path.name == "baked_case.py":
+                        invocation = f"./programs --repo {shlex.quote(str(args.repo))} membranes bake --mode divisor --number N --output ./membranes/{args.repo.name}-divisor"
+                    elif kind == "script":
+                        invocation += " -- --help"
+                    rows.append({"name": key, "kind": kind, "source": str(path),
+                                 "description": description(path), "example": invocation})
+                if args.json:
+                    print(json.dumps(rows, indent=2))
+                else:
+                    for row in rows:
+                        print(f"{row['name']} [{row['kind']}]  {row['description']}")
+                        if args.examples:
+                            print(f"  example: {row['example']}")
+                    if not rows:
+                        print("No matching entries. Try `membranes list --examples`.")
+            elif args.membrane_action == "help":
+                show_help(args.repo, args.program)
+            elif args.membrane_action == "build":
+                kind, name, path = resolve(args.repo, args.program)
+                if kind != "bin":
+                    raise ValueError("Use `programs bake` to emit source-bound images from Python or shell recipes.")
+                crate = next(parent for parent in path.parents if (parent / "Cargo.toml").is_file())
+                print(binary(crate, name, args, kind))
+            elif args.membrane_action == "run":
+                kind, name, path = resolve(args.repo, args.program)
+                if kind == "script":
+                    if path.name == "baked_case.py":
+                        raise ValueError("Use `membranes bake --mode MODE --number N` to emit an instance-bound standalone binary; direct baker execution is disabled.")
+                    command = [sys.executable if path.suffix == ".py" else "bash", path]
+                else:
+                    crate = next(parent for parent in path.parents if (parent / "Cargo.toml").is_file())
+                    command = [binary(crate, name, args, kind)]
+                extra = args.arguments
+                command.extend(extra[1:] if extra[:1] == ["--"] else extra)
+                process = subprocess.Popen(command, cwd=args.repo, start_new_session=True)
+                try:
+                    process.communicate(timeout=MEMBRANE_RUN_SECONDS)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGTERM)
+                    try:
+                        process.communicate(timeout=0.1)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(process.pid, signal.SIGKILL)
+                        process.communicate()
+                    print(f"membrane run stopped at {MEMBRANE_RUN_SECONDS:.3f} seconds", file=sys.stderr)
+                    return 124
+                if process.returncode:
+                    return process.returncode
+            elif args.membrane_action == "bake":
+                if args.list_modes:
+                    from baked_case import MODES
+                    for mode, mode_description in MODES.items():
+                        print(f"{mode:16} {mode_description}")
+                    return 0
+                if args.repo not in (VOX, G) and not args.mode:
+                    raise ValueError("Use --mode MODE for the shared source-bound baker in this repository.")
+                if args.base < 2 or args.line < 1:
+                    raise ValueError("--base must be at least 2; --line must be positive.")
+                bake(args)
+            else:
+                p.error("Choose `membranes list`, `help`, `build` or `run`.")
         elif args.command == "execute":
             execute_image(args.file, args)
         elif args.command == "menu":

@@ -9,6 +9,29 @@ extern crate alloc;
 
 use num_bigint::BigUint;
 
+mod native_numeral {
+    use num_bigint::BigUint;
+    use vox::morphism_factor::{cmp, decimal_to_tape, emit_numeral, mul};
+
+    pub fn encode(decimal: &str) -> String {
+        let tape = decimal_to_tape(decimal).expect("positive decimal numeral");
+        emit_numeral(&tape)
+    }
+
+    pub fn syzygy_preserves(source: &BigUint, p: &BigUint, q: &BigUint) -> bool {
+        let Some(source) = decimal_to_tape(&source.to_str_radix(10)) else { return false };
+        let Some(p) = decimal_to_tape(&p.to_str_radix(10)) else { return false };
+        let Some(q) = decimal_to_tape(&q.to_str_radix(10)) else { return false };
+        cmp(&mul(&p, &q), &source).is_eq()
+    }
+
+    pub fn factor_words_line(p: &BigUint, q: &BigUint) -> String {
+        let p = decimal_to_tape(&p.to_str_radix(10)).expect("positive factor");
+        let q = decimal_to_tape(&q.to_str_radix(10)).expect("positive factor");
+        format!("p_word {}\nq_word {}\n", emit_numeral(&p), emit_numeral(&q))
+    }
+}
+
 fn main() {
     let result = (|| -> Result<String, String> {
         let raw = option_env!("MEMBRANE_WORDS")

@@ -48,12 +48,46 @@ an argument containing spaces. Program arguments use this repository as their
 working directory. `execute` and `bake` resolve supplied paths relative to the
 calling directory, so absolute launcher paths also work from elsewhere.
 
+### Membrane generator CLI
+
+The membrane catalog discovers Rust generator binaries and Python or shell
+bakers in Vox, G-mOMonadOS, m3iosis and m3mbr4n3s. `list --examples` prints an
+individual ready-to-copy command for every discovered entry. `help` prints its
+flags and source usage. `build` emits one static standalone Rust generator
+binary without executing it. `run` stops the process group at the 0.851-second
+execution ceiling.
+
+```bash
+./programs membranes list --examples
+./programs membranes list factor
+./programs membranes help bin:factor_membrane
+./programs membranes build bin:factor_membrane
+./programs membranes run script:membrane_factor.py -- --help
+./programs membranes bake --list-modes
+./programs membranes bake --mode divisor --number N --output ./membranes/divisor-N
+./programs membranes bake --mode observed --number N --width 16 --output ./membranes/observed-N
+./programs bake factor --input SOURCE.decimal --output CASE
+./programs --repo ../G-mOMonadOS membranes list --examples
+./programs --repo ../m3iosis membranes list --examples
+./programs --repo ../m3mbr4n3s membranes list --examples
+```
+
+Use the exact qualified target printed by `membranes list` when names repeat,
+such as `membranes/bin:membrane_aggregate_phase` or
+`src/m3iosis/bin:membrane`. Use `membranes build` for the reusable generator
+executable and `membranes bake --mode MODE --number N` for a source-bound
+standalone image. `--list-modes` lists all 17 per-instance modes; add
+`--width` for modes that require a qubit count or bound, and `--radix` only for
+the divisor mode. The catalog prints an invocation example beside every
+discovered generator and baker. Python baker entries use the shared Vox builder
+instead of stale copied build logic.
+
 The launcher checks static ELF linkage before returning or running a native
 image. A `.imasm` or `.glyphs` input to `execute` runs through Vox. Baking never
-starts the resulting factor search. Press Ctrl+C to stop a running program;
-the launcher imposes no time limit. Computations can retain their own algorithmic
-bounds and return an open state. A user-selected profiling duration is separate
-from a baked execution timeout.
+starts the resulting factor search. Membrane executions through `programs
+membranes run` stop at 0.851 seconds. Generic non-membrane program runs retain
+their own behavior. Computations can retain their own algorithmic bounds and
+return an open state.
 
 ### Bake from ordinary inputs
 

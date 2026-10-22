@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from standalone import require_standalone, static_env
 
 ROOT = Path(__file__).resolve().parent
+TARGET_DIR = Path(os.environ.get('VOX_BAKED_TARGET_DIR', ROOT / 'target')).resolve()
 DEFAULT_TARGET = 'x86_64-unknown-linux-musl'
 MODES = {
     'divisor': 'One-divisor phase/Y producer; derive the quotient after return, then close the exact product (default).',
@@ -74,8 +75,8 @@ def compile_binary(command, env, progress, label):
 def build_case(n, mode, width=None, target=None, *, progress=False, radix=None):
     # Hold the lock through the copy: another case must not replace Cargo's
     # output between compilation and retention of this executable.
-    (ROOT / 'target').mkdir(exist_ok=True)
-    with (ROOT / 'target/baked-case.lock').open('a') as lock:
+    TARGET_DIR.mkdir(exist_ok=True)
+    with (TARGET_DIR / 'baked-case.lock').open('a') as lock:
         with compilation_progress('Waiting for the build lock', progress):
             fcntl.flock(lock, fcntl.LOCK_EX)
         return _build_case(n, mode, width, target, progress, radix)
@@ -83,12 +84,12 @@ def build_case(n, mode, width=None, target=None, *, progress=False, radix=None):
 
 def _build_case(n, mode, width, target, progress=False, radix=None):
     target = target or DEFAULT_TARGET
-    compile_binary(['cargo', 'build', '--release', '--target', DEFAULT_TARGET, '--bin', 'phase_case_encode', '--target-dir', 'target'],
+    compile_binary(['cargo', 'build', '--release', '--target', DEFAULT_TARGET, '--bin', 'phase_case_encode', '--target-dir', str(TARGET_DIR)],
                    static_env(), progress, 'Compiling the IMASM input encoder')
     parameter = (radix if radix is not None else 4294967296) if mode == 'divisor' else width
     values = [str(n), '2'] + ([str(parameter)] if parameter is not None else [])
-    words = subprocess.check_output([str(ROOT / 'target/x86_64-unknown-linux-musl/release/phase_case_encode'), *values], text=True).splitlines()
-    destination = ROOT / 'target/baked-semiprime' / str(time.time_ns())
+    words = subprocess.check_output([str(TARGET_DIR / 'x86_64-unknown-linux-musl/release/phase_case_encode'), *values], text=True).splitlines()
+    destination = TARGET_DIR / 'baked-semiprime' / str(time.time_ns())
     destination.mkdir(parents=True)
     inputs = destination/'inputs.imasm'
     inputs.write_text('\n'.join(words)+'\n')
@@ -99,12 +100,12 @@ def _build_case(n, mode, width, target, progress=False, radix=None):
     env['VOX_PROBE_MODE'] = mode
     env.pop('VOX_PHASE_WIDTH_WORD', None)
     target_bin = {'divisor': 'factor_2adic', 'phaseB': 'phaseB_fac', 'winding': 'winding_membrane', 'ring': 'ring_membrane', 'basemod': 'base_mod_membrane', 'reduce': 'reduce_delete_membrane', 'cylinder': 'cylinder_membrane'}.get(mode, 'semiprime_probe')
-    build = ['cargo', 'build', '--release', '--bin', target_bin, '--target-dir', 'target']
+    build = ['cargo', 'build', '--release', '--bin', target_bin, '--target-dir', str(TARGET_DIR)]
     if target is not None:
         build += ['--target', target]
     compile_binary(build, env, progress, f'Compiling {mode} for {target}')
     binary = destination / mode
-    output = ROOT / 'target'
+    output = TARGET_DIR
     if target is not None:
         output /= target
     require_standalone(output / 'release' / target_bin)
