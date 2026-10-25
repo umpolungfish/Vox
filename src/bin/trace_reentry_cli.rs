@@ -18,6 +18,8 @@ fn word_probe(tr: &[TraceStep]) -> Option<[char; 2]> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reference = RouterObject::initial();
     let pol = rewrite_policy();
     let corpus: Vec<u64> = vec![106545994355809];

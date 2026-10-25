@@ -9,4 +9,6 @@ fn run() -> Result<(), String> {
     for n in sizes { println!("n={n} binomial_row_gcd={}", table.row_gcd(n).unwrap()); }
     Ok(())
 }
-fn main() { if let Err(error) = run() { eprintln!("{error}"); std::process::exit(2); } }
+fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept(); if let Err(error) = run() { eprintln!("{error}"); std::process::exit(2); } }

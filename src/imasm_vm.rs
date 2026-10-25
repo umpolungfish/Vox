@@ -1245,6 +1245,11 @@ impl Machine {
                 if dst.starts_with("r:xmm") { self.write(&dst, v & mask(w)); }
                 else { self.write(&dst, if src_is_x { v & mask(w) } else { v }); }
             }
+            "pextrw" => {
+                let source = self.read(&f[1], 16).0;
+                let lane = (parse_imm(&f[2][2..]) as u32) & 7;
+                self.write(&dst, (source >> (lane * 16)) & 0xffff);
+            }
             "psrldq"|"pslldq" => {
                 let a = self.read(&dst,16).0;
                 let n = parse_imm(&f[1][2..]) as u128;
@@ -1543,6 +1548,16 @@ impl Machine {
             self.write(&dst, first.to_bits() as u128 | ((second.to_bits() as u128) << 64));
             return;
         }
+        if op == "cvtdq2ps" {
+            let source = self.read(&f[1], 16).0;
+            let mut result = 0u128;
+            for lane in 0..4 {
+                let value = (source >> (lane * 32)) as u32 as i32 as f32;
+                result |= (value.to_bits() as u128) << (lane * 32);
+            }
+            self.write(&dst, result);
+            return;
+        }
         // ── arithmetic: scalar (ss/sd) and packed (ps/pd) ──
         let w: u8 = if op.ends_with("ss") || op.ends_with("ps") { 4 } else { 8 };
         let scalar = op.ends_with("ss") || op.ends_with("sd");
@@ -1836,7 +1851,7 @@ fn is_simd(op: &str) -> bool {
         |"paddd"|"paddq"|"paddw"|"paddb"|"psubd"|"psubq"|"psubw"|"psubb"|"pmulld"|"pmuludq"|"pmullw"|"pmulhuw"
         |"psrlq"|"psllq"|"psrldq"|"pslldq"|"psrld"|"pslld"|"psrad"|"psrlw"|"psllw"|"psraw"|"pshufd"|"pinsrw"|"punpckldq"|"punpcklqdq"|"punpckhqdq"
         |"pcmpeqb"|"pcmpeqw"|"pcmpeqd"|"pcmpgtb"|"pcmpgtd"|"pminub"|"pmaxub"|"pmovmskb"|"movmskps"|"movmskpd"
-        |"packssdw"|"packsswb"|"packuswb"|"psadbw"
+        |"packssdw"|"packsswb"|"packuswb"|"psadbw"|"pextrw"
         |"punpcklbw"|"punpcklwd"|"punpckhbw"|"punpckhwd"|"punpckhdq"|"pshuflw"|"pshufhw"
         |"xorps"|"andps"|"andnps"|"orps"|"xorpd"|"andpd"|"andnpd"|"orpd"
         |"unpcklpd"|"unpckhpd"|"unpcklps"|"unpckhps"|"shufpd"|"shufps")
@@ -2030,6 +2045,42 @@ mod hosted_loader_tests {
 
 #[cfg(test)]
 mod membrane_simd_tests {
+    #[test]
+    fn gfe_pextrw_preserves_lane_selection_zero_extension_and_flags() {
+        use super::Machine;
+        let source = 0xfedc_ba98_7654_3210_0123_4567_89ab_cdefu128;
+        for lane in 0..8u8 {
+            let instruction = crate::x86::decode(&[0x66, 0x0f, 0xc5, 0xc0, lane | 0xf8], 0x100).unwrap();
+            let module = alloc::format!("@0x100\n⊞\t{}\t{}\t{}\t{}\n@0x105\n",
+                instruction.mnemonic, instruction.ops[0].field(), instruction.ops[1].field(), instruction.ops[2].field());
+            let mut machine = Machine::new(&module);
+            machine.set_reg("xmm0", source);
+            machine.set_reg("rax", u64::MAX as u128);
+            let flags = machine.flags;
+            assert!(machine.step(0x100).is_ok());
+            assert_eq!(machine.reg("rax"), (source >> (u32::from(lane) * 16)) & 0xffff);
+            assert_eq!(machine.flags, flags);
+        }
+    }
+
+    #[test]
+    fn gfe_cvtdq2ps_converts_all_signed_lanes_and_rounds() {
+        use super::Machine;
+        let instruction = crate::x86::decode(&[0x0f, 0x5b, 0xc1], 0x100).unwrap();
+        let module = alloc::format!("@0x100\n⊞\t{}\t{}\t{}\n@0x103\n",
+            instruction.mnemonic, instruction.ops[0].field(), instruction.ops[1].field());
+        let mut source = 0u128;
+        let mut expected = 0u128;
+        for (lane, value) in [i32::MIN, i32::MAX, -1, 16_777_217].into_iter().enumerate() {
+            source |= (value as u32 as u128) << (lane * 32);
+            expected |= ((value as f32).to_bits() as u128) << (lane * 32);
+        }
+        let mut machine = Machine::new(&module);
+        machine.set_reg("xmm1", source);
+        assert!(machine.step(0x100).is_ok());
+        assert_eq!(machine.reg("xmm0"), expected);
+    }
+
     #[test]
     fn cvtdq2pd_converts_two_signed_dwords_from_xmm_source() {
         use super::Machine;
@@ -2499,7 +2550,7 @@ fn is_float(op: &str) -> bool {
         "sqrtss"|"sqrtsd"|"sqrtps"|"sqrtpd"|
         "comiss"|"comisd"|"ucomiss"|"ucomisd"|
         "cvtsi2ss"|"cvtsi2sd"|"cvtss2si"|"cvtsd2si"|"cvttss2si"|"cvttsd2si"|
-        "cvtss2sd"|"cvtsd2ss"|"cvtdq2pd"|
+        "cvtss2sd"|"cvtsd2ss"|"cvtdq2pd"|"cvtdq2ps"|
         "cmpss"|"cmpsd"|"cmpps"|"cmppd")
 }
 

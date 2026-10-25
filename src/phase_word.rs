@@ -12,7 +12,7 @@ pub struct Deposit<T> {
     pub observation: T,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Readout<T> {
     pub register: u8,
     pub surviving: Vec<Deposit<T>>,

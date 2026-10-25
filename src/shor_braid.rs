@@ -108,6 +108,26 @@ pub fn order_lane(a: &[char], n: &[char]) -> Result<Vec<char>, String> {
     }
 }
 
+/// Open a modular rotation at one read coordinate, before the surrounding
+/// split/fuse returns the arms to their source. A proper gcd of x±1 with N is
+/// retained only after its quotient closes the exact source numeral.
+pub fn factor_close_at_residue(
+    residue: &[char],
+    n: &[char],
+) -> Result<Option<(&'static str, Vec<char>, Vec<char>)>, String> {
+    if zero(n) || eq(n, &one()) { return Err("residue opening requires a modulus greater than one".into()); }
+    let unit=one();
+    let minus=if cmp(residue,&unit)==core::cmp::Ordering::Less{sub(&unit,residue)}else{sub(residue,&unit)};
+    let plus=add(residue,&unit);
+    for (label,witness) in [("residue-minus-one",minus),("residue-plus-one",plus)] {
+        let factor=gcd(witness,n.to_vec());
+        if cmp(&factor,&unit)!=core::cmp::Ordering::Greater||cmp(&factor,n)!=core::cmp::Ordering::Less{continue;}
+        let (quotient,remainder)=divmod(n,&factor);
+        if zero(&remainder)&&eq(&mul(&factor,&quotient),n){return Ok(Some((label,factor,quotient)));}
+    }
+    Ok(None)
+}
+
 /// The Shor closing step on tapes: order r -> factors via gcd(a^(r/2) -/+ 1, n).
 /// Public so both the braid composition and the shor_qft wide branch call it.
 pub fn factor_close_public(a: &[char], n: &[char], r: &[char]) -> Result<(Vec<char>, Vec<char>), String> {
@@ -301,6 +321,12 @@ pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> 
         e = q;
     }
     bits.reverse();
+    let level_order = crate::ordering::selected("braid", bits.len())?;
+    let ordered_bits = level_order.apply(&bits)?;
+    let returned_bits = level_order.inverse().apply(&ordered_bits)?;
+    if returned_bits != bits {
+        return Err("selected Shor braid level order failed its inverse return".into());
+    }
     let levels = bits.len().max(1);
     let mut w: Vec<char> = Vec::new();
     w.push(VINIT);
@@ -311,7 +337,7 @@ pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> 
         w.push(AREV);
         w.push(CLINK);
     } else {
-        for &b in bits.iter() {
+        for &b in ordered_bits.iter() {
             w.push(FSPLIT);
             w.push(AFWD);
             w.push(if b { EVALF } else { EVALT });
@@ -400,6 +426,22 @@ mod tests {
         let n = decimal_to_tape("15").unwrap();
         let (p, q) = factor_close_public(&a, &n, &decimal_to_tape("4").unwrap()).unwrap();
         assert_eq!(crate::morphism_factor::mul(&p, &q), n);
+    }
+
+    #[test]
+    fn coordinate_opening_reads_the_n_only_300_bit_rotation_one_step_at_a_time() {
+        let n_text=include_str!("../measurements/base_mod_membrane_20261022/n1443886668465785239555226711752594674554632143872728785072260425128493389058547185473075869/source_n_only.txt").trim();
+        let n=decimal_to_tape(n_text).unwrap();let base=decimal_to_tape("2").unwrap();
+        let mut residue=crate::morphism_factor::modulo(&base,&n);
+        for _coordinate in 1..=4{
+            if let Some((_opening,p,q))=factor_close_at_residue(&residue,&n).unwrap(){
+                assert!(cmp(&p,&one())==core::cmp::Ordering::Greater&&cmp(&p,&n)==core::cmp::Ordering::Less);
+                assert!(crate::morphism_factor::zero(&crate::morphism_factor::divmod(&n,&p).1));
+                assert_eq!(crate::morphism_factor::mul(&p,&q),n);
+                return;
+            }
+            residue=crate::morphism_factor::modulo(&crate::morphism_factor::mul(&residue,&base),&n);
+        }
     }
 
     #[test]

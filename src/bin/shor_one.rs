@@ -18,6 +18,8 @@ use vox::morphism_factor::{dec_of, parse_numeral, smart_factor};
 use vox::shor_membrane::shor_factor;
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊣");
     let n = match parse_numeral(word) {
         Ok(t) => t,

@@ -166,6 +166,8 @@ fn run_toroidal_extractor(n_str: &str) {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     let default_targets = [
         "15",
@@ -175,10 +177,25 @@ fn main() {
         "1000000000000000000000000000000000000000032800000000000000000000000000000000000002451",
     ];
 
-    let targets: Vec<String> = if args.is_empty() {
+    let mut targets = Vec::new();
+    let mut index = 0;
+    while index < args.len() {
+        if args[index] != "--number" {
+            eprintln!("Usage: toroidal_shot_cli --number DECIMAL_N [--number DECIMAL_N ...]");
+            std::process::exit(2);
+        }
+        index += 1;
+        let Some(value) = args.get(index) else {
+            eprintln!("--number requires a decimal value");
+            std::process::exit(2);
+        };
+        targets.push(value.clone());
+        index += 1;
+    }
+    let targets: Vec<String> = if targets.is_empty() {
         default_targets.iter().map(|s| s.to_string()).collect()
     } else {
-        args
+        targets
     };
 
     println!("\n╔══════════════════════════════════════════════════════════════════════════════╗");

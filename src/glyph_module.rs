@@ -82,7 +82,9 @@ pub fn decode(word: &str) -> Result<String, String> {
     let mut module = String::new();
     loop {
         let glyph = chars.next().ok_or("truncated glyph module")?;
-        if glyph == '∋' {
+        // FFUSE also heads an executable record. The enclosing terminator
+        // is distinguished by its following latch, while records open ∈⊢∈.
+        if glyph == '∋' && chars.clone().next() == Some('⊡') {
             expect(&mut chars,"⊡⊣")?;
             if chars.next().is_some() { return Err("trailing content after glyph module".into()); }
             break;
@@ -124,6 +126,23 @@ mod tests {
         assert_eq!(returned, module);
         assert!(crate::imasm_module::validate_standalone(&returned).is_ok());
         assert!(encode("; standalone static-v1\n⊢⊙⊡⊣").is_err());
+    }
+
+    #[test]
+    fn rewired_fuse_records_roundtrip_and_execute() {
+        let module = format!("; standalone static-v1\n{}",
+            MODULE.replace("@0x1005\n", "@0x1005\n∋\n"));
+        let returned = decode(&encode(&module).unwrap()).unwrap();
+        assert_eq!(returned, module);
+        let mut machine = crate::imasm_vm::Machine::new(&returned);
+        assert_eq!(machine.call(machine.symbols["answer"], &[], 100).ok(), Some(42));
+    }
+
+    #[test]
+    fn all_opcode_record_heads_remain_distinct_from_the_outer_terminator() {
+        let mut module = String::from(MODULE);
+        for glyph in ALPHABET.chars() { module.push(glyph); module.push('\n'); }
+        assert_eq!(decode(&encode(&module).unwrap()).unwrap(), module);
     }
 
     #[test]

@@ -2,6 +2,8 @@
 #[path = "../reptiling_membrane.rs"] mod reptiling_membrane;
 #[path = "../baked_membrane.rs"] mod baked_membrane;
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let run = || -> Result<(), String> {
         let values = baked_membrane::numbers(option_env!("MEMBRANE_WORDS"))?;
         let inputs: Vec<usize> = values.iter().map(|&n| usize::try_from(n))

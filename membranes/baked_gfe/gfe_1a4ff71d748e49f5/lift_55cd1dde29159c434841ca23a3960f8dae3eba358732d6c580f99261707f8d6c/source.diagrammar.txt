@@ -1,0 +1,36 @@
+◇ CIRCUIT  GfeMorphismMachine   14 nodes, 15 wires open forks 0
+  Native graph flow: node inputs and actual wire carriers; seed A
+
+  0 ⊣ TANCH    N   
+     └─▶  1 ⊣   [o→i]  N
+  1 ⊣ TANCH    N   
+     └─▶  2 ⊙   [o→i]  N
+  2 ⊙ IMSCRIB  N   
+     └─▶  3 ∈   [o→i]  N
+  3 ∈ FSPLIT   N     ┐ fork
+     ├─▶  4 ∈   [T→i]  N
+     └─▶ 12 ∋   [F→F]  N
+  4 ∈ FSPLIT   N     ┐ fork
+     ├─▶  5 ≻   [T→i]  N
+     └─▶ 10 ⊥   [F→i]  N
+  5 ≻ AFWD     N   
+     └─▶  6 ⊙   [o→i]  N
+  6 ⊙ IMSCRIB  N   
+     └─▶  7 ⊞   [o→i]  N
+  7 ⊞ ENGAGR   N   
+     └─▶  8 ≺   [o→i]  tf
+  8 ≺ AREV     tf  
+     └─▶  9 ⊤   [o→i]  tf
+  9 ⊤ EVALT    tf  
+     └─▶ 11 ∋   [o→T]  t
+ 10 ⊥ EVALF    N   
+     └─▶ 11 ∋   [o→F]  N
+ 11 ∋ FFUSE    t     ┘ join
+     └─▶ 12 ∋   [o→T]  t
+ 12 ∋ FFUSE    t     ┘ join
+     └─▶ 13 ⊡   [o→i]  t
+ 13 ⊡ IFIX     t   
+
+  Native ancestry: CLOSED   pairs [[4, 11], [3, 12]]
+  Final node input t
+  walk: CLOSED

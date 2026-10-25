@@ -10,6 +10,8 @@ use ::vox::judge_g::{route_g, judg_to_mark, J_T, J_B, J_N, J_F};
 fn mark_of(j: Judg) -> char { judg_to_mark(j) }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     // a corpus: small composites, primes, semiprimes, powers, one big semiprime
     let mut corpus: Vec<u64> = Vec::new();
     for n in 2u64..=120 { corpus.push(n); }

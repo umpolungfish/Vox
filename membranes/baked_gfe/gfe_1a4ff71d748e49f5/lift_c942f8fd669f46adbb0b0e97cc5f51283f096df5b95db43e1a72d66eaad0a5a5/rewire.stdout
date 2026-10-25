@@ -1,0 +1,6 @@
+rewired 388325 instructions in 2389 functions
+Frobenius wiring: 42315 closed, 0 open; arm-entry work witness: 42309/42315
+coverage: 1748083/1748083 bytes; opaque bytes: 9; unresolved transfers: 6; symbolic transfers preserved: 9205
+Diagrammar: /home/mrnob0dy666/imsgct/Vox/membranes/baked_gfe/gfe_1a4ff71d748e49f5/lift_c942f8fd669f46adbb0b0e97cc5f51283f096df5b95db43e1a72d66eaad0a5a5/rewired.diagrammar.txt.gz
+IMASM tape: not emitted
+result: INCOMPLETE (/home/mrnob0dy666/imsgct/Vox/membranes/baked_gfe/gfe_1a4ff71d748e49f5/lift_c942f8fd669f46adbb0b0e97cc5f51283f096df5b95db43e1a72d66eaad0a5a5/rewired.json.gz)

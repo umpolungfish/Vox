@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 mod phase;
 pub(super) enum Step {
     Running,
-    Closed(Vec<char>, Vec<char>),
+    Divisor(Vec<char>),
     Empty,
 }
 pub(super) struct SquareFold {
@@ -13,6 +13,12 @@ pub(super) struct SquareFold {
     pub advances: usize,
 }
 impl SquareFold {
+    pub fn bind_torus_winding(&mut self, step: usize) -> Result<(), alloc::string::String> {
+        self.phase.bind_torus_winding(step)
+    }
+    pub fn torus_observations(&self) -> &[crate::glut_system::SquareTorusObservation] {
+        self.phase.torus_observations()
+    }
     pub fn new(n: &[char], root: &[char]) -> Self {
         Self {
             phase: phase::SquarePhase::new(n, root),
@@ -37,18 +43,13 @@ impl SquareFold {
             return Step::Empty;
         }
         self.advances += 1;
-        if let Some((mut p, mut q)) = self.phase.advance(observe) {
-            if mf::cmp(&p, &q) == core::cmp::Ordering::Greater {
-                core::mem::swap(&mut p, &mut q);
-            }
+        if let Some(divisor) = self.phase.advance(observe) {
             assert!(
-                crate::trace_algebra::witness_valid(self.phase.source(), &p, &q),
-                "square phase produced a non-dividing pair for N={:?}, p={:?}, q={:?}",
-                self.phase.source(),
-                p,
-                q
+                mf::cmp(&divisor, &[ONE]).is_gt()
+                    && mf::cmp(&divisor, self.phase.source()).is_lt(),
+                "square phase returned an improper divisor"
             );
-            Step::Closed(p, q)
+            Step::Divisor(divisor)
         } else {
             Step::Running
         }

@@ -3,6 +3,8 @@ extern crate alloc;
 use ::vox::morphism_factor::{decimal_to_tape, dec_of, parse_numeral};
 fn tape(s:&str)->Vec<char>{ if s.starts_with('⊢'){parse_numeral(s).unwrap()} else {decimal_to_tape(s).unwrap()} }
 fn main(){
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
   let args: Vec<String> = std::env::args().collect();
   if args.len()<3 { eprintln!("usage: braid_gens <a> <N>"); return; }
   let a=tape(&args[1]); let n=tape(&args[2]);

@@ -28,7 +28,10 @@ impl Correlation {
             .map(|i| {
                 if i == 0 {
                     usize::from(bit(n, 1) == 0)
-                } else if i + 1 == width {
+                } else if i + 1 == width && width <= n.len().div_ceil(2) {
+                    // A minimal midpoint chart has a known leading bit. A
+                    // wider chart covers several midpoint magnitudes; fixing
+                    // its top bit would exclude balanced factor pairs.
                     1
                 } else {
                     s.cell()
@@ -112,7 +115,17 @@ impl Correlation {
     }
     pub fn new_nested_after_frontier(
         n: &[char], width: usize, root: &[char], midpoint_floor: Option<&[char]>,
+        observe: impl FnMut(char, usize, usize),
+    ) -> Self {
+        Self::nested_graph(n,width,root,midpoint_floor,observe,true)
+    }
+    pub fn new_nested_for_complex(n:&[char],root:&[char])->Self{
+        Self::nested_graph(n,n.len().saturating_sub(1),root,None,|_,_,_|{},false)
+    }
+    fn nested_graph(
+        n: &[char], width: usize, root: &[char], midpoint_floor: Option<&[char]>,
         mut observe: impl FnMut(char, usize, usize),
+        connect:bool,
     ) -> Self {
         // The square and product views act on the same source and coordinates.
         // Use the existing folded square-column machinery as an executing
@@ -149,7 +162,7 @@ impl Correlation {
             s.bound(&midpoint, floor, true);
         }
         observe('⊡', s.gate_count(), s.cell_count());
-        s.connect_observed(&mut observe);
+        if connect {s.connect_observed(&mut observe);}else{s.fold_transport();}
         observe('⊙', s.gate_count(), s.cell_count());
         s
     }

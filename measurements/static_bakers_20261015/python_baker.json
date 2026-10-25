@@ -1,8 +1,0 @@
-{
-  "baker": "baked_case.py",
-  "binary": "/home/mrnob0dy666/imsgct/Vox/target/baked-semiprime/1792098135941110395/symbolic",
-  "bits": 224,
-  "sha256": "f5fa01cffad0c787cdc41f8abf801bfd628c9fc8dbd38ce5ad20f2b5c65a334c",
-  "static": true,
-  "execution_performed": false
-}

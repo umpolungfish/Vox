@@ -44,6 +44,8 @@ fn admissible(orig: &[char], cand: &[char], n: u64, rel: char) -> bool {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reference = RouterObject::initial();
     let word: Vec<char> = reference.encode().chars().collect();
     let mut corpus: Vec<u64> = Vec::new();

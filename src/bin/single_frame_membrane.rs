@@ -23,6 +23,8 @@
 #![allow(dead_code)]
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     println!("single_frame_membrane: ⊢∈≻⊤≺⊥∋⊙⊡⊣");
     println!("");
     println!("Pattern analysis:");

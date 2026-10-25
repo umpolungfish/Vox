@@ -6,6 +6,8 @@ use ::vox::router_object::{RouterObject, run, partial_router};
 use ::vox::router_marks::{RouterG, run_mark, run_word, match_word, M_N};
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let routers: [(&str, RouterObject); 2] = [
         ("initial", RouterObject::initial()),
         ("partial", partial_router()),

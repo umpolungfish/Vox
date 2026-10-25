@@ -51,6 +51,8 @@ fn gen_semiprime(bits: u32, rng: &mut Lcg) -> u64 {
     p * q
 }
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     let shot_budget: u64 = 20_000_000;
     let nest_budget: u64 = 50_000_000;

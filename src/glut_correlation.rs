@@ -12,7 +12,7 @@ mod parity;
 mod transport;
 #[path = "glut_joint_support.rs"]
 mod joint_support;
-use alloc::{collections::BTreeMap, vec, vec::Vec};
+use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Literal {
@@ -88,6 +88,7 @@ pub(super) struct Correlation {
     reasons: Vec<Option<Vec<Literal>>>,
     activity: BTreeMap<usize, Vec<char>>,
     priority: BTreeMap<usize, usize>,
+    catalyst_inverse: Option<BTreeMap<usize, usize>>,
     bump: Vec<char>,
     trail: Vec<Literal>,
     boundaries: Vec<usize>,
@@ -124,6 +125,27 @@ pub(super) struct Correlation {
     pub joint_forced: usize,
 }
 impl Correlation {
+    pub(super) fn bind_midpoint_floor(&mut self, floor: &[char]) {
+        let midpoint = self.midpoint.clone();
+        self.bound(&midpoint, floor, true);
+    }
+    pub(super) fn bind_factor_pair(&mut self, p:&[char], q:&[char]) -> Result<(),String> {
+        for (cells,value) in [(self.p.clone(),p),(self.q.clone(),q)] {
+            if value.iter().any(|&mark|mark!=ZERO&&mark!=ONE) {
+                return Err("dialectic factor closure contains a non-parity mark".into());
+            }
+            if value.iter().skip(cells.len()).any(|&mark|mark==ONE) {
+                return Err("dialectic factor closure exceeds the resident factor lane".into());
+            }
+            for (at,&cell) in cells.iter().enumerate() {
+                let mark=bit(value,at)==1;
+                if !self.assign(Literal{cell,mark:if mark {ONE}else{ZERO}},None) {
+                    return Err("dialectic factor closure contradicts the shared arithmetic graph".into());
+                }
+            }
+        }
+        self.propagate().map_err(|_|String::from("dialectic factor closure empties the shared arithmetic graph"))
+    }
     pub(super) fn factor_support(&self) -> crate::dialectic_reentry::FactorSupport {
         crate::dialectic_reentry::FactorSupport {
             source:self.source.clone(),
@@ -172,6 +194,7 @@ impl Correlation {
             activity: BTreeMap::new(),
             bump: vec![ONE],
             priority: BTreeMap::new(),
+            catalyst_inverse: None,
             trail: Vec::new(),
             boundaries: Vec::new(),
             cursor: 0,
@@ -357,6 +380,57 @@ impl Correlation {
                 self.empty = true;
             }
         }
+    }
+
+    /// Apply MoDoT's twelve-axis order to the actual factor cells. The
+    /// permutation changes the resident's next-cell selection while leaving
+    /// every product, carry, parity, and support gate attached to its cell.
+    pub(super) fn apply_catalyst_order(&mut self, axes: &[usize; 12]) -> Result<(), String> {
+        if self.catalyst_inverse.is_some() {
+            return Err("catalyst order is already active on this correlation".into());
+        }
+        let mut seen = [false; 12];
+        for &axis in axes {
+            if axis >= 12 || seen[axis] {
+                return Err("MoDoT catalyst order is not a permutation of twelve axes".into());
+            }
+            seen[axis] = true;
+        }
+        let expand = |width: usize| {
+            let mut positions = Vec::with_capacity(width);
+            for block in 0..width.div_ceil(12) {
+                for &axis in axes {
+                    let position = block * 12 + axis;
+                    if position < width { positions.push(position); }
+                }
+            }
+            positions
+        };
+        let p_order = expand(self.p.len());
+        let q_order = expand(self.q.len());
+        if p_order.len() != self.p.len() || q_order.len() != self.q.len() {
+            return Err("MoDoT support order did not cover every resident factor cell".into());
+        }
+        self.catalyst_inverse = Some(self.priority.clone());
+        for (rank, position) in p_order.into_iter().enumerate() {
+            self.priority.insert(self.p[position], rank * 2);
+        }
+        for (rank, position) in q_order.into_iter().enumerate() {
+            self.priority.insert(self.q[position], rank * 2 + 1);
+        }
+        Ok(())
+    }
+
+    /// Return the original resident decision order after the active
+    /// computation, consuming the exact inverse retained by AFWD.
+    pub(super) fn return_catalyst_order(&mut self) -> Result<(), String> {
+        let original = self.catalyst_inverse.take()
+            .ok_or("catalyst inverse has no retained forward order")?;
+        if original.len() != self.priority.len() {
+            return Err("catalyst inverse lost resident decision coordinates".into());
+        }
+        self.priority = original;
+        Ok(())
     }
     pub fn gate_count(&self) -> usize {
         self.gates.len()
@@ -794,15 +868,19 @@ impl Correlation {
         self.reason_original += premise.len();
         let mut work = 0;
         let interval = self.interval_rejects(&premise, &mut work);
-        if interval || option_env!("GLUT_CARRY_REASON_FOLD_WORD") == Some("⊤") {
+        // A retained conflict excludes every extension of its premises.
+        // Let the native support return prove the larger family directly,
+        // including source-bound prime rails, before shedding assumptions.
+        let support = !interval && self.support_rejects(&premise, &mut work);
+        if interval || support {
             if interval {
                 self.interval_rejected += 1;
             } else {
                 self.carry_rejected += 1;
             }
             // Fold whole assumption blocks first, then their smaller pieces.
-            // Every deletion is accepted only after the source interval proves
-            // that the remaining assumptions still exclude every product.
+            // Every deletion requires a fresh native interval/support return
+            // proving that all extensions remain outside the source product.
             let mut width = premise.len();
             while width != 0 {
                 let mut position = 0;
@@ -991,6 +1069,52 @@ impl Correlation {
             }
             if mf::cmp(&p, &q) == core::cmp::Ordering::Greater {
                 core::mem::swap(&mut p, &mut q);
+            }
+            let mut prime_conflict = false;
+            for &p_s in &crate::geometer_factor_extractor::SMALL_PRIME_ORBIT_PRIMES {
+                let r_n = crate::geometer_factor_extractor::tape_rem_u32(&self.source, p_s);
+                if r_n != 0 {
+                    let r_p = crate::geometer_factor_extractor::tape_rem_u32(&p, p_s);
+                    let r_q = crate::geometer_factor_extractor::tape_rem_u32(&q, p_s);
+                    if r_p == 0 || r_q == 0 || (r_p * r_q) % p_s != r_n {
+                        prime_conflict = true;
+                        break;
+                    }
+                }
+            }
+            if prime_conflict {
+                let mut premise = Vec::new();
+                for &cell in self.p.iter().chain(&self.q) {
+                    if self.levels[cell] > 0 {
+                        if let Some(mark) = self.values[cell] {
+                            let lit = Literal { cell, mark }.opposite();
+                            if !premise.contains(&lit) {
+                                premise.push(lit);
+                            }
+                        }
+                    }
+                }
+                self.conflicts += 1;
+                let conflict_level = premise.iter().map(|lit| self.levels[lit.cell]).max().unwrap_or(0);
+                if conflict_level == 0 {
+                    self.empty = true;
+                    return Step::Empty;
+                }
+                self.retreat(conflict_level);
+                let (learned, target) = self.analyze(premise);
+                self.retreat(target);
+                let forced = learned[0];
+                if learned.len() > 1 {
+                    let index = self.learned.len();
+                    self.watches.entry(learned[0].slot()).or_default().push(index);
+                    self.watches.entry(learned[1].slot()).or_default().push(index);
+                    self.learned.push(learned.clone());
+                }
+                if !self.assign(forced, Some(learned)) {
+                    self.empty = true;
+                    return Step::Empty;
+                }
+                continue;
             }
             return Step::Closed(p, q);
         }

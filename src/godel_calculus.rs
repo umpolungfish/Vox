@@ -735,6 +735,9 @@ pub fn normalize_numeral_word(raw: &str) -> Result<String, String> {
 }
 
 fn braid_values(gamma: &Nat, lambda: &Nat) -> Nat {
+    let lanes = crate::ordering::selected("lanes", 2).expect("valid lane order")
+        .apply(&[gamma, lambda]).expect("complete lane order");
+    let (gamma, lambda) = (lanes[0], lanes[1]);
     let width = gamma.bits_le().len().max(lambda.bits_le().len());
     let mut bits = Vec::with_capacity(width * 2);
     for index in 0..width {
@@ -754,7 +757,9 @@ fn unbraid_value(value: &Nat) -> (Nat, Nat) {
             lambda.push(bit);
         }
     }
-    (Nat::from_bits_le(gamma), Nat::from_bits_le(lambda))
+    let lanes = crate::ordering::selected("lanes", 2).expect("valid lane order").inverse()
+        .apply(&[Nat::from_bits_le(gamma), Nat::from_bits_le(lambda)]).expect("complete inverse lane order");
+    (lanes[0].clone(), lanes[1].clone())
 }
 
 pub fn command(args: &[&str]) -> Result<String, String> {

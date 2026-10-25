@@ -64,6 +64,8 @@ fn readout_and_factor(n: &BigUint, a: &BigUint, m: usize) -> i32 {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
 
     // gen mode: hsoa_winding gen [s] [M]

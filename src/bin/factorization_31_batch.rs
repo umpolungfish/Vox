@@ -5,16 +5,21 @@
 //! output during factoring.
 #![deny(warnings)]
 
-const BAKED: &[&str] = &[
+const DEFAULT_BAKED: &[&str] = &[
     "10000000000000000016800000000000000005031",
     "1000000000000000000000000000370000000000000000000000000026829",
     "100000000000000000039000000009900000000000000003861",
 ];
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
+    let inputs = option_env!("MEMBRANE_DECIMALS")
+        .map(|values| values.split_whitespace().collect::<Vec<_>>())
+        .unwrap_or_else(|| DEFAULT_BAKED.to_vec());
     let tower = ::vox::complete_membrane::CompleteMembrane::new(8).unwrap();
-    let mut reports = Vec::with_capacity(BAKED.len());
-    for decimal in BAKED {
+    let mut reports = Vec::with_capacity(inputs.len());
+    for decimal in inputs {
         let started = std::time::Instant::now();
         let carrier = decimal.as_bytes();
         assert!(tower.forward_pairs().iter().all(|&(from, to)|

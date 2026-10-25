@@ -20,6 +20,8 @@ fn imasm_probe(tr: &[TraceStep]) -> Option<[char; 2]> {
 fn show(p: Option<[char; 2]>) -> String { match p { Some(a) => a.iter().collect(), None => "-".into() } }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let mut init = RouterObject::initial(); init.canonicalize();
     let routers: Vec<(&str, RouterObject)> = vec![
         ("initial", init), ("partial", partial_router()), ("no_n", no_n_router()),

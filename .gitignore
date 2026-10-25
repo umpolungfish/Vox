@@ -21,3 +21,6 @@ mspaint.imasm
 qft8.glyphs
 vox:Zone.Identifier
 p4rakernel-reconcile
+
+# Local measurements and execution receipts
+measurements/

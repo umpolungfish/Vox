@@ -2802,6 +2802,8 @@ pub fn unbraid_semiprime(word: &str) -> Result<(String, String), String> {
         }
     }
     width_pairs.sort_by_key(|(p_bits, q_bits)| p_bits.abs_diff(*q_bits));
+    let order = crate::ordering::selected("separating", width_pairs.len())?;
+    let width_pairs = order.apply(&width_pairs)?;
     for (p_bits, q_bits) in width_pairs {
             if let Some((p, q)) = range_unbraid_width(&n, p_bits, q_bits) {
                 if cmp(&p, &one()) == core::cmp::Ordering::Greater

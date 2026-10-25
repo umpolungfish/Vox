@@ -11,6 +11,8 @@ use vox::reentry_certificate::{
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let word = BAKED_MODULUS_WORD.expect("bake the resident IMASM modulus");
     let n = parse_numeral(word).expect("baked source numeral");
     let membrane =

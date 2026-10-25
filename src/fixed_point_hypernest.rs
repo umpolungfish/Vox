@@ -102,34 +102,7 @@ impl CollapsedHypernest {
 /// untouched, so the winding (depth) is preserved while the boundary count
 /// drops to one of each. This is the free lunch made explicit: the same
 /// transformation, one enclosing loop, executed once.
-pub fn collapse_to_nested(word: &[char]) -> alloc::vec::Vec<char> {
-    let last_ffuse = word.iter().rposition(|&m| m == FFUSE);
-    let last_tanch = word.iter().rposition(|&m| m == TANCH);
-    let mut seen_vinit = false;
-    let mut seen_fsplit = false;
-    let mut out = alloc::vec::Vec::with_capacity(word.len());
-    for (i, &mark) in word.iter().enumerate() {
-        let keep = match mark {
-            VINIT => {
-                let first = !seen_vinit;
-                seen_vinit = true;
-                first
-            }
-            FSPLIT => {
-                let first = !seen_fsplit;
-                seen_fsplit = true;
-                first
-            }
-            FFUSE => Some(i) == last_ffuse,
-            TANCH => Some(i) == last_tanch,
-            _ => true,
-        };
-        if keep {
-            out.push(mark);
-        }
-    }
-    out
-}
+pub use crate::word_nesting::collapse_to_nested;
 
 /// Compile a complete dissolved return. Interior component fixations become
 /// winding records at the surviving enclosing fuse, after all retained work.

@@ -6,6 +6,7 @@ use super::{
 use alloc::{rc::Rc, string::String, vec::Vec};
 use core::cell::{Cell, RefCell};
 
+#[derive(Clone)]
 pub struct PreparedGlutMembrane {
     nested: Vec<char>,
     collapsed: Vec<char>,
@@ -26,7 +27,7 @@ impl GlutComponentProgram {
         // and terminal ports; retain its work and dyad inside the GLUT frame.
         let mut nested: Vec<char> = "⊢∈∈".chars().collect();
         let mut body = Vec::new();
-        for port in Port::ORDER {
+        for port in Port::ordered() {
             let word: Vec<char> = port.word().chars().collect();
             if word.first() != Some(&'⊢') || word.last() != Some(&'⊣') {
                 return Err("GLUT component lacks source and terminal ports".into());
@@ -78,14 +79,67 @@ impl GlutComponentProgram {
 }
 impl PreparedGlutMembrane {
     pub fn prepare_dialectic(n: &[char]) -> Result<Self, String> {
+        Self::prepare_dialectic_with_mask(n, None)
+    }
+    pub fn prepare_dialectic_gfe(
+        n: &[char],
+        mask: &crate::geometer_factor_extractor::SmallPrimeOrbitMask,
+    ) -> Result<Self, String> {
+        Self::prepare_dialectic_with_mask(n, Some(mask))
+    }
+    fn prepare_dialectic_with_mask(
+        n: &[char],
+        mask: Option<&crate::geometer_factor_extractor::SmallPrimeOrbitMask>,
+    ) -> Result<Self, String> {
         let program = GlutComponentProgram::compile()?;
+        let mut resident=Resident::with_dialectic(n, mask)?;
+        resident.catalyst=Some(super::CatalystCycle::canonical()?);
         Ok(Self { nested: program.nested, collapsed: program.collapsed, body: program.body,
-            resident: Rc::new(RefCell::new(Resident::with_dialectic(n)?)), returned: None })
+            resident: Rc::new(RefCell::new(resident)), returned: None })
     }
     pub fn prepare(n: &[char]) -> Result<Self, String> {
         let program=GlutComponentProgram::compile()?;
+        let mut resident=Resident::new(n, |_| {});
+        resident.catalyst=Some(super::CatalystCycle::canonical()?);
         Ok(Self {nested:program.nested,collapsed:program.collapsed,body:program.body,
-            resident:Rc::new(RefCell::new(Resident::new(n, |_| {}))),returned:None})
+            resident:Rc::new(RefCell::new(resident)),returned:None})
+    }
+    pub fn resident_identity(&self)->usize{Rc::as_ptr(&self.resident) as usize}
+    pub fn bind_square_torus(&mut self) -> Result<(), String> {
+        self.resident.borrow_mut().bind_square_torus()
+    }
+    pub fn square_torus_observations(&self) -> Vec<super::SquareTorusObservation> {
+        self.resident.borrow().square_torus_observations()
+    }
+    pub fn stats(&self)->super::FoldStats{self.resident.borrow().stats.clone()}
+    /// Bind an N-only divisor to the executing register and close its exact
+    /// multiplication, carry checkpoints and factor-phase return in place.
+    pub fn bind_source_candidate(&mut self, p: Vec<char>, q: Vec<char>,
+        producer: &'static str) -> Result<(), String> {
+        self.resident.borrow_mut().bind_source_candidate(p, q, producer)
+    }
+    pub fn catalyst_observations(&self)->Vec<super::CatalystObservation>{
+        self.resident.borrow().catalyst.as_ref().map_or_else(Vec::new,|c|c.observations.clone())
+    }
+    pub fn return_catalyst_order(&mut self) -> Result<(), String> {
+        self.resident.borrow_mut().return_catalyst_order()
+    }
+    /// Apply the forward MoDoT support permutation to the shared resident.
+    /// Called by the GFE word's AFWD morphism after its two branch handles exist.
+    pub fn apply_catalyst_order(&mut self) -> Result<(), String> {
+        self.resident.borrow_mut().bind_catalyst_order()
+    }
+    /// Apply a source-bound axis permutation derived from the GFE torus braid.
+    pub fn apply_catalyst_order_axes(&mut self, axes: [usize; 12]) -> Result<(), String> {
+        self.resident.borrow_mut().bind_catalyst_order_axes(axes)
+    }
+    /// Apply the multi-strand horn-torus bit-twist braid permutation directly
+    /// to the resident correlation graph.
+    pub fn apply_horn_torus_twist(&mut self, strands: usize) -> Result<[usize; 12], String> {
+        let braid = crate::pwoat_torus::BitBraid::torus_twist(strands);
+        let axes = braid.axis_permutation();
+        self.apply_catalyst_order_axes(axes)?;
+        Ok(axes)
     }
     pub fn nested_word(&self) -> &[char] {
         &self.nested
@@ -111,7 +165,7 @@ impl PreparedGlutMembrane {
     }
     pub fn advance_observed(&mut self, mut observe: impl FnMut(&super::FoldStats)) -> bool {
         let mut resident = self.resident.borrow_mut();
-        for port in Port::ORDER {
+        for port in Port::ordered() {
             resident.activate(port, &mut observe);
         }
         resident.finished() && resident.quantum_phase_closed()
@@ -186,6 +240,42 @@ impl PreparedGlutMembrane {
             deposits: read.deposits, seeded: read.seeded, inert: read.inert,
             restore_supports: read.restore_supports.clone(),
         })
+    }
+}
+
+impl crate::membrane_interface::Membrane for PreparedGlutMembrane {
+    type Input = Vec<char>;
+    type Readout = Option<GlutExecution>;
+    type Continuation = Self;
+    type Error = String;
+
+    fn prepare(input: Self::Input) -> Result<Self, Self::Error> {
+        Self::prepare(&input)
+    }
+
+    fn advance(
+        &mut self,
+    ) -> Result<crate::membrane_interface::MembraneProgress, Self::Error> {
+        Ok(if PreparedGlutMembrane::advance(self) {
+            crate::membrane_interface::MembraneProgress::ReadyToClose
+        } else {
+            crate::membrane_interface::MembraneProgress::Open
+        })
+    }
+
+    fn close(
+        mut self,
+    ) -> Result<
+        crate::membrane_interface::MembraneClosure<Self, Self::Continuation, Self::Readout>,
+        Self::Error,
+    > {
+        match self.execute_retained()? {
+            Some(readout) => Ok(crate::membrane_interface::MembraneClosure::Closed {
+                membrane: Some(self),
+                readout: Some(readout),
+            }),
+            None => Ok(crate::membrane_interface::MembraneClosure::Open(self)),
+        }
     }
 }
 

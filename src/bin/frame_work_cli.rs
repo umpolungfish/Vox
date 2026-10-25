@@ -6,6 +6,8 @@ extern crate alloc;
 use ::vox::frame_work::{adjacent_dyad, captured_span, frame_work};
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.is_empty() {
         eprintln!("frame_work_cli <word> ...  resident FRAME_WORK");

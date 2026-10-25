@@ -191,6 +191,8 @@ pub fn factor_2adic_bigint(
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("usage: factor_2adic_bigint <N> [lp] [lq] [max_solutions]");

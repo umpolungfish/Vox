@@ -79,6 +79,8 @@ fn leaping_rotation(a: &[char], n: &[char], steps: u64) -> Option<Tape> {
 }
 
 fn main() -> Result<(), String> {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let a = parse_numeral(BAKED_BASE_WORD.ok_or("bake a base word")?)?;
     let n = parse_numeral(BAKED_MODULUS_WORD.ok_or("bake a modulus word")?)?;
     println!("base {}  modulus {}", dec_of(&a), dec_of(&n));

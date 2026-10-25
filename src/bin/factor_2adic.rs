@@ -201,6 +201,8 @@ pub extern "C" fn imasm_entry() {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     if std::env::args_os().len() != 1 {
         eprintln!("This membrane already contains its base and modulus and accepts no runtime arguments.");
         std::process::exit(2);
@@ -342,6 +344,8 @@ pub extern "C" fn imasm_entry() {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     if std::env::args_os().len() != 1 {
         eprintln!("This membrane already contains its value and accepts no runtime arguments.");
         std::process::exit(2);

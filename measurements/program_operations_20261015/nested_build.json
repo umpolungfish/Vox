@@ -1,8 +1,0 @@
-{
-  "command": "./programs build membranes/bin:membrane_ecm_extract",
-  "exit_code": 0,
-  "image": "G-mOMonadOS/membranes/target/x86_64-unknown-linux-gnu/release/membrane_ecm_extract",
-  "static": true,
-  "sha256": "d2325f7c6a0e514568925bff8556f2b165a25ac67b9ece242d43518916129d63",
-  "execution_performed": false
-}

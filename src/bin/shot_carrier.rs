@@ -174,6 +174,8 @@ fn try_base_folded(a: &BigUint, n: &BigUint, q: usize, folds: &[u64])
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let raw: Vec<String> = env::args().skip(1).collect();
     if raw.len() < 2 {
         eprintln!("usage: shot_carrier <N> <q>   (q < 63)");

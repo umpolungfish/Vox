@@ -194,6 +194,8 @@ fn factor_baked_value() -> Result<String, String> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     match factor_baked_value() {
         Ok(report) => print!("{report}"),
         Err(error) => {

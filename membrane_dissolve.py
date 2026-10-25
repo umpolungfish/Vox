@@ -26,6 +26,7 @@ Usage:
 """
 import sys
 from numeral_codec import decode_hex
+from ordering import selected, apply, inverse, intercept
 
 # src/vox.rs
 VINIT, TANCH = "⊢", "⊣"
@@ -210,6 +211,7 @@ def _from_bits(b):
 
 def braid_values(g, l):
     """godel_calculus::braid_values: interleave, gamma on even positions."""
+    g, l = apply(selected("lanes", 2), [g, l])
     bg, bl = _bits(g), _bits(l)
     out = []
     for i in range(max(len(bg), len(bl))):
@@ -221,7 +223,7 @@ def braid_values(g, l):
 def unbraid_value(n):
     """godel_calculus::unbraid_value: (even positions, odd positions)."""
     b = _bits(n)
-    return _from_bits(b[0::2]), _from_bits(b[1::2])
+    return tuple(apply(inverse(selected("lanes", 2)), [_from_bits(b[0::2]), _from_bits(b[1::2])]))
 
 
 # How an input shift of s on both operands appears on the result: result << (DEGREE*s).
@@ -272,7 +274,7 @@ def pipe_unbraid(n, k):
     fr = lambda w: w.count(FSPLIT)
     wn = encode_cell_binary(n)
     sn = shift_word(wn, k)
-    first, second = unbraid_value(decode_cell_binary(sn)[0])
+    first, second = apply(selected("lanes", 2), unbraid_value(decode_cell_binary(sn)[0]))
     w1, w2 = encode_cell_binary(first), encode_cell_binary(second)
     s, odd = divmod(k, 2)
     if odd:
@@ -281,7 +283,7 @@ def pipe_unbraid(n, k):
     else:
         gamma_w, lambda_w = unshift_word(w1, s), unshift_word(w2, s)
         how = f"even shift: unshift both lanes by {s}"
-    got = (decode_cell_binary(gamma_w)[0], decode_cell_binary(lambda_w)[0])
+    got = tuple(apply(inverse(selected("lanes", 2)), [decode_cell_binary(gamma_w)[0], decode_cell_binary(lambda_w)[0]]))
     expected = unbraid_value(n)
     stages = [
         f"encode     n {fr(wn)} frames",
@@ -448,6 +450,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    intercept()
     try:
         sys.exit(main(sys.argv))
     except ValueError as error:

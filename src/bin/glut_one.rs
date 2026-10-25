@@ -7,6 +7,8 @@ use vox::reentry_certificate::{
     certify_reentry, decode_reentry_certificate, encode_reentry_certificate,
 };
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let word = option_env!("GLUT_SOURCE_WORD")
         .unwrap_or(include_str!("../../membranes/glut_dynamic_8051/input.imasm").trim());
     let n = parse_numeral(word).expect("baked source numeral");

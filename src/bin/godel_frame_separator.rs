@@ -20,7 +20,7 @@ fn rotat(bits: &[char], cut: usize) -> Tape {
     bits[cut..].iter().chain(&bits[..cut]).copied().collect()
 }
 
-fn separate(bits: &[char]) -> (Tape, Tape) {
+fn separate(bits: &[char]) -> Result<(Tape, Tape), String> {
     let mut p = Vec::with_capacity((bits.len() + 1) / 2);
     let mut q = Vec::with_capacity(bits.len() / 2);
     for (index, &bit) in bits.iter().enumerate() {
@@ -30,10 +30,30 @@ fn separate(bits: &[char]) -> (Tape, Tape) {
             q.push(bit);
         }
     }
-    (p, q)
+    let order = vox::ordering::selected("lanes", 2)?;
+    let canonical = [p, q];
+    let ordered = order.apply(&canonical)?;
+    if order.inverse().apply(&ordered)? != canonical {
+        return Err("selected separation lanes failed their inverse return".into());
+    }
+    Ok((ordered[0].clone(), ordered[1].clone()))
 }
 
-fn interlace(lanes: &[Tape], width: usize, depth: usize) -> Tape {
+fn interlace(lanes: &[Tape], width: usize, depth: usize) -> Result<Tape, String> {
+    let local_order = vox::ordering::selected("lanes", 2)?;
+    let mut composed = vec![0usize];
+    for _ in 0..depth {
+        let mut next = Vec::with_capacity(composed.len() * 2);
+        for &parent in &composed {
+            for &child in &local_order.indices {
+                next.push(parent * 2 + child);
+            }
+        }
+        composed = next;
+    }
+    let global_order = vox::ordering::Permutation::checked(composed, lanes.len())?;
+    let logical_lanes = global_order.inverse().apply(lanes)?;
+    let lanes = &logical_lanes;
     let mut out = Vec::with_capacity(width);
     for position in 0..width {
         let mut lane = position % lanes.len();
@@ -46,7 +66,7 @@ fn interlace(lanes: &[Tape], width: usize, depth: usize) -> Tape {
         let offset = position / lanes.len();
         out.push(lanes[lane].get(offset).copied().unwrap_or(EVALT));
     }
-    out
+    Ok(out)
 }
 
 fn product(lanes: &[Tape]) -> Tape {
@@ -65,6 +85,8 @@ fn value(bits: &[char]) -> String {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let started = Instant::now();
     let result = (|| -> Result<String, String> {
         let source = morphism_factor::parse_numeral(SOURCE_WORD)?;
@@ -74,20 +96,26 @@ fn main() {
         let mut closures = Vec::new();
         let mut first = None;
 
-        for cut in 0..source_bits {
+        let cuts: Vec<usize> = (0..source_bits).collect();
+        let cut_order = vox::ordering::selected("separating", cuts.len())?;
+        let ordered_cuts = cut_order.apply(&cuts)?;
+        if cut_order.inverse().apply(&ordered_cuts)? != cuts {
+            return Err("selected frame-cut order failed its inverse return".into());
+        }
+        for cut in ordered_cuts {
             let shifted = rotat(&source, cut);
             let mut lanes = vec![shifted.clone()];
             let mut depth = 0usize;
             while lanes.iter().any(|lane| lane.len() > 1) {
                 depth += 1;
-                lanes = lanes
-                    .iter()
-                    .flat_map(|lane| {
-                        let (p, q) = separate(lane);
-                        [p, q]
-                    })
-                    .collect();
-                if interlace(&lanes, source_bits, depth) != shifted {
+                let mut children = Vec::with_capacity(lanes.len() * 2);
+                for lane in &lanes {
+                    let (p, q) = separate(lane)?;
+                    children.push(p);
+                    children.push(q);
+                }
+                lanes = children;
+                if interlace(&lanes, source_bits, depth)? != shifted {
                     return Err(format!("depth-{depth} reassembly failed at cut {cut}"));
                 }
                 let direct = product(&lanes);
@@ -97,7 +125,7 @@ fn main() {
                     .collect();
                 let inverse_product = product(&inverse);
                 if cut == 0 {
-                    let (p, q) = separate(&source);
+                    let (p, q) = separate(&source)?;
                     first = Some((value(&p), value(&q)));
                 }
                 if level_stats.len() < depth {

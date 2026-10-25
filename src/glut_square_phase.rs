@@ -7,6 +7,8 @@ use alloc::{collections::BTreeMap, vec, vec::Vec};
 mod residual;
 #[path = "glut_support.rs"]
 mod support;
+#[path = "glut_root_reentry.rs"]
+mod root_reentry;
 use support::Support;
 type Tape = Vec<char>;
 fn address(mut value: usize) -> Tape {
@@ -92,6 +94,7 @@ struct Column {
 #[derive(Clone)]
 struct Hits {
     column: usize,
+    record_link: bool,
     step: usize,
     weight: usize,
     first: usize,
@@ -171,7 +174,7 @@ fn mark_roots<T: FoldedWeight>(
             while *position < block_end {
                 let local = *position - block_start;
                 weights[local] = weights[local].accumulate(weight, threshold);
-                hit_links.push((hits.column, local));
+                if hits.record_link { hit_links.push((hits.column, local)); }
                 *position += hits.step;
                 visits += 1;
             }
@@ -336,6 +339,64 @@ struct Witness {
     residual: Tape,
     factors: Vec<Tape>,
 }
+#[cfg(feature = "protein-cli")]
+struct WitnessWorkers {
+    sender: Option<std::sync::mpsc::Sender<(u64, usize, Witness,
+        std::sync::mpsc::Sender<(u64, usize, Witness)>)>>,
+    handles: Vec<std::thread::JoinHandle<()>>,
+    epoch: u64,
+}
+#[cfg(feature = "protein-cli")]
+impl WitnessWorkers {
+    fn new(count: usize, source: Tape) -> Self {
+        let (sender, receiver) = std::sync::mpsc::channel::<(u64, usize, Witness,
+            std::sync::mpsc::Sender<(u64, usize, Witness)>)>();
+        let receiver = std::sync::Arc::new(std::sync::Mutex::new(receiver));
+        let source = std::sync::Arc::new(source);
+        let handles = (0..count).map(|_| {
+            let receiver = receiver.clone();
+            let source = source.clone();
+            std::thread::spawn(move || loop {
+                let job = receiver.lock().expect("square job boundary poisoned").recv();
+                let Ok((epoch, slot, mut witness, returned)) = job else { break; };
+                if !mf::zero(&witness.residual) {
+                    witness.factors = residual::factors(&witness.residual);
+                }
+                if std::env::var_os("GM_FACTOR_TRACE").is_some() {
+                    std::eprintln!("square-worker-return thread={:?} epoch={} slot={} source-bits={}",
+                        std::thread::current().id(), epoch, slot, source.len());
+                }
+                let _ = returned.send((epoch, slot, witness));
+            })
+        }).collect();
+        Self { sender: Some(sender), handles, epoch: 0 }
+    }
+    fn map(&mut self, rows: Vec<Witness>) -> Vec<Witness> {
+        self.epoch += 1;
+        let count = rows.len();
+        let (returned, receiver) = std::sync::mpsc::channel();
+        for (slot, row) in rows.into_iter().enumerate() {
+            self.sender.as_ref().unwrap().send((self.epoch, slot, row, returned.clone()))
+                .unwrap_or_else(|_| panic!("square worker lost its marked input"));
+        }
+        drop(returned);
+        let mut rows: Vec<Option<Witness>> = (0..count).map(|_| None).collect();
+        for _ in 0..count {
+            let (epoch, slot, row) = receiver.recv().expect("square worker lost its return");
+            assert_eq!(epoch, self.epoch, "square worker crossed a re-entry boundary");
+            assert!(rows[slot].is_none(), "square worker duplicated an ancestry slot");
+            rows[slot] = Some(row);
+        }
+        rows.into_iter().map(|row| row.expect("square ancestry slot missing")).collect()
+    }
+}
+#[cfg(feature = "protein-cli")]
+impl Drop for WitnessWorkers {
+    fn drop(&mut self) {
+        drop(self.sender.take());
+        for worker in self.handles.drain(..) { let _ = worker.join(); }
+    }
+}
 pub(super) struct SquarePhase {
     n: Tape,
     start: Tape,
@@ -359,6 +420,10 @@ pub(super) struct SquarePhase {
     family_pool: Vec<usize>,
     family_choice: Vec<usize>,
     family_columns: usize,
+    #[cfg(feature = "protein-cli")]
+    workers: Option<WitnessWorkers>,
+    torus_winding: Option<(Tape, Tape)>,
+    torus_observations: Vec<crate::glut_system::SquareTorusObservation>,
     #[cfg(feature = "root-work-profile")]
     root_marks: usize,
     #[cfg(feature = "root-work-profile")]
@@ -369,6 +434,26 @@ pub(super) struct SquarePhase {
     root_candidates: usize,
 }
 impl SquarePhase {
+    pub fn bind_torus_winding(&mut self, step: usize) -> Result<(), alloc::string::String> {
+        if self.torus_winding.is_some() || !self.witnesses.is_empty() {
+            return Err("square torus must bind once before witness production".into());
+        }
+        let winding = mf::modulo(&address(step), &self.n);
+        match mf::mod_inv(&winding, &self.n) {
+            Ok(inverse) => self.torus_winding = Some((winding, inverse)),
+            Err(divisor) => {
+                if mf::cmp(&divisor, &[ONE]).is_gt() && mf::cmp(&divisor, &self.n).is_lt() {
+                    self.ready = Some(divisor);
+                } else {
+                    return Err("source winding has no proper modular action".into());
+                }
+            }
+        }
+        Ok(())
+    }
+    pub fn torus_observations(&self) -> &[crate::glut_system::SquareTorusObservation] {
+        &self.torus_observations
+    }
     pub fn new(n: &[char], source_root: &[char]) -> Self {
         let start = if mf::mul(source_root, source_root) == n {
             source_root.to_vec()
@@ -413,6 +498,10 @@ impl SquarePhase {
             family_pool: Vec::new(),
             family_choice: Vec::new(),
             family_columns: 0,
+            #[cfg(feature = "protein-cli")]
+            workers: None,
+            torus_winding: None,
+            torus_observations: Vec::new(),
             #[cfg(feature = "root-work-profile")]
             root_marks: 0,
             #[cfg(feature = "root-work-profile")]
@@ -446,7 +535,7 @@ impl SquarePhase {
             + self.hit_heads.len()
             + 2 * self.hit_links.len()
             + self.weights.len()
-            + 5 * self.positions.len()
+            + 6 * self.positions.len()
             + self.family_pool.len()
             + self.family_choice.len()
             + self.family.as_ref().map_or(0, |f| {
@@ -629,7 +718,29 @@ impl SquarePhase {
         } else {
             mf::sub(&x, &y)
         };
-        for value in [difference, mf::add(&x, &y)] {
+        let mut arms = [mf::modulo(&difference, &self.n), mf::modulo(&mf::add(&x, &y), &self.n)];
+        if let Some((winding, inverse)) = &self.torus_winding {
+            // The torus acts on the actual square boundary a*b=0 (mod N).
+            // Opposite winding on its two arms preserves that product. Every
+            // gcd below consumes the transformed arms, with no untransformed
+            // candidate producer or post-production witness substitution.
+            let before = arms.clone();
+            let (mut forward, mut reverse) = (vec![ONE], vec![ONE]);
+            for reentry in 1..=3 {
+                forward = mm(&forward, winding, &self.n);
+                reverse = mm(&reverse, inverse, &self.n);
+                arms = [mm(&before[0], &forward, &self.n), mm(&before[1], &reverse, &self.n)];
+                let recovered = [mm(&arms[0], &reverse, &self.n), mm(&arms[1], &forward, &self.n)];
+                assert_eq!(mm(&arms[0], &arms[1], &self.n), mm(&before[0], &before[1], &self.n),
+                    "torus square action lost its common product boundary");
+                assert_eq!(recovered, before, "torus square action lost inverse recovery");
+                self.torus_observations.push(crate::glut_system::SquareTorusObservation {
+                    source: self.n.clone(), winding: forward.clone(), inverse: reverse.clone(),
+                    before: before.clone(), after: arms.clone(), recovered, reentry,
+                });
+            }
+        }
+        for value in arms {
             let divisor = mf::gcd(value, self.n.clone());
             if mf::cmp(&divisor, &[ONE]) == core::cmp::Ordering::Greater
                 && mf::cmp(&divisor, &self.n) == core::cmp::Ordering::Less
@@ -793,12 +904,12 @@ impl SquarePhase {
     pub fn advance(
         &mut self,
         mut observe: impl FnMut(char, usize, usize, usize),
-    ) -> Option<(Tape, Tape)> {
+    ) -> Option<Tape> {
         if self.examined < self.bound {
             self.grow(&mut observe);
         }
         if let Some(p) = self.ready.take() {
-            return Some((p.clone(), mf::divmod(&self.n, &p).0));
+            return Some(p);
         }
         if self.examined < self.bound {
             return None;
@@ -811,6 +922,7 @@ impl SquarePhase {
         let half_tape = address(half);
         self.positions.clear();
         let folded_b = mf::FoldedTape::new(&b);
+        let root_polynomial = root_reentry::RootPolynomial::new(&a, &b, &self.n, half);
         for (column, field) in self.columns.iter().enumerate() {
             if column.is_power_of_two() {
                 observe(
@@ -826,25 +938,7 @@ impl SquarePhase {
             let inverse = self.family.as_ref().unwrap().inverses[column];
             let reduced_b_word = folded_b.remainder_word(field.step as u64);
             let (first, second) = if inverse.is_none() {
-                let reduced_b = address(reduced_b_word as usize);
-                let modulus = &field.prime;
-                let square = mf::mul(&b, &b);
-                let c = if mf::cmp(&square, &self.n) == core::cmp::Ordering::Less {
-                    mf::divmod(&mf::sub(&self.n, &square), &a).0
-                } else {
-                    let value = mf::modulo(&mf::divmod(&mf::sub(&square, &self.n), &a).0, modulus);
-                    if mf::zero(&value) {
-                        value
-                    } else {
-                        mf::sub(modulus, &value)
-                    }
-                };
-                let inverse = mf::mod_inv(&mf::add(&reduced_b, &reduced_b), modulus)
-                    .expect("linear field root is invertible");
-                let position = offset(&mf::modulo(
-                    &mf::add(&mm(&c, &inverse, modulus), &half_tape),
-                    modulus,
-                ));
+                let position = root_polynomial.linear_root(field.step);
                 (position, position)
             } else {
                 let inverse = inverse.unwrap();
@@ -864,11 +958,21 @@ impl SquarePhase {
             };
             self.positions.push(Hits {
                 column,
+                record_link: true,
                 step: field.step,
                 weight: field.prime.len() - 1,
                 first,
                 second: (second != first).then_some(second),
             });
+            // Re-enter each root through its prime-power fibers before the
+            // candidate threshold. Only the base root supplies an ancestry
+            // link: contraction already divides out the full valuation.
+            let roots = if first == second { vec![first] } else { vec![first, second] };
+            for (modulus, position) in root_polynomial.lift_roots(field.step, &roots, self.span) {
+                self.positions.push(Hits { column, record_link: false, step: modulus,
+                    weight: field.prime.len() - 1, first: position, second: None });
+            }
+
         }
         let expected = a.len() + 2 * half_tape.len();
         let slack = 2 * address(self.bound).len() + 4;
@@ -935,23 +1039,13 @@ impl SquarePhase {
                 self.basis.len(),
                 self.partial.len(),
             );
-            for local in 0..extent {
+            // Mark disjoint root-candidate addresses under one immutable
+            // source/polynomial frame. Workers return numerical witnesses;
+            // only this owner assigns ancestry IDs and contracts relations.
+            let candidates: Vec<_> = (0..extent)
+                .filter(|&local| self.weights.reaches(local, threshold)).collect();
+            let prepare = |&local: &usize| {
                 let index = block_start + local;
-                if index.is_power_of_two() {
-                    observe(
-                        '⊥',
-                        self.columns.len(),
-                        self.basis.len(),
-                        self.partial.len(),
-                    );
-                }
-                if !self.weights.reaches(local, threshold) {
-                    continue;
-                }
-                #[cfg(feature = "root-work-profile")]
-                {
-                    self.root_candidates += 1;
-                }
                 let term = mf::mul(&a, &address(index.abs_diff(half)));
                 let x = if index >= half {
                     mf::add(&term, &b)
@@ -970,7 +1064,7 @@ impl SquarePhase {
                 let (residue, remainder) = mf::divmod(&difference, &a);
                 assert!(mf::zero(&remainder));
                 if mf::zero(&residue) {
-                    return Some((x.clone(), x));
+                    return Witness { cells: Vec::new(), x: x.clone(), y: x, residual: residue, factors: Vec::new() };
                 }
                 let mut folded_residue = mf::FoldedTape::new(&residue);
                 // x² = A*g. The coefficient's known prime columns enter the same
@@ -1003,11 +1097,33 @@ impl SquarePhase {
                 }
                 let residue = folded_residue.into_tape();
                 cells.sort_unstable();
+                let factors = Vec::new();
+                Witness { cells, x, y, residual: residue, factors }
+            };
+            let mut prepared: Vec<Witness> = candidates.iter().map(&prepare).collect();
+            #[cfg(feature = "protein-cli")]
+            let workers = std::env::var("GFE_WORKERS").ok()
+                .and_then(|v| v.parse::<usize>().ok()).unwrap_or(1).max(1).min(8);
+            #[cfg(not(feature = "protein-cli"))]
+            let workers = 1usize;
+            #[cfg(feature = "protein-cli")]
+            if workers > 1 && !prepared.is_empty() {
+                let pool = self.workers.get_or_insert_with(|| WitnessWorkers::new(workers, self.n.clone()));
+                prepared = pool.map(prepared);
+            }
+            if workers == 1 {
+                for row in &mut prepared {
+                    if !mf::zero(&row.residual) { row.factors = residual::factors(&row.residual); }
+                }
+            }
+            #[cfg(feature = "root-work-profile")]
+            { self.root_candidates += prepared.len(); }
+            for prepared in prepared {
+                let Witness { cells, x, y, residual: residue, factors } = prepared;
+                if mf::zero(&residue) { return Some(x); }
                 let factors = if self.residual_ids.contains_key(&residue) {
                     vec![residue.clone()]
-                } else {
-                    residual::factors(&residue)
-                };
+                } else { factors };
                 let mut residues = alloc::collections::BTreeSet::new();
                 for factor in &factors {
                     let next = self.residual_ids.len();
@@ -1055,7 +1171,7 @@ impl SquarePhase {
                     self.partial.len(),
                 );
                 if let Some(p) = found {
-                    return Some((p.clone(), mf::divmod(&self.n, &p).0));
+                    return Some(p);
                 }
             }
             block_start = block_end;
@@ -1094,6 +1210,7 @@ mod tests {
             for (index, &weight) in additions.iter().enumerate() {
                 events.push(Hits {
                     column: index,
+                    record_link: true,
                     step: additions.len() + 1,
                     weight,
                     first: index,
@@ -1103,6 +1220,7 @@ mod tests {
                 for at in 0..index {
                     events.push(Hits {
                         column: index,
+                    record_link: true,
                         step: additions.len() + 1,
                         weight,
                         first: at,

@@ -10,12 +10,14 @@ use std::process::Command;
 use std::thread;
 use std::time::Instant;
 
-const BAKED_VALUES: &str = include_str!("/home/mrnob0dy666/imsgct/bvalsd.txt");
+const DEFAULT_VALUES: &str = include_str!("/home/mrnob0dy666/imsgct/bvalsd.txt");
 const GPU_MEMBRANE: &str = "/home/mrnob0dy666/imsgct/G-mOMonadOS/target/release/g-momonados";
 
 fn main() {
-    let values: Vec<String> = BAKED_VALUES.lines()
-        .filter(|line| !line.trim().is_empty())
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
+    let baked_values = option_env!("MEMBRANE_DECIMALS").unwrap_or(DEFAULT_VALUES);
+    let values: Vec<String> = baked_values.split_whitespace()
         .map(|line| line.trim().to_owned())
         .collect();
     let started = Instant::now();

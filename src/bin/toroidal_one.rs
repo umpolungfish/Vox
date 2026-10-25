@@ -166,6 +166,8 @@ impl PhaseShift {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     // FACTOR_N_WORD must be set at build time via the bake script (toroidal_one.sh).
     // This binary contains no runtime inputs — the target semiprime is baked in.
     let word = option_env!("FACTOR_N_WORD").unwrap_or_else(|| {

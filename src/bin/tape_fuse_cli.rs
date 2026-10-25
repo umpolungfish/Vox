@@ -48,6 +48,8 @@ fn reduce(w: &[char], n: u64, use_fuse: bool, strict: bool) -> (Vec<char>, usize
 fn recs(w: &[char]) -> usize { decode_trace(w).map(|t| t.len()).unwrap_or(0) }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reference = RouterObject::initial();
     let word: Vec<char> = reference.encode().chars().collect();
 

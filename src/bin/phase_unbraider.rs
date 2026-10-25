@@ -5,7 +5,9 @@
 #![deny(warnings)]
 
 extern crate alloc;
-#[path = "../phase_unbraid.rs"] mod phase_unbraid;
+#[path = "../phase_unbraid.rs"]
+#[allow(dead_code)]
+mod phase_unbraid;
 
 use num_bigint::BigUint;
 
@@ -33,6 +35,8 @@ mod native_numeral {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let result = (|| -> Result<String, String> {
         let raw = option_env!("MEMBRANE_WORDS")
             .ok_or("Build with MEMBRANE_WORDS=\"<a-word> <N-word>\"")?;

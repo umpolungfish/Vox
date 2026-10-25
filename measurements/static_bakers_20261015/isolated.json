@@ -1,9 +1,0 @@
-{
-  "binary": "/home/mrnob0dy666/imsgct/Vox/measurements/static_bakers_20261015/word_native",
-  "sha256": "dc13814a8cf519a934d72bb9f4ea692d790b2ef3f94c199c9a2cb970e0e4719d",
-  "returncode": 0,
-  "cwd": "/home/mrnob0dy666/imsgct/Vox/measurements/static_bakers_20261015/isolated",
-  "environment": {},
-  "instance_arguments": [],
-  "output_bytes": 574
-}
