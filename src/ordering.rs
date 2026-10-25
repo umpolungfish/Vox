@@ -197,6 +197,7 @@ pub mod cli {
             else if joined.contains("gpu_kernel interleave") { "gpu-lanes-3" }
             else if joined.contains("interleave") || joined.contains("interlace") { "lanes" }
             else if joined.contains("phase_unbraid") || joined.contains("phase-unbraid") { "phase-bits" }
+            else if joined.contains("braid-apocrypha") { "braid-alphabet" }
             else if forwarded.first().is_some_and(|arg| arg == "braid")
                 || joined.split_whitespace().collect::<Vec<_>>().windows(2)
                     .any(|pair| pair == ["godel", "braid"]) { "lanes" }
@@ -249,7 +250,10 @@ pub mod cli {
             count += 1;
             if limit == Some(count) {
                 if let Some(next) = orders.peek() {
-                    std::println!("ORDER_FAMILY status=held completed={count} next={}", next.label());
+                    // A label identifies an order but may not be parseable.
+                    // Keep a long cursor file so --order-start can consume it.
+                    let (resume, _) = environment_spec(&next.spec())?;
+                    std::println!("ORDER_FAMILY status=held completed={count} next={} next_spec={resume}", next.label());
                     return Ok(3);
                 }
             }

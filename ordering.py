@@ -92,6 +92,16 @@ def selected(site, width):
     return permutation(os.environ.get('IG_ORDER_SPEC', 'canonical'), width)
 
 
+def retained_order_spec(order):
+    spec = order_spec(order)
+    if len(spec) <= 4096:
+        return spec
+    with tempfile.NamedTemporaryFile(mode='w', encoding='ascii', prefix='.imsgct-order-',
+                                     suffix='.txt', dir=Path.cwd(), delete=False) as handle:
+        handle.write(spec)
+        return f'file:{handle.name}'
+
+
 def apply(order, values):
     permutation(','.join(map(str, order)), len(values))
     return [values[i] for i in order]
@@ -134,7 +144,7 @@ def variant_path(path):
     return path if path.name.endswith(suffix) else path.with_name(path.name + suffix)
 
 
-def intercept(command=None):
+def intercept(command=None, default_site='lanes'):
     """Consume ordering flags before an existing parser or shell wrapper runs."""
     args = list(sys.argv[1:] if command is None else command)
     if not any(a in ('--ordering', '--orderings') for a in args):
@@ -158,7 +168,7 @@ def intercept(command=None):
             forwarded.append(arg)
             i += 1
     spec = flags.get('--ordering', flags.get('--orderings'))
-    site = flags.get('--order-site', 'lanes')
+    site = flags.get('--order-site', default_site)
     if command is not None:
         executable = []
     env = dict(os.environ, IG_ORDER_SITE=site)
@@ -200,7 +210,7 @@ def intercept(command=None):
         order[pivot], order[last] = order[last], order[pivot]
         order[pivot+1:] = reversed(order[pivot+1:])
         if count == limit:
-            print(f"ORDER_FAMILY status=held completed={count} next={order_label(order)}", flush=True)
+            print(f"ORDER_FAMILY status=held completed={count} next={order_label(order)} next_spec={retained_order_spec(order)}", flush=True)
             raise SystemExit(3)
 
 
