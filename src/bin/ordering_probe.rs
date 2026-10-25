@@ -5,7 +5,7 @@ fn main() -> Result<(), String> {
     let raw=std::fs::read_to_string(file).map_err(|e|e.to_string())?;
     let n=if raw.trim().starts_with('⊢') {vox::combined_factor::decode_numeral_word(raw.trim())?}
         else {num_bigint::BigUint::parse_bytes(raw.trim().as_bytes(),10).ok_or("invalid numeral")?};
-    if n.bits()<200 {return Err("carrier checks require a source of at least 200 bits".into());}
+    if n.bits()<128 {return Err("initial carrier checks require a source of at least 128 bits".into());}
     let word=vox::fixed_point_imasm::ImasmNumeralWord::checked(&vox::combined_factor::native_word(&n)).map_err(str::to_string)?;
     let tape=vox::morphism_factor::parse_numeral(word.as_str())?;
     let args:Vec<_>=std::env::args().collect();
