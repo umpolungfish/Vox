@@ -167,6 +167,16 @@ impl PreparedGlutMembrane {
     pub fn component_names() -> Vec<String> {
         Port::ORDER.iter().map(|port| alloc::format!("{port:?}")).collect()
     }
+    /// Keep the complete resident producing cycle while permitting an
+    /// organism-selected starting component. Every component still acts.
+    pub fn advance_component_cycle(&mut self, start: usize) -> Result<bool, String> {
+        if start>=Port::ORDER.len(){return Err("invalid resident cycle anchor".into());}
+        let mut resident=self.resident.borrow_mut();
+        for offset in 0..Port::ORDER.len(){resident.activate(Port::ORDER[(start+offset)%Port::ORDER.len()],|_|{});}
+        resident.activate(Port::Verify,|_|{});
+        resident.activate(Port::Quantum,|_|{});
+        Ok(resident.finished() && resident.quantum_phase_closed())
+    }
     /// Execute the existing first component on the same resident object.
     pub fn advance_frames(&mut self) -> Option<super::GlutFrameObservation> {
         let mut resident = self.resident.borrow_mut();

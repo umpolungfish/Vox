@@ -360,6 +360,18 @@ impl FactorSynthesis {
         self.returned = Some(returned.clone());
         Ok(Some(returned))
     }
+    pub fn advance_component_cycle(&mut self, start: usize) -> Result<Option<FactorReturn>, String> {
+        if let Some(returned)=&self.returned{return Ok(Some(returned.clone()));}
+        self.turns+=1;
+        if !self.glut.as_mut().unwrap().advance_component_cycle(start)?{return Ok(None);}
+        let Some(execution)=self.glut.as_mut().unwrap().execute_retained()? else {
+            return Err("resident exhausted without a proper factor return".into());
+        };
+        execution.verify(&self.source)?;
+        self.morphisms.close(&self.source,self.glut.as_mut().unwrap(),&execution.p,&execution.q)?;
+        let returned=self.verified(execution.p,execution.q,"organism-prepared-glut")?;
+        self.returned=Some(returned.clone());Ok(Some(returned))
+    }
     pub fn advance_observed(&mut self,
         observe: impl FnMut(&crate::glut_system::FoldStats))
         -> Result<Option<FactorReturn>, String> {

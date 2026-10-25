@@ -81,6 +81,20 @@ impl PackedWord {
         Ok(self.compare_definite(b))
     }
     pub(super) fn add(&self,b:&Self)->Self {
+        // The definite numerical restriction is checked before using its
+        // native word image. Original evidence operands remain unchanged.
+        if self.definite() && b.definite() {
+            let mut words=Vec::with_capacity(self.words.len().max(b.words.len())+1);
+            let mut carry=0u128;
+            for at in 0..self.words.len().max(b.words.len()) {
+                let sum=self.word(at).t as u128+b.word(at).t as u128+carry;
+                let t=sum as u64;words.push(Rails{t,f:!t});carry=sum>>64;
+            }
+            // Retain the high zero word until logical-width normalization:
+            // a64k-bit operand can have a64k+1-bit result width with no carry.
+            words.push(Rails{t:carry as u64,f:!(carry as u64)});
+            return Self::normalize(words,self.len.max(b.len)+1);
+        }
         let mut words=Vec::with_capacity(self.words.len().max(b.words.len())+1);
         let mut carry=B4::F;
         for at in 0..self.words.len().max(b.words.len()) {
@@ -92,6 +106,15 @@ impl PackedWord {
     pub(super) fn subtract(&self,b:&Self)->(Self,B4) {
         let width=self.len.max(b.len);
         if width==0{return (Self::from_cells(&[]),B4::F);}
+        if self.definite() && b.definite() {
+            let mut words=Vec::with_capacity(width.div_ceil(64));let mut borrow=false;
+            for at in 0..width.div_ceil(64) {
+                let (difference,first)=self.word(at).t.overflowing_sub(b.word(at).t);
+                let (t,second)=difference.overflowing_sub(u64::from(borrow));
+                words.push(Rails{t,f:!t});borrow=first||second;
+            }
+            return (Self::normalize(words,width),if borrow{B4::T}else{B4::F});
+        }
         let mut words=Vec::with_capacity(width.div_ceil(64));let mut borrow=B4::F;let mut terminal=B4::F;
         for at in 0..width.div_ceil(64) {
             let (difference,next,borrows)=self.word(at).sub(b.word(at),borrow);
@@ -127,6 +150,18 @@ impl PackedWord {
         Self::normalize(words,len)
     }
     pub(super) fn multiply(&self,b:&Self)->Self {
+        if self.definite() && b.definite() {
+            let mut product=vec![0u64;self.words.len()+b.words.len()];
+            for (i,a) in self.words.iter().enumerate() {
+                let mut carry=0u128;
+                for (j,b) in b.words.iter().enumerate() {
+                    let value=a.t as u128*b.t as u128+product[i+j] as u128+carry;
+                    product[i+j]=value as u64;carry=value>>64;
+                }
+                if !b.words.is_empty(){product[i+b.words.len()]=carry as u64;}
+            }
+            return Self::normalize(product.into_iter().map(|t|Rails{t,f:!t}).collect(),self.len+b.len);
+        }
         let mut product=Self::from_cells(&[]);
         for at in 0..b.len {
             let value=b.cell(at);if value==B4::F{continue;}
@@ -146,22 +181,146 @@ impl PackedWord {
             let remainder=Self::normalize(self.words.iter().take(cut.div_ceil(64)).copied().collect(),cut.min(self.len));
             return Ok((self.lower(cut),remainder));
         }
+        if b.words.len()==1 {
+            let divisor=b.words[0].t as u128;
+            let mut quotient=vec![Rails::ZERO;self.words.len()];let mut remainder=0u128;
+            for at in (0..self.words.len()).rev() {
+                let value=(remainder<<64)|self.words[at].t as u128;
+                let t=(value/divisor) as u64;quotient[at]=Rails{t,f:!t};remainder=value%divisor;
+            }
+            let t=remainder as u64;
+            return Ok((Self::normalize(quotient,self.len),Self::normalize(vec![Rails{t,f:!t}],64)));
+        }
         match self.compare_definite(b) {
             Ordering::Less=>return Ok((Self::from_cells(&[]),Self::normalize(self.words.clone(),self.len))),
             Ordering::Equal=>return Ok((Self::from_cells(&[B4::T]),Self::from_cells(&[]))),
             Ordering::Greater=>{},
         }
-        let mut quotient=vec![B4::F;self.len];let mut remainder=Self::from_cells(&[]);
-        for at in (0..self.len).rev() {
-            remainder=remainder.shift(1);
-            if remainder.words.is_empty(){remainder.words.push(Rails::ZERO);}
-            remainder.words[0].set(0,self.cell(at));
-            remainder=Self::normalize(remainder.words,remainder.len.max(1));
-            if remainder.compare_definite(b)!=Ordering::Less {
-                let (next,borrow)=remainder.subtract(b);
-                debug_assert_eq!(borrow,B4::F);remainder=next;quotient[at]=B4::T;
+        // This restriction was checked above on both complete evidence rails.
+        // Use the existing normalized whole-limb division, then reconstruct
+        // complementary rails. The immutable source evidence remains resident.
+        let n:Vec<u64>=self.words.iter().map(|word|word.t).collect();
+        let d:Vec<u64>=b.words.iter().map(|word|word.t).collect();
+        let (quotient,remainder)=definite_division(&n,&d);
+        let rails=|limbs:Vec<u64>| {
+            let len=limbs.len()*64;
+            Self::normalize(limbs.into_iter().map(|t|Rails{t,f:!t}).collect(),len)
+        };
+        Ok((rails(quotient),rails(remainder)))
+    }
+}
+
+// Normalized division on the explicitly restricted definite numerical image.
+fn definite_division(n:&[u64],d:&[u64])->(Vec<u64>,Vec<u64>) {
+    let shift = d[d.len() - 1].leading_zeros();
+    let mut v = vec![0u64; d.len()];
+    let mut carry = 0u64;
+    for (i, &limb) in d.iter().enumerate() {
+        v[i] = (limb << shift) | carry;
+        carry = if shift == 0 { 0 } else { limb >> (64 - shift) };
+    }
+
+    let mut u = vec![0u64; n.len() + 1];
+    carry = 0;
+    for (i, &limb) in n.iter().enumerate() {
+        u[i] = (limb << shift) | carry;
+        carry = if shift == 0 { 0 } else { limb >> (64 - shift) };
+    }
+    u[n.len()] = carry;
+
+    let divisor_len = v.len();
+    let top = v[divisor_len - 1] as u128;
+    let m = n.len() - divisor_len;
+    let mut q = vec![0u64; m + 1];
+    for j in (0..=m).rev() {
+        let numerator = ((u[j + divisor_len] as u128) << 64) | u[j + divisor_len - 1] as u128;
+        let mut qhat = numerator / top;
+        let mut rhat = numerator % top;
+        if qhat >= (1u128 << 64) {
+            qhat = (1u128 << 64) - 1;
+            rhat = numerator - qhat * top;
+        }
+        while rhat < (1u128 << 64)
+            && qhat * v[divisor_len - 2] as u128 > (rhat << 64) + u[j + divisor_len - 2] as u128
+        {
+            qhat -= 1;
+            rhat += top;
+        }
+
+        let mut borrow = 0u128;
+        for i in 0..divisor_len {
+            let product = qhat * v[i] as u128 + borrow;
+            let low = product as u64;
+            borrow = product >> 64;
+            let old = u[j + i];
+            u[j + i] = old.wrapping_sub(low);
+            if old < low {
+                borrow += 1;
             }
         }
-        Ok((Self::from_cells(&quotient),remainder))
+        let old_high = u[j + divisor_len];
+        let underflow = (old_high as u128) < borrow;
+        u[j + divisor_len] = old_high.wrapping_sub(borrow as u64);
+        if underflow {
+            qhat -= 1;
+            let mut add_carry = 0u128;
+            for i in 0..divisor_len {
+                let sum = u[j + i] as u128 + v[i] as u128 + add_carry;
+                u[j + i] = sum as u64;
+                add_carry = sum >> 64;
+            }
+            u[j + divisor_len] = u[j + divisor_len].wrapping_add(add_carry as u64);
+        }
+        q[j] = qhat as u64;
+    }
+
+    let mut r = vec![0u64; divisor_len];
+    if shift == 0 {
+        r.copy_from_slice(&u[..divisor_len]);
+    } else {
+        for i in 0..divisor_len {
+            r[i] = (u[i] >> shift) | (u[i + 1] << (64 - shift));
+        }
+    }
+    (q, r)
+}
+
+#[cfg(test)]
+mod division_tests {
+    use super::*;
+    #[test]
+    fn definite_division_matches_retained_bit_rail_reference() {
+        let mut seed=0x9e3779b97f4a7c15u64;
+        for width in [128usize,150,175,200,256,300,512,1024] {
+            for divisor_width in [65usize,127,128,width/2,width-1,width,width+1] {
+                for _ in 0..8 {
+                    let mut generate=|size:usize| {
+                        let mut cells:Vec<B4>=(0..size).map(|_| {
+                            seed^=seed<<13;seed^=seed>>7;seed^=seed<<17;
+                            if seed&1==1 {B4::T}else{B4::F}
+                        }).collect();
+                        cells[size-1]=B4::T;PackedWord::from_cells(&cells)
+                    };
+                    let n=generate(width);let d=generate(divisor_width);
+                    let before=n.cells();let divisor_before=d.cells();
+                    let (q,r)=n.divide(&d).unwrap();
+                    let mut quotient=vec![B4::F;n.len];let mut remainder=PackedWord::from_cells(&[]);
+                    for at in (0..n.len).rev() {
+                        remainder=remainder.shift(1);
+                        if remainder.words.is_empty(){remainder.words.push(Rails::ZERO);}
+                        remainder.words[0].set(0,n.cell(at));
+                        remainder=PackedWord::normalize(remainder.words,remainder.len.max(1));
+                        if remainder.compare_definite(&d)!=Ordering::Less {
+                            let (next,borrow)=remainder.subtract(&d);
+                            assert_eq!(borrow,B4::F);remainder=next;quotient[at]=B4::T;
+                        }
+                    }
+                    assert_eq!(q.cells(),PackedWord::from_cells(&quotient).cells());
+                    assert_eq!(r.cells(),remainder.cells());
+                    assert_eq!(n.cells(),before);assert_eq!(d.cells(),divisor_before);
+                    assert!(q.definite()&&r.definite());
+                }
+            }
+        }
     }
 }
