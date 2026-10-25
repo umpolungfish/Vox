@@ -24,3 +24,16 @@ p4rakernel-reconcile
 
 # Local measurements and execution receipts
 measurements/
+
+# Generated artifacts retained outside this repository
+/membranes/baked_gfe/gfe_1a4ff71d748e49f5/input.imasm
+/membranes/baked_gfe/gfe_1a4ff71d748e49f5/lift_55cd1dde29159c434841ca23a3960f8dae3eba358732d6c580f99261707f8d6c/membrane.source.imasm
+/membranes/baked_gfe/gfe_1a4ff71d748e49f5/small_prime_orbit_mask.imasm
+/membranes/baked_gfe/gfe_4a516bc0dee45957/input.imasm
+/membranes/baked_gfe/gfe_6d808088cf544237/input.imasm
+/membranes/factor_20261017_141340_da37d6/input.imasm
+/membranes/factor_20261017_141357_37862c/factor_one.imasm
+/membranes/factor_20261017_141357_37862c/input.imasm
+/membranes/factor_20261017_141909_26557a/input.imasm
+/membranes/glut_stress_2026-09-29/control_35/input.imasm
+/measurements/program_operations_20261015/check_20261015_164638/c-phase.imasm
