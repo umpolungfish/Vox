@@ -1,3 +1,3 @@
-I carry explicit order choices through my braid and lane execution paths.
+I remove generated LFS artifacts from my Vox source tree.
 
-I repair order-family dispatch, expose operation-specific choices, and preserve inverse returns. I keep measurements local and remove their files from Git tracking.
+I keep the local run evidence outside the repository and exclude these artifact paths from future commits.
