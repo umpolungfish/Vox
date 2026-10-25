@@ -33,6 +33,8 @@ fn tape_to_usize(tape: &[char]) -> Result<usize, String> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let result = (|| -> Result<String, String> {
         let words = baked_membrane::numeral_words(option_env!("MEMBRANE_WORDS"))?;
         if words.len() != 3 { return Err("membrane needs a, N, and qubits".into()); }

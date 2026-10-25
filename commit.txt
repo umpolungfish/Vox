@@ -1,3 +1,3 @@
-I accept native and hex numeral words across numeric entrypoints
+I carry explicit order choices through my braid and lane execution paths.
 
-I normalize both encodings through shared readers, connect Python helpers and runtime commands, and show both encodings for unbraided lanes. I verify all sixteen motifs, wide numeral round trips, and malformed-input rejection while preserving program-word interpretation.
+I repair order-family dispatch, expose operation-specific choices, and preserve inverse returns. I keep measurements local and remove their files from Git tracking.

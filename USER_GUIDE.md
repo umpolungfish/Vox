@@ -35,12 +35,12 @@ by the list when names collide, for example `bin:NAME`, `example:NAME`,
 | --- | --- |
 | Read usage without starting a computation | `./programs help NAME` |
 | Build one Rust program | `./programs build NAME` |
-| Build as needed and run with arguments | `./programs run NAME ARGUMENTS` |
-| Use the main command interface | `./programs cli ARGUMENTS` |
-| Run an already built program | `./programs --no-build run NAME ARGUMENTS` |
-| Use a debug build | `./programs --debug run NAME ARGUMENTS` |
+| Build as needed and inspect a program's flags | `./programs run NAME --help` |
+| Inspect the main command interface | `./programs cli --help` |
+| Run an already built program with its help flag | `./programs --no-build run NAME --help` |
+| Inspect a debug-build program's flags | `./programs --debug run NAME --help` |
 | Run a saved native membrane or serialization | `./programs execute PATH` |
-| Choose a program and enter its arguments | `./programs menu` |
+| Browse programs by page, filter, view every detected flag and example, then select | `./programs menu` |
 
 Global options such as `--no-build` go before the action. Arguments after a
 program name are passed through as separate arguments. Quote an IMASM word or
@@ -54,14 +54,20 @@ The membrane catalog discovers Rust generator binaries and Python or shell
 bakers in Vox, G-mOMonadOS, m3iosis and m3mbr4n3s. `list --examples` prints an
 individual ready-to-copy command for every discovered entry. `help` prints its
 flags and source usage. `build` emits one static standalone Rust generator
-binary without executing it. `run` stops the process group at the 0.851-second
-execution ceiling.
+binary without executing it. For source-bound binaries, `--number DECIMAL_N`
+bakes the input. Add the separate `--run` flag only when you explicitly want
+to execute immediately; otherwise, use `run` later to execute the already
+baked binary. Runs continue until completion; press Ctrl+C to interrupt them.
+The CLI prints the standalone binary path before execution.
 
 ```bash
 ./programs membranes list --examples
 ./programs membranes list factor
 ./programs membranes help bin:factor_membrane
 ./programs membranes build bin:factor_membrane
+./programs membranes build bin:fixed_point_baked --number DECIMAL_N
+./programs membranes build bin:fixed_point_baked --number DECIMAL_N --run
+./programs membranes run bin:fixed_point_baked
 ./programs membranes run script:membrane_factor.py -- --help
 ./programs membranes bake --list-modes
 ./programs membranes bake --mode divisor --number N --output ./membranes/divisor-N
@@ -79,15 +85,16 @@ executable and `membranes bake --mode MODE --number N` for a source-bound
 standalone image. `--list-modes` lists all 17 per-instance modes; add
 `--width` for modes that require a qubit count or bound, and `--radix` only for
 the divisor mode. The catalog prints an invocation example beside every
-discovered generator and baker. Python baker entries use the shared Vox builder
+discovered generator and baker. Binaries requiring compile-time N show
+`--number DECIMAL_N`; the interactive menu also prompts for that number.
+Python baker entries use the shared Vox builder
 instead of stale copied build logic.
 
 The launcher checks static ELF linkage before returning or running a native
 image. A `.imasm` or `.glyphs` input to `execute` runs through Vox. Baking never
-starts the resulting factor search. Membrane executions through `programs
-membranes run` stop at 0.851 seconds. Generic non-membrane program runs retain
-their own behavior. Computations can retain their own algorithmic bounds and
-return an open state.
+starts the resulting factor search. Membrane runs continue until their own
+completion; press Ctrl+C to interrupt. Computations can retain their own
+algorithmic bounds and return an open state.
 
 ### Bake from ordinary inputs
 
@@ -1137,3 +1144,21 @@ through Vox. The complete glyph carrier includes code, operands, addresses,
 values, data and metadata. The existing codec carries lossless UTF-8 module
 records in numeral payloads; Vox decodes these records before executing the
 lifted module. Rust and ELF remain build intermediates in this workflow.
+
+### GFE executable IMASM baker
+
+`./gfe_factor_one.sh SOURCE.imasm --bake` compiles the N-only static image,
+retains source symbols, reads the eight monomers through native `imscribe`
+from `~/.imscrbgrmr/catalog.json`, and invokes `tools/lift_gfe.py`.
+The lifter checks the source graph with the native ancestry instrument and
+binds it to matching symbols in the complete decoded image. The existing
+binary rewirer must pass its coverage, decoding and transfer gates before
+emitting the executable IMASM tape. The glyph codec must recover that tape
+exactly. The build stops at a failed gate and retains its diagnostics.
+
+With `--run`, or without `--bake`, the baker executes the resulting glyph
+module through Vox. The source ELF is the compiled input to that lift.
+Production seeks one proper divisor; quotient derivation and exact product
+verification occur afterward. Current resident construction is still runtime
+preparation, reported separately from trigger-to-readout and verified-factor
+clocks. The complete Cargo-prepared state remains an integration requirement.

@@ -22,6 +22,8 @@ fn word_probe(tr: &[TraceStep]) -> Option<[char; 2]> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reference = RouterObject::initial();
     let corpus: Vec<u64> = vec![106545994355809];
     println!("=== R-of-R, probe derived by MEASURE word {} ===", OP_MEASURE);

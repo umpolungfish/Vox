@@ -234,12 +234,16 @@ pub fn deinterlace_nested(bits: &[bool], depth: usize) -> Vec<Vec<bool>> {
     for (i, &bit) in bits.iter().enumerate() {
         lanes[i % num_lanes].push(bit);
     }
-    lanes
+    crate::ordering::selected("nested-lanes", num_lanes).expect("valid lane order").inverse()
+        .apply(&lanes).expect("complete inverse lane permutation")
 }
 
 /// Interlace 2^depth lanes back into bits.
 pub fn interlace_nested(lanes: &[Vec<bool>], depth: usize) -> Vec<bool> {
     let num_lanes = 1usize << depth;
+    let selected = crate::ordering::selected("nested-lanes", num_lanes).expect("valid lane order")
+        .apply(lanes).expect("complete lane permutation");
+    let lanes = &selected;
     let max_len = lanes.iter().map(|l| l.len()).max().unwrap_or(0);
     let mut out = Vec::with_capacity(max_len * num_lanes);
     for j in 0..max_len {
@@ -297,7 +301,8 @@ pub fn frameshift_separate_factor(
     let k = bits.len();
     if k < 2 { return None; }
 
-    for ell in 0..k {
+    let order = crate::ordering::selected("separating", k).ok()?;
+    for ell in order.indices {
         let rot = rotat_bits(&bits, ell);
         let (p_lane, q_lane) = deinterlace_2adic(&rot);
         let p_val = from_bits_le(&p_lane);

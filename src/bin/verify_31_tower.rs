@@ -63,6 +63,8 @@ fn parse_factors() -> Vec<FactorRecord> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     println!("===============================================================================");
     println!("  8-LEVEL NESTER TOWER <-> OPERCULUM & FROBENIUS INVOLUTION VERIFICATION (31) ");
     println!("===============================================================================\n");

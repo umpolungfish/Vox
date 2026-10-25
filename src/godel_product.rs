@@ -353,17 +353,19 @@ fn imasm_tape(value: &Nat) -> Vec<char> {
 }
 
 #[derive(Clone)]
-struct ResidualFactorFrame {
-    shift: usize,
-    shifts_tested: usize,
-    a: Nat,
-    b: Nat,
-    product: Nat,
-    residual_magnitude: Nat,
-    common: Nat,
+pub struct ResidualFactorFrame {
+    pub shift: usize,
+    pub shifts_tested: usize,
+    pub a: Nat,
+    pub b: Nat,
+    pub product: Nat,
+    pub residual_magnitude: Nat,
+    pub common: Nat,
+    pub a_common: Nat,
+    pub b_common: Nat,
 }
 
-fn residual_factor_frame(product: &Nat) -> Option<ResidualFactorFrame> {
+pub fn residual_factor_frame(product: &Nat) -> Option<ResidualFactorFrame> {
     let bits = product.bits_le();
     if bits.is_empty() {
         return None;
@@ -392,6 +394,8 @@ fn residual_factor_frame(product: &Nat) -> Option<ResidualFactorFrame> {
             morphism_factor::sub(&lane_product, &source)
         };
         let common = morphism_factor::gcd(residual.clone(), source.clone());
+        let a_common = morphism_factor::gcd(even.clone(), source.clone());
+        let b_common = morphism_factor::gcd(odd.clone(), source.clone());
         let frame = ResidualFactorFrame {
             shift,
             shifts_tested: shift + 1,
@@ -400,20 +404,21 @@ fn residual_factor_frame(product: &Nat) -> Option<ResidualFactorFrame> {
             product: Nat::from_decimal(&morphism_factor::dec_of(&lane_product))?,
             residual_magnitude: Nat::from_decimal(&morphism_factor::dec_of(&residual))?,
             common: Nat::from_decimal(&morphism_factor::dec_of(&common))?,
+            a_common: Nat::from_decimal(&morphism_factor::dec_of(&a_common))?,
+            b_common: Nat::from_decimal(&morphism_factor::dec_of(&b_common))?,
         };
         if first.is_none() {
             first = Some(frame.clone());
         }
-        let proper = common.len() > 1
-            && morphism_factor::cmp(&common, &source) == core::cmp::Ordering::Less;
+        let proper = [&frame.common, &frame.a_common, &frame.b_common].iter().any(|candidate| {
+            let tape = imasm_tape(candidate);
+            morphism_factor::cmp(&tape, &alloc::vec!['⊥']) == core::cmp::Ordering::Greater
+                && morphism_factor::cmp(&tape, &source) == core::cmp::Ordering::Less
+        });
         if proper && first_proper.is_none() {
             first_proper = Some(frame.clone());
         }
-        if proper
-            && morphism_factor::cmp(&common, &source) == core::cmp::Ordering::Less
-            && morphism_factor::miller_rabin(&common)
-            && morphism_factor::modulo(&source, &common) == alloc::vec!['⊤']
-        {
+        if residual_frame_factor(product, &frame).is_some() {
             return Some(frame);
         }
     }
@@ -422,16 +427,32 @@ fn residual_factor_frame(product: &Nat) -> Option<ResidualFactorFrame> {
     Some(frame)
 }
 
-fn residual_frame_closes(product: &Nat, frame: &ResidualFactorFrame) -> bool {
+pub fn residual_frame_factor(product: &Nat, frame: &ResidualFactorFrame) -> Option<(&'static str, Nat)> {
     let source = imasm_tape(product);
-    let common = imasm_tape(&frame.common);
-    morphism_factor::cmp(&common, &alloc::vec!['⊥']) == core::cmp::Ordering::Greater
-        && morphism_factor::cmp(&common, &source) == core::cmp::Ordering::Less
-        && morphism_factor::miller_rabin(&common)
-        && morphism_factor::modulo(&source, &common) == alloc::vec!['⊤']
+    [
+        ("residual-gcd", &frame.common),
+        ("even-lane-gcd", &frame.a_common),
+        ("odd-lane-gcd", &frame.b_common),
+    ]
+    .into_iter()
+    .find_map(|(kind, candidate)| {
+        let tape = imasm_tape(candidate);
+        (morphism_factor::cmp(&tape, &alloc::vec!['⊥']) == core::cmp::Ordering::Greater
+            && morphism_factor::cmp(&tape, &source) == core::cmp::Ordering::Less
+            && morphism_factor::miller_rabin(&tape)
+            && morphism_factor::modulo(&source, &tape) == alloc::vec!['⊤'])
+            .then(|| (kind, candidate.clone()))
+    })
 }
 
-fn residual_frame_report(frame: &ResidualFactorFrame, closed: bool) -> String {
+fn residual_frame_closes(product: &Nat, frame: &ResidualFactorFrame) -> bool {
+    residual_frame_factor(product, frame).is_some()
+}
+
+fn residual_frame_report(product: &Nat, frame: &ResidualFactorFrame, closed: bool) -> String {
+    let selected = residual_frame_factor(product, frame)
+        .map(|(kind, factor)| format!("{kind}:{factor}"))
+        .unwrap_or_else(|| "open".to_string());
     format!(
         "frame.shift             {}\n\
          frame.shifts-tested     {}\n\
@@ -440,6 +461,9 @@ fn residual_frame_report(frame: &ResidualFactorFrame, closed: bool) -> String {
          frame.ab                {}\n\
          frame.r.magnitude       {}\n\
          frame.gcd               {}\n\
+         frame.gcd.even-lane     {}\n\
+         frame.gcd.odd-lane      {}\n\
+         frame.gcd.selected      {}\n\
          frame.prime-factor      {}\n",
         frame.shift,
         frame.shifts_tested,
@@ -448,6 +472,9 @@ fn residual_frame_report(frame: &ResidualFactorFrame, closed: bool) -> String {
         frame.product,
         frame.residual_magnitude,
         frame.common,
+        frame.a_common,
+        frame.b_common,
+        selected,
         if closed { "PASS" } else { "open" },
     )
 }
@@ -456,6 +483,17 @@ fn separate_lanes(product: &Nat) -> Result<(Nat, Nat), String> {
     let source = imasm_tape(product);
     if source.len() < 2 {
         return Err("Gödel separation needs a value wider than one cell".to_string());
+    }
+    if let Some(frame) = residual_factor_frame(product) {
+        if let Some((_, factor)) = residual_frame_factor(product, &frame) {
+            let factor_tape = imasm_tape(&factor);
+            let (quotient, remainder) = morphism_factor::divmod(&source, &factor_tape);
+            if remainder == alloc::vec!['⊤'] {
+                let quotient = Nat::from_decimal(&morphism_factor::dec_of(&quotient))
+                    .ok_or_else(|| "SHIAB gcd quotient did not decode as a natural".to_string())?;
+                return order_separated_lanes(factor, quotient);
+            }
+        }
     }
     let source_word = morphism_factor::emit_numeral(&source);
     let (left_word, right_word) = if source.first() == Some(&'⊤') {
@@ -482,7 +520,18 @@ fn separate_lanes(product: &Nat) -> Result<(Nat, Nat), String> {
         .ok_or_else(|| "left IMASM lane did not return a natural numeral".to_string())?;
     let right_nat = Nat::from_decimal(&morphism_factor::dec_of(&right_tape))
         .ok_or_else(|| "right IMASM lane did not return a natural numeral".to_string())?;
-    Ok((left_nat, right_nat))
+    order_separated_lanes(left_nat, right_nat)
+}
+
+fn order_separated_lanes(left: Nat, right: Nat) -> Result<(Nat, Nat), String> {
+    let canonical = [left, right];
+    let order = crate::ordering::selected("separating", canonical.len())?;
+    let ordered = order.apply(&canonical)?;
+    let returned = order.inverse().apply(&ordered)?;
+    if returned != canonical {
+        return Err("selected separation order failed its inverse lane return".into());
+    }
+    Ok((ordered[0].clone(), ordered[1].clone()))
 }
 
 fn separate_product(product: &Nat) -> Result<String, String> {
@@ -491,19 +540,25 @@ fn separate_product(product: &Nat) -> Result<String, String> {
     let frame_state = residual_factor_frame(product);
     let residual_report = frame_state
         .as_ref()
-        .map(|frame| residual_frame_report(frame, residual_frame_closes(product, frame)))
+        .map(|frame| residual_frame_report(product, frame, residual_frame_closes(product, frame)))
         .unwrap_or_default();
     let (factor, method, membrane_diagnostic) = if let Some(frame) = frame_state
         .as_ref()
         .filter(|frame| residual_frame_closes(product, frame))
     {
-        (frame.common.clone(), "residual-gcd", String::new())
+        (residual_frame_factor(product, frame).unwrap().1, "shiab-gcd", String::new())
     } else {
         let (execution, stats) = crate::glut_system::glut_factor_execution_with_stats(&source_tape);
         let execution = execution
             .ok_or_else(|| "nested IMASM membrane did not return a prime divisor".to_string())?;
         execution.verify(&source_tape)?;
-        let factor_tape = [execution.p, execution.q]
+        let (first_lane, second_lane) = order_separated_lanes(
+            Nat::from_decimal(&morphism_factor::dec_of(&execution.p))
+                .ok_or_else(|| "first separated lane did not decode".to_string())?,
+            Nat::from_decimal(&morphism_factor::dec_of(&execution.q))
+                .ok_or_else(|| "second separated lane did not decode".to_string())?,
+        )?;
+        let factor_tape = [imasm_tape(&first_lane), imasm_tape(&second_lane)]
             .into_iter()
             .find(|candidate| {
                 morphism_factor::miller_rabin(candidate)
@@ -650,7 +705,7 @@ pub fn command(args: &[&str]) -> Result<String, String> {
         return Ok(format!(
             "source                  {}\n{}",
             value,
-            residual_frame_report(&frame, residual_frame_closes(&value, &frame))
+            residual_frame_report(&value, &frame, residual_frame_closes(&value, &frame))
         ));
     }
     if args.first().copied() == Some("factor") {

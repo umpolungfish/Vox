@@ -16,12 +16,19 @@ extern crate alloc;
 const BAKED_VALUES: &str = include_str!("/home/mrnob0dy666/imsgct/bvalsd.txt");
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let result = (|| -> Result<String, String> {
-        let index: usize = option_env!("BAKED_INDEX")
-            .ok_or("BAKED_INDEX was not supplied at compile time")?
-            .parse().map_err(|_| "invalid BAKED_INDEX")?;
-        let value = BAKED_VALUES.lines().filter(|line| !line.trim().is_empty())
-            .nth(index).ok_or("BAKED_INDEX is outside bvalsd.txt")?;
+        let value = match option_env!("FACTOR_N_DEC") {
+            Some(number) => number,
+            None => {
+                let index: usize = option_env!("BAKED_INDEX")
+                    .ok_or("Bake --number DECIMAL_N or supply BAKED_INDEX")?
+                    .parse().map_err(|_| "invalid BAKED_INDEX")?;
+                BAKED_VALUES.lines().filter(|line| !line.trim().is_empty())
+                    .nth(index).ok_or("BAKED_INDEX is outside bvalsd.txt")?.trim()
+            }
+        };
         let n = vox::morphism_factor::decimal_to_tape(value.trim())
             .ok_or("invalid baked decimal")?;
         let reg_bits: usize = option_env!("REGISTER_BITS")

@@ -21,6 +21,8 @@ fn collect_traces(r: &RouterObject, corpus: &[u64]) -> Vec<Vec<TraceStep>> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     let corpus: Vec<u64> = if args.is_empty() {
         vec![

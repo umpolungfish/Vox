@@ -11,6 +11,8 @@ use ::vox::judge_g::{
 };
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     // ---- TEST 1: numerals-as-marks round-trip ----
     let xs: [u64; 7] = [0, 1, 2, 255, 256, 106545994355809, u64::MAX];
     let mut rt = true;

@@ -11,5 +11,7 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     if let Err(error) = run() { eprintln!("{error}"); std::process::exit(2); }
 }

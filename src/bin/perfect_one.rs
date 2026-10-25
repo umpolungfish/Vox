@@ -7,6 +7,8 @@
 #![deny(warnings)]
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let word: &str = option_env!("PERFECT_N_WORD").unwrap_or("⊢⊙⊡⊣");
     let depth: usize = option_env!("PERFECT_DEPTH")
         .and_then(|s| s.parse().ok())

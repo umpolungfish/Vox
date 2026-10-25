@@ -1,6 +1,7 @@
 //! Symbolic bit folds for the glut product relation. Free cells remain free;
 //! interval and convolution rails constrain them before a branch materializes.
 use super::{bit, mf, trim, ONE, ZERO};
+use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
@@ -18,6 +19,45 @@ pub(super) fn device_correlation(n:&[char])->super::DeviceCorrelation {
     let root=mf::isqrt(&source);
     correlation::Correlation::new_nested(&source,source.len().div_ceil(2),&root)
         .into_device_relation()
+}
+
+pub(super) fn full_device_correlation(n:&[char])->super::DeviceCorrelation {
+    let source=trim(n.to_vec());
+    let root=mf::isqrt(&source);
+    correlation::Correlation::new_nested_for_complex(&source,&root)
+        .into_device_relation()
+}
+
+pub(super) fn full_device_correlation_with_dialectic(
+    n:&[char],
+) -> Result<(super::DeviceCorrelation, crate::dialectic_lean::ExecutionRecord), String> {
+    let source=trim(n.to_vec());
+    let root=mf::isqrt(&source);
+    let mut graph=correlation::Correlation::new_nested_for_complex(&source,&root);
+    let support=graph.factor_support();
+    let mut dialectic=crate::dialectic_lean::ResidentDialectic::new(source.clone())?;
+    dialectic.bind_factor_support(support.p,support.q,support.depth)?;
+    let mut frontier=dialectic.midpoint_frontier()?;
+    let mut closed=dialectic.advance()?;
+    if !closed {
+        // Match the resident GFE seam: retain the source-derived frontier
+        // through the next Y descent before installing it on the correlation.
+        frontier=dialectic.midpoint_frontier()?;
+        closed=dialectic.advance()?;
+    }
+    if let Some(floor)=frontier.as_deref() {
+        graph.bind_midpoint_floor(floor);
+    }
+    let pair=if closed {
+        let closure=dialectic.closure().ok_or("dialectic closed without its factor carrier")?;
+        graph.bind_factor_pair(&closure.carrier.p,&closure.carrier.q)?;
+        Some((closure.carrier.p.clone(),closure.carrier.q.clone()))
+    } else {None};
+    let record=dialectic.execution_record(frontier)?;
+    if pair.is_some() && record.closure_pair.is_none() {
+        return Err("dialectic factor assignment was not retained in its execution record".into());
+    }
+    Ok((graph.into_device_relation(),record))
 }
 
 pub(super) fn device_admission(n:&[char])->super::DeviceCorrelation {
@@ -61,8 +101,66 @@ pub(super) fn device_carry_envelope_step(n:&[char],p:&[u32],q:&[u32])
     Some((write(p),write(q)))
 }
 
+fn add_residue_mask(mask: u64, amount: u32, modulus: u32) -> u64 {
+    let mut shifted = 0u64;
+    for residue in 0..modulus {
+        if mask & (1u64 << residue) != 0 {
+            shifted |= 1u64 << ((residue + amount) % modulus);
+        }
+    }
+    shifted
+}
+
+fn reachable_residues(bits: &[Option<char>], modulus: u32) -> u64 {
+    let mut reachable = 1u64;
+    let mut weight = 1u32;
+    for mark in bits {
+        let with_one = add_residue_mask(reachable, weight, modulus);
+        reachable = match mark {
+            Some(ZERO) => reachable,
+            Some(ONE) => with_one,
+            _ => reachable | with_one,
+        };
+        weight = (weight * 2) % modulus;
+    }
+    reachable
+}
+
+fn residue_product_supported(p: u64, q: u64, source: u32, modulus: u32) -> bool {
+    for rp in 0..modulus {
+        if p & (1u64 << rp) == 0 { continue; }
+        for rq in 0..modulus {
+            if q & (1u64 << rq) != 0 && (rp * rq) % modulus == source {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Reject a partial factor assignment when its remaining bit domains cannot
+/// satisfy any small-prime re-entry residue of the exact source product.
+fn prime_braid_support(n: &[char], p: &[Option<char>], q: &[Option<char>]) -> bool {
+    for &prime in &crate::geometer_factor_extractor::SMALL_PRIME_ORBIT_PRIMES {
+        let source = crate::geometer_factor_extractor::tape_rem_u32(n, prime);
+        if source == 0 { continue; }
+        let p_residues = reachable_residues(p, prime);
+        let q_residues = reachable_residues(q, prime);
+        if !residue_product_supported(p_residues, q_residues, source, prime) {
+            return false;
+        }
+    }
+    true
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FoldStats {
+    pub catalyst_turns:usize,
+    pub catalyst_products:usize,
+    pub catalyst_gcds:usize,
+    pub catalyst_order_applied:bool,
+    pub catalyst_inverse_returned:bool,
+    pub producing_port:&'static str,
     pub dialectic_descents: u64,
     pub dialectic_contractions: u64,
     pub dialectic_factor_return: bool,
@@ -435,18 +533,63 @@ impl Fold {
             self.p_range = (plo, phi);
             self.q_range = (qlo, qhi);
 
+            // The prime-power braids constrain the unresolved factor support
+            // at every re-entry, while the bit assignments are still partial.
+            if !prime_braid_support(n, &self.p, &self.q) {
+                return None;
+            }
+
+            // Small-prime braid search constraint at re-entry:
+            // If p or q is resolved to an exact candidate value, check if any
+            // small prime coprime to N divides it. If so, it cannot divide N.
+            if self.p_range.0 == self.p_range.1 {
+                for &p_s in &crate::geometer_factor_extractor::SMALL_PRIME_ORBIT_PRIMES {
+                    if crate::geometer_factor_extractor::tape_rem_u32(n, p_s) != 0
+                        && crate::geometer_factor_extractor::tape_rem_u32(&self.p_range.0, p_s) == 0
+                    {
+                        return None;
+                    }
+                }
+            }
+            if self.q_range.0 == self.q_range.1 {
+                for &p_s in &crate::geometer_factor_extractor::SMALL_PRIME_ORBIT_PRIMES {
+                    if crate::geometer_factor_extractor::tape_rem_u32(n, p_s) != 0
+                        && crate::geometer_factor_extractor::tape_rem_u32(&self.q_range.0, p_s) == 0
+                    {
+                        return None;
+                    }
+                }
+            }
+            if self.p_range.0 == self.p_range.1 && self.q_range.0 == self.q_range.1 {
+                for &p_s in &crate::geometer_factor_extractor::SMALL_PRIME_ORBIT_PRIMES {
+                    let r_n = crate::geometer_factor_extractor::tape_rem_u32(n, p_s);
+                    if r_n != 0 {
+                        let r_p = crate::geometer_factor_extractor::tape_rem_u32(&self.p_range.0, p_s);
+                        let r_q = crate::geometer_factor_extractor::tape_rem_u32(&self.q_range.0, p_s);
+                        if (r_p * r_q) % p_s != r_n {
+                            return None;
+                        }
+                    }
+                }
+            }
+
             // Odd factors have unit cells at position zero. At every resolved
             // diagonal, one free corner is fixed by the source bit and carry.
-            let mut carry = vec![ZERO];
+            // A diagonal contains at most min(p.len(), q.len()) unit products,
+            // and its carry is bounded by that same addressable width. Keep
+            // this bit-fold in a native accumulator instead of allocating and
+            // adding an IMASM numeral for every (p_i, q_j) pair. The resident
+            // tapes and exact terminal product check remain unchanged.
+            let mut carry = 0usize;
             for k in 0..n.len() {
-                let mut sum = carry.clone();
+                let mut sum = carry;
                 let mut unresolved = Vec::new();
                 for i in 0..=k {
                     let a = cell(&self.p, i);
                     let b = cell(&self.q, k - i);
                     match (a, b) {
                         (Some(ZERO), _) | (_, Some(ZERO)) => {}
-                        (Some(ONE), Some(ONE)) => sum = mf::add(&sum, &[ONE]),
+                        (Some(ONE), Some(ONE)) => sum += 1,
                         (None, Some(ONE)) => unresolved.push((true, i)),
                         (Some(ONE), None) => unresolved.push((false, k - i)),
                         (None, None) => {
@@ -460,7 +603,7 @@ impl Fold {
                     break;
                 }
                 if let Some(&(is_p, index)) = unresolved.first() {
-                    let mark = if bit(&sum, 0) ^ bit(n, k) == 1 {
+                    let mark = if ((sum & 1) as u8) ^ bit(n, k) == 1 {
                         ONE
                     } else {
                         ZERO
@@ -471,13 +614,13 @@ impl Fold {
                         self.q[index] = Some(mark);
                     }
                     if mark == ONE {
-                        sum = mf::add(&sum, &[ONE]);
+                        sum += 1;
                     }
                     changed = true;
-                } else if bit(&sum, 0) != bit(n, k) {
+                } else if (sum & 1) as u8 != bit(n, k) {
                     return None;
                 }
-                carry = trim(sum[1..].to_vec());
+                carry = sum >> 1;
             }
             // Let the inexpensive resolved corner and interval rails settle
             // before the complete convolution envelope scans their masks.
@@ -491,9 +634,11 @@ impl Fold {
     }
 
     fn branch(&self) -> Option<(bool, usize)> {
-        // Descend from the low rail; the interval rail simultaneously folds
-        // the high cells. A free factor corner lets the opposite rail return.
-        for index in 1..self.p.len().max(self.q.len()) {
+        // Choose the highest unresolved factor cell first. The exact low-bit
+        // carry recurrence still settles from bit zero, while a high prefix
+        // immediately narrows the source-derived p/q intervals and lets the
+        // return rail reject impossible products before expanding lower cells.
+        for index in (1..self.p.len().max(self.q.len())).rev() {
             if self.p.get(index) == Some(&None) {
                 return Some((true, index));
             }
@@ -542,14 +687,25 @@ fn visit(
             current.q[index] = Some(ONE);
             other.q[index] = Some(ZERO);
         }
+        let (first, second) = (current, other);
         *pending_count += 2;
-        *pending_cells += current.cell_count() + other.cell_count();
-        lane.push(other);
-        lane.push(current);
+        *pending_cells += first.cell_count() + second.cell_count();
+        lane.push(second);
+        lane.push(first);
         None
     } else {
         let (p, _) = bounds(&current.p);
         let (q, _) = bounds(&current.q);
+        for &p_s in &crate::geometer_factor_extractor::SMALL_PRIME_ORBIT_PRIMES {
+            let r_n = crate::geometer_factor_extractor::tape_rem_u32(n, p_s);
+            if r_n != 0 {
+                let r_p = crate::geometer_factor_extractor::tape_rem_u32(&p, p_s);
+                let r_q = crate::geometer_factor_extractor::tape_rem_u32(&q, p_s);
+                if r_p == 0 || r_q == 0 || (r_p * r_q) % p_s != r_n {
+                    return None;
+                }
+            }
+        }
         if crate::trace_algebra::witness_valid(n, &p, &q) && mf::cmp(&p, &q) != Ordering::Greater {
             observe(stats);
             Some((p, q))
@@ -572,6 +728,10 @@ pub(super) enum Port {
     Quantum,
 }
 impl Port {
+    pub fn ordered() -> Vec<Self> {
+        crate::ordering::selected("components", Self::ORDER.len()).expect("valid component ordering")
+            .apply(&Self::ORDER).expect("complete component permutation")
+    }
     pub const ORDER: [Self; 7] = [
         Self::Frames,
         Self::Square,
@@ -606,10 +766,12 @@ struct Lanes {
     shared: Option<correlation::Correlation>,
     shared_live: bool,
     geometries: Vec<(usize, usize)>,
+    geometry_inverse: Option<Vec<(usize, usize)>>,
     admitted: usize,
+    geometry_visits: Vec<usize>,
+    geometry_quantum: usize,
     pending_count: usize,
     pending_cells: usize,
-    cursor: usize,
     lanes: Vec<Vec<Fold>>,
     factor_bound: Vec<char>,
     cofactor_bound: Vec<char>,
@@ -627,8 +789,20 @@ pub(super) struct Resident {
     quantum_phase_closed: bool,
     lanes: Option<Lanes>,
     finished: bool,
+    pub catalyst:Option<super::CatalystCycle>,
+    catalyst_order:Option<[usize;12]>,
 }
 impl Resident {
+    pub fn bind_square_torus(&mut self) -> Result<(), String> {
+        let step = crate::geometer_factor_extractor::phase_seeded_torus_multiplier(&self.n);
+        if let Some(lanes) = self.lanes.as_mut() {
+            lanes.square.bind_torus_winding(step as usize)?;
+        }
+        Ok(())
+    }
+    pub fn square_torus_observations(&self) -> Vec<super::SquareTorusObservation> {
+        self.lanes.as_ref().map(|lanes| lanes.square.torus_observations().to_vec()).unwrap_or_default()
+    }
     pub fn new(n: &[char], mut observe: impl FnMut(&FoldStats)) -> Self {
         let mut stats = FoldStats {
             active: true,
@@ -646,6 +820,8 @@ impl Resident {
                 quantum_phase_closed: false,
                 lanes: None,
                 finished: false,
+                catalyst:None,
+                catalyst_order:None,
             };
         }
         if stats.zero_run > 0 {
@@ -681,6 +857,8 @@ impl Resident {
                 quantum_phase_closed: false,
                 lanes: None,
                 finished: false,
+                catalyst:None,
+                catalyst_order:None,
             };
         }
         let factor_bound = mf::isqrt(n);
@@ -688,7 +866,8 @@ impl Resident {
         let widest = n.len().div_ceil(2);
         // Geometry admission is a live lane too. It cannot hold the correlation
         // and square rails behind an initialization pass over the entire width.
-        let geometries = super::source_factor_geometries(n.len());
+        let mut geometries = super::source_factor_geometries(n.len());
+        crate::geometer_factor_extractor::rank_width_geometries(n, &mut geometries);
         let mut l = Lanes {
             frames: frames::Frames::new(n, &factor_bound),
             square: square_fold::SquareFold::new(n, &factor_bound),
@@ -696,10 +875,12 @@ impl Resident {
             shared: None,
             shared_live: true,
             geometries,
+            geometry_inverse: None,
             admitted: 0,
+            geometry_visits: Vec::new(),
+            geometry_quantum: n.len().saturating_mul(2).max(32),
             pending_count: 0,
             pending_cells: 0,
-            cursor: 0,
             lanes: Vec::new(),
             factor_bound,
             cofactor_bound,
@@ -740,18 +921,75 @@ impl Resident {
             quantum_phase_closed: false,
             lanes: Some(l),
             finished: false,
+            catalyst:None,
+            catalyst_order:None,
         }
     }
     pub fn finished(&self) -> bool {
         self.finished
     }
+    pub fn bind_catalyst_order(&mut self) -> Result<(), String> {
+        let order = self.catalyst.as_ref()
+            .ok_or("resident has no executed MoDoT catalyst")?.axis_order();
+        self.bind_catalyst_order_axes(order)
+    }
+    pub fn bind_catalyst_order_axes(&mut self, order: [usize; 12]) -> Result<(), String> {
+        if let Some(lanes) = self.lanes.as_mut() {
+            if let Some(graph) = lanes.shared.as_mut() {
+                graph.apply_catalyst_order(&order)?;
+            }
+            if lanes.geometry_inverse.is_some() {
+                return Err("GFE torus braid order is already active on lane geometry".into());
+            }
+            let original = lanes.geometries.clone();
+            let mut reordered = Vec::with_capacity(original.len());
+            for block in original.chunks(12) {
+                for &axis in &order {
+                    if let Some(geometry) = block.get(axis) {
+                        reordered.push(*geometry);
+                    }
+                }
+            }
+            if reordered.len() != original.len() {
+                return Err("GFE bit braid failed to cover all prepared width lanes".into());
+            }
+            lanes.geometries = reordered;
+            lanes.geometry_inverse = Some(original);
+            self.stats.catalyst_order_applied = true;
+        }
+        self.catalyst_order = Some(order);
+        Ok(())
+    }
+    pub fn return_catalyst_order(&mut self) -> Result<(), String> {
+        if let Some(lanes) = self.lanes.as_mut() {
+            if let Some(graph) = lanes.shared.as_mut() {
+                graph.return_catalyst_order()?;
+            }
+            if let Some(original) = lanes.geometry_inverse.take() {
+                lanes.geometries = original;
+            }
+            self.stats.catalyst_inverse_returned = self.stats.catalyst_order_applied;
+        }
+        self.catalyst_order = None;
+        Ok(())
+    }
     /// The existing Y descent and shared factor graph inhabit one resident
     /// return. Completed square-frontier work narrows that graph's midpoint.
-    pub fn with_dialectic(n: &[char]) -> Result<Self, alloc::string::String> {
+    pub fn with_dialectic(
+        n: &[char],
+        small_prime_mask: Option<&crate::geometer_factor_extractor::SmallPrimeOrbitMask>,
+    ) -> Result<Self, alloc::string::String> {
         let mut resident = Self::new(n, |_| {});
+        if let (Some(mask), Some(lanes)) = (small_prime_mask, resident.lanes.as_mut()) {
+            crate::geometer_factor_extractor::rank_width_geometries_with_mask(
+                n, &mut lanes.geometries, mask,
+            );
+        }
         resident.dialectic = Some(crate::dialectic_lean::ResidentDialectic::new(n.to_vec())?);
         if let Some(lanes) = resident.lanes.as_mut() {
-            lanes.square_live = false;
+            // Keep the square phase in the same resident as Y and correlation.
+            // Re-entry is a retained-state composition, so its sibling closure
+            // arm must remain available to the shared source/product boundary.
             lanes.shared_live = true;
         }
         Ok(resident)
@@ -794,12 +1032,28 @@ impl Resident {
     pub fn execution(&self) -> Option<super::GlutExecution> {
         self.execution.clone()
     }
-    #[cfg(test)]
-    pub fn accept_emitted_pair_for_return_test(&mut self, p: Vec<char>, q: Vec<char>) {
-        assert!(crate::trace_algebra::witness_valid(&self.n, &p, &q));
+    /// Refine this resident's factor/product/carry support with an N-only
+    /// source-divisor return, then execute its verification and phase ports.
+    pub fn bind_source_candidate(&mut self, p: Vec<char>, q: Vec<char>,
+        producer: &'static str) -> Result<(), String> {
+        if self.finished || self.pair.is_some()
+            || !crate::trace_algebra::witness_valid(&self.n, &p, &q)
+        {
+            return Err(String::from("source candidate is absent from the open resident product support"));
+        }
         self.pair = Some((p, q));
+        self.stats.producing_port = producer;
         self.activate(Port::Verify, |_| {});
         self.activate(Port::Quantum, |_| {});
+        if !self.finished || !self.quantum_phase_closed || self.execution.is_none() {
+            return Err(String::from("source candidate failed resident product/carry closure"));
+        }
+        Ok(())
+    }
+    #[cfg(test)]
+    pub fn accept_emitted_pair_for_return_test(&mut self, p: Vec<char>, q: Vec<char>) {
+        self.bind_source_candidate(p, q, "test-return")
+            .expect("test pair must close in resident product/carry support");
     }
     #[cfg(test)]
     pub fn source(&self) -> &[char] {
@@ -810,8 +1064,28 @@ impl Resident {
     }
     pub fn activate_frames(&mut self, mut observe: impl FnMut(&FoldStats)) {
         if self.finished || self.pair.is_some() { return; }
+        if let Some(catalyst)=self.catalyst.as_mut(){
+            let support=self.lanes.as_ref().and_then(|l|l.shared.as_ref()).map(|g|g.factor_support());
+            let pair=catalyst.advance(&self.n,support.as_ref()).expect("source-bound native catalytic frame");
+            self.stats.catalyst_turns=catalyst.observations.len();
+            let count=catalyst.observations.last().map_or(0,|o|o.residuals.len());
+            self.stats.catalyst_products+=count;self.stats.catalyst_gcds+=count;
+            if let Some(pair)=pair{
+                self.stats.producing_port="catalytic-frame";self.pair=Some(pair);observe(&self.stats);return;
+            }
+        }
         if self.dialectic.is_some() {
             self.activate_dialectic(observe);
+            if let Some(l) = self.lanes.as_mut() {
+                let scheduled_work = match option_env!("GLUT_ACTIVE_FRAME_WORD") {
+                    Some("⊤") => l.pending_cells / l.pending_count.max(1),
+                    Some("⊥") => l.pending_cells,
+                    _ => l.turn_work,
+                };
+                l.square_quantum = (scheduled_work / l.square.work_extent().max(1)).max(1)
+                    * l.square.folded_extent();
+                l.turn_work = 0;
+            }
             return;
         }
         let Some(l) = self.lanes.as_mut() else { return; };
@@ -825,6 +1099,7 @@ impl Resident {
         l.turn_work = 0;
         self.stats.diagnostic_stage = '⊡';
         if let Some(pair) = l.frames.advance() {
+            self.stats.producing_port="frames";
             observe(&self.stats);
             self.pair = Some(pair);
         }
@@ -863,8 +1138,15 @@ impl Resident {
             match step {
                 square_fold::Step::Running => {}
                 square_fold::Step::Empty => l.square_live = false,
-                square_fold::Step::Closed(p, q) => {
-                    self.pair = Some((p, q));
+                square_fold::Step::Divisor(divisor) => {
+                    // Production has returned one proper divisor. Only this
+                    // enclosing verification boundary derives the quotient.
+                    let (quotient, remainder) = mf::divmod(&self.n, &divisor);
+                    assert!(mf::zero(&remainder)
+                        && mf::mul(&divisor, &quotient) == self.n,
+                        "square divisor failed source product closure");
+                    stats.producing_port="square";
+                    self.pair = Some((divisor, quotient));
                     return;
                 }
             }
@@ -932,7 +1214,11 @@ impl Resident {
             Port::Square => unreachable!(),
             Port::Admission => {
                 stats.diagnostic_stage = '∈';
-                if let Some(&(p_width, q_width)) = l.geometries.get(l.admitted) {
+                let previous_lane_done = l.admitted == 0 || l.lanes.last().is_some_and(|lane|
+                    lane.is_empty() || l.geometry_visits.last().copied().unwrap_or(0)
+                        >= l.geometry_quantum);
+                if previous_lane_done {
+                    if let Some(&(p_width, q_width)) = l.geometries.get(l.admitted) {
                     l.admitted += 1;
                     let mut root = Fold::new(p_width, q_width);
                     root.p_range.1 = min(root.p_range.1, l.factor_bound.clone());
@@ -940,6 +1226,7 @@ impl Resident {
                     l.pending_count += 1;
                     l.pending_cells += root.cell_count();
                     l.lanes.push(vec![root]);
+                    l.geometry_visits.push(0);
                     if let Some(pair) = visit(
                         l.lanes.last_mut().unwrap(),
                         n,
@@ -948,9 +1235,11 @@ impl Resident {
                         &mut l.pending_cells,
                         &mut observe,
                     ) {
+                        stats.producing_port="admission";
                         self.pair = Some(pair);
                         return;
                     }
+                    *l.geometry_visits.last_mut().unwrap() += 1;
                     l.turn_work += stats.mask_work;
                     if self.dialectic.is_none() && l.shared_live && p_width == q_width && l.shared.is_none() {
                         stats.diagnostic_stage = '≻';
@@ -968,8 +1257,14 @@ impl Resident {
                         );
                         stats.correlation_gates = graph.gate_count();
                         stats.correlation_cells = graph.cell_count();
-                        l.shared = Some(graph);
+                let mut graph = graph;
+                if let Some(order) = self.catalyst_order {
+                    graph.apply_catalyst_order(&order).expect("validated catalyst support permutation");
+                    stats.catalyst_order_applied = true;
+                }
+                l.shared = Some(graph);
                         observe(&stats);
+                    }
                     }
                 }
                 if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
@@ -989,6 +1284,11 @@ impl Resident {
                         });
                     stats.correlation_gates = graph.gate_count();
                     stats.correlation_cells = graph.cell_count();
+                    let mut graph = graph;
+                    if let Some(order) = self.catalyst_order {
+                        graph.apply_catalyst_order(&order).expect("validated catalyst support permutation");
+                        stats.catalyst_order_applied = true;
+                    }
                     l.shared = Some(graph);
                 }
                 if l.admitted == l.geometries.len() && l.shared.is_none() {
@@ -1018,6 +1318,7 @@ impl Resident {
                             correlation::Step::Running => {}
                             correlation::Step::Empty => l.shared_live = false,
                             correlation::Step::Closed(p, q) => {
+                                stats.producing_port="correlation";
                                 assert!(crate::trace_algebra::witness_valid(n, &p, &q));
                                 self.pair = Some((p, q));
                                 return;
@@ -1032,20 +1333,26 @@ impl Resident {
             Port::Masks => {
                 stats.diagnostic_stage = '⋈';
                 if !l.lanes.is_empty() {
-                    l.cursor %= l.lanes.len();
-                    if let Some(pair) = visit(
-                        &mut l.lanes[l.cursor],
-                        n,
-                        &mut stats,
-                        &mut l.pending_count,
-                        &mut l.pending_cells,
-                        &mut observe,
-                    ) {
-                        self.pair = Some(pair);
-                        return;
+                    if let Some(index) = l.lanes.iter().enumerate().find_map(|(index, lane)| {
+                        (!lane.is_empty()
+                            && l.geometry_visits[index] < l.geometry_quantum)
+                            .then_some(index)
+                    }) {
+                        if let Some(pair) = visit(
+                            &mut l.lanes[index],
+                            n,
+                            &mut stats,
+                            &mut l.pending_count,
+                            &mut l.pending_cells,
+                            &mut observe,
+                        ) {
+                            stats.producing_port="masks";
+                            self.pair = Some(pair);
+                            return;
+                        }
+                        l.geometry_visits[index] += 1;
                     }
                     l.turn_work += stats.mask_work;
-                    l.cursor += 1;
                 }
                 if option_env!("GLUT_DIAGNOSTIC_LANE").is_some() {
                     observe(&stats);
@@ -1062,7 +1369,7 @@ pub(super) fn solve(
 ) -> (Option<(Vec<char>, Vec<char>)>, FoldStats) {
     let mut resident = Resident::new(n, &mut observe);
     while !resident.finished() {
-        for port in Port::ORDER {
+        for port in Port::ordered() {
             resident.activate(port, &mut observe);
         }
     }

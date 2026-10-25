@@ -14,7 +14,7 @@ extern crate alloc;
 
 use std::io::Write;
 
-const BAKED: &str = include_str!("../../membrane_words.imasm");
+const DEFAULT_BAKED: &str = include_str!("../../membrane_words.imasm");
 
 fn tape_to_usize(tape: &[char]) -> Result<usize, String> {
     tape.iter().enumerate().try_fold(0usize, |v, (b, &m)| {
@@ -40,8 +40,11 @@ fn factors_in(text: &str) -> Option<(String, String)> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let result = (|| -> Result<(), String> {
-        let words = baked_membrane::numeral_words(Some(BAKED))?;
+        let baked = option_env!("MEMBRANE_WORDS").unwrap_or(DEFAULT_BAKED);
+        let words = baked_membrane::numeral_words(Some(baked))?;
         if words.len() < 2 { return Err("membrane requires a and N as baked numerals".into()); }
         let a = words[0].clone();
         let n = words[1].clone();

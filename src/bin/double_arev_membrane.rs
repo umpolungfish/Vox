@@ -27,6 +27,8 @@
 #![allow(dead_code)]
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     println!("double_arev_membrane: ⊢∈∈∈≻⊤≺⊥≺⊞∋∋∋⊙⊡⊣");
     println!("");
     println!("Pattern analysis:");

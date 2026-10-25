@@ -6,6 +6,8 @@ extern crate alloc;
 use ::vox::router_object::{RouterObject, run, run_g, partial_router};
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let routers: [(&str, RouterObject); 2] = [
         ("initial", RouterObject::initial()),
         ("partial", partial_router()),

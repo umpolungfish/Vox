@@ -5,6 +5,8 @@ use ::vox::router_object::{RouterObject, Belnap, ReprTag};
 use ::vox::carrier::{GValue, probe, is_probe, is_judgment, is_source, ANY_MARK};
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let r = RouterObject::initial();
     let nclause = r.apply(Belnap::N, ReprTag::Residue).expect("N clause exists");
     let src_glyph = match nclause.source { Some(t) => t.glyph(), None => ANY_MARK };

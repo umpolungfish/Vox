@@ -6,6 +6,8 @@ extern crate alloc;
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let _ = BAKED_WIDTH_WORD;  // phaseB takes no width; keep the baked const live
     let raw = match (BAKED_BASE_WORD, BAKED_MODULUS_WORD) {
         (Some(a), Some(n)) => [a, n].join(" "),

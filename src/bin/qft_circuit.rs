@@ -47,6 +47,8 @@ pub unsafe extern "C" fn membrane_info(which: u64) -> u64 {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     // Retain the exported entry points and data in the complete lifted ELF.
     unsafe {
         std::hint::black_box(membrane_prepare as unsafe extern "C" fn() -> i32)();

@@ -20,7 +20,7 @@ use core::cmp::Ordering;
 use crate::factor_extract::extract;
 use crate::hadamard_factor_bridge::HadamardDescent;
 use crate::hadamard_gate::{FixedPointSpectralConstruction, HadamardCarrier, Tape};
-use crate::morphism_factor::{add, cmp, modulo, mul, one, sub};
+use crate::morphism_factor::{cmp, modulo, mul, one, sub};
 use crate::vox::{EVALF, EVALT};
 
 #[derive(Clone, PartialEq, Debug)]

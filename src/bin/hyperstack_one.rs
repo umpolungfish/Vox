@@ -48,6 +48,8 @@ fn frame_with(carrier: &str, payload: &str) -> String {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     // Baked at compile time: the IMASM numeral for N, and the carrier stack.
     let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");
     let types: &str = option_env!("HYPERSTACK_TYPES").unwrap_or("phase shor fib");

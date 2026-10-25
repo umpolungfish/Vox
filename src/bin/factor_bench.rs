@@ -5,6 +5,8 @@
 #![deny(warnings)]
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let words = option_env!("BENCH_WORDS").unwrap_or("");
     let labels = option_env!("BENCH_LABELS").unwrap_or("");
     let ws: Vec<&str> = words.split_whitespace().collect();

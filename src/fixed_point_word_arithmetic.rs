@@ -349,6 +349,91 @@ pub fn square(a: &ImasmNumeralWord) -> Result<ImasmNumeralWord, &'static str> {
     multiply(a, a)
 }
 
+/// Construct a numeral from its resident low-to-high truth/falsity cells.
+/// Cell values carry no place annotation; their position in the supplied word
+/// is the structural address consumed by the arithmetic operator.
+pub fn from_mark_bits(bits: &[char]) -> Result<ImasmNumeralWord, &'static str> {
+    if bits.iter().any(|mark| !matches!(*mark, EVALT | EVALF)) {
+        return Err("IMASM numeral cells must be truth or falsity marks");
+    }
+    from_bits(bits.to_vec())
+}
+
+/// Read the resident value marks while leaving their structural positions
+/// separate from the marks themselves.
+pub fn mark_bits(value: &ImasmNumeralWord) -> Result<Vec<char>, &'static str> {
+    payload_bits(value)
+}
+
+/// Retain the low `width` value cells. The width is a place boundary supplied
+/// by the surrounding word, not data attached to each digit value.
+pub fn low_marks(value: &ImasmNumeralWord, width: usize) -> Result<ImasmNumeralWord, &'static str> {
+    let bits = payload_bits(value)?;
+    from_bits(bits[..bits.len().min(width)].to_vec())
+}
+
+pub fn mark_at(value: &ImasmNumeralWord, place: usize) -> Result<char, &'static str> {
+    Ok(payload_bits(value)?.get(place).copied().unwrap_or(EVALT))
+}
+
+/// Multiplication in Z/(2^width), with the modulus represented by the
+/// independent place boundary.
+pub fn multiply_mod_power_two(
+    left: &ImasmNumeralWord,
+    right: &ImasmNumeralWord,
+    width: usize,
+) -> Result<ImasmNumeralWord, &'static str> {
+    low_marks(&multiply(left, right)?, width)
+}
+
+/// The inverse of an odd resident word modulo 2^width, lifted one place at a
+/// time. Both the value and the widening place boundary remain IMASM words.
+pub fn inverse_odd_power_two(
+    value: &ImasmNumeralWord,
+    width: usize,
+) -> Result<ImasmNumeralWord, &'static str> {
+    if width == 0 || mark_at(value, 0)? != EVALF {
+        return Err("2-adic IMASM inverse requires an odd value and positive width");
+    }
+    let one = one();
+    let mut inverse = one.clone();
+    for place in 1..width {
+        let product = multiply_mod_power_two(value, &inverse, place + 1)?;
+        if mark_at(&product, place)? == EVALF {
+            let correction = from_bits({
+                let mut bits = vec![EVALT; place];
+                bits.push(EVALF);
+                bits
+            })?;
+            inverse = add(&inverse, &correction)?;
+        }
+    }
+    low_marks(&inverse, width)
+}
+
+/// Binary modular exponentiation over resident IMASM numerals. Exponent
+/// places select repeated squaring; exponent cell values remain independent
+/// marks and no host integer contains the exponent.
+pub fn power_mod_power_two(
+    base: &ImasmNumeralWord,
+    exponent: &ImasmNumeralWord,
+    width: usize,
+) -> Result<ImasmNumeralWord, &'static str> {
+    if width == 0 {
+        return Ok(zero());
+    }
+    let exponent_marks = payload_bits(exponent)?;
+    let mut result = one();
+    let mut power = low_marks(base, width)?;
+    for mark in exponent_marks {
+        if mark == EVALF {
+            result = multiply_mod_power_two(&result, &power, width)?;
+        }
+        power = multiply_mod_power_two(&power, &power, width)?;
+    }
+    Ok(result)
+}
+
 pub fn one() -> ImasmNumeralWord {
     ImasmNumeralWord::checked("⊢≻⋈∈⊥∋⊙⊡⊣").expect("literal one is a native IMASM numeral")
 }

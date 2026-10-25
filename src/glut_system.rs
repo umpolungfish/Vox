@@ -40,10 +40,24 @@ use crate::morphism_factor as mf;
 #[path = "glut_fold.rs"]
 mod fold;
 pub use fold::FoldStats;
+/// Executed torus action on a square witness, before divisor extraction.
+#[derive(Clone, Debug)]
+pub struct SquareTorusObservation {
+    pub source: Vec<char>,
+    pub winding: Vec<char>,
+    pub inverse: Vec<char>,
+    pub before: [Vec<char>; 2],
+    pub after: [Vec<char>; 2],
+    pub recovered: [Vec<char>; 2],
+    pub reentry: usize,
+}
 #[path = "glut_carrier.rs"]
 mod carrier;
 pub use carrier::PreparedGlutMembrane;
 pub use carrier::GlutComponentProgram;
+#[path="glut_catalyst.rs"]
+mod catalyst;
+pub use catalyst::{CatalystCycle,CatalystObservation,ResidualObservation};
 
 /// Readback of the resident evaluation-frame coordinates.
 pub struct GlutFrameObservation {
@@ -82,6 +96,21 @@ pub fn prepare_device_correlation(n:&[char])->DeviceCorrelation {
     fold::device_correlation(n)
 }
 
+/// N-only nested relation with midpoint extent sufficient for arbitrary proper
+/// odd factor shapes. This exports preparation before any decision, and is used
+/// by the exact complex tensor lift rather than the bounded-width search path.
+pub fn prepare_full_device_correlation(n:&[char])->DeviceCorrelation {
+    fold::full_device_correlation(n)
+}
+
+/// Prepare the exact complex factor graph, bind its live factor domains to
+/// ResidentDialectic, execute one Y descent, and return its midpoint frontier
+/// as gates on those same graph coordinates.
+pub fn prepare_full_device_correlation_with_dialectic(n:&[char])
+ ->Result<(DeviceCorrelation,crate::dialectic_lean::ExecutionRecord),String> {
+    fold::full_device_correlation_with_dialectic(n)
+}
+
 /// The Admission component alone, compiled from source-derived geometries.
 /// The same bound selectors are included in the complete nested relation.
 pub fn prepare_device_admission(n:&[char])->DeviceCorrelation {
@@ -104,17 +133,8 @@ pub fn device_carry_envelope_step(n:&[char],p:&[u32],q:&[u32])
 /// Source-derived factor geometries shared by the resident constraint and
 /// coherent glut backends. No reference factor width enters this enumeration.
 pub fn source_factor_geometries(source_bits: usize) -> Vec<(usize, usize)> {
-    let mut widths = Vec::new();
-    let mut low = 2;
-    let mut high = source_bits.div_ceil(2);
-    while low <= high {
-        widths.push(low);
-        if low != high { widths.push(high); }
-        low += 1;
-        high -= 1;
-    }
     let mut geometries = Vec::new();
-    for p_width in widths {
+    for p_width in 2..=source_bits.div_ceil(2) {
         for sum in [source_bits, source_bits + 1] {
             if sum >= p_width {
                 let q_width = sum - p_width;
@@ -122,6 +142,11 @@ pub fn source_factor_geometries(source_bits: usize) -> Vec<(usize, usize)> {
             }
         }
     }
+    // Schedule from the source's own bit length: try the least width-skewed
+    // geometries first, then continue through the complete admissible set.
+    geometries.sort_by_key(|&(p_width, q_width)| {
+        (q_width - p_width, (p_width + q_width).abs_diff(source_bits), p_width)
+    });
     geometries
 }
 

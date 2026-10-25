@@ -116,6 +116,8 @@ fn execute() -> Result<(), String> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     if let Err(error) = execute() {
         eprintln!("NUMERAL ERROR: {error}");
         std::process::exit(1);

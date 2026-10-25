@@ -9,6 +9,8 @@ use vox::morphism_factor::{parse_numeral, dec_of};
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let mode = option_env!("VOX_PROBE_MODE").expect("bake the producer at build time");
     let n = parse_numeral(BAKED_MODULUS_WORD.expect("bake the IMASM modulus at build time")).unwrap();
     let a = if mode == "synthesis" || mode == "dialectic-lean" { vox::morphism_factor::two() }

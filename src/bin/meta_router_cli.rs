@@ -1,6 +1,8 @@
 #![deny(warnings)]
 extern crate alloc;
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     let cases: Vec<u64> = if args.is_empty() {
         vec![1000036000099, 4000064000087, 61304504203, 723862509691, 8097694716157, 106545994355809, 38531827129376957]

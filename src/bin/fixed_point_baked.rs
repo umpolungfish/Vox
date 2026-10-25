@@ -12,6 +12,8 @@ use vox::morphism_factor::{dec_of, emit_numeral, parse_numeral};
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 fn main() -> Result<(), String> {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     if std::env::args_os().nth(1).is_some() {
         return Err(String::from("fixed_point_baked accepts no runtime arguments"));
     }

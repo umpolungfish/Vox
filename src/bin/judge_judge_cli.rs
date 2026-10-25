@@ -7,6 +7,8 @@ use ::vox::router_object::{RouterObject, Belnap, TraceStep, run, judge_router, j
 fn unmatched(tr: &[TraceStep]) -> usize { tr.iter().filter(|s| !s.recognised).count() }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let mut init = RouterObject::initial(); init.canonicalize();
     let routers: Vec<(&str, RouterObject)> = vec![
         ("initial", init), ("partial", partial_router()), ("no_n", no_n_router()),

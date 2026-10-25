@@ -6,6 +6,8 @@ use num_bigint::BigUint;
 use std::env;
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = env::args().skip(1).collect();
     let Some(input) = args.first() else {
         eprintln!("Usage: hensel_factor <decimal-number>");

@@ -10,6 +10,8 @@ use ::vox::morphism_factor::{cmp, dec_of, decimal_to_tape, mul, trim};
 /// SEMIPRIME_BUDGET environment variable — full-width inputs spend real
 /// compute per node, so the operator owns the budget.
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let budget: u64 = std::env::var("SEMIPRIME_BUDGET")
         .ok()
         .and_then(|s| s.parse().ok())

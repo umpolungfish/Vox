@@ -17,8 +17,11 @@ fn tape_to_usize(tape: &[char]) -> Result<usize, String> {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let result = (|| -> Result<Vec<String>, String> {
-        let baked = include_str!("/home/mrnob0dy666/imsgct/bvalsd.txt");
+        let baked = option_env!("MEMBRANE_DECIMALS")
+            .unwrap_or(include_str!("/home/mrnob0dy666/imsgct/bvalsd.txt"));
         let a = vox::morphism_factor::tape_u64(2);
         let qbits = vox::morphism_factor::tape_u64(12);
         let mut words = Vec::new();

@@ -20,6 +20,8 @@ use vox::shor_braid::factor_close_public;
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 fn main() -> Result<(), String> {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let a = parse_numeral(BAKED_BASE_WORD.ok_or("bake a base word")?)?;
     let n = parse_numeral(BAKED_MODULUS_WORD.ok_or("bake a modulus word")?)?;
     println!("base {}  modulus {}", dec_of(&a), dec_of(&n));

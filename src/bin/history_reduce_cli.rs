@@ -40,6 +40,8 @@ fn reduce_collect(w: &[char], n: u64) -> (Vec<char>, alloc::vec::Vec<GStep>) {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reference = RouterObject::initial();
     let word: Vec<char> = reference.encode().chars().collect();
     let mut corpus: Vec<u64> = Vec::new();

@@ -11,6 +11,8 @@
 #![deny(warnings)]
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     // Baked at compile time as the IMASM numeral word. The default is the numeral
     // for 0 so the crate still builds normally when unset; the wrapper sets it.
     let word: &str = option_env!("FACTOR_N_WORD").unwrap_or("⊢⊙⊡⊣");

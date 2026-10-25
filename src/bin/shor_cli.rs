@@ -9,11 +9,33 @@ use std::env;
 #[path = "../shor_qft.rs"] mod shor_qft;
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = env::args().collect();
-    if args.len() < 4 { eprintln!("usage: shor_cli <a> <N> <qubits>"); std::process::exit(1); }
-    let a_tape = match vox::morphism_factor::decimal_to_tape(&args[1]) { Some(t) => t, None => { eprintln!("bad a"); std::process::exit(1); } };
-    let n_tape = match vox::morphism_factor::decimal_to_tape(&args[2]) { Some(t) => t, None => { eprintln!("bad N"); std::process::exit(1); } };
-    let qbits: usize = match args[3].parse() { Ok(n) => n, Err(_) => { eprintln!("bad qubits"); std::process::exit(1); } };
+    let mut base = None;
+    let mut number = None;
+    let mut qubits = None;
+    let mut index = 1;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--base" => { index += 1; base = args.get(index); }
+            "--number" => { index += 1; number = args.get(index); }
+            "--qubits" => { index += 1; qubits = args.get(index); }
+            "--help" | "-h" => {
+                println!("Usage: shor_cli --base DECIMAL_A --number DECIMAL_N --qubits COUNT");
+                return;
+            }
+            flag => { eprintln!("unknown flag: {flag}"); std::process::exit(1); }
+        }
+        index += 1;
+    }
+    let (Some(base), Some(number), Some(qubits)) = (base, number, qubits) else {
+        eprintln!("Usage: shor_cli --base DECIMAL_A --number DECIMAL_N --qubits COUNT");
+        std::process::exit(1);
+    };
+    let a_tape = match vox::morphism_factor::decimal_to_tape(base) { Some(t) => t, None => { eprintln!("bad base"); std::process::exit(1); } };
+    let n_tape = match vox::morphism_factor::decimal_to_tape(number) { Some(t) => t, None => { eprintln!("bad N"); std::process::exit(1); } };
+    let qbits: usize = match qubits.parse() { Ok(n) => n, Err(_) => { eprintln!("bad qubits"); std::process::exit(1); } };
     match shor_qft::run_shor_big_report(a_tape, n_tape, qbits) {
         Ok(r) => println!("{}", r),
         Err(e) => { eprintln!("{}", e); std::process::exit(2); }

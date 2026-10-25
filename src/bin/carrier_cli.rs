@@ -5,6 +5,8 @@ use ::vox::router_object::{ReprTag, Belnap};
 use ::vox::carrier::GValue;
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reprs = [ReprTag::Symmetric, ReprTag::Residue, ReprTag::Multiplicative];
     let judges = [Belnap::T, Belnap::F, Belnap::B, Belnap::N];
     println!("=== one carrier, three shapes ===");

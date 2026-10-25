@@ -51,6 +51,7 @@ default = ["hosted"]
 hosted = ["protein-cli"]
 protein-cli = []
 resident = []
+fixed-point-baked = []
 mpqs_debug = []
 root-work-profile = []
 carrier-profile = []
@@ -91,6 +92,14 @@ path = "src/bin/factor_bench.rs"
 [[bin]]
 name = "factor_one"
 path = "src/bin/factor_one.rs"
+
+[[bin]]
+name = "gfe_factor_one"
+path = "src/bin/gfe_factor_one.rs"
+
+[[bin]]
+name = "gfe_mask_prepare"
+path = "src/bin/gfe_mask_prepare.rs"
 
 [[bin]]
 name = "frame_factor_one"
@@ -383,6 +392,7 @@ path = "src/bin/factorization_31_resident.rs"
 [[bin]]
 name = "fixed_point_baked"
 path = "src/bin/fixed_point_baked.rs"
+required-features = ["fixed-point-baked"]
 
 [[bin]]
 name = "phase_unbraider"
@@ -422,3 +432,8 @@ path = "src/bin/hsoa_demo.rs"
 
 [lints.rust]
 warnings = "deny"
+
+[[bin]]
+name = "ordering_probe"
+path = "src/bin/ordering_probe.rs"
+required-features = ["hosted"]

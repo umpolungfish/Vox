@@ -1040,6 +1040,28 @@ fn resident_lattice(n: &[Mark], boundary: &[Mark], span: &[Mark],
     LatticeExposure::B { write_boundary: if lehman { add(boundary, &one) } else { end } }
 }
 
+fn is_quadratic_residue_small(residual: &[Mark]) -> bool {
+    let mut rem3 = 0u32;
+    let mut rem5 = 0u32;
+    let mut rem7 = 0u32;
+    let mut rem11 = 0u32;
+    let mut rem13 = 0u32;
+    for &m in residual.iter().rev() {
+        let b = u32::from(m == EVALF);
+        rem3 = ((rem3 << 1) + b) % 3;
+        rem5 = ((rem5 << 1) + b) % 5;
+        rem7 = ((rem7 << 1) + b) % 7;
+        rem11 = ((rem11 << 1) + b) % 11;
+        rem13 = ((rem13 << 1) + b) % 13;
+    }
+    if rem3 == 2 { return false; }
+    if rem5 == 2 || rem5 == 3 { return false; }
+    if rem7 == 3 || rem7 == 5 || rem7 == 6 { return false; }
+    if rem11 == 2 || rem11 == 6 || rem11 == 7 || rem11 == 8 || rem11 == 10 { return false; }
+    if rem13 == 2 || rem13 == 5 || rem13 == 6 || rem13 == 7 || rem13 == 8 || rem13 == 11 { return false; }
+    true
+}
+
 /// Transport the factor-support interval to A=k*p+q (and its exchanged
 /// orientation), with A²-4*k*N=(k*p-q)². A held window never excludes an
 /// unvisited source region. The original frame remains in last_frame.
@@ -1074,7 +1096,7 @@ fn conditioned_square_return(n: &[Mark], source: &[Mark], k: &[Mark], span: &[Ma
             kernel.cells += 1;
             let residue = residual.iter().take(8).enumerate().fold(0usize,
                 |r,(bit,mark)| r | (usize::from(*mark==EVALF)<<bit));
-            if kernel.square_support[residue] {
+            if kernel.square_support[residue] && is_quadratic_residue_small(&residual) {
                 kernel.square_tests += 1;
                 let b = isqrt(&residual);
                 if mul(&b,&b)==residual {

@@ -6,6 +6,8 @@ include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 const EML_NINE: &str = "⊢∈⊙≻⊤≺⊥⋈∈⊤≺⊥∈⊤⊞⊥∈≻⊤≺⊥⊞⋈∈⊤≺⊞⊥∈⊙⊞⋈∈⊙≺⋈∈≻⋈⊤⊥∈⊙≻⋈∋∋∋∋∋∋∋∋∋⊣";
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let (Some(source), Some(phase_base)) = (BAKED_MODULUS_WORD, BAKED_BASE_WORD) else {
         eprintln!("build this membrane with baked IMASM modulus and phase-base words");
         std::process::exit(2);

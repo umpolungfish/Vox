@@ -1,9 +1,9 @@
 //! base_mod_membrane — the base-ring-against-modulus-ring winding read, baked.
 //!
 //! Realizes the auto-designed word ⊢∈≻⊤≺⊥⊞⋈⊙∋⊡⊣⋈⊙⊡ (ob3ect: "the two rings are
-//! the baked base word and modulus word, their interference the winding, read
-//! per-coordinate/banked rather than the saturating aggregate"). Base and
-//! modulus are baked in; no runtime input.
+//! the base word and baked modulus word, their interference the winding, read
+//! one residue per coordinate rather than a saturating aggregate"). The
+//! modulus is baked in; base 2 is the fixed default unless a base is baked.
 //!
 //!   ∈       fork into the base-word trajectory and the modulus-word trajectory
 //!   ≻ ⊤     base ring rotates forward: one multiply-by-a step, affirmed
@@ -14,38 +14,58 @@
 //!
 //! The relative rotation of the base ring inside the modulus cycle is the
 //! order; it closes the factors. Read per coordinate (one residue at a step),
-//! never the saturating aggregate.
+//! open each residue against N before fuse, never the saturating aggregate.
 #![deny(warnings)]
 #![allow(dead_code)]
 extern crate alloc;
 
-use vox::morphism_factor::{parse_numeral, dec_of, one, cmp, modulo, mul, tape_u64};
-use vox::shor_braid::factor_close_public;
+use vox::morphism_factor::{parse_numeral, decimal_to_tape, dec_of, one, cmp, modulo, mul, gcd, divmod, add};
+use vox::shor_braid::{factor_close_at_residue, factor_close_public};
 
 include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 
 fn main() -> Result<(), String> {
-    let a = parse_numeral(BAKED_BASE_WORD.ok_or("bake a base word")?)?;
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
+    let a = match BAKED_BASE_WORD {
+        Some(word) => parse_numeral(word)?,
+        None => decimal_to_tape("2").ok_or("fixed base 2 did not encode as an IMASM numeral")?,
+    };
     let n = parse_numeral(BAKED_MODULUS_WORD.ok_or("bake a modulus word")?)?;
     println!("base {}  modulus {}", dec_of(&a), dec_of(&n));
 
-    // base ring rotates by one multiply-by-a per coordinate inside the modulus
-    // cycle; the relative rotation completes when it lands back on the unit.
     let unit = one();
+    let common = gcd(a.clone(), n.clone());
+    if cmp(&common, &unit) == core::cmp::Ordering::Greater {
+        if cmp(&common, &n) == core::cmp::Ordering::Less {
+            let (quotient, remainder) = divmod(&n, &common);
+            if cmp(&remainder, &unit) != core::cmp::Ordering::Equal {
+                return Err("base/modulus gcd failed exact quotient closure".into());
+            }
+            println!("base_mod-membrane  factors {} x {} [base gcd]", dec_of(&common), dec_of(&quotient));
+        } else {
+            println!("base_mod-membrane  base shares the full modulus; no split");
+        }
+        return Ok(());
+    }
     let mut base_ring = modulo(&a, &n);
-    let mut k: u64 = 1;
-    let cap: u64 = 100_000_000;
+    let mut k = unit.clone();
+    if let Some((opening,p,q))=factor_close_at_residue(&base_ring,&n)?{
+        println!("base_mod-membrane  coordinate {} residue {} opens {}: factors {} x {}",
+            dec_of(&k),dec_of(&base_ring),opening,dec_of(&p),dec_of(&q));
+        return Ok(());
+    }
     while cmp(&base_ring, &unit) != core::cmp::Ordering::Equal {
         base_ring = modulo(&mul(&base_ring, &a), &n);
-        k += 1;
-        if k > cap {
-            println!("base_mod-membrane  relative rotation exceeds the membrane cap");
+        k = add(&k, &unit);
+        if let Some((opening,p,q))=factor_close_at_residue(&base_ring,&n)?{
+            println!("base_mod-membrane  coordinate {} residue {} opens {}: factors {} x {}",
+                dec_of(&k),dec_of(&base_ring),opening,dec_of(&p),dec_of(&q));
             return Ok(());
         }
     }
-    let r = tape_u64(k);
-    print!("base_mod-membrane  relative-rotation {}  ", dec_of(&r));
-    match factor_close_public(&a, &n, &r) {
+    print!("base_mod-membrane  relative-rotation {}  ", dec_of(&k));
+    match factor_close_public(&a, &n, &k) {
         Ok((p, q)) => println!("factors {} x {}", dec_of(&p), dec_of(&q)),
         Err(e) => println!("no split ({e})"),
     }

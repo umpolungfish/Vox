@@ -11,6 +11,10 @@
 #[macro_use]
 extern crate alloc;
 
+#[cfg(feature = "hosted")]
+extern crate std;
+pub mod ordering;
+
 pub mod vox;
 pub mod vox_decode;
 pub mod lanes;

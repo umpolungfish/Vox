@@ -9,11 +9,13 @@
 #![deny(warnings)]
 #![no_std]
 
-#[cfg(feature = "protein-cli")]
+#[cfg(any(feature = "protein-cli", feature = "hosted", test))]
 extern crate std;
 
 #[macro_use]
 extern crate alloc;
+
+pub mod ordering;
 
 pub mod vox;
 pub mod godel_calculus;
@@ -77,6 +79,8 @@ pub mod frame_work;
 pub mod loader;
 pub mod safetensors;
 pub mod membrane_state;
+pub mod membrane_interface;
+pub mod membrane_cli;
 pub mod winding_readout;
 pub mod shor_braid;
 pub mod shor_membrane;
@@ -85,6 +89,7 @@ pub mod hadamard_factor_bridge;
 pub mod fixed_point_protocol;
 pub mod fixed_point_reentry;
 pub mod fixed_point_imasm;
+pub mod word_nesting;
 pub mod fixed_point_hypernest;
 pub mod fixed_point_word_arithmetic;
 pub mod fixed_point_quantum_membrane;
@@ -94,6 +99,11 @@ pub mod fixed_point_quantum_readout;
 pub mod factor_2adic; // 2-adic prefix inversion factorization
 pub mod glut_system;
 pub mod factor_synthesis;
+pub mod geometer_factor_extractor;
+pub mod gfe_circuit_braid;
+pub mod pwoat_geometry;
+pub mod reentry_powerset;
+pub mod pwoat_torus;
 pub use glut_system::glut_factor;
 /// Both public surfaces use the same live glut implementation.
 pub mod glut_system_perfected {
@@ -105,7 +115,8 @@ pub mod combined_factor;
 pub mod coupled_factor;
 
 // Legacy host-side phase-table factor membrane is intentionally not exported.
-// pub mod fixed_point_membrane;
+#[cfg(feature = "fixed-point-baked")]
+pub mod fixed_point_membrane;
 // pub mod shor_qft;   // bin-only: uses ::vox:: (external-crate path)
 // pub mod fde_shor_membrane;  // bin-only: uses std + ::vox
 

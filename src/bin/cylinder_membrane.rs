@@ -18,6 +18,8 @@ include!(concat!(env!("OUT_DIR"), "/baked_inputs.rs"));
 type Tape = Vec<char>;
 
 fn main() -> Result<(), String> {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let n = parse_numeral(BAKED_MODULUS_WORD.ok_or("bake a modulus word")?)?;
     let one_t = one();
     // reach and cylinder count come from the baked width if present, else set here.

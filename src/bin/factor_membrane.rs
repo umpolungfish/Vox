@@ -3,6 +3,8 @@
 mod support;
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.iter().any(|arg| arg == "--dialectic-product") {
         let code = match support::run_dialectic_product(&args) {

@@ -41,6 +41,8 @@ fn mark_wiring_interval(occupied: &mut std::collections::BTreeMap<u64, u64>, sta
 
 fn usage() {
     eprintln!("V⊙x — control-flow closure auditor");
+    eprintln!("  --ordering canonical|reverse|swap:i,j|perm:i,j,...|all [--order-site SITE]");
+    eprintln!("  --order-limit K [--order-start SPEC]  bound or resume an order family");
     eprintln!("  vox reentry help         Lean kernel re-entry, SIXTEEN_3, Y, and certified feedback");
     eprintln!();
     eprintln!("  vox <file.so|.elf>        lift every function, tally verdicts");
@@ -67,6 +69,7 @@ fn usage() {
     eprintln!("  vox factor-membrane N --dialectic-product [--passes COUNT]  retained Y and shared product/carry");
     eprintln!("  vox factor-glut <N>                       execute the shared GLUT factor/product/carry register on CUDA");
     eprintln!("  vox membrane tower <levels>                  build a complete bidirectional tower");
+    eprintln!("  vox membrane list | vox membrane run <generator> <N> [--steps COUNT]");
     eprintln!("  vox membrane bridge <N> <m>   coupled divisor-ring W_t trace over IMASM tapes");
     eprintln!("  vox pairs <glyph-word>    the pairing: every region, what it holds, what is left open");
     eprintln!("  vox verdict --tsv <file>   verdict name<TAB>word lines in bulk");
@@ -905,6 +908,8 @@ mod host_file_tests {
 mod lean_kernel;
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let args: Vec<String> = std::env::args().skip(1).collect();
     if let Err(error) = lean_kernel::ensure_default() {
         eprintln!("Lean kernel admission failed: {error}");
@@ -1840,7 +1845,13 @@ fn main() {
             else { match ::vox::morphism_factor::factor_with(&args[1], &args[2]) { Ok(w) => { println!("{}", w); 0 }, Err(e) => { eprintln!("{}", e); 2 } } }
         }
         Some("membrane") | Some("divisor-membrane") | Some("divisor_membrane") => {
-            if args.get(1).map(String::as_str) == Some("tower") {
+            if matches!(args.get(1).map(String::as_str), Some("list" | "generators" | "run")) {
+                let refs: Vec<&str> = args[1..].iter().map(String::as_str).collect();
+                match ::vox::membrane_cli::execute(&refs) {
+                    Ok(output) => { print!("{output}"); 0 }
+                    Err(error) => { eprintln!("{error}"); 2 }
+                }
+            } else if args.get(1).map(String::as_str) == Some("tower") {
                 let levels = args.get(2).and_then(|s| s.parse::<usize>().ok());
                 match levels.and_then(|n| ::vox::complete_membrane::CompleteMembrane::new(n).ok()) {
                     Some(m) => {

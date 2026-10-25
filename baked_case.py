@@ -9,6 +9,7 @@ import threading
 import time
 from contextlib import contextmanager
 from standalone import require_standalone, static_env
+from ordering import intercept, order_receipt
 
 ROOT = Path(__file__).resolve().parent
 TARGET_DIR = Path(os.environ.get('VOX_BAKED_TARGET_DIR', ROOT / 'target')).resolve()
@@ -91,6 +92,8 @@ def _build_case(n, mode, width, target, progress=False, radix=None):
     words = subprocess.check_output([str(TARGET_DIR / 'x86_64-unknown-linux-musl/release/phase_case_encode'), *values], text=True).splitlines()
     destination = TARGET_DIR / 'baked-semiprime' / str(time.time_ns())
     destination.mkdir(parents=True)
+    import json
+    (destination / "ordering.json").write_text(json.dumps(order_receipt(), indent=2) + "\n")
     inputs = destination/'inputs.imasm'
     inputs.write_text('\n'.join(words)+'\n')
     env = static_env()
@@ -182,6 +185,7 @@ Build and execution:
 
 
 if __name__ == '__main__':
+    intercept()
     try:
         raise SystemExit(main())
     except KeyboardInterrupt:

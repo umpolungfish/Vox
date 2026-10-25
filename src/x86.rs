@@ -293,6 +293,9 @@ mod vex_decode_tests {
             (&[0x66, 0x41, 0x0f, 0xf8, 0xf8][..], "psubb"),
             (&[0x66, 0x0f, 0xf6, 0xc1][..], "psadbw"),
             (&[0xf3, 0x0f, 0xe6, 0xc1][..], "cvtdq2pd"),
+            (&[0x0f, 0x5b, 0xcc][..], "cvtdq2ps"),
+            (&[0x66, 0x0f, 0xc5, 0xc8, 0x00][..], "pextrw"),
+            (&[0x66, 0x45, 0x0f, 0xc5, 0xc1, 0xfe][..], "pextrw"),
         ] {
             let instruction = decode(bytes, 0x2000).expect("SSE2 instruction should decode");
             assert_eq!(instruction.len, bytes.len());
@@ -703,6 +706,7 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
                   ins!(addr,c,mn,vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         // Precision convert: F3 ss->sd, F2 sd->ss, 66 pd->ps, none ps->pd.
         0x5A => { let (rm,r)=modrm(c,rex,16,16)?; let mn=if f3{"cvtss2sd"}else if f2{"cvtsd2ss"}else if o66{"cvtpd2ps"}else{"cvtps2pd"}; ins!(addr,c,mn,vec![rop(r,16,rex.p),rm],false,None) }
+        0x5B if !o66 && !f2 && !f3 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"cvtdq2ps",vec![rop(r,16,rex.p),rm],false,None) }
         // Int -> float: source is a GPR/mem integer, width by REX.W.
         0x2A => { let sz=if rex.w{8}else{4}; let (rm,r)=modrm(c,rex,sz,sz)?; ins!(addr,c,if f2{"cvtsi2sd"}else{"cvtsi2ss"},vec![rop(r,16,rex.p),rm],false,None) }
         // Float -> int: dest is a GPR, width by REX.W; 2C truncates, 2D rounds.
@@ -751,6 +755,7 @@ fn decode_0f(c: &mut Cur, addr: u64, rex: &Rex, osz: u8, f3: bool, f2: bool, o66
         0xE6 if f3 => { let (rm,r)=modrm(c,rex,16,8)?; ins!(addr,c,"cvtdq2pd",vec![rop(r,16,rex.p),rm],false,None) }
         0x38 => { let op3=c.u8()?; let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,if op3==0x40{"pmulld"}else{"pshufb"},vec![rop(r,16,rex.p),rm],false,None) }
         0xC4 if o66 => { let (rm,r)=modrm(c,rex,4,2)?; let im=c.imm(1,false)?; ins!(addr,c,"pinsrw",vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
+        0xC5 if o66 => { let (rm,r)=modrm(c,rex,16,16)?; if rm.is_mem(){return None;} let im=c.imm(1,false)?; ins!(addr,c,"pextrw",vec![rop(r,4,rex.p),rm,Op::Imm(im)],false,None) }
         0x70 => { let (rm,r)=modrm(c,rex,16,16)?; let im=c.imm(1,false)?;
             ins!(addr,c,if f2{"pshuflw"}else if f3{"pshufhw"}else{"pshufd"},vec![rop(r,16,rex.p),rm,Op::Imm(im)],false,None) }
         0x66 => { let (rm,r)=modrm(c,rex,16,16)?; ins!(addr,c,"pcmpgtd",vec![rop(r,16,rex.p),rm],false,None) }

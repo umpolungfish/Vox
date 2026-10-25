@@ -16,6 +16,8 @@ const WIDTH: Option<&str> = BAKED_WIDTH_WORD;
 const EXECUTION: Option<&str> = option_env!("VOX_PHASE_EXECUTION_WORD");
 
 fn main() -> Result<(), String> {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let a = parse_numeral(BASE.ok_or("build with an embedded base word")?)?;
     let n = parse_numeral(MODULUS.ok_or("build with an embedded modulus word")?)?;
     let width = parse_numeral(WIDTH.ok_or("build with an embedded width word")?)?;

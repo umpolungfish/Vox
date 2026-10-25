@@ -1,2 +1,0 @@
-/usr/bin/ld: /tmp/ccHo0Xev.o: in function `main':
-static_cuda_probe.c:(.text.startup+0x1c): warning: Using 'dlmopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking

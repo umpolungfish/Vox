@@ -11,6 +11,8 @@ use ::vox::router_marks::rewrite_word;
 fn closed(res: Option<(u64, u64)>, n: u64) -> bool { matches!(res, Some((p, q)) if p > 1 && q > 1 && p * q == n) }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let reference = RouterObject::initial();
     let corpus: Vec<u64> = vec![106545994355809];
     let mut rk = partial_router();

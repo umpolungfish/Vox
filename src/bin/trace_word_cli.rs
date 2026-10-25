@@ -14,6 +14,8 @@ fn steps_eq(a: &[GStep], b: &[GStep]) -> bool {
 }
 
 fn main() {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let rk = RouterObject::initial();
     let rg = RouterG::from_enum(&rk);
     let word: Vec<char> = rg.encode().chars().collect();

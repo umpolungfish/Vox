@@ -123,6 +123,8 @@ fn close(a: &[char], n: &[char], r: &[char]) -> String {
 }
 
 fn main() -> Result<(), String> {
+    #[cfg(feature = "hosted")]
+    ::vox::ordering::cli::intercept();
     let a = parse_numeral(BAKED_BASE_WORD.ok_or("bake a base word")?)?;
     let n = parse_numeral(BAKED_MODULUS_WORD.ok_or("bake a modulus word")?)?;
     let qubits = match BAKED_WIDTH_WORD {
