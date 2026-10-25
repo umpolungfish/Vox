@@ -1,3 +1,1 @@
-I remove generated LFS artifacts from my Vox source tree.
-
-I keep the local run evidence outside the repository and exclude these artifact paths from future commits.
+I keep generated baked GFE artifacts outside my Vox repository.
