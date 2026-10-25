@@ -1,1 +1,1 @@
-I keep generated baked GFE artifacts outside my Vox repository.
+I remove every generated alias of the blocked LFS artifacts from my Vox tree.
