@@ -16,38 +16,7 @@ pub const DESCENT: &str = "∈⊤⊥⊞∋";
 pub const PROTOCOL: &str = "⊢⊙∈⊤⊥⊞∋≻⋈≺⊡⊣";
 type Tape = Vec<char>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Four {
-    N,
-    T,
-    F,
-    B,
-}
-
-impl Four {
-    pub fn join(self, other: Self) -> Self {
-        let bits = |v| match v {
-            Self::N => 0,
-            Self::T => 1,
-            Self::F => 2,
-            Self::B => 3,
-        };
-        match bits(self) | bits(other) {
-            0 => Self::N,
-            1 => Self::T,
-            2 => Self::F,
-            _ => Self::B,
-        }
-    }
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::N => "N",
-            Self::T => "T",
-            Self::F => "F",
-            Self::B => "B",
-        }
-    }
-}
+pub use crate::belnap::B4 as Four;
 
 #[derive(Clone, Debug)]
 pub struct Limits {

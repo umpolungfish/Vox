@@ -875,7 +875,7 @@ impl SquarePhase {
             self.basis.len(),
             self.partial.len(),
         );
-        let folded_a = mf::FoldedTape::new(&a);
+        let folded_a = mf::BelnapResidue::new(&a);
         let inverses = self
             .columns
             .iter()
@@ -921,7 +921,7 @@ impl SquarePhase {
         let half = self.span / 2;
         let half_tape = address(half);
         self.positions.clear();
-        let folded_b = mf::FoldedTape::new(&b);
+        let folded_b = mf::BelnapResidue::new(&b);
         let root_polynomial = root_reentry::RootPolynomial::new(&a, &b, &self.n, half);
         for (column, field) in self.columns.iter().enumerate() {
             if column.is_power_of_two() {
@@ -943,16 +943,9 @@ impl SquarePhase {
             } else {
                 let inverse = inverse.unwrap();
                 let position = |root: u64| {
-                    let modulus = field.step as u64;
-                    if u32::try_from(modulus).is_ok() {
-                        let displacement = (root + modulus - reduced_b_word) % modulus;
-                        ((displacement * inverse + (half as u64) % modulus) % modulus) as usize
-                    } else {
-                        let modulus = u128::from(modulus);
-                        let displacement =
-                            (u128::from(root) + modulus - u128::from(reduced_b_word)) % modulus;
-                        ((displacement * u128::from(inverse) + half as u128) % modulus) as usize
-                    }
+                    let modulus=field.step as u64;
+                    let displacement=mf::residue_sub(root,reduced_b_word,modulus);
+                    mf::residue_add(mf::residue_mul(displacement,inverse,modulus),half as u64,modulus) as usize
                 };
                 (position(field.root_words.0), position(field.root_words.1))
             };
@@ -1066,7 +1059,7 @@ impl SquarePhase {
                 if mf::zero(&residue) {
                     return Witness { cells: Vec::new(), x: x.clone(), y: x, residual: residue, factors: Vec::new() };
                 }
-                let mut folded_residue = mf::FoldedTape::new(&residue);
+                let mut folded_residue = mf::BelnapResidue::new(&residue);
                 // x² = A*g. The coefficient's known prime columns enter the same
                 // parity register as g, and cancel there with matching divisions.
                 let mut cells = coefficient_columns.clone();
@@ -1291,7 +1284,7 @@ mod tests {
             }
             previous = Some(a.clone());
             assert!(distinct.insert((a.clone(), b)));
-            let folded = mf::FoldedTape::new(&a);
+            let folded = mf::BelnapResidue::new(&a);
             for (column, inverse) in phase
                 .columns
                 .iter()

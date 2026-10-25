@@ -14,7 +14,7 @@ use crate::morphism_factor::{
     parse_numeral, mul, modulo, Tape,
 };
 
-use crate::shor_braid::{order_lane, factor_close_public, shor_braid};
+use crate::shor_braid::{order_lane, factor_close_public, shor_braid_carrier, braid_from_retained_order, OrderedShorBraid};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
@@ -158,8 +158,16 @@ impl ShorCarrier {
     }
 
     /// Get the Shor braid word for this computation.
+    pub fn ordered_braid(&self) -> Result<OrderedShorBraid, String> {
+        match &self.order {
+            Some(order) => braid_from_retained_order(&self.a, &self.n, order),
+            None => shor_braid_carrier(&self.a, &self.n),
+        }
+    }
+
     pub fn braid_word(&self) -> Result<(Tape, usize), String> {
-        shor_braid(&self.a, &self.n)
+        let braid = self.ordered_braid()?;
+        Ok((braid.word, braid.levels))
     }
 }
 

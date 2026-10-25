@@ -294,7 +294,7 @@ mod tests {
         }
         graph.learned.push(clause);
         assert!(matches!(graph.advance(), Step::Running));
-        assert_eq!(graph.values[a], Some(ZERO));
+        assert_eq!(graph.values[a].parity(), Some(ZERO));
         assert_eq!(graph.levels[a], 0);
         assert_eq!(graph.boundaries.len(), 1);
     }

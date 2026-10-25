@@ -3,9 +3,9 @@ use crate::morphism_factor as mf;
 use alloc::vec::Vec;
 
 pub(super) struct RootPolynomial {
-    a: mf::FoldedTape,
-    b: mf::FoldedTape,
-    c: mf::FoldedTape,
+    a: mf::BelnapResidue,
+    b: mf::BelnapResidue,
+    c: mf::BelnapResidue,
     negative: bool,
     half: usize,
 }
@@ -16,28 +16,27 @@ impl RootPolynomial {
         let delta = if negative { mf::sub(n, &square) } else { mf::sub(&square, n) };
         let (c, remainder) = mf::divmod(&delta, a);
         assert!(mf::zero(&remainder), "root frame must retain B²=N mod A");
-        Self { a: mf::FoldedTape::new(a), b: mf::FoldedTape::new(b),
-            c: mf::FoldedTape::new(&c), negative, half }
+        Self { a: mf::BelnapResidue::new(a), b: mf::BelnapResidue::new(b),
+            c: mf::BelnapResidue::new(&c), negative, half }
     }
     /// Q(i)=A(i-half)²+2B(i-half)+(B²-N)/A, reduced exactly.
     fn residue(&self, i: usize, modulus: u64) -> u64 {
-        let m = u128::from(modulus);
-        let t = (i as u128 + m - (self.half as u128 % m)) % m;
-        let a = u128::from(self.a.remainder_word(modulus));
-        let b = u128::from(self.b.remainder_word(modulus));
-        let c = u128::from(self.c.remainder_word(modulus));
-        let c = if self.negative { (m - c) % m } else { c };
-        ((((a * t % m + 2 * b) % m) * t % m + c) % m) as u64
+        let t=mf::residue_sub(i as u64,self.half as u64,modulus);
+        let a=self.a.remainder_word(modulus);
+        let b=self.b.remainder_word(modulus);
+        let c=self.c.remainder_word(modulus);
+        let c=if self.negative {mf::residue_sub(0,c,modulus)}else{c};
+        mf::residue_add(mf::residue_mul(mf::residue_add(mf::residue_mul(a,t,modulus),
+            mf::residue_mul(2,b,modulus),modulus),t,modulus),c,modulus)
     }
     pub(super) fn linear_root(&self, prime: usize) -> usize {
-        let p = prime as u64;
-        assert_eq!(self.a.remainder_word(p), 0);
-        let derivative = (2 * u128::from(self.b.remainder_word(p)) % u128::from(p)) as u64;
-        let inverse = mf::inverse_residue_word(derivative, p)
-            .expect("linear field root is invertible");
-        let c = self.residue(self.half, p);
-        let displacement = u128::from((p - c) % p) * u128::from(inverse);
-        ((displacement + self.half as u128) % u128::from(p)) as usize
+        let p=prime as u64;
+        assert_eq!(self.a.remainder_word(p),0);
+        let derivative=mf::residue_mul(2,self.b.remainder_word(p),p);
+        let inverse=mf::inverse_residue_word(derivative,p).expect("linear field root is invertible");
+        let c=self.residue(self.half,p);
+        let displacement=mf::residue_mul(mf::residue_sub(0,c,p),inverse,p);
+        mf::residue_add(displacement,self.half as u64,p) as usize
     }
     pub(super) fn lift_roots(&self, prime: usize, roots: &[usize], span: usize)
         -> Vec<(usize, usize)> {
@@ -54,11 +53,11 @@ impl RootPolynomial {
                 let value = self.residue(r, next as u64);
                 assert_eq!(value % modulus, 0, "root re-entry lost its parent fiber");
                 let quotient = value / modulus;
-                let t = (r as u128 + p as u128 - (self.half as u128 % p as u128)) % p as u128;
-                let derivative = (2 * ((u128::from(self.a.remainder_word(p)) * t
-                    + u128::from(self.b.remainder_word(p))) % p as u128) % p as u128) as u64;
+                let t=mf::residue_sub(r as u64,self.half as u64,p);
+                let derivative=mf::residue_mul(2,mf::residue_add(
+                    mf::residue_mul(self.a.remainder_word(p),t,p),self.b.remainder_word(p),p),p);
                 if let Some(inverse) = mf::inverse_residue_word(derivative, p) {
-                    let digit = ((u128::from((p - quotient) % p) * u128::from(inverse)) % p as u128) as u64;
+                    let digit=mf::residue_mul(mf::residue_sub(0,quotient,p),inverse,p);
                     let child = r as u128 + u128::from(digit) * u128::from(modulus);
                     if child < span as u128 { lifted.push(child as usize); }
                 } else if quotient == 0 {
@@ -103,7 +102,7 @@ mod tests {
                 let x = if index >= half { mf::add(&b, &distance) } else { mf::sub(&b, &distance) };
                 let square = mf::mul(&x, &x);
                 let delta = if mf::cmp(&square, &n).is_lt() { mf::sub(&n, &square) } else { mf::sub(&square, &n) };
-                let folded = mf::FoldedTape::new(&delta);
+                let folded = mf::BelnapResidue::new(&delta);
                 let mut power = p as u64;
                 while let Some(next) = power.checked_mul(p as u64) {
                     let marked = lifts.iter().any(|&(m, r)| m == next as usize && index >= r && (index-r) % m == 0);
@@ -120,10 +119,10 @@ mod tests {
         let n = mf::decimal_to_tape("1306593903193228327879866132486971792765599839798626833574803").unwrap();
         assert_eq!(n.len(), 200);
         let p = [3usize, 5, 7, 11, 13, 17, 19, 23, 29, 31].into_iter()
-            .find(|&p| (1..p).any(|r| (r*r) as u64 % p as u64 == mf::FoldedTape::new(&n).remainder_word(p as u64)))
+            .find(|&p| (1..p).any(|r| (r*r) as u64 % p as u64 == mf::BelnapResidue::new(&n).remainder_word(p as u64)))
             .unwrap();
         let a = mf::tape_u64(p as u64);
-        let n_residue = mf::FoldedTape::new(&n).remainder_word(p as u64);
+        let n_residue = mf::BelnapResidue::new(&n).remainder_word(p as u64);
         let r = (1..p).find(|r| (r*r) as u64 % p as u64 == n_residue).unwrap();
         let low = mf::tape_u64(r as u64);
         let root = mf::isqrt(&n);

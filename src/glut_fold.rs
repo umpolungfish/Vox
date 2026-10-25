@@ -793,6 +793,14 @@ pub(super) struct Resident {
     catalyst_order:Option<[usize;12]>,
 }
 impl Resident {
+    pub(super) fn belnap_relation_conflicts(&self) -> Vec<super::BelnapRelationConflict> {
+        self.lanes.as_ref().and_then(|lanes|lanes.shared.as_ref())
+            .map(|graph|graph.held_relations().to_vec()).unwrap_or_default()
+    }
+    pub(super) fn belnap_conflicts(&self) -> Vec<super::BelnapConflict> {
+        self.lanes.as_ref().and_then(|lanes| lanes.shared.as_ref())
+            .map(|graph| graph.held_conflicts().to_vec()).unwrap_or_default()
+    }
     pub fn bind_square_torus(&mut self) -> Result<(), String> {
         let step = crate::geometer_factor_extractor::phase_seeded_torus_multiplier(&self.n);
         if let Some(lanes) = self.lanes.as_mut() {

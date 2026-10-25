@@ -52,3 +52,17 @@ measurements/
 /membranes/glut_stress_2026-09-29/control_35/input.imasm
 /membranes/small_prime_orbit_mask.imasm
 .imsgct-order-*.txt
+
+# --- local build and execution artifacts ---
+*:Zone.Identifier
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+node_modules/
+target/
+*.rlib
+*.rmeta
+.DS_Store

@@ -58,7 +58,7 @@ impl Correlation {
                     sides[slot] = Some(cell);
                 }
                 members.push(cell);
-                if let Some(mark) = self.values[cell] {
+                if let Some(mark) = self.values[cell].parity() {
                     let transported = quantum::controlled_x(mark, turn);
                     if anchor.is_some_and(|other| other != transported) {
                         self.empty = true;
@@ -225,13 +225,13 @@ impl Correlation {
         for (index, root) in retained.iter().copied().enumerate() {
             dense[root] = Some(index);
         }
-        let mut values = vec![None; retained.len()];
+        let mut values = vec![crate::belnap::B4::N; retained.len()];
         for (cell, &value) in self.values.iter().enumerate() {
-            if let (Some(mark), Some(root)) = (value, dense[parent[cell]]) {
-                if values[root].is_some_and(|other| other != mark) {
+            if let (Some(mark), Some(root)) = (value.parity(), dense[parent[cell]]) {
+                if values[root].parity().is_some_and(|other| other != mark) {
                     self.empty = true;
                 } else {
-                    values[root] = Some(mark);
+                    values[root] = crate::belnap::B4::from_parity(mark);
                 }
             }
         }
@@ -243,7 +243,7 @@ impl Correlation {
         self.reasons.fill(None);
         self.levels.fill(0);
         for (cell, &value) in self.values.iter().enumerate() {
-            if let Some(mark) = value {
+            if let Some(mark) = value.parity() {
                 self.trail.push(Literal { cell, mark });
             }
         }
@@ -270,6 +270,7 @@ impl Correlation {
             for cell in &mut gate.cells {
                 *cell = dense[parent[*cell]].unwrap();
             }
+            gate.full_rows=gate.full.correlated_rows(&gate.cells);
             let mut key = [0; 6];
             key[0] = gate.cells.len();
             key[1..=gate.cells.len()].copy_from_slice(&gate.cells);
@@ -317,7 +318,7 @@ mod tests {
         graph.p = vec![right];
         graph.connect();
         assert!(!graph.empty);
-        assert_eq!(graph.values[graph.p[0]], Some(ONE));
+        assert_eq!(graph.values[graph.p[0]].parity(), Some(ONE));
         assert_eq!(graph.products.len(), 1);
     }
     #[test]
@@ -356,7 +357,7 @@ mod tests {
         assert_eq!(graph.p[1], graph.p[3]);
         assert_ne!(graph.p[0], graph.p[1]);
         for &cell in &graph.p {
-            assert_eq!(graph.values[cell], None);
+            assert_eq!(graph.values[cell].parity(), None);
         }
     }
     #[test]
@@ -382,7 +383,7 @@ mod tests {
         graph.connect();
         assert!(!graph.empty);
         assert_eq!(graph.p[2], 0);
-        assert_eq!(graph.values[graph.p[0]], None);
-        assert_eq!(graph.values[graph.p[1]], None);
+        assert_eq!(graph.values[graph.p[0]].parity(), None);
+        assert_eq!(graph.values[graph.p[1]].parity(), None);
     }
 }

@@ -16,6 +16,7 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 use crate::fixed_point_imasm::ImasmNumeralWord;
+use crate::belnap::B4;
 use crate::vox::{
     AFWD, AREV, CLINK, ENGAGR, EVALF, EVALT, FFUSE, FSPLIT, IFIX, IMSCRIB, TANCH,
     VINIT,
@@ -34,22 +35,6 @@ pub const WORD_SUB_CELL: [char; 10] = [
 /// Comparison boundary used while constructing square-root candidates.
 pub const WORD_COMPARE: [char; 7] = [VINIT, FSPLIT, EVALT, EVALF, FFUSE, IFIX, TANCH];
 
-const fn mark_xor(a: char, b: char) -> char {
-    if a == b { EVALT } else { EVALF }
-}
-
-const fn mark_not(a: char) -> char {
-    if a == EVALF { EVALT } else { EVALF }
-}
-
-const fn mark_and(a: char, b: char) -> char {
-    if a == EVALF && b == EVALF { EVALF } else { EVALT }
-}
-
-const fn mark_or(a: char, b: char) -> char {
-    if a == EVALF || b == EVALF { EVALF } else { EVALT }
-}
-
 #[derive(Clone, Copy)]
 enum CellMode {
     Add,
@@ -59,15 +44,15 @@ enum CellMode {
 /// Execute one arithmetic cell by walking its IMASM program. Operand values are
 /// resident marks; `ENGAGR` is the only place the output cell is formed, and
 /// `IFIX` is required before `TANCH` can return it.
-const fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) -> (char, char) {
-    let mut left = EVALT;
-    let mut right = EVALT;
+const fn run_cell(word: &[char], mode: CellMode, a: B4, b: B4, carry: B4) -> (B4, B4) {
+    let mut left = B4::F;
+    let mut right = B4::F;
     let mut saw_left = false;
     let mut saw_right = false;
     let mut engaged = false;
     let mut fixed = false;
-    let mut out = EVALT;
-    let mut next = EVALT;
+    let mut out = B4::F;
+    let mut next = B4::F;
 
     let mut cursor = 0;
     while cursor < word.len() {
@@ -89,14 +74,11 @@ const fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) 
                 saw_right = true;
             }
             ENGAGR if saw_left && saw_right => {
-                let pair_xor = mark_xor(left, right);
-                out = mark_xor(pair_xor, carry);
+                let pair_xor = left.truth_xor(right);
+                out = pair_xor.truth_xor(carry);
                 next = match mode {
-                    CellMode::Add => mark_or(mark_and(left, right), mark_and(pair_xor, carry)),
-                    CellMode::Sub => mark_or(
-                        mark_and(mark_not(left), mark_or(right, carry)),
-                        mark_and(right, carry),
-                    ),
+                    CellMode::Add => left.truth_and(right).truth_or(pair_xor.truth_and(carry)),
+                    CellMode::Sub => left.bnot().truth_and(right.truth_or(carry)).truth_or(right.truth_and(carry)),
                 };
                 engaged = true;
             }
@@ -113,25 +95,48 @@ const fn run_cell(word: &[char], mode: CellMode, a: char, b: char, carry: char) 
 // Compile the existing cell words over their complete finite input carrier.
 // Each entry is the interpreter's fixed return, including its carry/borrow.
 // Runtime words remain glyph cells; only the local cell transition is cached.
-const fn compile_cell(word: &[char], mode: CellMode) -> [(char, char); 8] {
-    let mut table = [(EVALT, EVALT); 8];
+const fn compile_cell(word: &[char], mode: CellMode) -> [(B4, B4); 64] {
+    let mut table = [(B4::N, B4::N); 64];
     let mut index = 0;
     while index < table.len() {
-        let a = if index & 1 == 0 { EVALT } else { EVALF };
-        let b = if index & 2 == 0 { EVALT } else { EVALF };
-        let carry = if index & 4 == 0 { EVALT } else { EVALF };
+        let a = B4::from_u8((index & 3) as u8);
+        let b = B4::from_u8(((index >> 2) & 3) as u8);
+        let carry = B4::from_u8(((index >> 4) & 3) as u8);
         table[index] = run_cell(word, mode, a, b, carry);
         index += 1;
     }
     table
 }
 
-const ADD_CELL_RETURNS: [(char, char); 8] = compile_cell(&WORD_ADD_CELL, CellMode::Add);
-const SUB_CELL_RETURNS: [(char, char); 8] = compile_cell(&WORD_SUB_CELL, CellMode::Sub);
+const ADD_CELL_RETURNS: [(B4, B4); 64] = compile_cell(&WORD_ADD_CELL, CellMode::Add);
+const SUB_CELL_RETURNS: [(B4, B4); 64] = compile_cell(&WORD_SUB_CELL, CellMode::Sub);
 
-fn prepared_cell(table: &[(char, char); 8], a: char, b: char, carry: char) -> (char, char) {
-    table[(a == EVALF) as usize | ((b == EVALF) as usize) << 1
-        | ((carry == EVALF) as usize) << 2]
+/// The full resident arithmetic cell, including neither and both evidence.
+pub fn belnap_add_cell(a: B4, b: B4, carry: B4) -> (B4, B4) {
+    ADD_CELL_RETURNS[a as usize | (b as usize) << 2 | (carry as usize) << 4]
+}
+pub fn belnap_sub_cell(a: B4, b: B4, borrow: B4) -> (B4, B4) {
+    SUB_CELL_RETURNS[a as usize | (b as usize) << 2 | (borrow as usize) << 4]
+}
+
+fn parity_evidence(mark: char) -> B4 {
+    match mark {
+        EVALT => B4::F, // Even parity: the numerical zero, not truth affirmation.
+        EVALF => B4::T,
+        _ => panic!("non-parity cell crossed the definite numeral boundary"),
+    }
+}
+fn definite_parity(value: B4) -> char {
+    match value {
+        B4::F => EVALT,
+        B4::T => EVALF,
+        _ => panic!("open Belnap evidence cannot be emitted as a definite numeral"),
+    }
+}
+fn prepared_cell(table: &[(B4, B4); 64], a: char, b: char, carry: char) -> (char, char) {
+    let (out, next) = table[parity_evidence(a) as usize
+        | (parity_evidence(b) as usize) << 2 | (parity_evidence(carry) as usize) << 4];
+    (definite_parity(out), definite_parity(next))
 }
 
 fn trim_bits(mut bits: Vec<char>) -> Vec<char> {

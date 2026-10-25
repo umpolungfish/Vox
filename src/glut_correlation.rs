@@ -1,6 +1,8 @@
 //! Shared glyph-valued multiplier gates and retained conflict implications.
 //! Factor, product and carry cells refer to the same vertices across columns.
 use super::{bit, mf, trim, ONE, ZERO};
+use crate::belnap::B4;
+use crate::belnap_relation::{self as fde, BelnapSet};
 #[path = "glut_midpoint.rs"]
 mod midpoint;
 #[path = "glut_quantum.rs"]
@@ -30,10 +32,13 @@ impl Literal {
         self.cell * 2 + usize::from(self.mark == ONE)
     }
 }
+use super::super::{BelnapConflict,BelnapRelationConflict};
 struct Gate {
     cells: Vec<usize>,
     supports: &'static [[u8; 2]],
     all: u8,
+    full: &'static fde::BelnapGateTable,
+    full_rows: u64,
 }
 const AND: &[&[char]] = &[
     &[ZERO, ZERO, ZERO],
@@ -53,18 +58,15 @@ const ADD: &[&[char]] = &[
     &[ONE, ONE, ONE, ONE, ONE],
 ];
 
-// These are the complete truth supports of the elementary gates. A mask
-// packs a finite gate table; it places no bound on multiplier or graph extent.
-const AND_SUPPORT: &[[u8; 2]] = &[[0b0011, 0b1100], [0b0101, 0b1010], [0b0111, 0b1000]];
-const EQUAL_SUPPORT: &[[u8; 2]] = &[[0b01, 0b10], [0b01, 0b10]];
-const NOT_SUPPORT: &[[u8; 2]] = &[[0b01, 0b10], [0b10, 0b01]];
-const ADD_SUPPORT: &[[u8; 2]] = &[
-    [0x0f, 0xf0],
-    [0x33, 0xcc],
-    [0x55, 0xaa],
-    [0x69, 0x96],
-    [0x17, 0xe8],
-];
+// Numerical projections are compiled from the full FOUR relations.
+const AND_PROJECTION:[[u8;2];5]=fde::BelnapGateTable::compile(fde::GateKind::And).numeral_supports();
+const NOT_PROJECTION:[[u8;2];5]=fde::BelnapGateTable::compile(fde::GateKind::Not).numeral_supports();
+const EQUAL_PROJECTION:[[u8;2];5]=fde::BelnapGateTable::compile(fde::GateKind::Equal).numeral_supports();
+const ADD_PROJECTION:[[u8;2];5]=fde::BelnapGateTable::compile(fde::GateKind::Add).numeral_supports();
+const AND_SUPPORT:&[[u8;2]]=&AND_PROJECTION;
+const NOT_SUPPORT:&[[u8;2]]=&NOT_PROJECTION;
+const EQUAL_SUPPORT:&[[u8;2]]=&EQUAL_PROJECTION;
+const ADD_SUPPORT:&[[u8;2]]=&ADD_PROJECTION;
 
 pub(super) enum Step {
     Running,
@@ -83,7 +85,9 @@ pub(super) struct Correlation {
     parity_incidence: Vec<usize>,
     adjacent_offsets: Vec<usize>,
     adjacent_gates: Vec<usize>,
-    values: Vec<Option<char>>,
+    values: Vec<B4>,
+    held_conflicts: Vec<BelnapConflict>,
+    held_relations: Vec<BelnapRelationConflict>,
     levels: Vec<usize>,
     reasons: Vec<Option<Vec<Literal>>>,
     activity: BTreeMap<usize, Vec<char>>,
@@ -125,6 +129,8 @@ pub(super) struct Correlation {
     pub joint_forced: usize,
 }
 impl Correlation {
+    pub(super) fn held_relations(&self) -> &[BelnapRelationConflict] { &self.held_relations }
+    pub(super) fn held_conflicts(&self) -> &[BelnapConflict] { &self.held_conflicts }
     pub(super) fn bind_midpoint_floor(&mut self, floor: &[char]) {
         let midpoint = self.midpoint.clone();
         self.bound(&midpoint, floor, true);
@@ -149,8 +155,8 @@ impl Correlation {
     pub(super) fn factor_support(&self) -> crate::dialectic_reentry::FactorSupport {
         crate::dialectic_reentry::FactorSupport {
             source:self.source.clone(),
-            p:self.p.iter().map(|&cell|self.values[cell]).collect(),
-            q:self.q.iter().map(|&cell|self.values[cell]).collect(),
+            p:self.p.iter().map(|&cell|self.values[cell].parity()).collect(),
+            q:self.q.iter().map(|&cell|self.values[cell].parity()).collect(),
             depth:self.boundaries.len(),
         }
     }
@@ -162,18 +168,23 @@ impl Correlation {
         s.bind_admission(n);s.connect_observed(&mut |_,_,_|{});s
     }
     pub(super) fn into_device_relation(self)->super::super::DeviceCorrelation {
-        super::super::DeviceCorrelation {
+        let mut relation=super::super::DeviceCorrelation {
+            belnap_prepared_bank:Vec::new(),belnap_preparation:super::super::BelnapPropagation::pending(),
             gates:self.gates.into_iter().map(|gate|super::super::DeviceCorrelationGate {
-                cells:gate.cells,supports:gate.supports.to_vec(),all:gate.all,
+                full_kind:gate.full.kind,full_supports:gate.full.supports[..gate.full.width].to_vec(),
+                full_rows:gate.full_rows,cells:gate.cells,supports:gate.supports.to_vec(),all:gate.all,
             }).collect(),
+            belnap_domains:self.values.iter().map(|&value| if value==B4::N {BelnapSet::NUMERAL}else{BelnapSet::singleton(value)}).collect(),
             masks:self.values.into_iter().map(|value|match value {
-                Some(ZERO)=>1,Some(ONE)=>2,None=>3,_=>unreachable!(),
+                B4::F=>1,B4::T=>2,B4::N=>3,B4::B=>0,
             }).collect(),
             p:self.p,q:self.q,empty:self.empty,
             admission:self.admission,
             midpoint:self.midpoint,gap:self.gap,
             parity:self.parity.into_iter().map(|row|(row.cells,row.mark==ONE)).collect(),
-        }
+        };
+        relation.belnap_preparation=relation.propagate_belnap();
+        relation
     }
     fn blank(empty: bool) -> Self {
         let mut s = Self {
@@ -189,6 +200,8 @@ impl Correlation {
             adjacent_offsets: Vec::new(),
             adjacent_gates: Vec::new(),
             values: Vec::new(),
+            held_conflicts: Vec::new(),
+            held_relations: Vec::new(),
             levels: Vec::new(),
             reasons: Vec::new(),
             activity: BTreeMap::new(),
@@ -440,7 +453,7 @@ impl Correlation {
     }
     fn cell(&mut self) -> usize {
         let index = self.values.len();
-        self.values.push(None);
+        self.values.push(B4::N);
         self.levels.push(0);
         self.reasons.push(None);
         index
@@ -459,11 +472,15 @@ impl Correlation {
             _ => unreachable!("elementary gate table"),
         };
         let all = ((1u16 << rows.len()) - 1) as u8;
-        self.gates.push(Gate {
-            cells,
-            supports,
-            all,
-        });
+        let full = match rows.len() {
+            2 if rows[0][1] == ZERO => &fde::EQUAL,
+            2 => &fde::NOT,
+            4 => &fde::AND,
+            8 => &fde::ADD,
+            _ => unreachable!("elementary gate relation"),
+        };
+        let full_rows=full.correlated_rows(&cells);
+        self.gates.push(Gate { cells, supports:&supports[..full.width], all, full, full_rows });
     }
     fn and(&mut self, a: usize, b: usize) -> usize {
         if a == 0 || b == 0 {
@@ -579,10 +596,23 @@ impl Correlation {
         }
     }
     fn assign(&mut self, lit: Literal, reason: Option<Vec<Literal>>) -> bool {
-        if let Some(mark) = self.values[lit.cell] {
-            return mark == lit.mark;
+        let previous = self.values[lit.cell];
+        let incoming = B4::from_parity(lit.mark);
+        let joined = previous.join(incoming);
+        if joined == B4::B {
+            // Keep both observations with their grounding. The numerical
+            // continuation stays scoped to its existing decision branch;
+            // the contradictory return is never converted into that branch.
+            self.held_conflicts.push(BelnapConflict {
+                cell: lit.cell, evidence: joined, previous, incoming,
+                depth: self.boundaries.len(),
+                previous_reason: self.reasons[lit.cell].as_ref().map(|r| r.iter().map(|lit| (lit.cell, B4::from_parity(lit.mark))).collect()),
+                incoming_reason: reason.as_ref().map(|r| r.iter().map(|lit| (lit.cell, B4::from_parity(lit.mark))).collect()),
+            });
+            return false;
         }
-        self.values[lit.cell] = Some(lit.mark);
+        if previous != B4::N { return true; }
+        self.values[lit.cell] = B4::from_parity(lit.mark);
         self.parity_assignment(lit, false);
         self.levels[lit.cell] = self.boundaries.len();
         self.reasons[lit.cell] = reason;
@@ -590,41 +620,27 @@ impl Correlation {
         true
     }
     fn satisfied(&self, lit: Literal) -> Option<bool> {
-        self.values[lit.cell].map(|mark| mark == lit.mark)
+        self.values[lit.cell].parity().map(|mark| mark == lit.mark)
     }
     fn gate_step(&mut self, index: usize) -> Result<(), Vec<Literal>> {
         let gate = &self.gates[index];
         self.work += gate.cells.len() * 2;
-        let mut viable = gate.all;
-        for (slot, &cell) in gate.cells.iter().enumerate() {
-            if let Some(mark) = self.values[cell] {
-                viable &= gate.supports[slot][usize::from(mark == ONE)];
+        // Numeral candidates are an explicit subset of FOUR. Query the full
+        // relation and retain common cell identities before selecting a mark.
+        let domains:Vec<_>=gate.cells.iter().map(|&cell| match self.values[cell] {
+            B4::N=>BelnapSet::NUMERAL,
+            value=>BelnapSet::singleton(value),
+        }).collect();
+        let viable=gate.full.restrict(gate.full_rows,&domains);
+        if viable==0 {return Err(self.gate_reason(index,None));}
+        let forced:Vec<_>=gate.cells.iter().enumerate().filter_map(|(slot,&cell)| {
+            if self.values[cell] != B4::N {return None;}
+            match gate.full.domain(viable,slot).only() {
+                Some(B4::T)=>Some(Literal{cell,mark:ONE}),
+                Some(B4::F)=>Some(Literal{cell,mark:ZERO}),
+                _=>None,
             }
-        }
-        let mut forced = Vec::new();
-        if viable != 0 {
-            for (slot, &cell) in gate.cells.iter().enumerate() {
-                if self.values[cell].is_some() {
-                    continue;
-                }
-                let mark = if viable & gate.supports[slot][0] == 0 {
-                    Some(ONE)
-                } else if viable & gate.supports[slot][1] == 0 {
-                    Some(ZERO)
-                } else {
-                    None
-                };
-                if let Some(mark) = mark {
-                    forced.push(Literal { cell, mark });
-                }
-            }
-            if forced.is_empty() {
-                return Ok(());
-            }
-        }
-        if viable == 0 {
-            return Err(self.gate_reason(index, None));
-        }
+        }).collect();
         for lit in forced {
             let reason = self.gate_reason(index, Some(lit));
             if !self.assign(lit, Some(reason.clone())) {
@@ -640,7 +656,7 @@ impl Correlation {
             if cell <= 1 {
                 continue;
             }
-            if let Some(mark) = self.values[cell] {
+            if let Some(mark) = self.values[cell].parity() {
                 let literal = Literal { cell, mark }.opposite();
                 if !premise.contains(&literal) {
                     premise.push(literal);
@@ -653,7 +669,7 @@ impl Correlation {
             let mut support = gate.all;
             for (slot, &cell) in gate.cells.iter().enumerate() {
                 let condition = if cell <= 1 {
-                    self.values[cell]
+                    self.values[cell].parity()
                 } else {
                     premise
                         .iter()
@@ -802,7 +818,7 @@ impl Correlation {
         while self.trail.len() > end {
             let lit = self.trail.pop().unwrap();
             self.parity_assignment(lit, true);
-            self.values[lit.cell] = None;
+            self.values[lit.cell] = B4::N;
             self.levels[lit.cell] = 0;
             self.reasons[lit.cell] = None;
         }
@@ -817,7 +833,7 @@ impl Correlation {
                 .iter()
                 .map(|&cell| {
                     if self.levels[cell] == 0 || included.binary_search(&cell).is_ok() {
-                        self.values[cell]
+                        self.values[cell].parity()
                     } else {
                         None
                     }
@@ -847,7 +863,7 @@ impl Correlation {
                 .iter()
                 .map(|&cell| {
                     if self.levels[cell] == 0 || included.binary_search(&cell).is_ok() {
-                        self.values[cell]
+                        self.values[cell].parity()
                     } else {
                         None
                     }
@@ -910,8 +926,8 @@ impl Correlation {
         if self.source.is_empty() {
             return Ok(());
         }
-        let p: Vec<_> = self.p.iter().map(|&cell| self.values[cell]).collect();
-        let q: Vec<_> = self.q.iter().map(|&cell| self.values[cell]).collect();
+        let p: Vec<_> = self.p.iter().map(|&cell| self.values[cell].parity()).collect();
+        let q: Vec<_> = self.q.iter().map(|&cell| self.values[cell].parity()).collect();
         if self.support_p == p && self.support_q == q {
             return Ok(());
         }
@@ -921,7 +937,7 @@ impl Correlation {
             if self.levels[cell] == 0 {
                 continue;
             }
-            if let Some(mark) = self.values[cell] {
+            if let Some(mark) = self.values[cell].parity() {
                 let lit = Literal { cell, mark }.opposite();
                 if !premise.contains(&lit) {
                     premise.push(lit);
@@ -955,12 +971,12 @@ impl Correlation {
             .zip(&frame.p)
             .chain(self.q.iter().zip(&frame.q))
             .filter_map(|(&cell, &mark)| {
-                mark.filter(|_| self.values[cell].is_none())
+                mark.filter(|_| self.values[cell].parity().is_none())
                     .map(|mark| Literal { cell, mark })
             })
             .collect();
         for lit in forced {
-            if self.values[lit.cell].is_none() {
+            if self.values[lit.cell].parity().is_none() {
                 self.fold_forced += 1;
             }
             let mut reason = premise.clone();
@@ -994,6 +1010,11 @@ impl Correlation {
                 }
             };
             if let Err(conflict) = settled {
+                self.held_relations.push(BelnapRelationConflict {
+                    evidence:B4::B, depth:self.boundaries.len(), decision:self.decisions,
+                    support:conflict.iter().map(|lit|(lit.cell,self.values[lit.cell])).collect(),
+                    implication:conflict.iter().map(|lit|(lit.cell,B4::from_parity(lit.mark))).collect(),
+                });
                 self.conflicts += 1;
                 let conflict_level = conflict
                     .iter()
@@ -1035,7 +1056,7 @@ impl Correlation {
                 .iter()
                 .chain(&self.q)
                 .copied()
-                .filter(|&i| self.values[i].is_none())
+                .filter(|&i| self.values[i].parity().is_none())
                 .max_by(|&a, &b| {
                     mf::cmp(&self.activity[&a], &self.activity[&b])
                         .then_with(|| self.priority[&b].cmp(&self.priority[&a]))
@@ -1055,7 +1076,7 @@ impl Correlation {
                 trim(
                     cells
                         .iter()
-                        .map(|&cell| self.values[cell].unwrap())
+                        .map(|&cell| self.values[cell].parity().unwrap())
                         .collect(),
                 )
             };
@@ -1086,7 +1107,7 @@ impl Correlation {
                 let mut premise = Vec::new();
                 for &cell in self.p.iter().chain(&self.q) {
                     if self.levels[cell] > 0 {
-                        if let Some(mark) = self.values[cell] {
+                        if let Some(mark) = self.values[cell].parity() {
                             let lit = Literal { cell, mark }.opposite();
                             if !premise.contains(&lit) {
                                 premise.push(lit);
@@ -1123,6 +1144,27 @@ impl Correlation {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn belnap_conflict_retains_both_observations_and_branch_recovery() {
+        use super::*;
+        let mut graph=Correlation::blank(false);
+        let cell=graph.cell();
+        graph.boundaries.push(graph.trail.len());
+        assert!(graph.assign(Literal{cell,mark:ONE},None));
+        let reason=vec![Literal{cell,mark:ZERO}];
+        assert!(!graph.assign(Literal{cell,mark:ZERO},Some(reason)));
+        let held=&graph.held_conflicts()[0];
+        assert_eq!(held.evidence,B4::B);
+        assert_eq!((held.previous,held.incoming),(B4::T,B4::F));
+        assert_eq!(held.depth,1);
+        assert_eq!(held.incoming_reason,Some(vec![(cell,B4::F)]));
+        graph.retreat(0);
+        assert_eq!(graph.values[cell],B4::N);
+        assert_eq!(graph.held_conflicts()[0].evidence,B4::B);
+        assert!(graph.assign(Literal{cell,mark:ZERO},None));
+        assert_eq!(graph.values[cell],B4::F);
+        assert_eq!(graph.held_conflicts()[0].evidence,B4::B);
+    }
     #[test]
     #[ignore = "explicit RSA-200 internal-relation measurement"]
     fn rsa_200_source_only_product_relation() {
@@ -1244,7 +1286,7 @@ mod tests {
                         cells
                             .iter()
                             .enumerate()
-                            .all(|(i, &cell)| s.values[cell].is_none_or(|mark| mark == row[i]))
+                            .all(|(i, &cell)| s.values[cell].parity().is_none_or(|mark| mark == row[i]))
                     })
                     .collect();
                 let index = s.gates.len();
@@ -1259,7 +1301,7 @@ mod tests {
                     assert!(cells
                         .iter()
                         .enumerate()
-                        .all(|(i, &cell)| s.values[cell].is_none_or(|mark| mark == row[i])));
+                        .all(|(i, &cell)| s.values[cell].parity().is_none_or(|mark| mark == row[i])));
                 }
             }
         }

@@ -1,3 +1,3 @@
-I admit 128-bit sources for my initial ordering checks.
+I unify factor arithmetic and retained correlation cells under the shared Belnap carrier
 
-I use the requested initial test domain while preserving the locked integration source and existing receipts.
+I add full FOUR numerical cells and IMASM arithmetic over every input triple, share judgment types, retain assignment and relation conflicts across branch recovery, and route source and residue arithmetic through the same cells. I preserve the former limb arithmetic as a test oracle and keep the existing ordering work.

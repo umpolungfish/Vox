@@ -111,6 +111,8 @@ impl PreparedGlutMembrane {
     pub fn square_torus_observations(&self) -> Vec<super::SquareTorusObservation> {
         self.resident.borrow().square_torus_observations()
     }
+    pub fn belnap_relation_conflicts(&self) -> Vec<super::BelnapRelationConflict> { self.resident.borrow().belnap_relation_conflicts() }
+    pub fn belnap_conflicts(&self) -> Vec<super::BelnapConflict> { self.resident.borrow().belnap_conflicts() }
     pub fn stats(&self)->super::FoldStats{self.resident.borrow().stats.clone()}
     /// Bind an N-only divisor to the executing register and close its exact
     /// multiplication, carry checkpoints and factor-phase return in place.
@@ -151,6 +153,19 @@ impl PreparedGlutMembrane {
     /// This advances work only; readout still requires `execute` and its bank checks.
     pub fn advance(&mut self) -> bool {
         self.advance_observed(|_| {})
+    }
+    /// An organism-selected component acts on this same retained register.
+    /// Verification and the factor-phase boundary consume any produced pair.
+    pub fn advance_component(&mut self, index: usize) -> Result<bool, String> {
+        let port = *Port::ORDER.get(index).ok_or("invalid resident component")?;
+        let mut resident = self.resident.borrow_mut();
+        resident.activate(port, |_| {});
+        resident.activate(Port::Verify, |_| {});
+        resident.activate(Port::Quantum, |_| {});
+        Ok(resident.finished() && resident.quantum_phase_closed())
+    }
+    pub fn component_names() -> Vec<String> {
+        Port::ORDER.iter().map(|port| alloc::format!("{port:?}")).collect()
     }
     /// Execute the existing first component on the same resident object.
     pub fn advance_frames(&mut self) -> Option<super::GlutFrameObservation> {

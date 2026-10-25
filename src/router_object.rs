@@ -57,21 +57,8 @@ impl ReprTag {
     }
 }
 
-/// Belnap judgment.
-#[derive(Clone, Copy, PartialEq, Debug)]
-pub enum Belnap { T, F, B, N }
-
-impl Belnap {
-    pub fn glyph(self) -> char {
-        match self { Belnap::T => J_T, Belnap::F => J_F, Belnap::B => J_B, Belnap::N => J_N }
-    }
-    pub fn from_glyph(g: char) -> Option<Belnap> {
-        match g { J_T => Some(Belnap::T), J_F => Some(Belnap::F), J_B => Some(Belnap::B), J_N => Some(Belnap::N), _ => None }
-    }
-    pub fn name(self) -> &'static str {
-        match self { Belnap::T => "T", Belnap::F => "F", Belnap::B => "B", Belnap::N => "N" }
-    }
-}
+/// Shared Belnap judgment.
+pub use crate::belnap::B4 as Belnap;
 
 /// One routing clause: (judgment × source_repr) → (transform_word, next_repr).
 #[derive(Clone)]

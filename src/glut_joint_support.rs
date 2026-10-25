@@ -87,7 +87,7 @@ impl Correlation {
         let mut viable = joint.all;
         let mut reason = Vec::new();
         for (slot, &cell) in joint.cells.iter().enumerate() {
-            if let Some(mark) = self.values[cell] {
+            if let Some(mark) = self.values[cell].parity() {
                 viable &= joint.supports[slot][usize::from(mark == ONE)];
                 reason.push(Literal { cell, mark }.opposite());
             }
@@ -96,7 +96,7 @@ impl Correlation {
         self.work += joint.cells.len() * 2;
         if viable == 0 { return Err(reason); }
         let forced: Vec<_> = joint.cells.iter().enumerate().filter_map(|(slot, &cell)| {
-            if self.values[cell].is_some() { return None; }
+            if self.values[cell].parity().is_some() { return None; }
             let mark = if viable & joint.supports[slot][0] == 0 { ONE }
                 else if viable & joint.supports[slot][1] == 0 { ZERO }
                 else { return None; };

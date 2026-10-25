@@ -308,66 +308,99 @@ pub fn phase_factor_register_seeds(
     else { Ok((to_tape(&q), to_tape(&p))) }
 }
 
-/// Emit the Shor braid word for base a mod N. Returns the word and the
-/// level count used. Level count is O(log r); word length is O(log r).
-pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> {
-    let r = order_lane(a, n)?;
+/// The selected physical word and the map needed to read its exponent levels.
+#[derive(Clone, Debug)]
+pub struct OrderedShorBraid {
+    pub word: Vec<char>,
+    pub levels: usize,
+    pub level_order: crate::ordering::Permutation,
+    pub prepared_order: Vec<char>,
+    pub base: Vec<char>,
+    pub modulus: Vec<char>,
+}
+
+impl OrderedShorBraid {
+    /// Recover the emitted counter through its retained inverse, then check
+    /// that this measured order still closes the same modular source relation.
+    pub fn read_order(&self) -> Result<Vec<char>, String> {
+        let order = crate::winding_readout::winding_number_tape_in_order(&self.word, &self.level_order)?;
+        if !eq(&order, &self.prepared_order) {
+            return Err("braid inverse did not recover its retained prepared order".into());
+        }
+        if !eq(&pow_tape(&self.base, &order, &self.modulus), &one()) {
+            return Err("returned braid winding failed its retained source relation".into());
+        }
+        Ok(order)
+    }
+
+    pub fn close(&self) -> Result<(Vec<char>, Vec<char>), String> {
+        factor_close_public(&self.base, &self.modulus, &self.read_order()?)
+    }
+}
+
+fn order_bits(r: &[char]) -> Vec<bool> {
     let two = tape_u64(2);
-    let mut bits: Vec<bool> = Vec::new();
-    let mut e = trim(r.clone());
+    let mut bits = Vec::new();
+    let mut e = trim(r.to_vec());
     while !zero(&e) {
         let (q, rem) = divmod(&e, &two);
         bits.push(eq(&rem, &one()));
         e = q;
     }
     bits.reverse();
-    let level_order = crate::ordering::selected("braid", bits.len())?;
-    let ordered_bits = level_order.apply(&bits)?;
-    let returned_bits = level_order.inverse().apply(&ordered_bits)?;
-    if returned_bits != bits {
-        return Err("selected Shor braid level order failed its inverse return".into());
-    }
-    let levels = bits.len().max(1);
-    let mut w: Vec<char> = Vec::new();
-    w.push(VINIT);
-    if bits.is_empty() {
-        w.push(FSPLIT);
-        w.push(AFWD);
-        w.push(EVALT);
-        w.push(AREV);
-        w.push(CLINK);
-    } else {
-        for &b in ordered_bits.iter() {
-            w.push(FSPLIT);
-            w.push(AFWD);
-            w.push(if b { EVALF } else { EVALT });
-            w.push(AREV);
-            w.push(CLINK);
-        }
-    }
-    w.push(IMSCRIB);
-    w.push(ENGAGR);
-    // Direct comb teeth for small r: the winding integral reads these
-    // exactly (r=4 -> (x-1)(x+1)(x^2+1) shape, r=6 -> adds cyclotomics).
-    if let Ok(rv) = crate::morphism_factor::dec_of(&r).parse::<u64>() {
-        if rv <= 64 {
-            for _ in 0..rv {
-                w.push(IFIX);
-            }
-        }
-    }
-    for _ in 0..levels {
-        w.push(FFUSE);
-    }
-    w.push(TANCH);
-    Ok((w, levels))
+    bits
 }
 
-/// Composition: walk to closure, emit braid, read winding, close factors.
+fn emit_order_word(r: &[char], bits: &[bool], order: &crate::ordering::Permutation)
+    -> Result<Vec<char>, String>
+{
+    let ordered_bits = order.apply(bits)?;
+    let mut word = alloc::vec![VINIT];
+    for bit in ordered_bits {
+        word.extend_from_slice(&[FSPLIT, AFWD, if bit { EVALF } else { EVALT }, AREV, CLINK]);
+    }
+    word.extend_from_slice(&[IMSCRIB, ENGAGR]);
+    if let Ok(value) = crate::morphism_factor::dec_of(r).parse::<u64>() {
+        if value <= 64 { word.extend(core::iter::repeat(IFIX).take(value as usize)); }
+    }
+    word.extend(core::iter::repeat(FFUSE).take(bits.len()));
+    word.push(TANCH);
+    Ok(word)
+}
+
+pub(crate) fn braid_from_retained_order(a: &[char], n: &[char], r: &[char])
+    -> Result<OrderedShorBraid, String>
+{
+    if zero(r) { return Err("Shor braid requires a positive retained order".into()); }
+    let bits = order_bits(r);
+    let level_order = crate::ordering::selected("braid", bits.len())?;
+    let braid = OrderedShorBraid {
+        word: emit_order_word(r, &bits, &level_order)?,
+        levels: bits.len(), level_order, prepared_order: r.to_vec(),
+        base: a.to_vec(), modulus: n.to_vec(),
+    };
+    if !eq(&braid.read_order()?, r) {
+        return Err("selected Shor braid did not recover its prepared order".into());
+    }
+    Ok(braid)
+}
+
+/// Acquire the source relation and retain its selected level map with the word.
+pub fn shor_braid_carrier(a: &[char], n: &[char]) -> Result<OrderedShorBraid, String> {
+    let order = order_lane(a, n)?;
+    braid_from_retained_order(a, n, &order)
+}
+
+/// Physical-word compatibility surface. Logical winding readout uses the
+/// retained carrier returned by shor_braid_carrier.
+pub fn shor_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, usize), String> {
+    let braid = shor_braid_carrier(a, n)?;
+    Ok((braid.word, braid.levels))
+}
+
+/// The factor close consumes the order recovered from the emitted carrier.
 pub fn shor_factor_via_braid(a: &[char], n: &[char]) -> Result<(Vec<char>, Vec<char>), String> {
-    let (word, _levels) = shor_braid(a, n)?;
-    let r_tape = crate::winding_readout::winding_number_tape(&word)?;
-    factor_close_public(a, n, &r_tape)
+    shor_braid_carrier(a, n)?.close()
 }
 
 /// Scan the finite residue domain on tapes; each orbit runs to closure.
@@ -481,4 +514,67 @@ fn order_lane_n91_base2() {
     assert_eq!(r_dec, "12", "order of 2 mod 91 should be 12, got {}", r_dec);
 }
 
+}
+
+
+#[cfg(test)]
+mod ordered_counter_return_128 {
+    use super::*;
+    use crate::ordering::Permutation;
+    use crate::morphism_factor::decimal_to_tape;
+
+    #[test]
+    fn retained_modular_source_returns_through_the_emitted_braid() {
+        for decimal in ["211060082272597355141159798675733025589", "218225791294202901887497812282378937747"] {
+            let modulus=decimal_to_tape(decimal).unwrap();
+            // A source-derived modular involution controls the source-binding
+            // seam. It is separate from the N-only factor-production battery.
+            let base=sub(&modulus,&one());
+            let mut observed=one();
+            let mut measured_order=tape_u64(0);
+            loop {
+                observed=modulo(&mul(&observed,&base),&modulus);
+                measured_order=add(&measured_order,&one());
+                if eq(&observed,&one()) {break;}
+            }
+            let prepared=braid_from_retained_order(&base,&modulus,&measured_order).unwrap();
+            let bits=order_bits(&measured_order);
+            for spec in ["canonical","reverse"] {
+                let mut carried=prepared.clone();
+                carried.level_order=Permutation::parse(spec,bits.len()).unwrap();
+                carried.word=emit_order_word(&measured_order,&bits,&carried.level_order).unwrap();
+                assert_eq!(carried.read_order().unwrap(),measured_order);
+                assert_eq!(carried.base,base);
+                assert_eq!(carried.modulus,modulus);
+            }
+        }
+    }
+
+    #[test]
+    fn emitted_levels_return_through_the_retained_map() {
+        for decimal in ["211060082272597355141159798675733025589", "218225791294202901887497812282378937747"] {
+            // This is a counter-carrier test. The numeral is not supplied to
+            // factor production as a known modular order or witness.
+            let numeral = decimal_to_tape(decimal).unwrap();
+            let bits = order_bits(&numeral);
+            assert_eq!(bits.len(),128);
+            let mut cycle: Vec<usize> = (0..128).collect();
+            cycle[..3].copy_from_slice(&[1,2,0]);
+            for order in [Permutation::parse("canonical",128).unwrap(),
+                          Permutation::parse("reverse",128).unwrap(),
+                          Permutation::checked(cycle,128).unwrap()] {
+                let physical = emit_order_word(&numeral,&bits,&order).unwrap();
+                let returned = crate::winding_readout::winding_number_tape_in_order(&physical,&order).unwrap();
+                assert_eq!(returned,numeral);
+                if order.inverse()!=order {
+                    let wrong = crate::winding_readout::winding_number_tape_in_order(&physical,&order.inverse()).unwrap();
+                    assert_ne!(wrong,numeral,"the forward map must not substitute for the inverse");
+                }
+                if order.label()=="reverse" {
+                    assert_ne!(crate::winding_readout::winding_number_tape(&physical).unwrap(),numeral,
+                        "raw physical order masks the source-return defect");
+                }
+            }
+        }
+    }
 }

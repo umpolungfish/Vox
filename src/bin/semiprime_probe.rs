@@ -36,9 +36,10 @@ fn main() {
         }
     } else if mode == "braid" {
         eprintln!("stage braid order acquisition, base=2");
-        let (word, levels) = vox::shor_braid::shor_braid(&a, &n).unwrap();
+        let braid = vox::shor_braid::shor_braid_carrier(&a, &n).unwrap();
+        let levels = braid.levels;
         eprintln!("stage winding readout; levels={levels}");
-        let r = vox::winding_readout::winding_number_tape(&word).unwrap();
+        let r = braid.read_order().unwrap();
         println!("order {}", dec_of(&r));
         let (p,q) = vox::shor_braid::factor_close_public(&a, &n, &r).unwrap();
         println!("factor {}\nfactor {}", dec_of(&p), dec_of(&q));

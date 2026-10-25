@@ -68,12 +68,39 @@ pub struct GlutFrameObservation {
     pub phase_entries: usize,
 }
 
+/// Both observations and their implication grounding survive a branch conflict.
+#[derive(Clone, Debug)]
+pub struct BelnapConflict {
+    pub cell: usize,
+    pub evidence: crate::belnap::B4,
+    pub previous: crate::belnap::B4,
+    pub incoming: crate::belnap::B4,
+    pub depth: usize,
+    pub previous_reason: Option<Vec<(usize, crate::belnap::B4)>>,
+    pub incoming_reason: Option<Vec<(usize, crate::belnap::B4)>>,
+}
+
+/// A relation conflict retains the supported assignment and the incompatible
+/// implication on the same shared cells, before the continuation changes branch.
+#[derive(Clone, Debug)]
+pub struct BelnapRelationConflict {
+    pub evidence: crate::belnap::B4,
+    pub depth: usize,
+    pub decision: usize,
+    pub support: Vec<(usize, crate::belnap::B4)>,
+    pub implication: Vec<(usize, crate::belnap::B4)>,
+}
+
 /// Prepared multiplier relation for a device interpreter. Shared cell IDs
 /// retain factor, product and carry correlations; masks hold both alternatives
 /// until propagation or a retained decision frame restricts them.
 pub struct DeviceCorrelation {
     pub gates: Vec<DeviceCorrelationGate>,
     pub masks: Vec<u32>,
+    /// Typed alternatives on FOUR, distinct from the legacy numeral projection.
+    pub belnap_domains: Vec<crate::belnap_relation::BelnapSet>,
+    pub belnap_prepared_bank: Vec<crate::belnap_relation::BelnapSet>,
+    pub belnap_preparation: BelnapPropagation,
     pub p: Vec<usize>,
     pub q: Vec<usize>,
     pub empty: bool,
@@ -85,9 +112,86 @@ pub struct DeviceCorrelation {
     pub gap: Vec<usize>,
 }
 pub struct DeviceCorrelationGate {
+    pub full_kind: crate::belnap_relation::GateKind,
+    pub full_supports: Vec<[u64;4]>,
+    pub full_rows: u64,
     pub cells: Vec<usize>,
     pub supports: Vec<[u8; 2]>,
     pub all: u8,
+}
+impl DeviceCorrelationGate {
+    pub fn from_full(kind:crate::belnap_relation::GateKind,cells:Vec<usize>) -> Self {
+        let table=kind.table();
+        let full_rows=table.correlated_rows(&cells);
+        let projection=table.numeral_supports();
+        let all=((1u16 << (1 << kind.input_count()))-1) as u8;
+        Self { full_kind:kind,full_supports:table.supports[..table.width].to_vec(),
+            full_rows,cells,supports:projection[..table.width].to_vec(),all }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct BelnapPropagation {
+    pub evidence: crate::belnap::B4,
+    pub sweeps: usize,
+    pub updates: usize,
+    /// The incompatible local relation is held without emptying its neighbors.
+    pub held: Vec<(usize, Vec<crate::belnap_relation::BelnapSet>)>,
+    pub numeral_projection: bool,
+}
+impl BelnapPropagation {
+    pub fn pending() -> Self {
+        Self { evidence:crate::belnap::B4::N,sweeps:0,updates:0,held:Vec::new(),numeral_projection:false }
+    }
+}
+impl DeviceCorrelation {
+    /// Construct an unprojected FOUR family. Numeral masks are absent until
+    /// propagation proves that every alternative admits that boundary.
+    pub fn from_belnap(gates:Vec<DeviceCorrelationGate>,domains:Vec<crate::belnap_relation::BelnapSet>) -> Self {
+        let mut relation=Self { gates,masks:Vec::new(),belnap_domains:domains,
+            belnap_prepared_bank:Vec::new(),belnap_preparation:BelnapPropagation::pending(),
+            p:Vec::new(),q:Vec::new(),empty:false,parity:Vec::new(),admission:Vec::new(),midpoint:Vec::new(),gap:Vec::new() };
+        relation.belnap_preparation=relation.propagate_belnap();
+        relation
+    }
+    /// Execute the same full-FOUR supports exported to coherent and CUDA paths.
+    /// A zero support is a held local contradiction; the input bank survives.
+    pub fn propagate_belnap(&mut self) -> BelnapPropagation {
+        use crate::{belnap::B4,belnap_relation::BelnapSet};
+        let mut report=BelnapPropagation::pending();
+        if self.belnap_prepared_bank.is_empty() {
+            self.belnap_prepared_bank=self.belnap_domains.clone();
+        }
+        loop {
+            report.sweeps+=1;
+            let mut changed=false;
+            for (index,gate) in self.gates.iter().enumerate() {
+                let domains:Vec<_>=gate.cells.iter().map(|&cell|self.belnap_domains[cell]).collect();
+                let table=gate.full_kind.table();
+                let rows=table.restrict(gate.full_rows,&domains);
+                if rows==0 {
+                    if !report.held.iter().any(|(other,_)|*other==index) {report.held.push((index,domains));}
+                    continue;
+                }
+                for (slot,&cell) in gate.cells.iter().enumerate() {
+                    let next=self.belnap_domains[cell].intersection(table.domain(rows,slot));
+                    if next!=self.belnap_domains[cell] {
+                        self.belnap_domains[cell]=next;report.updates+=1;changed=true;
+                    }
+                }
+            }
+            if !changed {break;}
+        }
+        report.evidence=if !report.held.is_empty(){B4::B}
+            else if self.empty || self.belnap_domains.contains(&BelnapSet::EMPTY){B4::F}else{B4::T};
+        // Update a numeral view only when the complete family admits that
+        // boundary. Nonclassical alternatives stay in the resident carrier.
+        if let Ok(masks)=self.belnap_domains.iter().map(|domain|domain.numeral_projection())
+            .collect::<Result<Vec<_>,_>>() {
+            self.masks=masks;report.numeral_projection=true;
+        }
+        report
+    }
 }
 
 /// Preparation exports the existing nested construction before any decision
@@ -147,7 +251,12 @@ pub fn source_factor_geometries(source_bits: usize) -> Vec<(usize, usize)> {
     geometries.sort_by_key(|&(p_width, q_width)| {
         (q_width - p_width, (p_width + q_width).abs_diff(source_bits), p_width)
     });
-    geometries
+    let order = crate::ordering::selected("separating", geometries.len())
+        .expect("valid source geometry order");
+    let physical = order.apply(&geometries).expect("source geometry permutation");
+    assert_eq!(order.inverse().apply(&physical).expect("source geometry inverse"), geometries,
+        "selected source geometry failed inverse recovery");
+    physical
 }
 
 const ZERO: char = '⊤';
@@ -911,5 +1020,41 @@ mod tests {
         let certificate = certify_reentry(&carrier).unwrap();
         let decoded = decode_reentry_certificate(&encode_reentry_certificate(&certificate)).unwrap();
         verify_glut_reentry_certificate(&decoded).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod belnap_relation_tests {
+    use super::*;
+    use crate::{belnap::B4,belnap_relation::{BelnapSet,GateKind}};
+    #[test]
+    fn belnap_exported_relation_executes_n_and_b_without_numeral_projection() {
+        let mut relation=DeviceCorrelation::from_belnap(
+            vec![DeviceCorrelationGate::from_full(GateKind::And,vec![0,1,2])],
+            vec![BelnapSet::singleton(B4::N),BelnapSet::singleton(B4::B),BelnapSet::COMPLETE]);
+        assert_eq!(relation.belnap_domains[2].only(),Some(B4::F));
+        assert_eq!(relation.belnap_domains[0].only(),Some(B4::N));
+        assert_eq!(relation.belnap_domains[1].only(),Some(B4::B));
+        assert_eq!(relation.belnap_prepared_bank[2],BelnapSet::COMPLETE);
+        assert!(!relation.belnap_preparation.numeral_projection);
+        assert!(relation.masks.is_empty());
+        let original=relation.belnap_prepared_bank.clone();
+        relation.propagate_belnap();
+        assert_eq!(relation.belnap_prepared_bank,original);
+        assert_eq!(relation.belnap_prepared_bank[2],BelnapSet::COMPLETE);
+    }
+    #[test]
+    fn belnap_local_conflict_is_held_while_the_neighbor_relation_executes() {
+        let relation=DeviceCorrelation::from_belnap(vec![
+            DeviceCorrelationGate::from_full(GateKind::And,vec![0,1,2]),
+            DeviceCorrelationGate::from_full(GateKind::And,vec![3,4,5])],
+            vec![BelnapSet::singleton(B4::T),BelnapSet::singleton(B4::T),BelnapSet::singleton(B4::F),
+                BelnapSet::singleton(B4::B),BelnapSet::singleton(B4::F),BelnapSet::COMPLETE]);
+        assert_eq!(relation.belnap_preparation.evidence,B4::B);
+        assert_eq!(relation.belnap_preparation.held.len(),1);
+        assert_eq!(relation.belnap_domains[5].only(),Some(B4::F));
+        assert_eq!(relation.belnap_domains[3].only(),Some(B4::B));
+        assert_eq!(relation.belnap_prepared_bank[5],BelnapSet::COMPLETE);
+        assert!(!relation.belnap_domains.contains(&BelnapSet::EMPTY));
     }
 }

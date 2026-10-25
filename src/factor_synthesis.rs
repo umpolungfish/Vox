@@ -235,6 +235,9 @@ impl FactorSynthesis {
     pub fn resident_stats(&self) -> crate::glut_system::FoldStats {
         self.glut.as_ref().map(PreparedGlutMembrane::stats).unwrap_or_default()
     }
+    pub fn resident_identity(&self) -> Option<usize> {
+        self.glut.as_ref().map(PreparedGlutMembrane::resident_identity)
+    }
 
     /// No factor widths, seeds, factors, orders or external witnesses enter here.
     /// Derives the multi-strand horn-torus bit-twist braid permutation from N
@@ -341,6 +344,21 @@ impl FactorSynthesis {
     /// A turn is structural work, not a fixed wall-clock quantum.
     pub fn advance(&mut self) -> Result<Option<FactorReturn>, String> {
         self.advance_observed(|_| {})
+    }
+    /// Select one producing operation while preserving the prepared Y,
+    /// correlation, square, phase and source-bound return machinery.
+    pub fn advance_component(&mut self, component: usize) -> Result<Option<FactorReturn>, String> {
+        if let Some(returned) = &self.returned { return Ok(Some(returned.clone())); }
+        self.turns += 1;
+        if !self.glut.as_mut().unwrap().advance_component(component)? { return Ok(None); }
+        let Some(execution) = self.glut.as_mut().unwrap().execute_retained()? else {
+            return Err("resident exhausted without a proper factor return".into());
+        };
+        execution.verify(&self.source)?;
+        self.morphisms.close(&self.source, self.glut.as_mut().unwrap(), &execution.p, &execution.q)?;
+        let returned = self.verified(execution.p, execution.q, "organism-prepared-glut")?;
+        self.returned = Some(returned.clone());
+        Ok(Some(returned))
     }
     pub fn advance_observed(&mut self,
         observe: impl FnMut(&crate::glut_system::FoldStats))

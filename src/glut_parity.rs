@@ -89,7 +89,7 @@ impl Correlation {
             };
             let mut cells = Vec::new();
             for &cell in slots {
-                if let Some(value) = self.values[cell] {
+                if let Some(value) = self.values[cell].parity() {
                     mark = xor_mark(mark, value);
                 } else {
                     match cells.binary_search(&cell) {
@@ -194,7 +194,7 @@ impl Correlation {
             let a = *self.parity[index]
                 .cells
                 .iter()
-                .find(|&&cell| self.values[cell].is_none())
+                .find(|&&cell| self.values[cell].parity().is_none())
                 .unwrap();
             let b = pair ^ a;
             edges.entry(a).or_default().push((b, mark, index));
@@ -237,7 +237,7 @@ impl Correlation {
                         }
                         let mut reason = Vec::new();
                         for source in support {
-                            let mark = self.values[source].expect("phase loop cancels free cells");
+                            let mark = self.values[source].parity().expect("phase loop cancels free cells");
                             if self.levels[source] != 0 {
                                 reason.push(Literal { cell: source, mark }.opposite());
                             }
@@ -281,7 +281,7 @@ impl Correlation {
         }
         let mut premise = Vec::new();
         for &cell in &self.parity[index].cells {
-            if let Some(value) = self.values[cell] {
+            if let Some(value) = self.values[cell].parity() {
                 premise.push(Literal { cell, mark: value }.opposite());
             }
         }
@@ -334,7 +334,7 @@ mod tests {
             assert!(reason.contains(
                 &Literal {
                     cell,
-                    mark: graph.values[cell].unwrap()
+                    mark: graph.values[cell].parity().unwrap()
                 }
                 .opposite()
             ));
@@ -344,7 +344,7 @@ mod tests {
         for (row, &(free, address, residual)) in graph.parity.iter().zip(&graph.parity_state) {
             let mut expected = (0, 0, row.mark);
             for &cell in &row.cells {
-                if let Some(mark) = graph.values[cell] {
+                if let Some(mark) = graph.values[cell].parity() {
                     expected.2 = xor_mark(expected.2, mark);
                 } else {
                     expected.0 += 1;
@@ -375,8 +375,8 @@ mod tests {
         graph.gate(vec![a, b], midpoint::EQUAL);
         graph.connect_parity();
         assert!(!graph.empty);
-        assert_eq!(graph.values[sum], Some(ZERO));
-        assert_eq!(graph.values[a], None);
-        assert_eq!(graph.values[carry], None);
+        assert_eq!(graph.values[sum].parity(), Some(ZERO));
+        assert_eq!(graph.values[a].parity(), None);
+        assert_eq!(graph.values[carry].parity(), None);
     }
 }

@@ -12,9 +12,14 @@ import sys
 import tempfile
 
 
-def permutation(spec, width):
-    if spec.startswith('file:'):
+def resolve_spec(spec):
+    while spec.startswith('file:'):
         spec = Path(spec[5:]).read_text().strip()
+    return spec
+
+
+def permutation(spec, width):
+    spec = resolve_spec(spec)
     if spec in ('canonical', 'forward'):
         return tuple(range(width))
     if spec in ('reverse', 'inverse'):
@@ -107,13 +112,34 @@ def apply(order, values):
     return [values[i] for i in order]
 
 
+def selected_braid(word, ordering=None):
+    """Select one physical word; internal reference evaluations pass canonical."""
+    word = list(word)
+    order = (selected('braid', len(word)) if ordering is None
+             else permutation(ordering, len(word)) if isinstance(ordering, str)
+             else tuple(ordering))
+    result = apply(order, word)
+    spec = (os.environ.get('IG_ORDER_SPEC') if os.environ.get('IG_ORDER_SITE') == 'braid'
+            else 'canonical') if ordering is None else ordering
+    spec = resolve_spec(spec) if isinstance(spec, str) else spec
+    return [-g for g in result] if spec == 'inverse' else result
+
+
+def permute_bits(value, order):
+    """Move source bit order[position] to its physical position."""
+    order = tuple(order)
+    permutation(','.join(map(str, order)), len(order))
+    if value < 0 or value.bit_length() > len(order):
+        raise ValueError('register value exceeds the selected bit layout')
+    return sum(((value >> source) & 1) << position
+               for position, source in enumerate(order))
+
+
 def order_receipt():
     site = os.environ.get("IG_ORDER_SITE")
-    raw = os.environ.get("IG_ORDER_SPEC", "canonical")
+    raw = resolve_spec(os.environ.get("IG_ORDER_SPEC", "canonical"))
     orientation = "inverse" if raw == "inverse" else "forward"
     width = os.environ.get("IG_ORDER_WIDTH")
-    if raw.startswith("file:"):
-        raw = Path(raw[5:]).read_text().strip()
     if width is None:
         if raw.startswith("swap:"):
             positions = [int(value) for value in raw[5:].split(",")]

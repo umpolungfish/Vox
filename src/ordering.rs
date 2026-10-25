@@ -1,6 +1,21 @@
 //! Explicit, reversible order selection and lazy families of every positional order.
 use alloc::{format, string::{String, ToString}, vec::Vec};
 
+/// Resolve a file-backed choice before interpreting either order or orientation.
+pub fn resolve_spec(spec: &str) -> Result<String, String> {
+    if let Some(path) = spec.strip_prefix("file:") {
+        #[cfg(feature = "hosted")]
+        {
+            let contents = std::fs::read_to_string(path)
+                .map_err(|error| format!("read order file: {error}"))?;
+            return resolve_spec(contents.trim());
+        }
+        #[cfg(not(feature = "hosted"))]
+        { let _ = path; return Err("file-backed orders require the hosted feature".into()); }
+    }
+    Ok(spec.into())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Permutation { pub indices: Vec<usize> }
 
@@ -15,15 +30,8 @@ impl Permutation {
         Ok(Self { indices })
     }
     pub fn parse(spec: &str, width: usize) -> Result<Self, String> {
-        if let Some(path) = spec.strip_prefix("file:") {
-            #[cfg(feature = "hosted")]
-            {
-                let contents = std::fs::read_to_string(path).map_err(|error| format!("read order file: {error}"))?;
-                return Self::parse(contents.trim(), width);
-            }
-            #[cfg(not(feature = "hosted"))]
-            return Err("file-backed orders require the hosted feature".into());
-        }
+        let resolved = resolve_spec(spec)?;
+        let spec = resolved.as_str();
         match spec {
             "canonical" | "forward" => Ok(Self { indices: (0..width).collect() }),
             "reverse" | "inverse" => Ok(Self { indices: (0..width).rev().collect() }),
@@ -133,11 +141,15 @@ pub fn selected(site: &str, width: usize) -> Result<Permutation, String> {
     Ok(order)
 }
 
+pub fn braid_orientation_is_inverse() -> Result<bool, String> {
+    if setting("IG_ORDER_SITE").as_deref() != Some("braid") { return Ok(false); }
+    Ok(resolve_spec(&setting("IG_ORDER_SPEC").unwrap_or_else(|| "canonical".into()))? == "inverse")
+}
+
 pub fn selected_braid(word: &[i32]) -> Result<Vec<i32>, String> {
     let order = selected("braid", word.len())?;
     let mut result = order.apply(word)?;
-    if setting("IG_ORDER_SITE").as_deref() == Some("braid")
-        && setting("IG_ORDER_SPEC").as_deref() == Some("inverse") {
+    if braid_orientation_is_inverse()? {
         for crossing in &mut result { *crossing = crossing.checked_neg().ok_or("crossing inverse overflows")?; }
     }
     Ok(result)
@@ -193,6 +205,14 @@ pub mod cli {
             if executable_name == "braid_order_probe"
                 || executable_name == "anyon_stack_audit" { "braid-protocol" }
             else if executable_name == "godel_frame_separator" { "separating" }
+            else if executable_name == "horn_factor" || tokens.first() == Some(&"horn_factor") { "separating" }
+            else if executable_name == "phase_unbraider" { "phase-bits" }
+            else if tokens.windows(2).any(|pair|
+                matches!(pair[0], "factor_membrane" | "membrane" | "fmembrane")
+                    && matches!(pair[1], "cross" | "separate" | "word")) { "lanes" }
+            else if tokens.windows(2).any(|pair|
+                matches!(pair[0], "factor_membrane" | "membrane" | "fmembrane")
+                    && matches!(pair[1], "factor" | "recurse")) { "separating" }
             else if joined.contains("native_numeral") && joined.contains("unbraid") { "separating" }
             else if joined.contains("gpu_kernel interleave") { "gpu-lanes-3" }
             else if joined.contains("interleave") || joined.contains("interlace") { "lanes" }

@@ -198,14 +198,11 @@ pub fn emit_numeral(tape: &[char]) -> String {
     out
 }
 
-// Bit-register folding: the tape is the canonical numeral, but arithmetic runs
-// on it folded into 64-bit limbs and unfolds back at the boundary. Schoolbook
-// per-cell char arithmetic was O(bits^2) with a bit-serial division inside every
-// modular multiply; folded, a multiply is limb-by-limb with u128 products and a
-// division is one shift-subtract per bit over limbs, so every arm that routes
-// through mod_mul (Miller-Rabin, ECM, p-1, p+1, rho) speeds up together.
+// The historical limb implementation is confined to the test oracle.
+#[cfg(test)]
 type Limbs = Vec<u64>;
 
+#[cfg(test)]
 fn fold(t: &[char]) -> Limbs {
     let mut out = Limbs::with_capacity(t.len() / 64 + 1);
     let mut cur = 0u64;
@@ -230,16 +227,7 @@ fn fold(t: &[char]) -> Limbs {
     l_trim(out)
 }
 
-fn unfold(l: &[u64]) -> Tape {
-    let mut out = Tape::with_capacity(l.len() * 64);
-    for &limb in l {
-        for b in 0..64 {
-            out.push(if (limb >> b) & 1 == 1 { EVALF } else { EVALT });
-        }
-    }
-    trim(out)
-}
-
+#[cfg(test)]
 fn l_trim(mut a: Limbs) -> Limbs {
     while a.len() > 1 && *a.last().unwrap() == 0 {
         a.pop();
@@ -250,10 +238,12 @@ fn l_trim(mut a: Limbs) -> Limbs {
     a
 }
 
+#[cfg(test)]
 fn l_is_zero(a: &[u64]) -> bool {
     a.iter().all(|&x| x == 0)
 }
 
+#[cfg(test)]
 fn l_cmp(a: &[u64], b: &[u64]) -> core::cmp::Ordering {
     let la = {
         let mut n = a.len();
@@ -280,6 +270,7 @@ fn l_cmp(a: &[u64], b: &[u64]) -> core::cmp::Ordering {
     core::cmp::Ordering::Equal
 }
 
+#[cfg(test)]
 fn l_add(a: &[u64], b: &[u64]) -> Limbs {
     let mut out = Limbs::new();
     let mut carry = 0u128;
@@ -294,23 +285,7 @@ fn l_add(a: &[u64], b: &[u64]) -> Limbs {
     l_trim(out)
 }
 
-// Assumes a >= b (every caller guards with a compare first).
-fn l_sub(a: &[u64], b: &[u64]) -> Limbs {
-    let mut out = Limbs::new();
-    let mut borrow = 0i128;
-    for i in 0..a.len() {
-        let mut d = a[i] as i128 - *b.get(i).unwrap_or(&0) as i128 - borrow;
-        if d < 0 {
-            d += 1i128 << 64;
-            borrow = 1;
-        } else {
-            borrow = 0;
-        }
-        out.push(d as u64);
-    }
-    l_trim(out)
-}
-
+#[cfg(test)]
 fn l_mul(a: &[u64], b: &[u64]) -> Limbs {
     let mut out = vec![0u64; a.len() + b.len()];
     for (i, &x) in a.iter().enumerate() {
@@ -333,6 +308,7 @@ fn l_mul(a: &[u64], b: &[u64]) -> Limbs {
 
 // Normalized limb division. The quotient is selected one whole limb at a time,
 // so modular powering does not pay a bit-serial scan for every remainder.
+#[cfg(test)]
 fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     if l_is_zero(d) || l_cmp(n, d) == core::cmp::Ordering::Less {
         return (vec![0], l_trim(n.to_vec()));
@@ -424,124 +400,82 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
     (l_trim(q), l_trim(r))
 }
 
-/// Retain folded limbs while deriving modular views of an unrestricted tape.
-pub(crate) struct FoldedTape(Limbs);
-impl FoldedTape {
-    pub(crate) fn new(tape: &[char]) -> Self {
-        Self(fold(tape))
-    }
-    pub(crate) fn into_tape(self) -> Tape {
-        unfold(&self.0)
-    }
+/// The source residue remains a word of Belnap cells across divisions.
+pub(crate) struct BelnapResidue(crate::belnap_word::BelnapWord);
+impl BelnapResidue {
+    pub(crate) fn new(tape: &[char]) -> Self { Self(evidence_word(tape)) }
+    pub(crate) fn into_tape(self) -> Tape { numeral_return(self.0) }
     pub(crate) fn divide_word_exact(&mut self, divisor: u64) -> bool {
         assert!(divisor > 1);
-        if self.remainder_word(divisor) != 0 {
-            return false;
-        }
-        let mut carry = 0u128;
-        for limb in self.0.iter_mut().rev() {
-            let wide = (carry << 64) | u128::from(*limb);
-            *limb = (wide / u128::from(divisor)) as u64;
-            carry = wide % u128::from(divisor);
-        }
-        while self.0.len() > 1 && self.0.last() == Some(&0) {
-            self.0.pop();
-        }
+        let (quotient, remainder) = self.0.divide(&evidence_word(&tape_u64(divisor)))
+            .expect("definite residue division");
+        if !remainder.0.is_empty() { return false; }
+        self.0 = quotient;
         true
     }
     pub(crate) fn remainder_word(&self, modulus: u64) -> u64 {
         assert_ne!(modulus, 0);
-        let mut remainder = 0u128;
-        for &limb in self.0.iter().rev() {
-            remainder = ((remainder << 64) | u128::from(limb)) % u128::from(modulus);
-        }
-        remainder as u64
+        let (_, remainder) = self.0.divide(&evidence_word(&tape_u64(modulus)))
+            .expect("definite residue division");
+        let cells = numeral_return(remainder);
+        assert!(cells.len() <= 64, "residue coordinate exceeds its modulus width");
+        tape_to_u64(&cells)
     }
+}
+
+pub(crate) fn residue_add(a:u64,b:u64,modulus:u64)->u64 {
+    tape_to_u64(&modulo(&add(&tape_u64(a),&tape_u64(b)),&tape_u64(modulus)))
+}
+pub(crate) fn residue_mul(a:u64,b:u64,modulus:u64)->u64 {
+    tape_to_u64(&mul_mod(&tape_u64(a),&tape_u64(b),&tape_u64(modulus)))
+}
+pub(crate) fn residue_sub(a:u64,b:u64,modulus:u64)->u64 {
+    tape_to_u64(&mod_sub(&tape_u64(a),&tape_u64(b),&tape_u64(modulus)))
 }
 
 pub(crate) fn inverse_residue_word(value: u64, modulus: u64) -> Option<u64> {
-    if modulus < 2 {
-        return None;
-    }
-    let (mut r0, mut r1) = (modulus, value % modulus);
-    let (mut t0, mut t1) = (0u64, 1u64);
-    while r1 != 0 {
-        let quotient = r0 / r1;
-        (r0, r1) = (r1, r0 % r1);
-        let product = (u128::from(quotient) * u128::from(t1)) % u128::from(modulus);
-        let next = (u128::from(t0) + u128::from(modulus) - product) % u128::from(modulus);
-        (t0, t1) = (t1, next as u64);
-    }
-    (r0 == 1).then_some(t0)
+    if modulus < 2 { return None; }
+    mod_inv(&tape_u64(value), &tape_u64(modulus)).ok().map(|inverse| {
+        assert!(inverse.len() <= 64, "inverse coordinate exceeds its modulus width");
+        tape_to_u64(&inverse)
+    })
 }
 
 pub fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
-    let extent = |tape: &[char]| tape.iter().rposition(|&mark| mark == EVALF).map_or(0, |i| i + 1);
-    let left = extent(a);
-    let right = extent(b);
-    match left.cmp(&right) {
-        core::cmp::Ordering::Equal => {
-            for i in (0..left).rev() {
-                let ordering = (a[i] == EVALF).cmp(&(b[i] == EVALF));
-                if ordering != core::cmp::Ordering::Equal { return ordering; }
-            }
-            core::cmp::Ordering::Equal
-        }
-        ordering => ordering,
-    }
+    evidence_word(a).compare(&evidence_word(b)).expect("ordering requires definite numerical evidence")
+}
+
+fn evidence_word(cells: &[char]) -> crate::belnap_word::BelnapWord {
+    crate::belnap_word::BelnapWord::from_parity(cells)
+}
+fn numeral_return(word: crate::belnap_word::BelnapWord) -> Tape {
+    word.to_parity().expect("numerical return must retain definite evidence")
 }
 
 pub fn add(a: &[char], b: &[char]) -> Tape {
-    unfold(&l_add(&fold(a), &fold(b)))
+    numeral_return(evidence_word(a).add(&evidence_word(b)))
 }
-
 pub fn sub(a: &[char], b: &[char]) -> Tape {
-    unfold(&l_sub(&fold(a), &fold(b)))
+    let (difference, borrow) = evidence_word(a).subtract(&evidence_word(b));
+    assert_eq!(borrow, crate::belnap::B4::F, "numerical subtraction retains a borrow");
+    numeral_return(difference)
 }
-
 pub fn mul(a: &[char], b: &[char]) -> Tape {
-    unfold(&l_mul(&fold(a), &fold(b)))
+    numeral_return(evidence_word(a).multiply(&evidence_word(b)))
 }
-
 pub fn divmod(n: &[char], d: &[char]) -> (Tape, Tape) {
-    let (q, r) = l_divmod(&fold(n), &fold(d));
-    (unfold(&q), unfold(&r))
+    let (quotient, remainder) = evidence_word(n).divide(&evidence_word(d))
+        .expect("definite division requires a nonzero divisor");
+    (numeral_return(quotient), numeral_return(remainder))
 }
+pub fn modulo(n: &[char], d: &[char]) -> Tape { divmod(n,d).1 }
 
-pub fn modulo(n: &[char], d: &[char]) -> Tape {
-    unfold(&l_divmod(&fold(n), &fold(d)).1)
-}
-
-/// Multiply and add before one modular reduction, keeping every external
-/// numeral on its IMASM tape while avoiding repeated fold/unfold boundaries.
+/// Modular arithmetic executes through the same resident Belnap cells.
 pub fn mul_mod_add(a: &[char], b: &[char], c: &[char], n: &[char]) -> Tape {
-    let left = fold(a);
-    let right = fold(b);
-    let addend = fold(c);
-    let modulus = fold(n);
-    if left.len() == 1
-        && right.len() == 1
-        && addend.len() == 1
-        && modulus.len() == 1
-        && modulus[0] != 0
-    {
-        let value = left[0] as u128 * right[0] as u128 + addend[0] as u128;
-        return unfold(&[(value % modulus[0] as u128) as u64]);
-    }
-    let product = l_mul(&left, &right);
-    let sum = l_add(&product, &addend);
-    unfold(&l_divmod(&sum, &modulus).1)
+    modulo(&add(&mul(a,b),c),n)
 }
-
-/// Modular product with a single dynamic-limb fold and unfold per operand.
 pub fn mul_mod(a: &[char], b: &[char], n: &[char]) -> Tape {
-    let left = fold(a);
-    let right = fold(b);
-    let modulus = fold(n);
-    if left.len() == 1 && right.len() == 1 && modulus.len() == 1 && modulus[0] != 0 {
-        return unfold(&[((left[0] as u128 * right[0] as u128) % modulus[0] as u128) as u64]);
-    }
-    unfold(&l_divmod(&l_mul(&left, &right), &modulus).1)
+    modulo(&mul(a,b),n)
 }
 
 /// Evaluate an LSB-first binary support tape as a polynomial through one
@@ -549,64 +483,26 @@ pub fn mul_mod(a: &[char], b: &[char], n: &[char]) -> Tape {
 /// registers between coefficient groups; wider values use the same dynamic
 /// limb/tape operations without a width ceiling.
 pub fn eval_binary_support_frame(bits: &[char], x: &[char], n: &[char], width: usize) -> Tape {
-    if width == 0 || bits.is_empty() {
-        return vec![EVALT];
-    }
-    let modulus = fold(n);
-    let phase = fold(x);
-    if width <= 8 && modulus.len() == 1 && modulus[0] != 0 && phase.len() == 1 {
-        let modulus = modulus[0] as u128;
-        let phase = phase[0] as u128 % modulus;
-        let mut powers = vec![1u128; width + 1];
-        for index in 1..=width {
-            powers[index] = powers[index - 1] * phase % modulus;
-        }
-        let frame_base = powers[width];
-        let mut value = 0u128;
-        for group in bits.chunks(width).rev() {
-            let mut symbol = 0u128;
-            for (position, mark) in group.iter().enumerate() {
-                if *mark == EVALF {
-                    symbol += powers[position];
-                }
-            }
-            symbol %= modulus;
-            value = ((value * frame_base) % modulus + symbol) % modulus;
-        }
-        return unfold(&[value as u64]);
-    }
-
-    let mut powers = vec![vec![1u64]; width + 1];
-    for index in 1..=width {
-        let product = l_mul(&powers[index - 1], &phase);
-        powers[index] = l_divmod(&product, &modulus).1;
-    }
-    let frame_base = &powers[width];
-    let mut value = vec![0u64];
+    if width == 0 || bits.is_empty() { return vec![EVALT]; }
+    let mut powers = vec![one(); width+1];
+    for at in 1..=width { powers[at] = mul_mod(&powers[at-1],x,n); }
+    let mut value = vec![EVALT];
     for group in bits.chunks(width).rev() {
-        let mut symbol = vec![0u64];
-        for (position, mark) in group.iter().enumerate() {
-            if *mark == EVALF {
-                symbol = l_add(&symbol, &powers[position]);
+        let mut symbol = vec![EVALT];
+        for (at, &mark) in group.iter().enumerate() {
+            match crate::belnap::B4::from_parity(mark) {
+                crate::belnap::B4::T => symbol = add(&symbol,&powers[at]),
+                crate::belnap::B4::F => {},
+                _ => unreachable!(),
             }
         }
-        let product = l_mul(&value, frame_base);
-        let sum = l_add(&product, &symbol);
-        value = l_divmod(&sum, &modulus).1;
+        value = mul_mod_add(&value,&powers[width],&symbol,n);
     }
-    unfold(&value)
+    value
 }
 
 fn mod_add(a: &[char], b: &[char], n: &[char]) -> Tape {
-    let left = fold(a);
-    let right = fold(b);
-    let modulus = fold(n);
-    if left.len() == 1 && right.len() == 1 && modulus.len() == 1 && modulus[0] != 0 {
-        return unfold(&[((u128::from(left[0]) + u128::from(right[0]))
-            % u128::from(modulus[0])) as u64]);
-    }
-    let sum = l_add(&left, &right);
-    unfold(&l_divmod(&sum, &modulus).1)
+    modulo(&add(a,b),n)
 }
 
 fn mod_mul(a: &[char], b: &[char], n: &[char]) -> Tape {
@@ -622,15 +518,6 @@ fn abs_diff(a: &[char], b: &[char]) -> Tape {
 }
 
 pub fn gcd(mut a: Tape, mut b: Tape) -> Tape {
-    let left = fold(&a);
-    let right = fold(&b);
-    if left.len() == 1 && right.len() == 1 {
-        let (mut x, mut y) = (left[0], right[0]);
-        while y != 0 {
-            (x, y) = (y, x % y);
-        }
-        return unfold(&[x]);
-    }
     while !zero(&b) {
         let r = modulo(&a, &b);
         a = b;
@@ -1072,27 +959,19 @@ fn lucas_v(m: &[char], a: &[char], n: &[char]) -> Tape {
 /// membrane for large operands.  Newton's decreasing iteration keeps the
 /// resident value folded and reaches the floor in O(log bits) divisions.
 pub fn isqrt(n: &[char]) -> Tape {
-    let source = fold(n);
-    if source.len() == 1 && source[0] < 2 {
-        return unfold(&source);
-    }
-    let bits = (source.len() - 1) * 64
-        + (64 - source.last().unwrap().leading_zeros() as usize);
-    let exponent = (bits + 1) / 2;
-    let mut x = vec![0; exponent / 64 + 1];
-    x[exponent / 64] = 1 << (exponent % 64);
+    let source = trim(n.to_vec());
+    if cmp(&source, &two()) == Less { return source; }
+    let exponent = source.len().div_ceil(2);
+    let mut x = vec![EVALT; exponent + 1];
+    x[exponent] = EVALF;
     loop {
-        let q = l_divmod(&source, &x).0;
-        let next = l_divmod(&l_add(&x, &q), &[2]).0;
-        if l_cmp(&next, &x) != core::cmp::Ordering::Less {
-            break;
-        }
+        let q = divmod(&source, &x).0;
+        let next = divmod(&add(&x, &q), &two()).0;
+        if cmp(&next, &x) != Less { break; }
         x = next;
     }
-    while l_cmp(&l_mul(&x, &x), &source) == core::cmp::Ordering::Greater {
-        x = l_sub(&x, &[1]);
-    }
-    unfold(&x)
+    while cmp(&mul(&x,&x), &source) == Greater { x = sub(&x,&one()); }
+    x
 }
 
 pub fn one() -> Tape {
@@ -1129,24 +1008,10 @@ fn tape_to_u64(t: &[char]) -> u64 {
 
 /// (a - b) mod n, for a and b already reduced into [0, n).
 fn mod_sub(a: &[char], b: &[char], n: &[char]) -> Tape {
-    let left = l_divmod(&fold(a), &fold(n)).1;
-    let right = l_divmod(&fold(b), &fold(n)).1;
-    let modulus = fold(n);
-    if modulus.len() == 1 {
-        let m = u128::from(modulus[0]);
-        let lhs = u128::from(left[0]);
-        let rhs = u128::from(right[0]);
-        return unfold(&[if lhs >= rhs {
-            (lhs - rhs) as u64
-        } else {
-            (m + lhs - rhs) as u64
-        }]);
-    }
-    if l_cmp(&left, &right) != core::cmp::Ordering::Less {
-        unfold(&l_sub(&left, &right))
-    } else {
-        unfold(&l_sub(&modulus, &l_sub(&right, &left)))
-    }
+    let left = modulo(a,n);
+    let right = modulo(b,n);
+    if cmp(&left,&right) != Less { sub(&left,&right) }
+    else { sub(n,&sub(&right,&left)) }
 }
 
 /// Modular inverse of a mod n by the extended Euclidean algorithm, the

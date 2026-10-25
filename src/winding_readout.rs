@@ -133,6 +133,26 @@ pub fn winding_number_tape(word: &[char]) -> Result<Vec<char>, String> {
     }
 }
 
+/// Restore a physical counter's level positions before its winding readout.
+/// The supplied map is retained by the producing braid, independently of any
+/// later process-wide order setting.
+pub fn winding_number_tape_in_order(word: &[char], order: &crate::ordering::Permutation)
+    -> Result<Vec<char>, String>
+{
+    let physical: Vec<char> = word.iter().copied()
+        .filter(|c| *c == '\u{22A4}' || *c == '\u{22A5}').collect();
+    let logical = order.inverse().apply(&physical)?;
+    let mut marks = logical.into_iter();
+    let recovered: Vec<char> = word.iter().map(|&c| {
+        if c == '\u{22A4}' || c == '\u{22A5}' { marks.next().unwrap() } else { c }
+    }).collect();
+    let result = winding_number_tape(&recovered)?;
+    if let Some(counter) = decode_counter_tape(&recovered) {
+        if counter != result { return Err("braid counter and contour winding disagree".into()); }
+    }
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
