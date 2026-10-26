@@ -371,6 +371,19 @@ impl Torus {
         self.feedback(arm,&previous);
         Ok(())
     }
+    /// The selected paired state enters the learner without projecting away
+    /// either evidence rail. Historical ancestry stays in this same torus.
+    pub fn learning_context(&self)->Value{
+        let selected=self.observations.len().saturating_sub(1)%self.arms.len();
+        let arm=&self.arms[selected];
+        let fields=[("source",self.source.clone()),("p",arm.p.clone()),("q",arm.q.clone()),
+            ("height",arm.height.clone()),("negative",Word::new(vec![arm.negative])),
+            ("positive_turns",arm.positive_turns.clone()),("negative_turns",arm.negative_turns.clone()),
+            ("clock",self.clock.clone()),("membership",self.reentry_state.clone()),
+            ("evidence",Word::new(vec![arm.evidence])),("grid",Word::new(self.grid.clone()))];
+        json!({"schema":"toroidal-learning-context-v1","arm":selected,
+            "fields":fields.iter().map(|(name,value)|json!({"name":name,"word":word(value)})).collect::<Vec<_>>()})
+    }
     pub fn snapshot(&self)->Value{
         let mut period=vec![B4::F;self.width-3];period.push(B4::T);
         let period=Word::new(period);

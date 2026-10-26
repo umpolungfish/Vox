@@ -231,6 +231,9 @@ impl FactorSynthesis {
     pub fn toroidal_snapshot(&self)->serde_json::Value{
         self.glut.as_ref().map(|g|g.toroidal_snapshot()).unwrap_or(serde_json::Value::Null)
     }
+    pub fn toroidal_learning_context(&self)->serde_json::Value{
+        self.glut.as_ref().map(|g|g.toroidal_learning_context()).unwrap_or(serde_json::Value::Null)
+    }
     pub fn reenter_toroidal_division(&mut self,before:u8,after:u8,kind:u8)->Result<serde_json::Value,String>{
         self.glut.as_mut().ok_or("missing resident")?.reenter_toroidal_division(before,after,kind)
     }
