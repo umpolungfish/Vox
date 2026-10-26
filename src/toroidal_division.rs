@@ -374,6 +374,36 @@ impl Torus {
         (a.p.clone(),a.q.clone(),a.evidence)
     }
     pub fn clock_word(&self)->Word{self.clock.clone()}
+    /// A full-complex SIC readout supplies a lifted rotation of the SAME
+    /// observed pair. The caller retains its frame, masses and coherences.
+    pub fn rotate_from_sic(&mut self,lift:Word,reverse:bool)
+        ->Result<(Option<(Word,Word)>,Value,B4),String>{
+        definite(&lift)?;
+        let arm=self.observations.last().and_then(|o|o["arm"].as_u64())
+            .ok_or("SIC rotation has no observed paired arm")? as usize;
+        let p=self.arms[arm].p.clone();let q=self.arms[arm].q.clone();
+        let height=self.arms[arm].height.clone();
+        let (step,back)=if reverse{(&self.back,&self.step)}else{(&self.step,&self.back)};
+        let f=power(step,&lift,self.width)?;let b=power(back,&lift,self.width)?;
+        let next=low(&p.multiply(&f),self.width);let paired=low(&q.multiply(&b),self.width);
+        if low(&next.multiply(&b),self.width)!=p || low(&paired.multiply(&f),self.width)!=q {
+            return Err("SIC lifted rotation lost its paired inverse".into());
+        }
+        self.install(arm,next,paired,"sic-coherence-rotation",lift,reverse)?;
+        let evidence=self.feedback(arm,&height);
+        let mut result=None;
+        for value in [&self.arms[arm].p,&self.arms[arm].q] {
+            let d=gcd(self.source.clone(),value.clone())?;
+            if d!=small(1)&&d!=self.source {
+                let (q,r)=self.source.divide(&d).map_err(str::to_string)?;
+                if normalize(r)!=small(0)||d.multiply(&q)!=self.source{return Err("SIC rotation failed source closure".into());}
+                result=Some((d,q));break;
+            }
+        }
+        Ok((result,json!({"arm":arm,"operation":"sic-coherence-rotation",
+            "transition":self.arms[arm].ancestry.last(),"clock":word(&self.clock),
+            "evidence":evidence.name(),"inverse_verified":true}),evidence))
+    }
     fn coordinates(p:&Word,q:&Word,conjugate:B4)->Result<(Word,Word,B4),String>{
         if conjugate==B4::F{return Ok((p.clone(),q.clone(),B4::T));}
         if conjugate!=B4::T{return Err("coordinate transport retains an unresolved frame".into());}

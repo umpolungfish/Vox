@@ -122,6 +122,10 @@ impl PreparedGlutMembrane {
     pub fn toroidal_learning_context(&self)->serde_json::Value{
         self.resident.borrow().toroidal_learning_context()
     }
+    pub fn rotate_toroidal_from_sic(&mut self,lift:crate::belnap_word::BelnapWord,reverse:bool)
+        ->Result<(Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord)>,serde_json::Value,crate::belnap::B4),String>{
+        self.resident.borrow_mut().rotate_toroidal_from_sic(lift,reverse)
+    }
     pub fn square_polynomial_actions(&self)->Vec<serde_json::Value>{
         self.resident.borrow().square_polynomial_actions()
     }

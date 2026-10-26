@@ -839,6 +839,17 @@ impl Resident {
     pub(super) fn reenter_toroidal_division(&mut self,before:u8,after:u8,kind:u8)->Result<serde_json::Value,String>{
         self.toroidal_division.as_mut().ok_or("missing joint torus state")?.reenter(before,after,kind)
     }
+    pub(super) fn rotate_toroidal_from_sic(&mut self,lift:crate::belnap_word::BelnapWord,reverse:bool)
+        ->Result<(Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord)>,serde_json::Value,crate::belnap::B4),String>{
+        let torus=self.toroidal_division.as_mut().ok_or("missing SIC paired resident")?;
+        let result=torus.rotate_from_sic(lift,reverse)?;
+        let axes=torus.axes();let clock=torus.clock_word();let(p,q,evidence)=torus.support();
+        if result.0.is_some(){self.stats.producing_port="sic-toroidal-division";}
+        if let Some(lanes)=self.lanes.as_mut(){lanes.square.bind_root_frame(p.clone(),q.clone(),axes,clock,evidence)?;}
+        self.return_catalyst_order()?;self.bind_catalyst_order_axes(axes)?;
+        self.bind_toroidal_support(p,q,evidence)?;
+        Ok(result)
+    }
     pub(super) fn bind_toroidal_support(&mut self,
         p:crate::belnap_word::BelnapWord,q:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)
         ->Result<(),String>{

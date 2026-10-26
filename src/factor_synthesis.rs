@@ -257,6 +257,28 @@ impl FactorSynthesis {
         if self.returned.is_some(){return Err("cannot change a closed division resident".into());}
         self.glut.as_mut().ok_or("missing division resident")?.bind_toroidal_support(p,q,evidence)
     }
+    /// Let a retained full-complex observer act between paired transformation
+    /// and native production. The observer receives this resident's exact
+    /// context and returns a rotation, never an independently produced factor.
+    pub fn advance_toroidal_with_sic(&mut self,port:usize,
+        mut observe:impl FnMut(&serde_json::Value)->Result<(crate::belnap_word::BelnapWord,bool,serde_json::Value),String>)
+        ->Result<(Option<FactorReturn>,serde_json::Value,crate::belnap::B4),String>{
+        let carrier=self.glut.as_mut().ok_or("missing SIC division resident")?;
+        let(mut pair,mut event,mut evidence)=carrier.act_toroidal_division(port)?;
+        if pair.is_none(){
+            let context=carrier.toroidal_learning_context();
+            let(lift,reverse,mut geometry)=observe(&context)?;
+            let(next,rotation,mark)=carrier.rotate_toroidal_from_sic(lift,reverse)?;
+            geometry["rotation"]=rotation;geometry["input_context"]=context;
+            event["geometric_sic"]=geometry;pair=next;evidence=evidence.join(mark);
+        }
+        event["native_producer_cycle"]=serde_json::json!(pair.is_none());
+        let returned=if let Some((p,q))=pair{
+            Some(self.close_toroidal_division(p.to_parity().map_err(String::from)?,q.to_parity().map_err(String::from)?)?)
+        }else{self.advance()?};
+        event["banked_return_walk"]=serde_json::json!(returned.is_some());
+        Ok((returned,event,evidence))
+    }
     pub fn toroidal_decisions(&self)->Vec<crate::glut_system::ToroidalDecision>{
         self.glut.as_ref().map(|g|g.toroidal_decisions()).unwrap_or_default()
     }
