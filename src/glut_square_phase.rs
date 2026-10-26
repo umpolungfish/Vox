@@ -1,7 +1,7 @@
 //! Square-congruence phase relations over resident IMASM numeral tapes.
 //! Sparse DQI row elimination cancels odd prime columns. Shared columns fold
 //! into the square-root accumulator, retaining an exact modular square witness.
-use super::{mf, trim, ONE, ZERO};
+use super::{mf, ONE, ZERO};
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 #[path = "glut_residue.rs"]
 mod residual;
@@ -32,58 +32,54 @@ fn offset(tape: &[char]) -> usize {
 fn mm(a: &[char], b: &[char], n: &[char]) -> Tape {
     mf::modulo(&mf::mul(a, b), n)
 }
-fn power(a: &[char], exponent: &[char], n: &[char]) -> Tape {
-    let mut value = vec![ONE];
-    let mut square = mf::modulo(a, n);
-    for &mark in exponent {
-        if mark == ONE {
-            value = mm(&value, &square, n);
-        }
-        square = mm(&square, &square, n);
-    }
-    value
-}
 fn root(n: &[char], p: &[char]) -> Option<Tape> {
-    let one = vec![ONE];
-    let two = vec![ZERO, ONE];
-    if p == two {
-        return Some(mf::modulo(n, p));
+    use crate::belnap_word::{BelnapCoordinate64 as Coordinate, PackedWord};
+    // Field primes are structural addresses in the enclosing sieve. Reduce
+    // the wide source once, then keep the complete root operation on its
+    // checked truth/refutation coordinates until the field returns.
+    let prime = PackedWord::from_parity(p).definite_u64().expect("retained field prime");
+    let modulus = Coordinate::from_definite_u64(prime);
+    let value = |x: Coordinate| x.definite_u64().expect("retained definite root coordinate");
+    let one = Coordinate::from_definite_u64(1);
+    let source = Coordinate::from_definite_u64(mf::BelnapResidue::new(n).remainder_word(prime));
+    if prime == 2 { return Some(mf::tape_u64(value(source))); }
+    let less = modulus.subtract_mod(&one, &modulus).expect("field predecessor");
+    let half = Coordinate::from_definite_u64(value(less) >> 1);
+    let power = |a: Coordinate, exponent: Coordinate| a.power_mod(&exponent, &modulus).expect("retained field power");
+    let multiply = |a: Coordinate, b: Coordinate| a.multiply_mod(&b, &modulus).expect("retained field product");
+    if value(power(source, half)) != 1 { return None; }
+    let count = value(less).trailing_zeros() as usize;
+    let odd = Coordinate::from_definite_u64(value(less) >> count);
+    let mut nonresidue = Coordinate::from_definite_u64(2);
+    while value(power(nonresidue, half)) == 1 {
+        nonresidue = nonresidue.add_mod(&one, &modulus).expect("next field nonresidue");
     }
-    let less = mf::sub(p, &one);
-    let half = trim(less[1..].to_vec());
-    if power(n, &half, p) != one {
-        return None;
-    }
-    let count = less.iter().position(|&mark| mark == ONE).unwrap();
-    let odd = trim(less[count..].to_vec());
-    let mut nonresidue = two.clone();
-    while power(&nonresidue, &half, p) == one {
-        nonresidue = mf::add(&nonresidue, &one);
-    }
-    let mut c = power(&nonresidue, &odd, p);
-    let mut t = power(n, &odd, p);
-    let mut r = power(n, &trim(mf::add(&odd, &one)[1..].to_vec()), p);
+    let mut c = power(nonresidue, odd);
+    let mut t = power(source, odd);
+    let root_exponent = Coordinate::from_definite_u64((value(odd) >> 1) + 1);
+    let mut r = power(source, root_exponent);
     let mut extent = count;
-    while t != one {
+    while value(t) != 1 {
         let mut at = 0;
-        let mut test = t.clone();
-        while test != one {
-            test = mm(&test, &test, p);
+        let mut test = t;
+        while value(test) != 1 {
+            test = multiply(test, test);
             at += 1;
             if at == extent {
                 return None;
             }
         }
-        let mut b = c.clone();
+        let mut b = c;
         for _ in 0..extent - at - 1 {
-            b = mm(&b, &b, p);
+            b = multiply(b, b);
         }
-        c = mm(&b, &b, p);
-        t = mm(&t, &c, p);
-        r = mm(&r, &b, p);
+        c = multiply(b, b);
+        t = multiply(t, c);
+        r = multiply(r, b);
         extent = at;
     }
-    Some(r)
+    assert_eq!(value(multiply(r, r)), value(source), "field root lost its source congruence");
+    Some(mf::tape_u64(value(r)))
 }
 struct Column {
     prime: Tape,

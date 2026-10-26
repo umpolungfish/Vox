@@ -1,5 +1,5 @@
 //! Structural square-congruence phase closure nested in the GLUT membrane.
-use super::{mf, trim, ONE, ZERO};
+use super::{mf, ONE, ZERO};
 use alloc::vec::Vec;
 #[path = "glut_square_phase.rs"]
 mod phase;

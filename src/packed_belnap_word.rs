@@ -74,6 +74,19 @@ impl BelnapCoordinate64 {
         let value=(a as u128%m as u128+m as u128-b as u128%m as u128)%m as u128;
         Ok(Self::from_definite_u64(value as u64))
     }
+    /// Keep the base, exponent and intermediate powers on both evidence rails.
+    pub(crate) fn power_mod(&self,exponent:&Self,modulus:&Self)->Result<Self,&'static str>{
+        let (_,_,m)=self.images(exponent,modulus)?;
+        let mut exponent=*exponent;
+        let mut base=Self::from_definite_u64(self.definite_u64()?%m);
+        let mut result=Self::from_definite_u64(1%m);
+        while exponent.definite_u64()?!=0 {
+            if exponent.definite_u64()?&1!=0 {result=result.multiply_mod(&base,modulus)?;}
+            exponent=Self::from_definite_u64(exponent.definite_u64()?>>1);
+            if exponent.definite_u64()?!=0 {base=base.multiply_mod(&base,modulus)?;}
+        }
+        Ok(result)
+    }
     /// Euclidean inverse within the checked numerical restriction. Keep each
     /// remainder and coefficient on both rails, without allocating tapes.
     pub(crate) fn inverse_mod(&self,modulus:&Self)->Result<Option<Self>,&'static str>{

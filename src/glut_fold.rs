@@ -1163,9 +1163,22 @@ impl Resident {
     }
     pub fn activate_square(&mut self, mut observe: impl FnMut(&FoldStats)) {
         if self.finished || self.pair.is_some() { return; }
+        // The organism must receive the completed phase state before a large
+        // correlation-derived batch can monopolize its enclosing body. Yield
+        // only between complete advances: rows, roots and witness ancestry
+        // remain in this same resident for its next activation.
+        #[cfg(feature = "protein-cli")]
+        let organism_turn = self.toroidal_division.as_ref().map(|_| std::time::Instant::now());
         let Some(l) = self.lanes.as_mut() else { return; };
         let stats = &mut self.stats;
-        for _ in 0..l.square_quantum {
+        for advance in 0..l.square_quantum {
+            #[cfg(feature = "protein-cli")]
+            if advance > 0 && organism_turn.is_some_and(|start| start.elapsed().as_secs() >= 1) {
+                observe(&stats);
+                break;
+            }
+            #[cfg(not(feature = "protein-cli"))]
+            let _ = advance;
             if !l.square_live {
                 break;
             }
