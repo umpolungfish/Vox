@@ -92,6 +92,7 @@ pub struct Torus {
     braid:BitBraid,observations:Vec<Value>,
     native_views:Vec<(Word,Word,B4)>,
     reentry_state:Word,
+    next_arm:usize,
 }
 impl Torus {
     pub fn new(source:Word)->Result<Self,String>{
@@ -112,7 +113,7 @@ impl Torus {
         }
         let mut body=Self{source,width,step,back,center,arms:Vec::new(),
             grid:vec![B4::B;48],rule:B4::B,clock:small(0),braid:BitBraid::torus_twist(width),
-            observations:Vec::new(),native_views:Vec::new(),reentry_state:small(0)};
+            observations:Vec::new(),native_views:Vec::new(),reentry_state:small(0),next_arm:0};
         for coset in [1,3,5,7] {
             let mut p=body.center.clone();p.0.resize(width,B4::F);
             for i in 0..3 {p.0[i]=small(coset).cell(i);}
@@ -205,9 +206,21 @@ impl Torus {
         support
     }
     pub fn act(&mut self,port:usize)->Result<(Option<(Word,Word)>,Value,B4),String>{
+        let arm=self.next_arm;
+        self.next_arm=(arm+1)%self.arms.len();
+        self.act_on_arm(port,arm)
+    }
+    /// Continue a compound operation on the pair just transformed. Recording
+    /// its observation advances the clock, but must not change its operand.
+    pub fn continue_action(&mut self,port:usize)->Result<(Option<(Word,Word)>,Value,B4),String>{
+        if self.observations.is_empty(){return Err("continued torus action has no carried arm".into());}
+        let arm=self.observations.last().unwrap()["arm"].as_u64()
+            .ok_or("continued torus action lost its arm")? as usize;
+        self.act_on_arm(port,arm)
+    }
+    fn act_on_arm(&mut self,port:usize,arm:usize)->Result<(Option<(Word,Word)>,Value,B4),String>{
         let port=port%OPERATIONS.len();
         // The source and carried clock select addresses; values stay in FOUR.
-        let arm=self.observations.len()%self.arms.len();
         let p=self.arms[arm].p.clone();let q=self.arms[arm].q.clone();
         let prior_height=self.arms[arm].height.clone();
         let exponent=match port {
@@ -325,7 +338,8 @@ impl Torus {
         axes
     }
     pub fn support(&self)->(Word,Word,B4){
-        let a=&self.arms[(self.observations.len().saturating_sub(1))%self.arms.len()];
+        let selected=self.observations.last().and_then(|o|o["arm"].as_u64()).unwrap_or(0) as usize;
+        let a=&self.arms[selected];
         (a.p.clone(),a.q.clone(),a.evidence)
     }
     pub fn clock_word(&self)->Word{self.clock.clone()}
@@ -381,7 +395,7 @@ impl Torus {
     /// The selected paired state enters the learner without projecting away
     /// either evidence rail. Historical ancestry stays in this same torus.
     pub fn learning_context(&self)->Value{
-        let selected=self.observations.len().saturating_sub(1)%self.arms.len();
+        let selected=self.observations.last().and_then(|o|o["arm"].as_u64()).unwrap_or(0) as usize;
         let arm=&self.arms[selected];
         let fields=[("source",self.source.clone()),("p",arm.p.clone()),("q",arm.q.clone()),
             ("height",arm.height.clone()),("negative",Word::new(vec![arm.negative])),
@@ -395,6 +409,7 @@ impl Torus {
         let mut period=vec![B4::F;self.width-3];period.push(B4::T);
         let period=Word::new(period);
         json!({"carrier":"BelnapWord","source":word(&self.source),"modulus_exponent":self.width,
+            "native_view_action_same_arm":true,"next_arm":self.next_arm,
             "reentry_state":word(&self.reentry_state),"reentry_atom_order":["N","T","F","B"],
             "orbit_period":word(&period),"full_period_verified":true,
             "numerical_restriction":"both rails checked definite; operands retained",

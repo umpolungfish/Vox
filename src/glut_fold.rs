@@ -822,7 +822,7 @@ impl Resident {
             // organism's current programs select another operator.
             let (pair,reentry,evidence)=torus.act(6)?;
             if pair.is_some() || port==6 {(pair,reentry,evidence)}else{
-                let (pair,mut event,next)=torus.act(port)?;
+                let (pair,mut event,next)=torus.continue_action(port)?;
                 event["native_view_reentry"]=reentry;
                 (pair,event,evidence.join(next))
             }
