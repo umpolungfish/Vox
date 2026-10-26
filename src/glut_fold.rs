@@ -826,6 +826,9 @@ impl Resident {
         self.bind_toroidal_support(p,q,evidence)?;
         Ok(result)
     }
+    pub(super) fn reenter_toroidal_division(&mut self,before:u8,after:u8,kind:u8)->Result<serde_json::Value,String>{
+        self.toroidal_division.as_mut().ok_or("missing joint torus state")?.reenter(before,after,kind)
+    }
     pub(super) fn bind_toroidal_support(&mut self,
         p:crate::belnap_word::BelnapWord,q:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)
         ->Result<(),String>{

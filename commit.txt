@@ -1,3 +1,3 @@
-I retain Hensel residue coordinates without allocating quotient words.
+I execute native logical re-entry on the retained toroidal pair.
 
-I reuse reduced coefficients per prime-power level, retain fiber inverses on fixed-size Belnap rails, and check exact residues and unresolved evidence against the retained controls.
+I transport full four-atom membership changes into opposite source-bound rotations, preserve inverse witnesses and full turns, and verify complete Inc/conflation cycles on a 200-bit carrier.

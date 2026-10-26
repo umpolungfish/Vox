@@ -119,6 +119,9 @@ impl PreparedGlutMembrane {
         ->Result<(Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord)>,serde_json::Value,crate::belnap::B4),String>{
         self.resident.borrow_mut().act_toroidal_division(port)
     }
+    pub fn reenter_toroidal_division(&mut self,before:u8,after:u8,kind:u8)->Result<serde_json::Value,String>{
+        self.resident.borrow_mut().reenter_toroidal_division(before,after,kind)
+    }
     pub fn bind_toroidal_support(&mut self,p:crate::belnap_word::BelnapWord,
         q:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)->Result<(),String>{
         self.resident.borrow_mut().bind_toroidal_support(p,q,evidence)

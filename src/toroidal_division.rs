@@ -91,6 +91,7 @@ pub struct Torus {
     arms:Vec<Arm>,grid:Vec<B4>,rule:B4,clock:Word,
     braid:BitBraid,observations:Vec<Value>,
     native_views:Vec<(Word,Word,B4)>,
+    reentry_state:Word,
 }
 impl Torus {
     pub fn new(source:Word)->Result<Self,String>{
@@ -111,7 +112,7 @@ impl Torus {
         }
         let mut body=Self{source,width,step,back,center,arms:Vec::new(),
             grid:vec![B4::B;48],rule:B4::B,clock:small(0),braid:BitBraid::torus_twist(width),
-            observations:Vec::new(),native_views:Vec::new()};
+            observations:Vec::new(),native_views:Vec::new(),reentry_state:small(0)};
         for coset in [1,3,5,7] {
             let mut p=body.center.clone();p.0.resize(width,B4::F);
             for i in 0..3 {p.0[i]=small(coset).cell(i);}
@@ -124,6 +125,40 @@ impl Torus {
                 evidence:B4::N,ancestry:Vec::new()});
         }
         Ok(body)
+    }
+    /// Transport the complete N,T,F,B membership mask into the same paired
+    /// orbit. Differences of mask coordinates compose by telescoping; inverse
+    /// logical actions therefore recover the exact arithmetic pair.
+    pub fn reenter(&mut self,before:u8,after:u8,kind:u8)->Result<Value,String>{
+        if before>15 || after>15 || self.reentry_state!=small(before as usize){
+            return Err("re-entry lost its retained four-atom state".into());
+        }
+        let expected=match kind {
+            0=>((before&5)<<1)|((before&10)>>1),
+            1=>{let mut value=before;for bit in [1u8,2,4,8]{if value&bit==0{value|=bit;break;}}value},
+            2=>15^(((before&1)<<3)|((before&2)<<1)|((before&4)>>1)|((before&8)>>3)),
+            _=>return Err("unknown re-entry operation".into()),
+        };
+        if after!=expected{return Err("re-entry operation disagrees with native membership transport".into());}
+        let reverse=after<before;
+        let lift=small(before.abs_diff(after) as usize);
+        let (step,back)=if reverse{(&self.back,&self.step)}else{(&self.step,&self.back)};
+        let forward=power(step,&lift,self.width)?;let backward=power(back,&lift,self.width)?;
+        let operation=match kind{0=>"permutation-reentry",1=>"inc-ascent",_=>"conflation-return"};
+        for arm in 0..self.arms.len(){
+            let p=self.arms[arm].p.clone();let q=self.arms[arm].q.clone();
+            let next=low(&p.multiply(&forward),self.width);
+            let paired=low(&q.multiply(&backward),self.width);
+            if low(&next.multiply(&backward),self.width)!=p || low(&paired.multiply(&forward),self.width)!=q{
+                return Err("logical re-entry lost paired inverse recovery".into());
+            }
+            self.install(arm,next,paired,operation,lift.clone(),reverse)?;
+        }
+        self.reentry_state=small(after as usize);
+        let shadow=B4::from_u8((after>>1)&3);
+        Ok(json!({"operation":operation,"before":word(&small(before as usize)),
+            "after":word(&self.reentry_state),"atom_order":["N","T","F","B"],
+            "TF_shadow":shadow.name(),"designated":after&2!=0,"inverse_verified":true}))
     }
     fn height(&self,p:&Word,q:&Word)->Result<(Word,B4),String>{
         let product=p.multiply(q);
@@ -340,6 +375,7 @@ impl Torus {
         let mut period=vec![B4::F;self.width-3];period.push(B4::T);
         let period=Word::new(period);
         json!({"carrier":"BelnapWord","source":word(&self.source),"modulus_exponent":self.width,
+            "reentry_state":word(&self.reentry_state),"reentry_atom_order":["N","T","F","B"],
             "orbit_period":word(&period),"full_period_verified":true,
             "numerical_restriction":"both rails checked definite; operands retained",
             "step":word(&self.step),"inverse_step":word(&self.back),"clock":word(&self.clock),
@@ -370,6 +406,28 @@ impl Torus {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn logical_reentry_recovers_the_exact_200_bit_paired_state(){
+        let source=Word::from_parity(&mf::decimal_to_tape("1306593903193228327879866132486971792765599839798626833574803").unwrap());
+        let mut torus=Torus::new(source.clone()).unwrap();
+        let before:Vec<_>=torus.arms.iter().map(|a|(a.p.clone(),a.q.clone())).collect();
+        for (old,new) in [(0u8,1u8),(1,3),(3,7),(7,15)]{
+            let permutation=((old&5)<<1)|((old&10)>>1);
+            torus.reenter(old,permutation,0).unwrap();
+            torus.reenter(permutation,old,0).unwrap();
+            let event=torus.reenter(old,new,1).unwrap();
+            assert_eq!(event["designated"],new&2!=0);
+            assert_ne!(torus.arms[0].p,before[0].0);
+        }
+        torus.reenter(15,0,2).unwrap();
+        for (arm,(p,q)) in torus.arms.iter().zip(before){
+            assert_eq!((&arm.p,&arm.q),(&p,&q));
+            assert_eq!(torus.height(&arm.p,&arm.q).unwrap().0,arm.height);
+        }
+        assert_eq!(torus.reentry_state,small(0));
+        assert_eq!(torus.source,source);
+        assert!(torus.reenter(0,3,1).is_err());
+    }
     #[test]
     fn square_and_division_views_return_the_same_128_bit_carrier(){
         let source=Word::from_parity(&mf::decimal_to_tape("211060082272597355141159798675733025589").unwrap());
