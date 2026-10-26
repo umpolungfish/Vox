@@ -9,7 +9,8 @@ use crate::belnap::B4;
 use crate::fixed_point_word_arithmetic::{belnap_add_cell, belnap_sub_cell};
 #[path="packed_belnap_word.rs"]
 mod packed;
-use packed::PackedWord;
+pub(crate) use packed::PackedWord;
+pub(crate) use packed::BelnapCoordinate64;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BelnapWord(pub Vec<B4>);
@@ -58,6 +59,43 @@ impl BelnapWord {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn packed_numeral_boundaries_preserve_rails_and_wide_residue_values(){
+        use crate::morphism_factor as mf;
+        let source=mf::decimal_to_tape("1306593903193228327879866132486971792765599839798626833574803").unwrap();
+        assert_eq!(source.len(),200);
+        let packed=PackedWord::from_parity(&source);
+        assert_eq!(packed.to_parity().unwrap(),source);
+        let original=packed.cells();
+        for modulus in [3u64,31,257,65537,4294967291,u64::MAX] {
+            let mut remainder=0u128;
+            for &mark in source.iter().rev(){remainder=(2*remainder+u128::from(mark=='⊥'))%u128::from(modulus);}
+            let result=packed.divide(&PackedWord::from_definite_u64(modulus)).unwrap().1;
+            assert_eq!(result.definite_u64().unwrap(),remainder as u64);
+            assert_eq!(packed.cells(),original);
+            for a in [0,1,modulus-1,u64::MAX] {for b in [0,1,modulus-1,u64::MAX] {
+                assert_eq!(mf::residue_mul(a,b,modulus),(a as u128*b as u128%modulus as u128) as u64);
+                assert_eq!(mf::residue_add(a,b,modulus),((a as u128+b as u128)%modulus as u128) as u64);
+                assert_eq!(mf::residue_sub(a,b,modulus),((a as u128%modulus as u128+modulus as u128-b as u128%modulus as u128)%modulus as u128) as u64);
+            }}
+        }
+        for value in [B4::N,B4::B] {
+            let mut cells=original.clone();cells[70]=value;
+            let held=PackedWord::from_cells(&cells);
+            assert!(held.to_parity().is_err());
+            assert!(held.definite_u64().is_err());
+            assert!(held.divide(&PackedWord::from_definite_u64(3)).is_err());
+            assert_eq!(held.cells(),cells);
+        }
+        for (t,f) in [(0,0),(u64::MAX,u64::MAX),(1,1),(1,0)] {
+            let held=BelnapCoordinate64::from_rails(t,f);
+            let definite=BelnapCoordinate64::from_definite_u64(3);
+            assert!(held.add_mod(&definite,&definite).is_err());
+            assert!(held.multiply_mod(&definite,&definite).is_err());
+            assert!(held.subtract_mod(&definite,&definite).is_err());
+            assert!(held.definite_u64().is_err());
+        }
+    }
     fn serial_add(a:&[B4],b:&[B4])->BelnapWord {
         let mut carry=B4::F;let mut out=Vec::new();
         for at in 0..a.len().max(b.len()) {

@@ -225,6 +225,49 @@ pub fn build_factor_braid_dots(
 }
 
 impl FactorSynthesis {
+    pub fn prepare_toroidal_division(&mut self)->Result<(),String>{
+        self.glut.as_mut().ok_or("missing resident")?.prepare_toroidal_division()
+    }
+    pub fn toroidal_snapshot(&self)->serde_json::Value{
+        self.glut.as_ref().map(|g|g.toroidal_snapshot()).unwrap_or(serde_json::Value::Null)
+    }
+    /// Division, square/carry views and the phase return belong to the same
+    /// retained resident. The operation acts there before production advances.
+    pub fn advance_toroidal_division(&mut self,port:usize)
+        ->Result<(Option<FactorReturn>,serde_json::Value,crate::belnap::B4),String>{
+        let (pair,mut event,evidence)=self.glut.as_mut().ok_or("missing resident")?.act_toroidal_division(port)?;
+        event["native_producer_cycle"]=serde_json::json!(pair.is_none());
+        let returned=if let Some((p,q))=pair {
+            Some(self.close_toroidal_division(p.to_parity().map_err(String::from)?,q.to_parity().map_err(String::from)?)?)
+        }else{self.advance()?};
+        event["banked_return_walk"]=serde_json::json!(returned.is_some());
+        Ok((returned,event,evidence))
+    }
+    pub fn bind_toroidal_support(&mut self,p:crate::belnap_word::BelnapWord,
+        q:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)->Result<(),String>{
+        if self.returned.is_some(){return Err("cannot change a closed division resident".into());}
+        self.glut.as_mut().ok_or("missing division resident")?.bind_toroidal_support(p,q,evidence)
+    }
+    pub fn toroidal_decisions(&self)->Vec<crate::glut_system::ToroidalDecision>{
+        self.glut.as_ref().map(|g|g.toroidal_decisions()).unwrap_or_default()
+    }
+    /// A carried toroidal observation changes the live support priorities.
+    /// Return the preceding frame before installing the next one, retaining
+    /// the same resident and its correlation evidence throughout.
+    pub fn rephase_torus(&mut self, axes: [usize; 12]) -> Result<(), String> {
+        if self.returned.is_some() { return Err("cannot rephase a closed factor resident".into()); }
+        let carrier = self.glut.as_mut().ok_or("missing factor resident")?;
+        carrier.return_catalyst_order()?;
+        carrier.apply_catalyst_order_axes(axes)
+    }
+
+    /// Close an internally generated toroidal pair through this resident's
+    /// existing product, banked phase and inverse-return machinery.
+    pub fn close_toroidal_division(&mut self, p: Vec<char>, q: Vec<char>)
+        -> Result<FactorReturn, String> {
+        self.close_candidate(p, q, "organism-toroidal-division")
+    }
+
     pub fn circuit_braid_state(&self) -> &crate::gfe_circuit_braid::GfeCircuitBraidState {
         &self.circuit_braid
     }
@@ -294,6 +337,8 @@ impl FactorSynthesis {
             return Err("GFE AFWD did not reach the live correlation graph".into());
         }
         carrier.bind_source_candidate(p.clone(), q.clone(), producer)?;
+        let execution=carrier.execute_retained()?.ok_or("toroidal pair lacks its enclosing banked return")?;
+        execution.verify(&self.source)?;
         self.morphisms.close(&self.source, carrier, &p, &q)?;
         let returned = self.verified(p, q, producer)?;
         self.returned = Some(returned.clone());

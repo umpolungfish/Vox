@@ -791,8 +791,54 @@ pub(super) struct Resident {
     finished: bool,
     pub catalyst:Option<super::CatalystCycle>,
     catalyst_order:Option<[usize;12]>,
+    toroidal_support:Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord,crate::belnap::B4)>,
+    toroidal_division:Option<crate::toroidal_division::Torus>,
 }
 impl Resident {
+    pub(super) fn prepare_toroidal_division(&mut self)->Result<(),String>{
+        if self.toroidal_division.is_none(){
+            self.toroidal_division=Some(crate::toroidal_division::Torus::new(
+                crate::belnap_word::BelnapWord::from_parity(&self.n))?);
+        }
+        Ok(())
+    }
+    pub(super) fn toroidal_snapshot(&self)->serde_json::Value{
+        self.toroidal_division.as_ref().map(|t|t.snapshot()).unwrap_or(serde_json::Value::Null)
+    }
+    pub(super) fn act_toroidal_division(&mut self,port:usize)
+        ->Result<(Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord)>,serde_json::Value,crate::belnap::B4),String>{
+        let view=self.lanes.as_ref().and_then(|l|l.shared.as_ref()).map(|g|g.toroidal_view());
+        let torus=self.toroidal_division.as_mut().ok_or("missing joint torus state")?;
+        let result=if let Some((p,q,c))=view {
+            torus.observe_native_view(p,q,c)?;
+            // A view of the whole acts back on the same carried torus before
+            // the selected operation. Re-entry is executed even when the
+            // organism's current programs select another operator.
+            let (pair,reentry,evidence)=torus.act(6)?;
+            if pair.is_some() || port==6 {(pair,reentry,evidence)}else{
+                let (pair,mut event,next)=torus.act(port)?;
+                event["native_view_reentry"]=reentry;
+                (pair,event,evidence.join(next))
+            }
+        }else{torus.act(port)?};
+        let axes=torus.axes();let (p,q,evidence)=torus.support();
+        self.return_catalyst_order()?;self.bind_catalyst_order_axes(axes)?;
+        self.bind_toroidal_support(p,q,evidence)?;
+        Ok(result)
+    }
+    pub(super) fn bind_toroidal_support(&mut self,
+        p:crate::belnap_word::BelnapWord,q:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)
+        ->Result<(),String>{
+        if let Some(graph)=self.lanes.as_mut().and_then(|l|l.shared.as_mut()) {
+            graph.bind_toroidal_support(&p,&q,evidence)?;
+        }
+        self.toroidal_support=Some((p,q,evidence));
+        Ok(())
+    }
+    pub(super) fn toroidal_decisions(&self)->Vec<super::ToroidalDecision>{
+        self.lanes.as_ref().and_then(|l|l.shared.as_ref())
+            .map(|g|g.toroidal_decisions.clone()).unwrap_or_default()
+    }
     pub(super) fn belnap_relation_conflicts(&self) -> Vec<super::BelnapRelationConflict> {
         self.lanes.as_ref().and_then(|lanes|lanes.shared.as_ref())
             .map(|graph|graph.held_relations().to_vec()).unwrap_or_default()
@@ -829,7 +875,7 @@ impl Resident {
                 lanes: None,
                 finished: false,
                 catalyst:None,
-                catalyst_order:None,
+                catalyst_order:None,toroidal_support:None,toroidal_division:None,
             };
         }
         if stats.zero_run > 0 {
@@ -866,7 +912,7 @@ impl Resident {
                 lanes: None,
                 finished: false,
                 catalyst:None,
-                catalyst_order:None,
+                catalyst_order:None,toroidal_support:None,toroidal_division:None,
             };
         }
         let factor_bound = mf::isqrt(n);
@@ -930,7 +976,7 @@ impl Resident {
             lanes: Some(l),
             finished: false,
             catalyst:None,
-            catalyst_order:None,
+            catalyst_order:None,toroidal_support:None,toroidal_division:None,
         }
     }
     pub fn finished(&self) -> bool {
@@ -1191,6 +1237,11 @@ impl Resident {
                 if mf::cmp(p, q) == Ordering::Greater {
                     core::mem::swap(p, q);
                 }
+                if let Some(torus)=self.toroidal_division.as_mut(){
+                    torus.retain_closed_pair(crate::belnap_word::BelnapWord::from_parity(p),
+                        crate::belnap_word::BelnapWord::from_parity(q))
+                        .expect("verified pair must return through its own torus before fixation");
+                }
                 self.execution = Some(
                     super::materialize_fold(&self.n, p.clone(), q.clone())
                         .expect("GLUT verification return must close its checkpoint ancestry"),
@@ -1304,6 +1355,10 @@ impl Resident {
                 }
                 if l.shared_live {
                     if let Some(graph) = l.shared.as_mut() {
+                        if let Some((p,q,evidence))=self.toroidal_support.as_ref() {
+                            graph.bind_toroidal_support(p,q,*evidence)
+                                .expect("retained toroidal support must preserve its numerical boundary");
+                        }
                         let before = graph.work;
                         let step = graph.advance();
                         stats.correlation_work = graph.work - before;

@@ -18,6 +18,7 @@ extern crate alloc;
 pub mod ordering;
 pub mod belnap;
 pub mod belnap_word;
+pub mod toroidal_division;
 pub mod belnap_relation;
 
 pub mod vox;

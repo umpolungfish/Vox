@@ -40,6 +40,16 @@ use crate::morphism_factor as mf;
 #[path = "glut_fold.rs"]
 mod fold;
 pub use fold::FoldStats;
+/// A toroidal hypothesis selected a numeral branch on an actual shared cell.
+/// The original FOUR preference remains beside the explicit numerical choice.
+#[derive(Clone, Debug)]
+pub struct ToroidalDecision {
+    pub cell: usize,
+    pub preference: crate::belnap::B4,
+    pub selected: crate::belnap::B4,
+    pub evidence: crate::belnap::B4,
+    pub hypothesis: usize,
+}
 /// Executed torus action on a square witness, before divisor extraction.
 #[derive(Clone, Debug)]
 pub struct SquareTorusObservation {

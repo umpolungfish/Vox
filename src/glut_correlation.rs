@@ -93,6 +93,9 @@ pub(super) struct Correlation {
     activity: BTreeMap<usize, Vec<char>>,
     priority: BTreeMap<usize, usize>,
     catalyst_inverse: Option<BTreeMap<usize, usize>>,
+    toroidal_preferences: BTreeMap<usize, B4>,
+    toroidal_support: Vec<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord,B4)>,
+    pub toroidal_decisions: Vec<super::super::ToroidalDecision>,
     bump: Vec<char>,
     trail: Vec<Literal>,
     boundaries: Vec<usize>,
@@ -129,6 +132,12 @@ pub(super) struct Correlation {
     pub joint_forced: usize,
 }
 impl Correlation {
+    pub(super) fn toroidal_view(&self)->(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord,B4){
+        // Keep the addressed lane extent, including known high F cells.
+        (crate::belnap_word::BelnapWord(self.p.iter().map(|&i|self.values[i]).collect()),
+         crate::belnap_word::BelnapWord(self.q.iter().map(|&i|self.values[i]).collect()),
+         if self.conjugate{B4::T}else{B4::F})
+    }
     pub(super) fn held_relations(&self) -> &[BelnapRelationConflict] { &self.held_relations }
     pub(super) fn held_conflicts(&self) -> &[BelnapConflict] { &self.held_conflicts }
     pub(super) fn bind_midpoint_floor(&mut self, floor: &[char]) {
@@ -208,6 +217,9 @@ impl Correlation {
             bump: vec![ONE],
             priority: BTreeMap::new(),
             catalyst_inverse: None,
+            toroidal_preferences: BTreeMap::new(),
+            toroidal_support: Vec::new(),
+            toroidal_decisions: Vec::new(),
             trail: Vec::new(),
             boundaries: Vec::new(),
             cursor: 0,
@@ -431,6 +443,33 @@ impl Correlation {
         for (rank, position) in q_order.into_iter().enumerate() {
             self.priority.insert(self.q[position], rank * 2 + 1);
         }
+        Ok(())
+    }
+
+    /// Carry an internally generated paired hypothesis into actual branch
+    /// values, preserving the source relation and all existing implications.
+    pub(super) fn bind_toroidal_support(&mut self,
+        p: &crate::belnap_word::BelnapWord, q: &crate::belnap_word::BelnapWord,
+        evidence: B4) -> Result<(),String> {
+        use crate::belnap_word::BelnapWord;
+        if self.toroidal_support.last().is_some_and(|(a,b,e)|a==p && b==q && *e==evidence) {
+            return Ok(());
+        }
+        let (left,right)=if self.conjugate {
+            // The conjugate graph carries midpoint and gap, not raw factors.
+            let two=BelnapWord::from_parity(&mf::two());
+            let sum=p.add(q).divide(&two).map_err(String::from)?.0;
+            let difference=match p.compare(q).map_err(String::from)? {
+                core::cmp::Ordering::Less=>q.subtract(p).0,_=>p.subtract(q).0};
+            (sum,difference.divide(&two).map_err(String::from)?.0)
+        } else {(p.clone(),q.clone())};
+        self.toroidal_preferences.clear();
+        for (cells,value) in [(&self.p,&left),(&self.q,&right)] {
+            for (at,&cell) in cells.iter().enumerate() {
+                self.toroidal_preferences.insert(cell,value.cell(at));
+            }
+        }
+        self.toroidal_support.push((p.clone(),q.clone(),evidence));
         Ok(())
     }
 
@@ -1068,7 +1107,17 @@ impl Correlation {
                 // Square frames descend toward the source-root midpoint and
                 // small difference support; product frames retain their
                 // factor-oriented polarity. Conflicts can reverse either bit.
-                let mark = if self.conjugate { ZERO } else { ONE };
+                let default = if self.conjugate { ZERO } else { ONE };
+                let mark = match self.toroidal_preferences.get(&cell) {
+                    Some(B4::T)=>ONE, Some(B4::F)=>ZERO, _=>default,
+                };
+                if let Some(&preference)=self.toroidal_preferences.get(&cell) {
+                    self.toroidal_decisions.push(super::super::ToroidalDecision {
+                        cell, preference, selected: B4::from_parity(mark),
+                        evidence:self.toroidal_support.last().unwrap().2,
+                        hypothesis:self.toroidal_support.len()-1,
+                    });
+                }
                 self.assign(Literal { cell, mark }, None);
                 return Step::Running;
             }

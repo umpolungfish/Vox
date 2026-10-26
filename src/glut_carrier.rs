@@ -105,6 +105,27 @@ impl PreparedGlutMembrane {
             resident:Rc::new(RefCell::new(resident)),returned:None})
     }
     pub fn resident_identity(&self)->usize{Rc::as_ptr(&self.resident) as usize}
+    pub fn prepare_toroidal_division(&mut self)->Result<(),String>{
+        self.resident.borrow_mut().prepare_toroidal_division()
+    }
+    pub fn toroidal_snapshot(&self)->serde_json::Value{
+        let mut value=self.resident.borrow().toroidal_snapshot();
+        if let Some(object)=value.as_object_mut(){
+            object.insert("resident_identity".into(),serde_json::json!(self.resident_identity()));
+        }
+        value
+    }
+    pub fn act_toroidal_division(&mut self,port:usize)
+        ->Result<(Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord)>,serde_json::Value,crate::belnap::B4),String>{
+        self.resident.borrow_mut().act_toroidal_division(port)
+    }
+    pub fn bind_toroidal_support(&mut self,p:crate::belnap_word::BelnapWord,
+        q:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)->Result<(),String>{
+        self.resident.borrow_mut().bind_toroidal_support(p,q,evidence)
+    }
+    pub fn toroidal_decisions(&self)->Vec<super::ToroidalDecision>{
+        self.resident.borrow().toroidal_decisions()
+    }
     pub fn bind_square_torus(&mut self) -> Result<(), String> {
         self.resident.borrow_mut().bind_square_torus()
     }
@@ -348,6 +369,19 @@ impl Iterator for CarrierWalk {
 mod tests {
     use super::*;
     #[test]
+    fn toroidal_views_share_the_actual_resident_through_cloned_handles(){
+        let source=crate::morphism_factor::decimal_to_tape("211060082272597355141159798675733025589").unwrap();
+        let mut carrier=PreparedGlutMembrane::prepare(&source).unwrap();
+        carrier.prepare_toroidal_division().unwrap();
+        let alias=carrier.clone();let initial=alias.toroidal_snapshot();
+        carrier.act_toroidal_division(0).unwrap();
+        assert_eq!(carrier.toroidal_snapshot(),alias.toroidal_snapshot());
+        assert_ne!(alias.toroidal_snapshot(),initial);
+        assert_eq!(alias.toroidal_snapshot()["resident_identity"],serde_json::json!(carrier.resident_identity()));
+        assert_eq!(alias.resident.borrow().source(),source);
+        assert!(Rc::ptr_eq(&carrier.resident,&alias.resident));
+    }
+    #[test]
     fn retained_gpu_emission_keeps_its_register_and_observations_after_readout() {
         // Post-production control from the retained 200-bit CUDA emission in
         // membrane_gpu_wiring_20261013/gpu_receipt.json. No producer runs here.
@@ -356,6 +390,7 @@ mod tests {
         let p = tape("867641410929014337335571954827");
         let q = tape("867641410929014337335571955913");
         let mut prepared = PreparedGlutMembrane::prepare(&n).unwrap();
+        prepared.prepare_toroidal_division().unwrap();
         let resident = prepared.resident.clone();
         resident.borrow_mut().accept_emitted_pair_for_return_test(p.clone(), q.clone());
         let first = prepared.execute_retained().unwrap().unwrap();
@@ -367,6 +402,8 @@ mod tests {
         assert!(read.surviving.iter().all(|d| d.observation == Rc::as_ptr(&resident) as usize));
         assert_eq!(resident.borrow().source(), n);
         assert_eq!(resident.borrow().execution(), Some(first.clone()));
+        assert!(prepared.toroidal_snapshot()["arms"].as_array().unwrap().iter().any(|arm|
+            arm["signed_product_height"]["magnitude"]["numeral"]=="0"));
         assert_eq!(prepared.execute_retained().unwrap(), Some(first));
         let repeated = prepared.retained_readout().unwrap();
         assert_eq!(read.surviving, repeated.surviving);

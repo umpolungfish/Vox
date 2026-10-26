@@ -45,8 +45,60 @@ impl Rails {
     }
 }
 
-pub(super) struct PackedWord { words:Vec<Rails>,len:usize }
+/// One native residue coordinate, with both FOUR evidence rails resident.
+/// Numerical modular operations use an explicit checked image and return
+/// both rails. Neither and both retain their original values on rejection.
+#[derive(Clone,Copy)]
+pub(crate) struct BelnapCoordinate64 { rails:Rails }
+impl BelnapCoordinate64 {
+    pub(crate) fn from_rails(t:u64,f:u64)->Self{Self{rails:Rails{t,f}}}
+    pub(crate) fn from_definite_u64(t:u64)->Self{Self::from_rails(t,!t)}
+    pub(crate) fn definite_u64(&self)->Result<u64,&'static str>{
+        if self.rails.t^self.rails.f!=u64::MAX{return Err("coordinate retains neither or both evidence");}
+        Ok(self.rails.t)
+    }
+    fn images(&self,b:&Self,modulus:&Self)->Result<(u64,u64,u64),&'static str>{
+        let a=self.definite_u64()?;let b=b.definite_u64()?;let m=modulus.definite_u64()?;
+        if m==0{return Err("coordinate modulus is zero");}Ok((a,b,m))
+    }
+    pub(crate) fn add_mod(&self,b:&Self,modulus:&Self)->Result<Self,&'static str>{
+        let (a,b,m)=self.images(b,modulus)?;
+        Ok(Self::from_definite_u64(((a as u128+b as u128)%m as u128) as u64))
+    }
+    pub(crate) fn multiply_mod(&self,b:&Self,modulus:&Self)->Result<Self,&'static str>{
+        let (a,b,m)=self.images(b,modulus)?;
+        Ok(Self::from_definite_u64((a as u128*b as u128%m as u128) as u64))
+    }
+    pub(crate) fn subtract_mod(&self,b:&Self,modulus:&Self)->Result<Self,&'static str>{
+        let (a,b,m)=self.images(b,modulus)?;
+        let value=(a as u128%m as u128+m as u128-b as u128%m as u128)%m as u128;
+        Ok(Self::from_definite_u64(value as u64))
+    }
+}
+
+pub(crate) struct PackedWord { words:Vec<Rails>,len:usize }
 impl PackedWord {
+    /// Enter the explicit definite numeral boundary directly into both rails.
+    pub(crate) fn from_parity(cells:&[char])->Self {
+        let mut words=vec![Rails::ZERO;cells.len().div_ceil(64)];
+        for (at,&mark) in cells.iter().enumerate() {
+            words[at/64].set(at%64,B4::from_parity(mark));
+        }
+        Self::normalize(words,cells.len())
+    }
+    pub(crate) fn from_definite_u64(t:u64)->Self {
+        Self::normalize(vec![Rails{t,f:!t}],64)
+    }
+    pub(crate) fn to_parity(&self)->Result<Vec<char>,&'static str>{
+        if !self.definite(){return Err("numeral return awaits both definite evidence rails");}
+        if self.len==0{return Ok(vec!['⊤']);}
+        Ok((0..self.len).map(|i|if self.cell(i)==B4::T{'⊥'}else{'⊤'}).collect())
+    }
+    pub(crate) fn definite_u64(&self)->Result<u64,&'static str>{
+        if !self.definite(){return Err("coordinate return awaits both definite evidence rails");}
+        if self.len>64{return Err("coordinate exceeds its retained width");}
+        Ok(self.word(0).t)
+    }
     pub(super) fn from_cells(cells:&[B4])->Self {
         let mut words=vec![Rails::ZERO;cells.len().div_ceil(64)];
         for (at,&value) in cells.iter().enumerate(){words[at/64].set(at%64,value);}
@@ -76,11 +128,11 @@ impl PackedWord {
             },order=>order,
         }
     }
-    pub(super) fn compare(&self,b:&Self)->Result<Ordering,&'static str> {
+    pub(crate) fn compare(&self,b:&Self)->Result<Ordering,&'static str> {
         if !self.definite()||!b.definite(){return Err("ordering awaits definite Belnap numerical cells");}
         Ok(self.compare_definite(b))
     }
-    pub(super) fn add(&self,b:&Self)->Self {
+    pub(crate) fn add(&self,b:&Self)->Self {
         // The definite numerical restriction is checked before using its
         // native word image. Original evidence operands remain unchanged.
         if self.definite() && b.definite() {
@@ -103,7 +155,7 @@ impl PackedWord {
         let mut last=Rails::ZERO;last.set(0,carry);words.push(last);
         Self::normalize(words,self.len.max(b.len)+1)
     }
-    pub(super) fn subtract(&self,b:&Self)->(Self,B4) {
+    pub(crate) fn subtract(&self,b:&Self)->(Self,B4) {
         let width=self.len.max(b.len);
         if width==0{return (Self::from_cells(&[]),B4::F);}
         if self.definite() && b.definite() {
@@ -149,7 +201,7 @@ impl PackedWord {
         }).collect();
         Self::normalize(words,len)
     }
-    pub(super) fn multiply(&self,b:&Self)->Self {
+    pub(crate) fn multiply(&self,b:&Self)->Self {
         if self.definite() && b.definite() {
             let mut product=vec![0u64;self.words.len()+b.words.len()];
             for (i,a) in self.words.iter().enumerate() {
@@ -171,7 +223,7 @@ impl PackedWord {
         }
         product
     }
-    pub(super) fn divide(&self,b:&Self)->Result<(Self,Self),&'static str> {
+    pub(crate) fn divide(&self,b:&Self)->Result<(Self,Self),&'static str> {
         if !self.definite()||!b.definite(){return Err("division awaits definite Belnap numerical cells");}
         if b.len==0{return Err("Belnap numerical division by zero");}
         // Division by a single occupied numerical position is exactly a

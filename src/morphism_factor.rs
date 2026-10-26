@@ -401,36 +401,43 @@ fn l_divmod(n: &[u64], d: &[u64]) -> (Limbs, Limbs) {
 }
 
 /// The source residue remains a word of Belnap cells across divisions.
-pub(crate) struct BelnapResidue(crate::belnap_word::BelnapWord);
+pub(crate) struct BelnapResidue(crate::belnap_word::PackedWord);
 impl BelnapResidue {
     pub(crate) fn new(tape: &[char]) -> Self { Self(evidence_word(tape)) }
     pub(crate) fn into_tape(self) -> Tape { numeral_return(self.0) }
+    pub(crate) fn coordinate_word(&self)->u64 {
+        self.0.definite_u64().expect("coordinate boundary checks both retained evidence rails")
+    }
     pub(crate) fn divide_word_exact(&mut self, divisor: u64) -> bool {
         assert!(divisor > 1);
-        let (quotient, remainder) = self.0.divide(&evidence_word(&tape_u64(divisor)))
+        let (quotient, remainder) = self.0.divide(&crate::belnap_word::PackedWord::from_definite_u64(divisor))
             .expect("definite residue division");
-        if !remainder.0.is_empty() { return false; }
+        if remainder.definite_u64().expect("definite remainder coordinate")!=0 { return false; }
         self.0 = quotient;
         true
     }
     pub(crate) fn remainder_word(&self, modulus: u64) -> u64 {
         assert_ne!(modulus, 0);
-        let (_, remainder) = self.0.divide(&evidence_word(&tape_u64(modulus)))
+        let (_, remainder) = self.0.divide(&crate::belnap_word::PackedWord::from_definite_u64(modulus))
             .expect("definite residue division");
-        let cells = numeral_return(remainder);
-        assert!(cells.len() <= 64, "residue coordinate exceeds its modulus width");
-        tape_to_u64(&cells)
+        remainder.definite_u64().expect("definite residue coordinate within its modulus width")
     }
 }
 
 pub(crate) fn residue_add(a:u64,b:u64,modulus:u64)->u64 {
-    tape_to_u64(&modulo(&add(&tape_u64(a),&tape_u64(b)),&tape_u64(modulus)))
+    use crate::belnap_word::BelnapCoordinate64 as W;
+    W::from_definite_u64(a).add_mod(&W::from_definite_u64(b),&W::from_definite_u64(modulus))
+        .expect("definite residue addition").definite_u64().expect("definite residue return")
 }
 pub(crate) fn residue_mul(a:u64,b:u64,modulus:u64)->u64 {
-    tape_to_u64(&mul_mod(&tape_u64(a),&tape_u64(b),&tape_u64(modulus)))
+    use crate::belnap_word::BelnapCoordinate64 as W;
+    W::from_definite_u64(a).multiply_mod(&W::from_definite_u64(b),&W::from_definite_u64(modulus))
+        .expect("definite residue multiplication").definite_u64().expect("definite residue return")
 }
 pub(crate) fn residue_sub(a:u64,b:u64,modulus:u64)->u64 {
-    tape_to_u64(&mod_sub(&tape_u64(a),&tape_u64(b),&tape_u64(modulus)))
+    use crate::belnap_word::BelnapCoordinate64 as W;
+    W::from_definite_u64(a).subtract_mod(&W::from_definite_u64(b),&W::from_definite_u64(modulus))
+        .expect("definite residue subtraction").definite_u64().expect("definite residue return")
 }
 
 pub(crate) fn inverse_residue_word(value: u64, modulus: u64) -> Option<u64> {
@@ -445,10 +452,10 @@ pub fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
     evidence_word(a).compare(&evidence_word(b)).expect("ordering requires definite numerical evidence")
 }
 
-fn evidence_word(cells: &[char]) -> crate::belnap_word::BelnapWord {
-    crate::belnap_word::BelnapWord::from_parity(cells)
+fn evidence_word(cells: &[char]) -> crate::belnap_word::PackedWord {
+    crate::belnap_word::PackedWord::from_parity(cells)
 }
-fn numeral_return(word: crate::belnap_word::BelnapWord) -> Tape {
+fn numeral_return(word: crate::belnap_word::PackedWord) -> Tape {
     word.to_parity().expect("numerical return must retain definite evidence")
 }
 
