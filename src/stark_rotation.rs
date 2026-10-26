@@ -38,11 +38,54 @@ fn pair(x:&Unit)->Value{json!({"a":word(&x.a),"b":word(&x.b)})}
 pub(super) struct StarkRotation {
     dimension:usize,trace:Word,state:Unit,positive:Word,negative:Word,
     events:Vec<Value>,
+    retained:Vec<(Unit,Word,Word)>,
 }
 impl StarkRotation {
     pub fn new(dimension:usize)->Self{
         Self{dimension,trace:small(dimension-1),state:Unit{a:small(0),b:small(1)},
-            positive:small(1),negative:small(0),events:vec![]}
+            positive:small(1),negative:small(0),events:vec![],
+            retained:vec![(Unit{a:small(0),b:small(1)},small(1),small(0))]}
+    }
+    /// Observe the whole retained family in the same quadratic source ring.
+    /// N(u-v)=2-Tr(u*conj(v)) for norm-one u,v. A nonunit norm
+    /// identifies a source split; a zero norm is retained separately.
+    fn retained_readout(&self,after:&Unit,source:&Word)->Result<(Option<Word>,Value),String>{
+        let mut product=small(1);let mut norms=Vec::new();let mut zero_norms=0;
+        let mut same_winding=0;let mut distinct_winding=0;
+        for (index,(old,positive,negative)) in self.retained.iter().enumerate(){
+            let a=minus(&after.a,&old.a,source)?;
+            let b=minus(&after.b,&old.b,source)?;
+            let norm=reduce(a.multiply(&a).add(&self.trace.multiply(&a).multiply(&b))
+                .add(&b.multiply(&b)),source)?;
+            if norm==small(0){
+                zero_norms+=1;
+                if after.a==old.a&&after.b==old.b {
+                    if normalize(self.positive.add(negative))==normalize(positive.add(&self.negative)){
+                        same_winding+=1;
+                    }else{distinct_winding+=1;}
+                }
+            }else{
+                product=reduce(product.multiply(&norm),source)?;
+                norms.push((index,norm));
+            }
+        }
+        let divisor=gcd(source.clone(),product.clone())?;
+        let mut split=Vec::new();let mut result=None;
+        if divisor!=small(1)&&divisor!=*source{result=Some(divisor.clone());}
+        else if divisor==*source {
+            // A batch can contain distinct crossings for both source arms.
+            // Re-read those same retained norms; never start a new producer.
+            for (index,norm) in &norms {
+                let d=gcd(source.clone(),norm.clone())?;
+                split.push(json!({"index":index,"gcd":word(&d)}));
+                if d!=small(1)&&d!=*source{result=Some(d);break;}
+            }
+            if result.is_none(){return Err("retained unit product lost its source splitting witness".into());}
+        }
+        Ok((result,json!({"comparisons":self.retained.len(),"nonzero_norms":norms.len(),
+            "zero_norms":zero_norms,"same_unit_same_winding":same_winding,
+            "same_unit_distinct_winding":distinct_winding,"product_residue":word(&product),
+            "gcd":word(&divisor),"split_readouts":split})))
     }
     pub fn advance(&mut self,source:&Word,port:usize,clock:&Word)
         ->Result<Option<(Word,Word)>,String>{
@@ -84,11 +127,25 @@ impl StarkRotation {
                 result=Some((divisor,quotient));break;
             }
         }
+        let mut retained_readout=Value::Null;
+        if result.is_none(){
+            let (divisor,observation)=self.retained_readout(&after,source)?;
+            retained_readout=observation;
+            if let Some(divisor)=divisor {
+                let (quotient,remainder)=source.divide(&divisor).map_err(str::to_string)?;
+                if normalize(remainder)!=small(0)||divisor.multiply(&quotient)!=*source {
+                    return Err("retained unit readout failed exact source division".into());
+                }
+                result=Some((divisor,quotient));
+            }
+        }
+        self.retained.push((after.clone(),self.positive.clone(),self.negative.clone()));
         self.events.push(json!({"port":port,"clock":word(clock),"power":word(&k),"reverse":reverse,
             "before":pair(&before),"operator":pair(&operator),"inverse":pair(&inverse),
             "after":pair(&after),"recovered":pair(&recovered),"norm_carry":word(&carry),
             "before_positive":word(&before_positive),"before_negative":word(&before_negative),
-            "positive":word(&self.positive),"negative":word(&self.negative),"readouts":readouts}));
+            "positive":word(&self.positive),"negative":word(&self.negative),"readouts":readouts,
+            "retained_readout":retained_readout}));
         self.state=after;Ok(result)
     }
     pub fn multiplier(&self)->Word{
@@ -99,6 +156,7 @@ impl StarkRotation {
         json!({"component":"dimension-indexed-quadratic-unit","dimension":self.dimension,
             "trace":word(&self.trace),"basis":"1,epsilon; epsilon^2-trace*epsilon+1=0",
             "state":pair(&self.state),"positive":word(&self.positive),"negative":word(&self.negative),
+            "retained_units":self.retained.len(),
             "events":self.events})
     }
 }
