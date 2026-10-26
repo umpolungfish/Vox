@@ -827,6 +827,7 @@ impl Resident {
                 (pair,event,evidence.join(next))
             }
         }else{torus.act(port)?};
+        if result.0.is_some(){self.stats.producing_port="toroidal-division";}
         let axes=torus.axes();let clock=torus.clock_word();let (p,q,evidence)=torus.support();
         if let Some(lanes)=self.lanes.as_mut(){
             lanes.square.bind_root_frame(p.clone(),q.clone(),axes,clock,evidence)?;

@@ -5,6 +5,8 @@ use crate::{belnap::B4, belnap_word::BelnapWord as Word, morphism_factor as mf,
     pwoat_torus::BitBraid};
 use alloc::{vec,vec::Vec,string::{String,ToString}};
 use core::cmp::Ordering;
+#[path = "stark_rotation.rs"]
+mod stark_rotation;
 
 pub const OPERATIONS: [&str; 8] = ["inverse-rotation", "forward-rotation",
     "source-jump", "pinch-braid", "reverse-pinch-braid", "winding",
@@ -93,6 +95,7 @@ pub struct Torus {
     native_views:Vec<(Word,Word,B4)>,
     reentry_state:Word,
     next_arm:usize,
+    stark:stark_rotation::StarkRotation,
 }
 impl Torus {
     pub fn new(source:Word)->Result<Self,String>{
@@ -113,7 +116,8 @@ impl Torus {
         }
         let mut body=Self{source,width,step,back,center,arms:Vec::new(),
             grid:vec![B4::B;48],rule:B4::B,clock:small(0),braid:BitBraid::torus_twist(width),
-            observations:Vec::new(),native_views:Vec::new(),reentry_state:small(0),next_arm:0};
+            observations:Vec::new(),native_views:Vec::new(),reentry_state:small(0),next_arm:0,
+            stark:stark_rotation::StarkRotation::new(width)};
         for coset in [1,3,5,7] {
             let mut p=body.center.clone();p.0.resize(width,B4::F);
             for i in 0..3 {p.0[i]=small(coset).cell(i);}
@@ -305,9 +309,29 @@ impl Torus {
                 self.install(arm,next,paired,OPERATIONS[port],exponent,reverse)?;
             }
         }
+        let selected_transition=self.arms[arm].ancestry.last().cloned();
+        let mut result=None;let mut stark_transition=Value::Null;
+        if port!=6 {
+            result=self.stark.advance(&self.source,port,&self.clock)?;
+            let multiplier=low(&self.stark.multiplier(),self.width);
+            let backward=inverse(&multiplier,self.width)?;
+            let p=self.arms[arm].p.clone();let q=self.arms[arm].q.clone();
+            let next=low(&p.multiply(&multiplier),self.width);
+            let paired=low(&q.multiply(&backward),self.width);
+            if low(&next.multiply(&backward),self.width)!=p
+                ||low(&paired.multiply(&multiplier),self.width)!=q {
+                return Err("Stark-driven paired rotation failed inverse recovery".into());
+            }
+            let lift=rotation_index(&self.step,&multiplier,self.width)?;
+            self.install(arm,next,paired,"stark-unit-paired-rotation",lift,false)?;
+            stark_transition=self.arms[arm].ancestry.last().cloned().unwrap();
+            stark_transition["multiplier"]=word(&multiplier);
+            stark_transition["inverse_multiplier"]=word(&backward);
+        }
+        let readout=if result.is_some(){"stark-unit"}else{"paired-orbit"};
         let evidence=self.feedback(arm,&prior_height);
-        let mut result=None;
         for candidate in [&self.arms[arm].p,&self.arms[arm].q] {
+            if result.is_some(){break;}
             let divisor=gcd(self.source.clone(),candidate.clone())?;
             if divisor.compare(&small(1)).map_err(str::to_string)?==Ordering::Greater
                 && divisor.compare(&self.source).map_err(str::to_string)?==Ordering::Less {
@@ -319,7 +343,8 @@ impl Torus {
             }
         }
         Ok((result,json!({"operation":OPERATIONS[port],"arm":arm,"evidence":evidence.name(),
-            "transition":self.arms[arm].ancestry.last(),"clock":word(&self.clock),"axes":self.axes()}),evidence))
+            "transition":selected_transition,"stark_paired_transition":stark_transition,
+            "readout_component":readout,"clock":word(&self.clock),"axes":self.axes()}),evidence))
     }
     pub fn axes(&self)->[usize;12]{
         let mut axes=self.braid.axis_permutation();
@@ -409,6 +434,7 @@ impl Torus {
         let mut period=vec![B4::F;self.width-3];period.push(B4::T);
         let period=Word::new(period);
         json!({"carrier":"BelnapWord","source":word(&self.source),"modulus_exponent":self.width,
+            "stark_rotation":self.stark.snapshot(),
             "native_view_action_same_arm":true,"next_arm":self.next_arm,
             "reentry_state":word(&self.reentry_state),"reentry_atom_order":["N","T","F","B"],
             "orbit_period":word(&period),"full_period_verified":true,
