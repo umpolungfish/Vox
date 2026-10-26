@@ -13,6 +13,11 @@ pub(super) struct SquareFold {
     pub advances: usize,
 }
 impl SquareFold {
+    pub fn bind_root_frame(&mut self,p:crate::belnap_word::BelnapWord,q:crate::belnap_word::BelnapWord,
+        axes:[usize;12],clock:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)->Result<(),alloc::string::String>{
+        self.phase.bind_root_frame(p,q,axes,clock,evidence)
+    }
+    pub fn polynomial_actions(&self)->Vec<serde_json::Value>{self.phase.polynomial_actions()}
     pub fn bind_torus_winding(&mut self, step: usize) -> Result<(), alloc::string::String> {
         self.phase.bind_torus_winding(step)
     }

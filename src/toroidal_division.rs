@@ -323,6 +323,7 @@ impl Torus {
         let a=&self.arms[(self.observations.len().saturating_sub(1))%self.arms.len()];
         (a.p.clone(),a.q.clone(),a.evidence)
     }
+    pub fn clock_word(&self)->Word{self.clock.clone()}
     fn coordinates(p:&Word,q:&Word,conjugate:B4)->Result<(Word,Word,B4),String>{
         if conjugate==B4::F{return Ok((p.clone(),q.clone(),B4::T));}
         if conjugate!=B4::T{return Err("coordinate transport retains an unresolved frame".into());}

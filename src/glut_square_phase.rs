@@ -310,13 +310,60 @@ impl WeightCells {
         }
     }
 }
+#[derive(Clone)]
+struct TorusRootFrame {
+    p: crate::belnap_word::BelnapWord,
+    q: crate::belnap_word::BelnapWord,
+    clock: crate::belnap_word::BelnapWord,
+    axes: [usize;12],
+    evidence: crate::belnap::B4,
+}
+struct RootSignTransport {
+    frame: TorusRootFrame,
+    permutation: Vec<usize>,
+    flips: Vec<bool>,
+    fields: Vec<serde_json::Value>,
+}
+fn signed_polynomial(a:&[char],terms:&[Tape],signs:&[bool])->Tape {
+    terms.iter().zip(signs).fold(vec![ZERO],|value,(term,&negative)|{
+        let term=if negative{mf::sub(a,term)}else{term.clone()};
+        mf::modulo(&mf::add(&value,&term),a)
+    })
+}
 struct PolynomialFamily {
+    id: usize,
     a: Tape,
     b: Tape,
     factors: Vec<usize>,
     terms: Vec<Tape>,
     signs: Vec<bool>,
     inverses: Vec<Option<u64>>,
+    transport: Option<RootSignTransport>,
+}
+impl PolynomialFamily {
+    fn apply_torus(&mut self,n:&[char])->Option<serde_json::Value>{
+        let before=signed_polynomial(&self.a,&self.terms,&self.signs);
+        let Some(transport)=&self.transport else {self.b=before;return None;};
+        let after_signs:Vec<_>=transport.permutation.iter().zip(&transport.flips)
+            .map(|(&at,&flip)|self.signs[at]^flip).collect();
+        let mut recovered=vec![false;self.signs.len()];
+        for (i,&at) in transport.permutation.iter().enumerate(){
+            recovered[at]=after_signs[i]^transport.flips[i];
+        }
+        assert_eq!(recovered,self.signs,"torus root-sign inverse lost a resident alternative");
+        self.b=signed_polynomial(&self.a,&self.terms,&after_signs);
+        assert_eq!(mm(&self.b,&self.b,&self.a),mf::modulo(n,&self.a),"torus root transport lost source congruence");
+        Some(serde_json::json!({"family":self.id,"source":mf::dec_of(n),"a":mf::dec_of(&self.a),
+            "before_b":mf::dec_of(&before),"after_b":mf::dec_of(&self.b),
+            "terms":self.terms.iter().map(|term|mf::dec_of(term)).collect::<Vec<_>>(),
+            "counter_signs":self.signs,"after_signs":after_signs,"recovered_signs":recovered,
+            "permutation":transport.permutation,"flips":transport.flips,"fields":transport.fields,
+            "frame":{"p":crate::toroidal_division::word(&transport.frame.p),
+                "q":crate::toroidal_division::word(&transport.frame.q),
+                "clock":crate::toroidal_division::word(&transport.frame.clock),
+                "axes":transport.frame.axes,"evidence":transport.frame.evidence.name()},
+            "inverse_verified":true,"source_congruence_verified":true,"changed_b":before!=self.b}))
+    }
 }
 struct Relation {
     cells: Support,
@@ -420,6 +467,9 @@ pub(super) struct SquarePhase {
     workers: Option<WitnessWorkers>,
     torus_winding: Option<(Tape, Tape)>,
     torus_observations: Vec<crate::glut_system::SquareTorusObservation>,
+    pending_root_frame: Option<TorusRootFrame>,
+    polynomial_actions: Vec<serde_json::Value>,
+    family_counter: usize,
     #[cfg(feature = "root-work-profile")]
     root_marks: usize,
     #[cfg(feature = "root-work-profile")]
@@ -430,6 +480,13 @@ pub(super) struct SquarePhase {
     root_candidates: usize,
 }
 impl SquarePhase {
+    pub fn bind_root_frame(&mut self,p:crate::belnap_word::BelnapWord,q:crate::belnap_word::BelnapWord,
+        axes:[usize;12],clock:crate::belnap_word::BelnapWord,evidence:crate::belnap::B4)->Result<(),alloc::string::String>{
+        p.to_parity().map_err(alloc::string::String::from)?;
+        q.to_parity().map_err(alloc::string::String::from)?;
+        self.pending_root_frame=Some(TorusRootFrame{p,q,axes,clock,evidence});Ok(())
+    }
+    pub fn polynomial_actions(&self)->Vec<serde_json::Value>{self.polynomial_actions.clone()}
     pub fn bind_torus_winding(&mut self, step: usize) -> Result<(), alloc::string::String> {
         if self.torus_winding.is_some() || !self.witnesses.is_empty() {
             return Err("square torus must bind once before witness production".into());
@@ -498,6 +555,9 @@ impl SquarePhase {
             workers: None,
             torus_winding: None,
             torus_observations: Vec::new(),
+            pending_root_frame: None,
+            polynomial_actions: Vec::new(),
+            family_counter: 0,
             #[cfg(feature = "root-work-profile")]
             root_marks: 0,
             #[cfg(feature = "root-work-profile")]
@@ -769,16 +829,7 @@ impl SquarePhase {
                 }
                 if position < family.signs.len() {
                     family.signs[position] = true;
-                    let mut b = vec![ZERO];
-                    for (term, &negative) in family.terms.iter().zip(&family.signs) {
-                        let term = if negative {
-                            mf::sub(&family.a, term)
-                        } else {
-                            term.clone()
-                        };
-                        b = mf::modulo(&mf::add(&b, &term), &family.a);
-                    }
-                    family.b = b;
+                    if let Some(action)=family.apply_torus(&self.n){self.polynomial_actions.push(action);}
                     return Some((family.a.clone(), family.b.clone(), family.factors.clone()));
                 }
                 // Advance the prime-subset register after all its phase
@@ -887,14 +938,51 @@ impl SquarePhase {
             })
             .collect();
         assert_eq!(mf::modulo(&mf::mul(&b, &b), &a), mf::modulo(&self.n, &a));
+        // Bind once for this complete coefficient family. Its counter still
+        // visits every sign alternative modulo global negation. A new body
+        // observation may select the next family's frame, never erase the
+        // unvisited alternatives of this one.
+        let transport=self.pending_root_frame.clone().map(|frame|{
+            use crate::belnap_word::BelnapCoordinate64 as Coordinate;
+            let width=terms.len();
+            let mut permutation:Vec<_>=(0..width).collect();
+            for i in 0..12 {permutation.swap(i%width,frame.axes[i]%width);}
+            let p=mf::BelnapResidue::new(&frame.p.to_parity().unwrap());
+            let q=mf::BelnapResidue::new(&frame.q.to_parity().unwrap());
+            let mut flips=Vec::new();let mut fields=Vec::new();
+            for &column in &selected {
+                let prime=self.columns[column].step as u64;
+                let modulus=Coordinate::from_definite_u64(prime);
+                let left=Coordinate::from_definite_u64(p.remainder_word(prime));
+                let right=Coordinate::from_definite_u64(q.remainder_word(prime));
+                let inverse=right.inverse_mod(&modulus).expect("definite root-frame coordinate");
+                let unit=inverse.map(|inverse|left.multiply_mod(&inverse,&modulus).unwrap());
+                let exponent=Coordinate::from_definite_u64((prime-1)/2);
+                let character=unit.map(|unit|unit.power_mod(&exponent,&modulus).unwrap().definite_u64().unwrap());
+                let nonunit=character.is_none_or(|value|value==0);
+                let flip=character==Some(prime-1);
+                assert!(nonunit || matches!(character,Some(1)) || flip);
+                flips.push(flip);
+                fields.push(serde_json::json!({"prime":prime,"p_residue":left.definite_u64().unwrap(),
+                    "q_residue":right.definite_u64().unwrap(),"inverse":inverse.map(|v|v.definite_u64().unwrap()),
+                    "unit":unit.map(|v|v.definite_u64().unwrap()),"character":character,
+                    "held_nonunit":nonunit,"flip":flip}));
+            }
+            RootSignTransport{frame,permutation,flips,fields}
+        });
+        self.family_counter+=1;
         self.family = Some(PolynomialFamily {
+            id:self.family_counter,
             a: a.clone(),
             b: b.clone(),
             factors: selected.clone(),
             signs: vec![false; terms.len()],
             terms,
             inverses,
+            transport,
         });
+        if let Some(action)=self.family.as_mut().unwrap().apply_torus(&self.n){self.polynomial_actions.push(action);}
+        let b=self.family.as_ref().unwrap().b.clone();
         Some((a, b, selected))
     }
     pub fn advance(

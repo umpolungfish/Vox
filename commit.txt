@@ -1,3 +1,3 @@
-I expose my exact carried toroidal state to the organism learner.
+I carry my torus action into the resident root-sign polynomial.
 
-I return the selected source-bound pair, signed product height, full rotation counters, clock, membership, evidence and FDE grid without dropping either evidence rail. I keep this view on the same retained torus as production and ancestry.
+I project the retained pair into its existing root fields and apply their sign actions with the carried braid permutation. I freeze the transport for each coefficient family, recover its full counter through the inverse and preserve source congruence while changing the polynomial used to generate witnesses.

@@ -808,6 +808,9 @@ impl Resident {
     pub(super) fn toroidal_learning_context(&self)->serde_json::Value{
         self.toroidal_division.as_ref().map(|t|t.learning_context()).unwrap_or(serde_json::Value::Null)
     }
+    pub(super) fn square_polynomial_actions(&self)->Vec<serde_json::Value>{
+        self.lanes.as_ref().map(|l|l.square.polynomial_actions()).unwrap_or_default()
+    }
     pub(super) fn act_toroidal_division(&mut self,port:usize)
         ->Result<(Option<(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord)>,serde_json::Value,crate::belnap::B4),String>{
         let view=self.lanes.as_ref().and_then(|l|l.shared.as_ref()).map(|g|g.toroidal_view());
@@ -824,7 +827,10 @@ impl Resident {
                 (pair,event,evidence.join(next))
             }
         }else{torus.act(port)?};
-        let axes=torus.axes();let (p,q,evidence)=torus.support();
+        let axes=torus.axes();let clock=torus.clock_word();let (p,q,evidence)=torus.support();
+        if let Some(lanes)=self.lanes.as_mut(){
+            lanes.square.bind_root_frame(p.clone(),q.clone(),axes,clock,evidence)?;
+        }
         self.return_catalyst_order()?;self.bind_catalyst_order_axes(axes)?;
         self.bind_toroidal_support(p,q,evidence)?;
         Ok(result)

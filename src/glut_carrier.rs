@@ -122,6 +122,9 @@ impl PreparedGlutMembrane {
     pub fn toroidal_learning_context(&self)->serde_json::Value{
         self.resident.borrow().toroidal_learning_context()
     }
+    pub fn square_polynomial_actions(&self)->Vec<serde_json::Value>{
+        self.resident.borrow().square_polynomial_actions()
+    }
     pub fn reenter_toroidal_division(&mut self,before:u8,after:u8,kind:u8)->Result<serde_json::Value,String>{
         self.resident.borrow_mut().reenter_toroidal_division(before,after,kind)
     }
