@@ -254,7 +254,11 @@ impl Torus {
                 // in the native view and evidence; this numerical branch
                 // retains its prior choice at those unresolved positions.
                 for (value,view) in [(&mut left_value,left),(&mut right_value,right)] {
-                    for (i,&cell) in view.0.iter().enumerate() {
+                    // A finite numerical word has definite F above its
+                    // addressed extent. Those high zeros constrain this same
+                    // coordinate; they are not unobserved native cells.
+                    for i in 0..value.0.len().max(view.0.len()) {
+                        let cell=view.cell(i);
                         if matches!(cell,B4::T|B4::F) {
                             value.0.resize(value.0.len().max(i+1),B4::F);value.0[i]=cell;
                         }
@@ -274,6 +278,7 @@ impl Torus {
                 let lift=rotation_index(&self.step,&relative,self.width)?;
                 self.install(arm,next,rebound,"native-view-reentry",lift,false)?;
                 self.arms[arm].ancestry.last_mut().unwrap()["native_view_index"]=json!(self.native_views.len()-1);
+                self.arms[arm].ancestry.last_mut().unwrap()["zero_extended_view"]=json!(true);
             },
             _=>{
                 let reverse=port==0 || (port==6 && self.grid[arm]==B4::F);
@@ -343,7 +348,8 @@ impl Torus {
             let (p,q,_)=Self::coordinates(&a.p,&a.q,conjugate)?;
             let mut evidence=B4::N;
             for (actual,view) in [(&p,&left),(&q,&right)]{
-                for (i,&value) in view.0.iter().enumerate(){
+                for i in 0..actual.0.len().max(view.0.len()){
+                    let value=view.cell(i);
                     evidence=evidence.join(match value {
                         B4::N=>B4::N,B4::B=>B4::B,
                         _=>if actual.cell(i)==value{B4::T}else{B4::F},
