@@ -1,6 +1,7 @@
 //! Prime-power fibers of the resident square polynomial, before contraction.
 use crate::morphism_factor as mf;
 use crate::belnap::B4;
+use crate::belnap_word::BelnapCoordinate64 as Coordinate;
 use alloc::vec::Vec;
 
 pub(super) struct RootPolynomial {
@@ -22,11 +23,20 @@ impl RootPolynomial {
     }
     /// Q(i)=A(i-half)²+2B(i-half)+(B²-N)/A, reduced exactly.
     pub(super) fn residue(&self, i: usize, modulus: u64) -> u64 {
-        let t=mf::residue_sub(i as u64,self.half as u64,modulus);
+        self.evaluate(i,modulus,self.coefficients(modulus))
+    }
+    fn coefficients(&self,modulus:u64)->(Coordinate,Coordinate,Coordinate){
         let a=self.a.remainder_word(modulus);
         let b=self.b.remainder_word(modulus);
         let c=self.c.remainder_word(modulus);
         let c=if self.negative==B4::T {mf::residue_sub(0,c,modulus)}else{c};
+        (Coordinate::from_definite_u64(a),Coordinate::from_definite_u64(b),Coordinate::from_definite_u64(c))
+    }
+    fn evaluate(&self,i:usize,modulus:u64,(a,b,c):(Coordinate,Coordinate,Coordinate))->u64{
+        let a=a.definite_u64().expect("retained definite A coordinate");
+        let b=b.definite_u64().expect("retained definite B coordinate");
+        let c=c.definite_u64().expect("retained definite C coordinate");
+        let t=mf::residue_sub(i as u64,self.half as u64,modulus);
         mf::residue_add(mf::residue_mul(mf::residue_add(mf::residue_mul(a,t,modulus),
             mf::residue_mul(2,b,modulus),modulus),t,modulus),c,modulus)
     }
@@ -52,12 +62,13 @@ impl RootPolynomial {
         // A lifted child has the same residue mod p as its parent. The
         // derivative's inverse belongs to that retained fiber and is reused.
         // Keep the inverse itself on its packed truth/refutation rails.
-        let mut inverses:Vec<(usize,Option<mf::BelnapResidue>)>=Vec::new();
+        let mut inverses:Vec<(usize,Option<Coordinate>)>=Vec::new();
         while !roots.is_empty() {
             let Some(next) = modulus.checked_mul(p).and_then(|m| usize::try_from(m).ok()) else { break; };
             let mut lifted = Vec::new();
+            let coefficients=self.coefficients(next as u64);
             for &r in &roots {
-                let value = self.residue(r, next as u64);
+                let value = self.evaluate(r, next as u64,coefficients);
                 assert_eq!(value % modulus, 0, "root re-entry lost its parent fiber");
                 let quotient = value / modulus;
                 let fiber=r%prime;
@@ -65,11 +76,11 @@ impl RootPolynomial {
                     let t=mf::residue_sub(r as u64,self.half as u64,p);
                     let derivative=mf::residue_mul(2,mf::residue_add(mf::residue_mul(a,t,p),b,p),p);
                     let inverse=mf::inverse_residue_word(derivative,p)
-                        .map(|value|mf::BelnapResidue::new(&mf::tape_u64(value)));
+                        .map(Coordinate::from_definite_u64);
                     inverses.push((fiber,inverse));inverses.len()-1
                 };
                 if let Some(inverse) = inverses[index].1.as_ref() {
-                    let inverse=inverse.coordinate_word();
+                    let inverse=inverse.definite_u64().expect("retained definite fiber inverse");
                     let digit=mf::residue_mul(mf::residue_sub(0,quotient,p),inverse,p);
                     let child = r as u128 + u128::from(digit) * u128::from(modulus);
                     if child < span as u128 { lifted.push(child as usize); }

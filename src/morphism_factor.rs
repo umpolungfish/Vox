@@ -405,9 +405,6 @@ pub(crate) struct BelnapResidue(crate::belnap_word::PackedWord);
 impl BelnapResidue {
     pub(crate) fn new(tape: &[char]) -> Self { Self(evidence_word(tape)) }
     pub(crate) fn into_tape(self) -> Tape { numeral_return(self.0) }
-    pub(crate) fn coordinate_word(&self)->u64 {
-        self.0.definite_u64().expect("coordinate boundary checks both retained evidence rails")
-    }
     pub(crate) fn divide_word_exact(&mut self, divisor: u64) -> bool {
         assert!(divisor > 1);
         let (quotient, remainder) = self.0.divide(&crate::belnap_word::PackedWord::from_definite_u64(divisor))
@@ -418,8 +415,9 @@ impl BelnapResidue {
     }
     pub(crate) fn remainder_word(&self, modulus: u64) -> u64 {
         assert_ne!(modulus, 0);
-        let (_, remainder) = self.0.divide(&crate::belnap_word::PackedWord::from_definite_u64(modulus))
-            .expect("definite residue division");
+        let remainder=self.0.remainder_coordinate(
+            &crate::belnap_word::BelnapCoordinate64::from_definite_u64(modulus))
+            .expect("definite residue coordinate reduction");
         remainder.definite_u64().expect("definite residue coordinate within its modulus width")
     }
 }

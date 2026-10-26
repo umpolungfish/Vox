@@ -72,6 +72,8 @@ mod tests {
             for &mark in source.iter().rev(){remainder=(2*remainder+u128::from(mark=='⊥'))%u128::from(modulus);}
             let result=packed.divide(&PackedWord::from_definite_u64(modulus)).unwrap().1;
             assert_eq!(result.definite_u64().unwrap(),remainder as u64);
+            let coordinate=packed.remainder_coordinate(&BelnapCoordinate64::from_definite_u64(modulus)).unwrap();
+            assert_eq!(coordinate.definite_u64().unwrap(),remainder as u64);
             assert_eq!(packed.cells(),original);
             for a in [0,1,modulus-1,u64::MAX] {for b in [0,1,modulus-1,u64::MAX] {
                 assert_eq!(mf::residue_mul(a,b,modulus),(a as u128*b as u128%modulus as u128) as u64);
@@ -93,6 +95,7 @@ mod tests {
             assert!(held.to_parity().is_err());
             assert!(held.definite_u64().is_err());
             assert!(held.divide(&PackedWord::from_definite_u64(3)).is_err());
+            assert!(held.remainder_coordinate(&BelnapCoordinate64::from_definite_u64(3)).is_err());
             assert_eq!(held.cells(),cells);
         }
         for (t,f) in [(0,0),(u64::MAX,u64::MAX),(1,1),(1,0)] {
@@ -102,6 +105,7 @@ mod tests {
             assert!(held.multiply_mod(&definite,&definite).is_err());
             assert!(held.subtract_mod(&definite,&definite).is_err());
             assert!(held.inverse_mod(&definite).is_err());
+            assert!(packed.remainder_coordinate(&held).is_err());
             assert!(held.definite_u64().is_err());
         }
     }

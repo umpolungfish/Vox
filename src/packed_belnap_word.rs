@@ -118,6 +118,20 @@ impl PackedWord {
         if self.len>64{return Err("coordinate exceeds its retained width");}
         Ok(self.word(0).t)
     }
+    /// Read only the residue coordinate. No quotient word or numeral tape is
+    /// allocated; each carried remainder returns to both evidence rails.
+    pub(crate) fn remainder_coordinate(&self,modulus:&BelnapCoordinate64)
+        ->Result<BelnapCoordinate64,&'static str>{
+        if !self.definite(){return Err("residue awaits definite Belnap numerical cells");}
+        let m=modulus.definite_u64()?;
+        if m==0{return Err("Belnap residue modulus is zero");}
+        let mut remainder=BelnapCoordinate64::from_definite_u64(0);
+        for word in self.words.iter().rev() {
+            let value=((remainder.definite_u64()? as u128)<<64)|word.t as u128;
+            remainder=BelnapCoordinate64::from_definite_u64((value%m as u128) as u64);
+        }
+        Ok(remainder)
+    }
     pub(super) fn from_cells(cells:&[B4])->Self {
         let mut words=vec![Rails::ZERO;cells.len().div_ceil(64)];
         for (at,&value) in cells.iter().enumerate(){words[at/64].set(at%64,value);}

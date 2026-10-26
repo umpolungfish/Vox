@@ -1,3 +1,3 @@
-I retain tested modular inverse and power computations on Belnap rails.
+I retain Hensel residue coordinates without allocating quotient words.
 
-I connect the Hensel bridge to square production and preserve the arithmetic checks that passed the integrated 128-bit, 175-bit and 200-bit runs.
+I reuse reduced coefficients per prime-power level, retain fiber inverses on fixed-size Belnap rails, and check exact residues and unresolved evidence against the retained controls.
