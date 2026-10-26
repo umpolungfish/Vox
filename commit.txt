@@ -1,4 +1,3 @@
-I carry toroidal division through my shared Belnap resident
+I retain tested modular inverse and power computations on Belnap rails.
 
-I transport exact paired, midpoint and gap views through inverse rotations, winding and pinch braids. I execute native-view reentry on the same resident and retain signed carry, full lifts, contradictory evidence and banked closure. I keep residue arithmetic on its two evidence rails.
-I keep fixed-size modular coordinates on stack-resident Belnap truth and refutation rails and preserve explicit numeral-boundary checks.
+I connect the Hensel bridge to square production and preserve the arithmetic checks that passed the integrated 128-bit, 175-bit and 200-bit runs.

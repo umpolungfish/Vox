@@ -442,10 +442,10 @@ pub(crate) fn residue_sub(a:u64,b:u64,modulus:u64)->u64 {
 
 pub(crate) fn inverse_residue_word(value: u64, modulus: u64) -> Option<u64> {
     if modulus < 2 { return None; }
-    mod_inv(&tape_u64(value), &tape_u64(modulus)).ok().map(|inverse| {
-        assert!(inverse.len() <= 64, "inverse coordinate exceeds its modulus width");
-        tape_to_u64(&inverse)
-    })
+    use crate::belnap_word::BelnapCoordinate64 as W;
+    W::from_definite_u64(value).inverse_mod(&W::from_definite_u64(modulus))
+        .expect("inverse checks both retained evidence rails")
+        .map(|inverse|inverse.definite_u64().expect("definite inverse coordinate"))
 }
 
 pub fn cmp(a: &[char], b: &[char]) -> core::cmp::Ordering {
@@ -479,10 +479,14 @@ pub fn modulo(n: &[char], d: &[char]) -> Tape { divmod(n,d).1 }
 
 /// Modular arithmetic executes through the same resident Belnap cells.
 pub fn mul_mod_add(a: &[char], b: &[char], c: &[char], n: &[char]) -> Tape {
-    modulo(&add(&mul(a,b),c),n)
+    let product=evidence_word(a).multiply(&evidence_word(b)).add(&evidence_word(c));
+    numeral_return(product.divide(&evidence_word(n))
+        .expect("modular reduction requires definite nonzero modulus").1)
 }
 pub fn mul_mod(a: &[char], b: &[char], n: &[char]) -> Tape {
-    modulo(&mul(a,b),n)
+    let product=evidence_word(a).multiply(&evidence_word(b));
+    numeral_return(product.divide(&evidence_word(n))
+        .expect("modular reduction requires definite nonzero modulus").1)
 }
 
 /// Evaluate an LSB-first binary support tape as a polynomial through one
@@ -829,15 +833,19 @@ fn squfof_resume(n: &[char], cycle: &mut SqufofCycle, budget: usize) -> Option<T
 /// Modular exponentiation over numeral tapes: base^exp mod n, square and
 /// multiply over the exponent's own bits (least significant cell first).
 fn pow_mod(base: &[char], exp: &[char], n: &[char]) -> Tape {
-    let mut result = one();
-    let mut b = modulo(base, n);
+    let modulus=evidence_word(n);
+    let mut result=crate::belnap_word::PackedWord::from_definite_u64(1);
+    let mut b=evidence_word(base).divide(&modulus)
+        .expect("modular power requires definite nonzero modulus").1;
     for &e in exp {
         if e == EVALF {
-            result = mod_mul(&result, &b, n);
+            result=result.multiply(&b).divide(&modulus)
+                .expect("retained modular product").1;
         }
-        b = mod_mul(&b, &b, n);
+        b=b.multiply(&b).divide(&modulus)
+            .expect("retained modular square").1;
     }
-    trim(result)
+    numeral_return(result)
 }
 
 /// Strong probable-prime test (Miller-Rabin) over numeral tapes against a fixed
@@ -3329,6 +3337,21 @@ pub fn repl_scout(n_in: &[char]) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn packed_modular_power_retains_the_200_bit_source_boundary() {
+        let n=decimal_to_tape("1306593903193228327879866132486971792765599839798626833574803").unwrap();
+        assert_eq!(n.len(),200);
+        let a=sub(&n,&tape_u64(2));
+        let b=sub(&n,&tape_u64(3));
+        let c=sub(&n,&tape_u64(5));
+        assert_eq!(mul_mod(&a,&b,&n),tape_u64(6));
+        assert_eq!(mul_mod_add(&a,&b,&c,&n),one());
+        // Independently evaluated integer modular power, on the exact source.
+        let expected=decimal_to_tape("979933489850177301094762719324410289676721432336713168238773").unwrap();
+        assert_eq!(pow_mod(&a,&sub(&n,&one()),&n),expected);
+        assert_eq!(pow_mod(&a,&tape_u64(0),&n),one());
+        assert_eq!(pow_mod(&a,&one(),&n),a);
+    }
     #[test]
     fn source_sieve_is_nested_and_a_cheap_closure_skips_it() {
         let word = source_carrier_word();

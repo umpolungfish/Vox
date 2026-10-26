@@ -961,7 +961,7 @@ impl SquarePhase {
             // candidate threshold. Only the base root supplies an ancestry
             // link: contraction already divides out the full valuation.
             let roots = if first == second { vec![first] } else { vec![first, second] };
-            for (modulus, position) in root_polynomial.lift_roots(field.step, &roots, self.span) {
+            for (modulus, position) in root_reentry::hensel_lift_bridge(&root_polynomial, field.step, &roots, self.span) {
                 self.positions.push(Hits { column, record_link: false, step: modulus,
                     weight: field.prime.len() - 1, first: position, second: None });
             }

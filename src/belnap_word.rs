@@ -78,6 +78,14 @@ mod tests {
                 assert_eq!(mf::residue_add(a,b,modulus),((a as u128+b as u128)%modulus as u128) as u64);
                 assert_eq!(mf::residue_sub(a,b,modulus),((a as u128%modulus as u128+modulus as u128-b as u128%modulus as u128)%modulus as u128) as u64);
             }}
+            for value in [0,1,2,3,modulus-1,u64::MAX] {
+                let inverse=mf::inverse_residue_word(value,modulus);
+                let reference=mf::mod_inv(&mf::tape_u64(value),&mf::tape_u64(modulus)).ok();
+                assert_eq!(inverse,reference.map(|word|PackedWord::from_parity(&word).definite_u64().unwrap()));
+                if let Some(inverse)=inverse {
+                    assert_eq!((value as u128*inverse as u128)%modulus as u128,1);
+                }
+            }
         }
         for value in [B4::N,B4::B] {
             let mut cells=original.clone();cells[70]=value;
@@ -93,6 +101,7 @@ mod tests {
             assert!(held.add_mod(&definite,&definite).is_err());
             assert!(held.multiply_mod(&definite,&definite).is_err());
             assert!(held.subtract_mod(&definite,&definite).is_err());
+            assert!(held.inverse_mod(&definite).is_err());
             assert!(held.definite_u64().is_err());
         }
     }

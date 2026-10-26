@@ -74,6 +74,25 @@ impl BelnapCoordinate64 {
         let value=(a as u128%m as u128+m as u128-b as u128%m as u128)%m as u128;
         Ok(Self::from_definite_u64(value as u64))
     }
+    /// Euclidean inverse within the checked numerical restriction. Keep each
+    /// remainder and coefficient on both rails, without allocating tapes.
+    pub(crate) fn inverse_mod(&self,modulus:&Self)->Result<Option<Self>,&'static str>{
+        let (a,_,m)=self.images(self,modulus)?;
+        if m<2{return Ok(None);}
+        let mut r=*modulus;
+        let mut next_r=Self::from_definite_u64(a%m);
+        let mut t=Self::from_definite_u64(0);
+        let mut next_t=Self::from_definite_u64(1);
+        while next_r.definite_u64()?!=0 {
+            let divisor=next_r.definite_u64()?;
+            let dividend=r.definite_u64()?;
+            let quotient=Self::from_definite_u64(dividend/divisor);
+            let remainder=Self::from_definite_u64(dividend%divisor);
+            let coefficient=t.subtract_mod(&quotient.multiply_mod(&next_t,modulus)?,modulus)?;
+            r=next_r;next_r=remainder;t=next_t;next_t=coefficient;
+        }
+        Ok(if r.definite_u64()?==1{Some(t)}else{None})
+    }
 }
 
 pub(crate) struct PackedWord { words:Vec<Rails>,len:usize }
