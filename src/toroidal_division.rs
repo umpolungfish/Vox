@@ -87,6 +87,7 @@ struct Arm {
     poloidal_half_turns:Word,pinch_crossings:Word,
     positive_turns:Word,negative_turns:Word,
     evidence:B4, ancestry:Vec<Value>,
+    stark_frame:Word,
 }
 pub struct Torus {
     source:Word,width:usize,step:Word,back:Word,center:Word,
@@ -127,7 +128,7 @@ impl Torus {
             body.arms.push(Arm{origin_p:p.clone(),origin_q:q.clone(),p,q,height,negative,
                 positive_turns:small(0),negative_turns:small(0),
                 poloidal_half_turns:small(0),pinch_crossings:small(0),
-                evidence:B4::N,ancestry:Vec::new()});
+                evidence:B4::N,ancestry:Vec::new(),stark_frame:small(9)});
         }
         Ok(body)
     }
@@ -313,7 +314,9 @@ impl Torus {
         let mut result=None;let mut stark_transition=Value::Null;
         if port!=6 {
             result=self.stark.advance(&self.source,port,&self.clock)?;
-            let multiplier=low(&self.stark.multiplier(),self.width);
+            let before_frame=self.arms[arm].stark_frame.clone();
+            let after_frame=low(&self.stark.multiplier(),self.width);
+            let multiplier=low(&after_frame.multiply(&inverse(&before_frame,self.width)?),self.width);
             let backward=inverse(&multiplier,self.width)?;
             let p=self.arms[arm].p.clone();let q=self.arms[arm].q.clone();
             let next=low(&p.multiply(&multiplier),self.width);
@@ -327,6 +330,9 @@ impl Torus {
             stark_transition=self.arms[arm].ancestry.last().cloned().unwrap();
             stark_transition["multiplier"]=word(&multiplier);
             stark_transition["inverse_multiplier"]=word(&backward);
+            stark_transition["before_unit_frame"]=word(&before_frame);
+            stark_transition["after_unit_frame"]=word(&after_frame);
+            self.arms[arm].stark_frame=after_frame;
         }
         let readout=if result.is_some(){"stark-unit"}else{"paired-orbit"};
         let evidence=self.feedback(arm,&prior_height);
@@ -434,6 +440,7 @@ impl Torus {
         let mut period=vec![B4::F;self.width-3];period.push(B4::T);
         let period=Word::new(period);
         json!({"carrier":"BelnapWord","source":word(&self.source),"modulus_exponent":self.width,
+            "stark_frame_transport":"per-arm frame ratio",
             "stark_rotation":self.stark.snapshot(),
             "native_view_action_same_arm":true,"next_arm":self.next_arm,
             "reentry_state":word(&self.reentry_state),"reentry_atom_order":["N","T","F","B"],
@@ -454,6 +461,7 @@ impl Torus {
                 let (midpoint,gap,orientation)=Self::coordinates(&a.p,&a.q,B4::T)
                     .expect("retained definite paired coordinate frame");
                 json!({"p":word(&a.p),"q":word(&a.q),"origin_p":word(&a.origin_p),"origin_q":word(&a.origin_q),
+                "stark_frame":word(&a.stark_frame),
                 "square_view":{"midpoint":word(&midpoint),"gap":word(&gap),"p_is_lower":orientation.name()},
                 "signed_product_height":{"magnitude":word(&a.height),"negative":a.negative.name()},
                 "positive_turns":word(&a.positive_turns),"negative_turns":word(&a.negative_turns),
