@@ -453,6 +453,31 @@ impl Torus {
         self.feedback(arm,&previous);
         Ok(())
     }
+    /// Four correlated next-cell alternatives stay inside the same enclosing B.
+    /// Congruence is evaluated by the existing FOUR word product, retaining both
+    /// its result and the source restriction beside each alternative.
+    fn source_fibre(&self,arm:&Arm)->Value{
+        let clock=self.clock.divide(&small(self.width-3)).expect("definite clock divisor").1;
+        let offset=clock.to_parity().expect("definite clock remainder").iter().rev()
+            .fold(0usize,|n,c|2*n+usize::from(*c=='⊥'));
+        let level=3+offset;
+        let source=low(&self.source,level+1);
+        let p=low(&arm.p,level);let q=low(&arm.q,level);
+        let rows=(0..4).map(|label|{
+            let mut left=p.clone();left.0.resize(level+1,B4::F);
+            let mut right=q.clone();right.0.resize(level+1,B4::F);
+            left.0[level]=if label/2==1{B4::T}else{B4::F};
+            right.0[level]=if label%2==1{B4::T}else{B4::F};
+            let product=low(&left.multiply(&right),level+1);
+            let evidence=if product==source{B4::T}else{B4::F};
+            json!({"label":label,"p":word(&left),"q":word(&right),
+                "product":word(&product),"evidence":evidence.name()})
+        }).collect::<Vec<_>>();
+        let mut left=p;left.0.resize(level+1,B4::F);left.0[level]=B4::B;
+        let mut right=q;right.0.resize(level+1,B4::F);right.0[level]=B4::B;
+        json!({"enclosure":"B","level":level,"source":word(&source),
+            "p_alternatives":word(&left),"q_alternatives":word(&right),"rows":rows})
+    }
     /// The selected paired state enters the learner without projecting away
     /// either evidence rail. Historical ancestry stays in this same torus.
     pub fn learning_context(&self)->Value{
@@ -464,6 +489,7 @@ impl Torus {
             ("clock",self.clock.clone()),("membership",self.reentry_state.clone()),
             ("evidence",Word::new(vec![arm.evidence])),("grid",Word::new(self.grid.clone()))];
         json!({"schema":"toroidal-learning-context-v1","arm":selected,
+            "source_fibre":self.source_fibre(arm),
             "fields":fields.iter().map(|(name,value)|json!({"name":name,"word":word(value)})).collect::<Vec<_>>()})
     }
     pub fn snapshot(&self)->Value{
