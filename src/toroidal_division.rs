@@ -81,6 +81,29 @@ pub fn word(x:&Word)->Value {
         "numeral":x.to_parity().ok().map(|t|mf::dec_of(&t))})
 }
 
+/// Lift a carried frame target into the existing exact paired rotation group.
+/// The source frame's full coordinate remains in the receipt; its low coset
+/// bits are transported to the selected arm rather than silently discarded.
+pub fn lift_frame_readout(context:&Value,readout:Word)->Result<(Word,Option<Word>,Value),String>{
+    use crate::carried_torus_frame::{field,read_word};
+    let source=field(context,"source")?;let p=field(context,"p")?;
+    let width=source.0.len();let step=read_word(&context["rotation_step"])?;
+    let mut cells=low(&readout,width).0;cells.resize(width,B4::F);
+    for (i,cell) in cells.iter_mut().enumerate().take(3){*cell=p.cell(i);}
+    let target=Word::new(cells);
+    let relative=low(&target.multiply(&inverse(&p,width)?),width);
+    let lift=rotation_index(&step,&relative,width)?;
+    let recovered=low(&p.multiply(&power(&step,&lift,width)?),width);
+    if recovered!=target{return Err("normal-frame rotation missed its exact target".into());}
+    let d=gcd(source.clone(),target.clone())?;
+    let divisor=(d!=small(1)&&d!=source&&d!=small(0)).then_some(d.clone());
+    Ok((lift.clone(),divisor,json!({"schema":"exact-frame-rotation-v1","arm":context["arm"],
+        "raw_readout":word(&readout),"input_p":word(&p),"target":word(&target),
+        "relative":word(&relative),"step":word(&step),"lift":word(&lift),
+        "recovered_target":word(&recovered),"target_gcd":word(&d),"coset_preserved":true,
+        "source_bank_retained":true,"inverse_verified":true})))
+}
+
 struct Arm {
     p:Word,q:Word,height:Word,negative:B4,
     origin_p:Word,origin_q:Word,
@@ -489,7 +512,8 @@ impl Torus {
             ("clock",self.clock.clone()),("membership",self.reentry_state.clone()),
             ("evidence",Word::new(vec![arm.evidence])),("grid",Word::new(self.grid.clone()))];
         json!({"schema":"toroidal-learning-context-v1","arm":selected,
-            "source_fibre":self.source_fibre(arm),
+            "source_fibre":self.source_fibre(arm),"rotation_step":word(&self.step),
+            "rotation_inverse_step":word(&self.back),
             "fields":fields.iter().map(|(name,value)|json!({"name":name,"word":word(value)})).collect::<Vec<_>>()})
     }
     pub fn snapshot(&self)->Value{

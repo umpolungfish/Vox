@@ -269,7 +269,36 @@ impl FactorSynthesis {
         if pair.is_none(){
             let context=carrier.toroidal_learning_context();
             let(lift,reverse,mut geometry)=observe(&context)?;
-            let(next,rotation,mark)=carrier.rotate_toroidal_from_sic(lift,reverse)?;
+            let mut selected=lift.clone();let mut selected_reverse=reverse;
+            if let Some(raw)=geometry["source_metric_rotation_readout"].as_str().or_else(||
+                    geometry["carried_torus_frame"]["readout_parameters"][0].as_str()){
+                let tape=crate::morphism_factor::decimal_to_tape(raw).ok_or("normal-frame readout numeral")?;
+                let (frame_lift,divisor,frame)=crate::toroidal_division::lift_frame_readout(
+                    &context,crate::belnap_word::BelnapWord::from_parity(&tape))?;
+                // The modular action has a period, but its full lifted word
+                // also feeds the next phase. Preserve its signed whole turns.
+                if reverse {
+                    if frame_lift.compare(&lift).map_err(String::from)?==core::cmp::Ordering::Less {
+                        selected=crate::belnap_word::BelnapWord::new(lift.subtract(&frame_lift).0.0);
+                        selected_reverse=true;
+                    }else{
+                        selected=crate::belnap_word::BelnapWord::new(frame_lift.subtract(&lift).0.0);
+                        selected_reverse=false;
+                    }
+                }else{
+                    selected=frame_lift.add(&lift);
+                    selected_reverse=false;
+                }
+                geometry["full_signed_rotation_word_retained"]=serde_json::json!(true);
+                geometry["frame_rotation"]=frame;
+                if geometry["source_divisor"].is_null(){
+                    if let Some(d)=divisor{geometry["source_divisor"]=crate::toroidal_division::word(&d);
+                        geometry["source_divisor_origin"]=serde_json::json!("normal-frame-rotation-target");}
+                }
+            }
+            geometry["selected_rotation_lift"]=crate::toroidal_division::word(&selected);
+            geometry["selected_rotation_reverse"]=serde_json::json!(selected_reverse);
+            let(next,rotation,mark)=carrier.rotate_toroidal_from_sic(selected,selected_reverse)?;
             geometry["rotation"]=rotation;geometry["input_context"]=context;
             pair=next;evidence=evidence.join(mark);
             if pair.is_none(){

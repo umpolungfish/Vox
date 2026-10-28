@@ -8,10 +8,13 @@ use core::cmp::Ordering;
 type Circle=(W,W);
 fn small(v:u64)->W{W::from_parity(&mf::tape_u64(v))}
 fn numeral(x:&W)->String{mf::dec_of(&x.to_parity().expect("definite frame coordinate"))}
-fn field(context:&Value,name:&str)->Result<W,String>{
+pub(crate) fn field(context:&Value,name:&str)->Result<W,String>{
     let f=context["fields"].as_array().ok_or("frame fields absent")?.iter()
         .find(|f|f["name"]==name).ok_or("frame input absent")?;
-    let cells=f["word"]["cells"].as_array().ok_or("frame word absent")?;
+    read_word(&f["word"])
+}
+pub(crate) fn read_word(value:&Value)->Result<W,String>{
+    let cells=value["cells"].as_array().ok_or("frame word absent")?;
     let w=W::new(cells.iter().map(|c|match c.as_str(){
         Some("T")=>Ok(B4::T),Some("F")=>Ok(B4::F),Some("N")=>Ok(B4::N),
         Some("B")=>Ok(B4::B),_=>Err("unknown frame cell".to_string())}).collect::<Result<Vec<_>,_>>()?);
@@ -72,7 +75,7 @@ pub fn observe(context:&Value,tick:usize)->Result<(W,W,Option<W>,Value),String>{
     let h=if negative==small(1){negative_word(&unsigned,&n)}else{unsigned};
     let nonunit=|which:&str,d:W|{
         let candidate=proper(&d,&n).then_some(d.clone());
-        (p.clone(),h.clone(),candidate,json!({"schema":"carried-source-height-torus-frame-v2",
+        (p.clone(),h.clone(),candidate,json!({"schema":"carried-source-height-torus-frame-v3",
             "stage":"coordinate-nonunit","tick":tick,"coordinate":which,"gcd":numeral(&d),
             "source":numeral(&n),"parameters":[numeral(&p),numeral(&h)],
             "input_pair":[numeral(&raw_p),numeral(&raw_q)],"height":numeral(&height),"height_negative":negative==small(1),"source_relation_verified":true,
@@ -109,9 +112,30 @@ pub fn observe(context:&Value,tick:usize)->Result<(W,W,Option<W>,Value),String>{
             "miniature":record(&inner),"normal":record(&normal),"centreline":record(&centre),
             "signed_radius":numeral(&signed_radius),"radial_gcd":numeral(&d),"normal_return_verified":true}));
     }
+    // Pass through the sphere of minor radius two. Its complementary inner
+    // horn has unit major/minor radii. Fuse its two addressed points to recover
+    // BOTH the sphere normal and its retained azimuth before phase readout.
+    let (_,sphere_normal)=point(&after,0,2,&n);
+    let direction=[after[0].0.clone(),after[0].1.clone(),small(0)];
+    let plus:[W;3]=core::array::from_fn(|i|add(&sphere_normal[i],&direction[i],&n));
+    let minus:[W;3]=core::array::from_fn(|i|sub(&sphere_normal[i],&direction[i],&n));
+    let half=inv(&small(2),&n).map_err(|_|String::from("sphere split requires odd source"))?;
+    let fused_normal:[W;3]=core::array::from_fn(|i|mul(&add(&plus[i],&minus[i],&n),&half,&n));
+    let fused_direction:[W;3]=core::array::from_fn(|i|mul(&sub(&plus[i],&minus[i],&n),&half,&n));
+    if fused_normal!=sphere_normal||fused_direction!=direction{
+        return Err("sphere inner-horn fuse lost source directions".into());
+    }
+    let sphere_readout=[(fused_direction[0].clone(),fused_direction[1].clone()),
+        (add(&mul(&fused_normal[0],&fused_direction[0],&n),
+             &mul(&fused_normal[1],&fused_direction[1],&n),&n),fused_normal[2].clone())];
+    if normal_readout.as_ref()!=Some(&sphere_readout){return Err("sphere passage changed wound directions".into());}
+    let sphere_split=json!({"outer":record(&point(&after,0,2,&n).0),
+        "inner_plus":record(&plus),"inner_minus":record(&minus),
+        "fused_normal":record(&fused_normal),"fused_direction":record(&fused_direction),
+        "readout":circles(&sphere_readout),"source_lifts_retained":true});
     // Read the same winding through its norm-one coordinates. Nonunit
     // inverse-chart seams stay observable and can expose a proper source split.
-    let readout=normal_readout.ok_or("source spindle readout absent")?;
+    let readout=sphere_readout;
     if readout!=after{return Err("normal readout changed addressed directions".into());}
     let mut parameters=Vec::new();let mut seams=Vec::new();
     for (index,v) in readout.iter().enumerate(){
@@ -126,12 +150,12 @@ pub fn observe(context:&Value,tick:usize)->Result<(W,W,Option<W>,Value),String>{
     }
     let result=divisors.first().cloned();
     Ok((parameters[0].clone(),parameters[1].clone(),result.clone(),json!({
-        "schema":"carried-source-height-torus-frame-v2","stage":"frame-return","tick":tick,
+        "schema":"carried-source-height-torus-frame-v3","stage":"frame-return","tick":tick,
         "source":numeral(&n),"parameters":[numeral(&p),numeral(&h)],
         "input_pair":[numeral(&raw_p),numeral(&raw_q)],"height":numeral(&height),"height_negative":negative==small(1),
         "source_relation_verified":true,"exact_height_zero":height==small(0),
         "source_horn":record(&point(&before,1,1,&n).0),"before":circles(&before),
         "matrix":m,"inverse_matrix":mi,"after":circles(&after),"recovered":circles(&recovered),
-        "frames":frames,"normal_readout":circles(&readout),"chart_seams":seams,"readout_parameters":record(&parameters),
+        "frames":frames,"sphere_split":sphere_split,"normal_readout":circles(&readout),"chart_seams":seams,"readout_parameters":record(&parameters),
         "divisor":result.as_ref().map(numeral),"source_bank_retained":true,"inverse_verified":true})))
 }
