@@ -1,1 +1,1 @@
-I add terminal fixation to the selected overall factoring controller and verify its committed return.
+I contract the zero-defect horn on the shared midpoint, gap and factor cells and replay its returned constraints.

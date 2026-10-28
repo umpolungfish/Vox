@@ -14,6 +14,8 @@ mod parity;
 mod transport;
 #[path = "glut_joint_support.rs"]
 mod joint_support;
+#[path = "glut_horn.rs"]
+mod horn;
 use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -130,6 +132,8 @@ pub(super) struct Correlation {
     joint_incidence: Vec<usize>,
     pub joint_returns: usize,
     pub joint_forced: usize,
+    horn_receipts:Vec<serde_json::Value>,
+    horn_basis:Vec<[usize;4]>,
 }
 impl Correlation {
     pub(super) fn toroidal_view(&self)->(crate::belnap_word::BelnapWord,crate::belnap_word::BelnapWord,B4){
@@ -253,6 +257,8 @@ impl Correlation {
             joint_incidence: Vec::new(),
             joint_returns: 0,
             joint_forced: 0,
+            horn_receipts:Vec::new(),
+            horn_basis:Vec::new(),
         };
         let zero = s.cell();
         let one = s.cell();
@@ -1044,6 +1050,7 @@ impl Correlation {
                 if let Err(conflict) = self.fold_support() {
                     break Err(conflict);
                 }
+                if let Err(conflict)=self.contract_horn(){break Err(conflict);}
                 if self.trail.len() == before {
                     break Ok(());
                 }

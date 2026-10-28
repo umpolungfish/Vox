@@ -803,7 +803,13 @@ impl Resident {
         Ok(())
     }
     pub(super) fn toroidal_snapshot(&self)->serde_json::Value{
-        self.toroidal_division.as_ref().map(|t|t.snapshot()).unwrap_or(serde_json::Value::Null)
+        {
+            let mut result=self.toroidal_division.as_ref().map(|t|t.snapshot()).unwrap_or(serde_json::Value::Null);
+            if let Some(graph)=self.lanes.as_ref().and_then(|l|l.shared.as_ref()){
+                result["horn_contraction"]=graph.horn_snapshot();
+            }
+            result
+        }
     }
     pub(super) fn toroidal_learning_context(&self)->serde_json::Value{
         self.toroidal_division.as_ref().map(|t|t.learning_context()).unwrap_or(serde_json::Value::Null)
