@@ -19,6 +19,8 @@ pub mod ordering;
 pub mod belnap;
 pub mod belnap_word;
 pub mod toroidal_division;
+pub mod carried_torus_frame;
+pub mod geometric_return;
 pub mod belnap_relation;
 
 pub mod vox;

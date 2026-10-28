@@ -263,6 +263,7 @@ impl FactorSynthesis {
     pub fn advance_toroidal_with_sic(&mut self,port:usize,
         mut observe:impl FnMut(&serde_json::Value)->Result<(crate::belnap_word::BelnapWord,bool,serde_json::Value),String>)
         ->Result<(Option<FactorReturn>,serde_json::Value,crate::belnap::B4),String>{
+        let mut geometric_producer=false;
         let carrier=self.glut.as_mut().ok_or("missing SIC division resident")?;
         let(mut pair,mut event,mut evidence)=carrier.act_toroidal_division(port)?;
         if pair.is_none(){
@@ -270,11 +271,31 @@ impl FactorSynthesis {
             let(lift,reverse,mut geometry)=observe(&context)?;
             let(next,rotation,mark)=carrier.rotate_toroidal_from_sic(lift,reverse)?;
             geometry["rotation"]=rotation;geometry["input_context"]=context;
-            event["geometric_sic"]=geometry;pair=next;evidence=evidence.join(mark);
+            pair=next;evidence=evidence.join(mark);
+            if pair.is_none(){
+                if let Some(raw)=geometry["source_divisor"]["numeral"].as_str(){
+                    let divisor=crate::morphism_factor::decimal_to_tape(raw).ok_or("geometric divisor numeral")?;
+                    let source=self.source.clone();
+                    if crate::morphism_factor::cmp(&divisor,&crate::morphism_factor::one())!=core::cmp::Ordering::Greater
+                        ||crate::morphism_factor::cmp(&divisor,&source)!=core::cmp::Ordering::Less{
+                        return Err("geometric return did not emit a proper divisor".into());
+                    }
+                    let(quotient,remainder)=crate::morphism_factor::divmod(&source,&divisor);
+                    if !crate::morphism_factor::zero(&remainder)||crate::morphism_factor::mul(&divisor,&quotient)!=source{
+                        return Err("geometric return failed exact source division".into());
+                    }
+                    geometric_producer=true;
+                    pair=Some((crate::belnap_word::BelnapWord::from_parity(&divisor),
+                        crate::belnap_word::BelnapWord::from_parity(&quotient)));
+                }
+            }
+            event["geometric_sic"]=geometry;
         }
         event["native_producer_cycle"]=serde_json::json!(pair.is_none());
         let returned=if let Some((p,q))=pair{
-            Some(self.close_toroidal_division(p.to_parity().map_err(String::from)?,q.to_parity().map_err(String::from)?)?)
+            let p=p.to_parity().map_err(String::from)?;let q=q.to_parity().map_err(String::from)?;
+            Some(if geometric_producer{self.close_candidate(p,q,"geometric-throat-return")?}
+                else{self.close_toroidal_division(p,q)?})
         }else{self.advance()?};
         event["banked_return_walk"]=serde_json::json!(returned.is_some());
         Ok((returned,event,evidence))
