@@ -13,8 +13,8 @@ pub const LOG_PERIOD: u32 = 11;
 pub const GABOR_BINS: i64 = 2048;
 pub const SIC_DIMENSION: usize = 12;
 pub const SIC_OUTCOMES: usize = SIC_DIMENSION * SIC_DIMENSION;
-/// Source-bound GFE carrier word; the final ⊡ is the immutable readout latch.
-pub const GFE_MORPHISM_WORD: &str = "⊣⊣⊙∈∈≻⊙⊞≺⊤⊥∋∋⊡";
+/// Source-bound controller; the geometer readout appends its immutable latch.
+pub const GFE_MORPHISM_WORD: &str = factor_synthesis::FACTOR_CONTROLLER_WORD;
 const WIDTH_PHASE_SIGMA_BINS: f64 = 76.0;
 // log2(phi), where phi^2 = phi + 1. This lets the linear number-line
 // coordinate use powers of the golden number without changing the exact

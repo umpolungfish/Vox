@@ -1,7 +1,10 @@
 //! N-only synthesis retaining dialectic and GLUT state across return edges.
-use alloc::{string::String, vec, vec::Vec};
+use alloc::{string::{String,ToString}, vec::Vec};
 use crate::{glut_system::PreparedGlutMembrane, morphism_factor as mf};
 use core::cmp::Ordering;
+
+pub const FACTOR_CONTROLLER_WORD:&str="⊥∋∋⊣⊣⊙∈∈≻⊙⊞≺⊤⊡";
+type ResidentBanks=crate::reentry_powerset::Held<crate::reentry_powerset::Held<crate::reentry_powerset::Held<usize>>>;
 
 pub struct FactorSynthesis {
     source: Vec<char>,
@@ -35,6 +38,9 @@ struct GfeMorphismMachine {
     monad_laws_verified: bool,
     latched: bool,
     applications: Vec<GfeMorphismApplication>,
+    word_cursor:usize,
+    work_entries:usize,
+    pending_banks:ResidentBanks,
 }
 impl GfeMorphismMachine {
     fn new() -> Self {
@@ -42,98 +48,106 @@ impl GfeMorphismMachine {
             branches: crate::reentry_powerset::Held::new(),
             support: None, refutation: None, engaged: false, fused: 0,
             monad_laws_verified: false, latched: false,
-            applications: Vec::new() }
+            applications: Vec::new(),word_cursor:0,work_entries:0,
+            pending_banks:crate::reentry_powerset::unit(crate::reentry_powerset::unit(
+                crate::reentry_powerset::unit(0usize))) }
     }
     fn record(&mut self, position: usize, glyph: char, operator: &'static str) {
+        assert_eq!(FACTOR_CONTROLLER_WORD.chars().nth(position),Some(glyph));
         self.applications.push(GfeMorphismApplication { position, glyph, operator, observation: None });
+        self.word_cursor=position+1;
     }
     fn record_observation(&mut self, position: usize, glyph: char, operator: &'static str, value: bool) {
+        assert_eq!(FACTOR_CONTROLLER_WORD.chars().nth(position),Some(glyph));
         self.applications.push(GfeMorphismApplication {
             position, glyph, operator, observation: Some(value),
         });
+        self.word_cursor=position+1;
+    }
+    fn enter_work(&mut self)->Result<(),String>{
+        if self.word_cursor!=8||FACTOR_CONTROLLER_WORD.chars().nth(self.word_cursor)!=Some('≻')||self.latched{
+            return Err("factor production attempted outside the overall AFWD binding".into());
+        }
+        self.work_entries+=1;Ok(())
     }
     fn prepare(&mut self, source: &[char], carrier: &mut PreparedGlutMembrane,
         torus_axes: Option<[usize; 12]>) -> Result<(), String> {
-        if self.applications.len() != 0 { return Err("GFE word preparation ran twice".into()); }
-        self.source_anchor = Some(source.to_vec());
-        self.record(0, '⊣', "TANCH: bind source boundary");
-        self.resident_anchor = Some(carrier.resident_identity());
-        self.record(1, '⊣', "TANCH: bind resident boundary");
-        if self.source_anchor.as_deref() != Some(source) || self.resident_anchor != Some(carrier.resident_identity()) {
-            return Err("GFE IMSCRIB identity failed at the prepared boundary".into());
+        use crate::reentry_powerset::{unit,multiply,Held};
+        if !self.applications.is_empty(){return Err("GFE word preparation ran twice".into());}
+        self.branch_handles.push(carrier.clone());
+        let conflicts=carrier.stats().correlation_conflicts>0;
+        self.refutation=Some(conflicts);
+        self.record_observation(0,'⊥',"EVALF: deposit current source-correlation conflict observation",conflicts);
+        let inner=multiply(self.pending_banks.clone());
+        self.fused+=1;
+        self.record(1,'∋',"FFUSE: return the prepared inner resident bank");
+        let incoming=multiply(inner);
+        if incoming!=unit(0usize){return Err("prepared leading fuses lost the resident unit".into());}
+        self.fused+=1;
+        self.record(2,'∋',"FFUSE: return the prepared outer resident bank");
+        self.source_anchor=Some(source.to_vec());
+        self.record(3,'⊣',"TANCH: bind source boundary");
+        self.resident_anchor=Some(carrier.resident_identity());
+        self.record(4,'⊣',"TANCH: bind resident boundary");
+        if self.source_anchor.as_deref()!=Some(source)||self.resident_anchor!=Some(carrier.resident_identity()){
+            return Err("GFE source/resident anchors rejected their prepared state".into());
         }
-        self.record(2, '⊙', "IMSCRIB: retain source and resident identity");
-        let mut branch_handles = vec![carrier.clone(), carrier.clone(), carrier.clone()];
-        let branches = crate::reentry_powerset::bind(
-            crate::reentry_powerset::unit(0usize),
-            |root| {
-                if root != 0 { return Err(String::from("FSPLIT lost its resident root")); }
-                Ok([1usize, 2usize].into_iter().collect())
-            },
-        )?;
-        self.branch_handles.append(&mut branch_handles);
-        self.branches = branches;
-        self.monad_laws_verified = verify_resident_branch_monad(&self.branches)?;
-        self.record(3, '∈', "FSPLIT: open first shared-state branch");
-        self.record(4, '∈', "FSPLIT: open second shared-state branch");
-        if let Some(axes) = torus_axes {
-            carrier.apply_catalyst_order_axes(axes)?;
-            self.record(5, '≻', "AFWD: apply singularity bit-braid and QFT1+HTSX amplitudes to live resident priorities");
-        } else {
-            carrier.apply_catalyst_order()?;
-            self.record(5, '≻', "AFWD: permute live correlation priorities");
+        self.record(5,'⊙',"IMSCRIB: retain source and resident identity");
+        // Two actual nested forks over aliases of the same executing register:
+        // root -> (1,2), then inner 1 -> (3,4). Preserve the nesting until mu.
+        self.branch_handles.extend([carrier.clone(),carrier.clone()]);
+        let outer:Held<usize>=[1usize,2usize].into_iter().collect();
+        if outer.len()!=2{return Err("outer source fork lost an arm".into());}
+        self.record(6,'∈',"FSPLIT: retain two source-bound outer arms");
+        self.branch_handles.extend([carrier.clone(),carrier.clone()]);
+        let inner:Held<usize>=[3usize,4usize].into_iter().collect();
+        let family:Held<Held<usize>>=[inner,unit(2usize)].into_iter().collect();
+        self.pending_banks=unit(family);
+        self.branches=multiply(multiply(self.pending_banks.clone()));
+        self.monad_laws_verified=verify_resident_branch_monad(&self.branches)?;
+        if self.branch_handles.iter().any(|h|h.resident_identity()!=carrier.resident_identity()){
+            return Err("overall forks escaped their executing resident".into());
         }
-        if self.source_anchor.as_deref() != Some(source) || self.resident_anchor != Some(carrier.resident_identity()) {
-            return Err("GFE IMSCRIB identity changed under AFWD".into());
-        }
-        self.record(6, '⊙', "IMSCRIB: verify transformed resident identity");
-        self.engaged = true;
-        self.record(7, '⊞', "ENGAGR: open support/refutation evidence pair");
+        self.record(7,'∈',"FSPLIT: retain the nested inner arms and outer spectator");
+        if let Some(axes)=torus_axes{carrier.apply_catalyst_order_axes(axes)?;}
+        else{carrier.apply_catalyst_order()?;}
+        self.record(8,'≻',"AFWD: prepare and execute the complete retained factor-production body");
+        self.word_cursor=8;
         Ok(())
     }
     fn close(&mut self, source: &[char], carrier: &mut PreparedGlutMembrane,
         p: &[char], q: &[char]) -> Result<(), String> {
-        if self.applications.len() != 8 || self.latched || !self.engaged {
-            return Err("GFE word reached return in an invalid morphism state".into());
+        if self.word_cursor!=8||self.latched||self.engaged{
+            return Err("overall word reached product return outside AFWD".into());
         }
+        if self.source_anchor.as_deref()!=Some(source)||self.resident_anchor!=Some(carrier.resident_identity()){
+            return Err("overall AFWD changed its source or resident identity".into());
+        }
+        self.record(9,'⊙',"IMSCRIB: verify the produced source-bound resident identity");
+        if !self.monad_laws_verified||self.branches.len()!=3||self.branch_handles.len()!=5
+            ||self.branch_handles.iter().any(|h|h.resident_identity()!=carrier.resident_identity()){
+            return Err("overall evidence pair lost a retained nested arm".into());
+        }
+        self.engaged=true;
+        self.record(10,'⊞',"ENGAGR: retain support and refutation with both nested banks");
         carrier.return_catalyst_order()?;
-        self.record(8, '≺', "AREV: restore the retained correlation priorities");
-        let product_closed = mf::mul(p, q) == source;
-        if !product_closed { return Err("GFE EVALT received an open exact product".into()); }
-        self.support = Some(product_closed);
-        self.record_observation(9, '⊤', "EVALT: deposit exact product support", product_closed);
-        let conflicts = carrier.stats().correlation_conflicts;
-        self.refutation = Some(conflicts > 0);
-        self.record_observation(10, '⊥', "EVALF: deposit retained correlation-conflict observation", conflicts > 0);
-        if !self.monad_laws_verified || self.branches.len() != 2
-            || self.branch_handles.len() != 3 || self.branches.iter().any(|id|
-            self.branch_handles[*id].resident_identity() != carrier.resident_identity()) {
-            return Err("GFE FFUSE branches lost their common resident".into());
-        }
-        let fused = crate::reentry_powerset::bind(self.branches.clone(), |id| {
-            if self.branch_handles[id].resident_identity() != carrier.resident_identity() {
-                return Err(String::from("FFUSE branch escaped its resident arena"));
-            }
-            Ok(crate::reentry_powerset::unit(0usize))
-        })?;
-        let terminal = crate::reentry_powerset::multiply(
-            crate::reentry_powerset::unit(fused),
-        );
-        if terminal != crate::reentry_powerset::unit(0usize) {
-            return Err("powerset multiplication failed to fuse the resident branches".into());
-        }
-        self.fused += 1;
-        self.record(11, '∋', "FFUSE: rejoin first branch at shared resident");
-        self.fused += 1;
-        self.record(12, '∋', "FFUSE: rejoin second branch at shared resident");
-        if self.fused != 2 || self.support != Some(true) || self.refutation.is_none() {
-            return Err("GFE IFIX lacks fused branches and both evidence coordinates".into());
-        }
-        Ok(())
+        self.record(11,'≺',"AREV: restore correlation priorities while retaining banked evidence");
+        let proper=mf::cmp(p,&mf::one())==Ordering::Greater&&mf::cmp(p,source)==Ordering::Less;
+        if !proper{return Err("overall final EVALT requires a proper divisor".into());}
+        let (quotient,remainder)=mf::divmod(source,p);
+        let product_closed=proper&&mf::zero(&remainder)&&quotient==q&&mf::mul(p,q)==source;
+        if !product_closed{return Err("overall final EVALT lacks a proper exact factor/product return".into());}
+        self.support=Some(true);
+        self.record_observation(12,'⊤',"EVALT: expose the verified proper divisor and exact product",true);
+        self.latch()
     }
 
     fn latch(&mut self) -> Result<(), String> {
-        if self.latched || self.fused != 2 || self.support != Some(true)
+        if self.latched {
+            return if self.word_cursor==FACTOR_CONTROLLER_WORD.chars().count() {Ok(())}
+                else {Err("IFIX cursor disagrees with committed controller".into())};
+        }
+        if self.word_cursor!=13 || self.fused != 2 || self.support != Some(true)
             || self.refutation.is_none() || !self.monad_laws_verified
         {
             return Err("GFE IFIX lacks fused branches, monad laws, or complete evidence".into());
@@ -153,7 +167,7 @@ fn verify_resident_branch_monad(
     use crate::reentry_powerset::{bind, multiply, unit};
     let root = 0usize;
     let split = |id| {
-        if id == root { Ok([1usize, 2usize].into_iter().collect()) }
+        if id == root { Ok(branches.clone()) }
         else { Err(String::from("monad split received a non-root resident handle")) }
     };
     let identity = |id| Ok::<_, String>(unit(id));
@@ -225,7 +239,20 @@ pub fn build_factor_braid_dots(
 }
 
 impl FactorSynthesis {
+    pub fn controller_snapshot(&self)->serde_json::Value{
+        let m=&self.morphisms;
+        serde_json::json!({"word":FACTOR_CONTROLLER_WORD,"cursor":m.word_cursor,
+            "active_opcode":FACTOR_CONTROLLER_WORD.chars().nth(m.word_cursor).map(|c|c.to_string()),
+            "production_binding":8,"work_entries":m.work_entries,
+            "source_bank_retained":m.source_anchor.as_ref()==Some(&self.source),
+            "resident_bank_retained":self.glut.as_ref().is_some_and(|g|m.resident_anchor==Some(g.resident_identity())),
+            "nested_bank_ids":m.pending_banks,"leaf_ids":m.branches,
+            "support":m.support,"refutation":m.refutation,"fixed":m.latched,"monad_laws_verified":m.monad_laws_verified,
+            "applications":m.applications.iter().map(|a|serde_json::json!({"position":a.position,
+                "glyph":a.glyph.to_string(),"operator":a.operator,"observation":a.observation})).collect::<Vec<_>>()})
+    }
     pub fn prepare_toroidal_division(&mut self)->Result<(),String>{
+        self.morphisms.enter_work()?;
         self.glut.as_mut().ok_or("missing resident")?.prepare_toroidal_division()
     }
     pub fn toroidal_snapshot(&self)->serde_json::Value{
@@ -238,12 +265,14 @@ impl FactorSynthesis {
         self.glut.as_ref().map(|g|g.square_polynomial_actions()).unwrap_or_default()
     }
     pub fn reenter_toroidal_division(&mut self,before:u8,after:u8,kind:u8)->Result<serde_json::Value,String>{
+        self.morphisms.enter_work()?;
         self.glut.as_mut().ok_or("missing resident")?.reenter_toroidal_division(before,after,kind)
     }
     /// Division, square/carry views and the phase return belong to the same
     /// retained resident. The operation acts there before production advances.
     pub fn advance_toroidal_division(&mut self,port:usize)
         ->Result<(Option<FactorReturn>,serde_json::Value,crate::belnap::B4),String>{
+        self.morphisms.enter_work()?;
         let (pair,mut event,evidence)=self.glut.as_mut().ok_or("missing resident")?.act_toroidal_division(port)?;
         event["native_producer_cycle"]=serde_json::json!(pair.is_none());
         let returned=if let Some((p,q))=pair {
@@ -263,6 +292,7 @@ impl FactorSynthesis {
     pub fn advance_toroidal_with_sic(&mut self,port:usize,
         mut observe:impl FnMut(&serde_json::Value)->Result<(crate::belnap_word::BelnapWord,bool,serde_json::Value),String>)
         ->Result<(Option<FactorReturn>,serde_json::Value,crate::belnap::B4),String>{
+        self.morphisms.enter_work()?;
         let mut geometric_producer=false;
         let carrier=self.glut.as_mut().ok_or("missing SIC division resident")?;
         let(mut pair,mut event,mut evidence)=carrier.act_toroidal_division(port)?;
@@ -475,6 +505,7 @@ impl FactorSynthesis {
     /// correlation, square, phase and source-bound return machinery.
     pub fn advance_component(&mut self, component: usize) -> Result<Option<FactorReturn>, String> {
         if let Some(returned) = &self.returned { return Ok(Some(returned.clone())); }
+        self.morphisms.enter_work()?;
         self.turns += 1;
         if !self.glut.as_mut().unwrap().advance_component(component)? { return Ok(None); }
         let Some(execution) = self.glut.as_mut().unwrap().execute_retained()? else {
@@ -488,6 +519,7 @@ impl FactorSynthesis {
     }
     pub fn advance_component_cycle(&mut self, start: usize) -> Result<Option<FactorReturn>, String> {
         if let Some(returned)=&self.returned{return Ok(Some(returned.clone()));}
+        self.morphisms.enter_work()?;
         self.turns+=1;
         if !self.glut.as_mut().unwrap().advance_component_cycle(start)?{return Ok(None);}
         let Some(execution)=self.glut.as_mut().unwrap().execute_retained()? else {
@@ -502,6 +534,7 @@ impl FactorSynthesis {
         observe: impl FnMut(&crate::glut_system::FoldStats))
         -> Result<Option<FactorReturn>, String> {
         if let Some(returned)=&self.returned{return Ok(Some(returned.clone()));}
+        self.morphisms.enter_work()?;
         self.turns += 1;
         if self.glut.as_mut().unwrap().advance_observed(observe) {
             let execution = self.glut.as_mut().unwrap().execute_retained()?;
