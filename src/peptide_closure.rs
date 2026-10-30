@@ -14,6 +14,7 @@ pub struct Evidence {
  pub atoms:usize,pub bonds:usize,pub angles:usize,pub rings:usize,
  pub stereocenters:usize,pub torsions:usize,pub nonbonded_pairs:usize,
  pub max_bond_error:f64,pub max_overlap:f64,pub issues:Vec<Issue>,
+ pub bond_edges:Vec<(usize,usize)>,
 }
 impl Evidence {
  pub fn closed(&self)->bool {self.atoms>0 && self.issues.is_empty()}
@@ -155,6 +156,7 @@ pub fn assess(chain:&[&str],backbone:&[[Point;4]],sidechains:&[Vec<(&str,Point)>
   }
  }
  let mut neighbors=alloc::vec![Vec::new();atoms.len()];
+ e.bond_edges=edges.iter().map(|&(a,b,_,_)|(a,b)).collect();
  for &(a,b,length,ring) in &edges {
   neighbors[a].push(b);neighbors[b].push(a);e.bonds+=1;if ring{e.rings+=1;}
   let measured=distance(atoms[a].xyz,atoms[b].xyz);let residual=(measured-length).abs();e.max_bond_error=e.max_bond_error.max(residual);

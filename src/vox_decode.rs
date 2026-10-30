@@ -640,7 +640,7 @@ pub fn cc_names() -> &'static [&'static str; 16] {
 // (⊙) cannot be followed statically — that is what the glyph is for — so what
 // descent never reaches is swept afterwards rather than dropped.
 
-use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::collections::{BTreeMap, BTreeSet, VecDeque};
 
 /// The executable image: byte ranges with the addresses they load at.
 pub struct Image {
@@ -756,28 +756,27 @@ pub fn descend_seeded(
     let mut out: Vec<(u64, Vec<Instruction>)> = Vec::new();
     let mut covered: BTreeMap<u64, Instruction> = BTreeMap::new();
     let mut seen_funcs: BTreeSet<u64> = BTreeSet::new();
-    let mut func_queue: Vec<u64> = Vec::new();
+    let mut func_queue: VecDeque<u64> = VecDeque::new();
     // Every address the program branches to, whether or not descent got there.
     // A target is proof that the bytes at it are code; nothing else in the
     // leftover is.
     let mut targets: BTreeSet<u64> = BTreeSet::new();
 
     if image.bytes_at(entry).is_some() {
-        func_queue.push(entry);
+        func_queue.push_back(entry);
     } else if let Some((base, _)) = image.segments.first() {
-        func_queue.push(*base);
+        func_queue.push_back(*base);
     }
     for s in seeds {
         if image.bytes_at(*s).is_some() {
-            func_queue.push(*s);
+            func_queue.push_back(*s);
         }
     }
     // A known function entry owns its body even when a predecessor's
     // conservative continuation or tail jump reaches that entry first.
     let function_entries: BTreeSet<u64> = func_queue.iter().copied().collect();
 
-    while let Some(fstart) = func_queue.first().copied() {
-        func_queue.remove(0);
+    while let Some(fstart) = func_queue.pop_front() {
         if seen_funcs.contains(&fstart) || covered.contains_key(&fstart) {
             continue;
         }
@@ -788,10 +787,9 @@ pub fn descend_seeded(
 
         let mut visited: BTreeSet<u64> = BTreeSet::new();
         let mut body: BTreeMap<u64, Instruction> = BTreeMap::new();
-        let mut queue: Vec<u64> = vec![fstart];
+        let mut queue = VecDeque::from([fstart]);
 
-        while let Some(addr) = queue.first().copied() {
-            queue.remove(0);
+        while let Some(addr) = queue.pop_front() {
             if addr != fstart && function_entries.contains(&addr) {
                 continue;
             }
@@ -820,19 +818,19 @@ pub fn descend_seeded(
                 // A call's target is another function; the call itself returns.
                 if let Some(t) = direct_target(&ins) {
                     if !seen_funcs.contains(&t) {
-                        func_queue.push(t);
+                        func_queue.push_back(t);
                     }
                 }
-                queue.push(next);
+                queue.push_back(next);
             } else if mn.starts_with('j') {
                 if let Some(t) = direct_target(&ins) {
-                    queue.push(t);
+                    queue.push_back(t);
                 }
                 if mn != "jmp" {
-                    queue.push(next);   // a conditional takes both edges
+                    queue.push_back(next);   // a conditional takes both edges
                 }
             } else if !is_terminal(mn) {
-                queue.push(next);
+                queue.push_back(next);
             }
             body.insert(addr, ins);
         }

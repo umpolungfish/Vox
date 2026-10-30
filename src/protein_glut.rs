@@ -5,6 +5,8 @@ use crate::{fold, fold3d, peptide_closure, phase_word};
 struct MarkSpec {
     aa: &'static str, record: &'static str, word: &'static str,
     tuple: &'static str, artifact: &'static str, sha256: &'static str,
+    native_parts: &'static [&'static str],
+    native_pairs: &'static [Option<&'static [(usize,usize)]>],
 }
 include!(concat!(env!("OUT_DIR"), "/protein_marks.rs"));
 
@@ -29,8 +31,40 @@ pub fn quote(value: &str) -> String {
 }
 
 impl ProteinGlut {
+    #[cfg(feature = "protein-cli")]
+    pub fn source_binding() -> serde_json::Value {
+        serde_json::from_str(SOURCE_BINDING).expect("generated source binding")
+    }
+
+    /// Source and bank data without invoking any geometry or torsion table.
+    #[cfg(feature = "protein-cli")]
+    pub fn source_record(&self) -> serde_json::Value {
+        serde_json::json!({"native_state":"B","source_binding":
+            serde_json::from_str::<serde_json::Value>(SOURCE_BINDING).expect("generated source binding"),
+            "residues":self.residues.iter().map(|r|serde_json::json!({
+                "index":r.index,"aa":r.aa,"codon":r.codon,
+                "forms":r.forms.iter().map(|f|serde_json::json!({
+                    "word":f.spec.word,"tuple":f.spec.tuple,"artifact":f.spec.artifact,
+                    "sha256":f.spec.sha256,"terminal_runtime_register":f.execution.register,
+                    "native_components":serde_json::from_str::<serde_json::Value>(f.spec.record)
+                        .expect("generated form record")["native_components"],
+                    "native_transition_table":f.transitions,"restore_supports":f.execution.restore_supports,
+                    "surviving":f.execution.surviving.iter().map(|d|serde_json::json!({
+                        "id":d.id,"lane":d.lane,"observation":d.observation})).collect::<Vec<_>>()
+                })).collect::<Vec<_>>()
+            })).collect::<Vec<_>>()})
+    }
+
     pub fn words(&self) -> Vec<Vec<&str>> {
         self.residues.iter().map(|r|r.forms.iter().map(|f|f.spec.word).collect()).collect()
+    }
+    pub fn native_words(&self) -> Vec<Vec<Vec<&str>>> {
+        self.residues.iter().map(|r|r.forms.iter().map(|f|f.spec.native_parts.to_vec()).collect()).collect()
+    }
+    pub fn native_programs(&self) -> Vec<Vec<Vec<crate::protein_sites::ProgramSpec<'static>>>> {
+        self.residues.iter().map(|r|r.forms.iter().map(|f|f.spec.native_parts.iter()
+            .zip(f.spec.native_pairs).map(|(&word,&pairs)|crate::protein_sites::ProgramSpec{word,pairs})
+            .collect()).collect()).collect()
     }
     pub fn prepare(chain: &[&'static str], mrna: &str, start: usize) -> Result<Self, String> {
         let mut residues = Vec::with_capacity(chain.len());

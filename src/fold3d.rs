@@ -363,6 +363,9 @@ pub fn write_pdb_with_steps(
     let retained_steps: Vec<_> = steps.iter().map(|s| (s.phi, s.psi)).collect();
     let geometry = crate::peptide_closure::assess(chain, &coordinates, &sidechains, &retained_steps);
     let end = lines.pop().expect("PDB END record");
+    for &(left, right) in &geometry.bond_edges {
+        lines.push(alloc::format!("CONECT{:>5}{:>5}", left + 1, right + 1));
+    }
     for line in geometry.report(true).lines() { lines.push(alloc::format!("REMARK 900 {}", line)); }
     lines.push(end);
     let mut out = lines.join("\n");

@@ -81,15 +81,13 @@ fn usage() {
     eprintln!("  vox fasta <file>          lift a protein from FASTA");
     eprintln!("  vox pdb <file>            lift a protein from a PDB (CA per residue)");
     eprintln!("  vox glyco <seq|file>      locate the glycosylation boundary interfaces");
+    eprintln!("  vox atom <nuclear charge>  construct native orbital filling and available bond slots");
+    eprintln!("  vox electronic           apply native electronic operators to evaluated integrals on stdin");
     eprintln!("  vox compile <seq> | --fasta <file> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--pdb <path>] [--carrier <path>] [--coords]");
-    eprintln!("                            the full pipeline, both ends: RNA/DNA in gives a");
-    eprintln!("                            compiled protein with real fold info (Chou-Fasman");
-    eprintln!("                            secondary structure, heuristic tertiary contacts, a");
-    eprintln!("                            real 3D backbone via B4-Ramachandran-NeRF); protein");
-    eprintln!("                            in gives RNA/DNA back out (Frobenius-preferred codon");
-    eprintln!("                            per residue, full degeneracy) with the same fold on");
-    eprintln!("                            the input. Direction auto-detects from the alphabet.");
-    eprintln!("                            --pdb writes a real PDB file, readable by vox pdb.");
+    eprintln!("                            native information families, orbital filling and");
+    eprintln!("                            stored-Glut work on a retained conformation by default.");
+    eprintln!("                            Protein input also returns source RNA/DNA. --configured");
+    eprintln!("                            selects the earlier supplied-parameter model and PDB output.");
     eprintln!("  vox self                  lift V⊙x's own image and read it back");
     eprintln!("  vox pyc <file.pyc>        lift every code object in a .pyc, verdict each");
     eprintln!("  vox safetensors <file>  lift a HuggingFace safetensors file, verdict each tensor");
@@ -1056,6 +1054,70 @@ fn main() {
                 Ok(txt) => protein(&genetic::protein_from_pdb(&txt), &args[1]),
                 Err(e) => { eprintln!("vox pdb: {}: {}", args[1], e); 1 }
             } }
+        }
+        Some("atom") => {
+            match args.get(1).and_then(|s|s.parse::<usize>().ok()){
+                Some(z)=>match ::vox::protein_orbital::atomic_frontier(z){
+                    Ok(value)=>{println!("{}",value);0},Err(e)=>{eprintln!("{e}");1}
+                },
+                None=>{eprintln!("vox atom <nuclear charge>");1}
+            }
+        }
+        Some("electronic-resident-binary") => {
+            use std::io::{BufRead,Read,Write};
+            let mut input=std::io::BufReader::new(std::io::stdin().lock());
+            let mut output=std::io::BufWriter::new(std::io::stdout().lock());
+            let result:Result<(),String>=(||{
+                let mut line=String::new();input.read_line(&mut line).map_err(|e|e.to_string())?;
+                let source:serde_json::Value=serde_json::from_str(&line).map_err(|e|e.to_string())?;
+                let mut retained=::vox::protein_electronic_sector::SectorOperator::from_json(&source)?;
+                serde_json::to_writer(&mut output,&retained.record()).map_err(|e|e.to_string())?;
+                output.write_all(b"\n").map_err(|e|e.to_string())?;
+                output.flush().map_err(|e|e.to_string())?;
+                let mut bytes=vec![0u8;8*retained.states.len()];
+                loop {
+                    let first=input.read(&mut bytes[..1]).map_err(|e|e.to_string())?;
+                    if first==0 {break;}
+                    input.read_exact(&mut bytes[1..]).map_err(|e|e.to_string())?;
+                    let vector:Vec<_>=bytes.chunks_exact(8).map(|s|f64::from_le_bytes(s.try_into().unwrap())).collect();
+                    let action=retained.apply(&vector)?;
+                    for value in action {output.write_all(&value.to_le_bytes()).map_err(|e|e.to_string())?;}
+                    output.flush().map_err(|e|e.to_string())?;
+                }
+                Ok(())
+            })();
+            match result {Ok(())=>0,Err(error)=>{eprintln!("{error}");1}}
+        }
+        Some("electronic-resident") => {
+            use std::io::{BufRead,Write};
+            let mut operator=None;
+            let mut code=0;
+            for line in std::io::stdin().lock().lines() {
+                let answer:Result<serde_json::Value,String>=(||{
+                    let source:serde_json::Value=serde_json::from_str(&line.map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+                    if let Some(ref mut retained)=operator {
+                        let retained:&mut ::vox::protein_electronic_sector::SectorOperator=retained;
+                        let vector=source["amplitudes"].as_array().ok_or("missing amplitudes")?.iter()
+                            .map(|x|x.as_f64().ok_or("invalid amplitude")).collect::<Result<Vec<_>,_>>()?;
+                        Ok(serde_json::json!({"action":retained.apply(&vector)?,"applications":retained.applications}))
+                    } else {
+                        let prepared=::vox::protein_electronic_sector::SectorOperator::from_json(&source)?;
+                        let record=prepared.record();operator=Some(prepared);Ok(record)
+                    }
+                })();
+                match answer {
+                    Ok(value)=>println!("{}",value),
+                    Err(error)=>{println!("{}",serde_json::json!({"error":error}));code=1;break;}
+                }
+                if std::io::stdout().flush().is_err(){code=1;break;}
+            }
+            code
+        }
+        Some("electronic") => {
+            let source=serde_json::from_reader::<_,serde_json::Value>(std::io::stdin());
+            match source.map_err(|e|e.to_string()).and_then(|s|::vox::protein_electronic::from_json(&s)){
+                Ok(value)=>{println!("{}",value);0},Err(e)=>{eprintln!("{e}");1}
+            }
         }
         Some("compile") => {
             if args.len() < 2 { eprintln!("vox compile <seq> [--code standard|mitochondrial] [--pdb <path>]"); 1 }

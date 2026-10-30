@@ -5,6 +5,7 @@ fn main() {
     println!("cargo:rerun-if-env-changed=IG_ORDER_SPEC");
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=tools/generate_protein_marks.py");
+    println!("cargo:rerun-if-env-changed=VOX_PRIMITIVE_PROGRAMS_FILE");
     let protein_table = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("protein_marks.rs");
     let generated = std::process::Command::new("python3")
         .arg("tools/generate_protein_marks.py").arg(&protein_table)

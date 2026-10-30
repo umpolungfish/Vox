@@ -4,12 +4,14 @@
 //! enter production. Every trial is rebuilt with the canonical NeRF bonds.
 use alloc::{string::String, vec, vec::Vec};
 use crate::{fold3d::{self, RamaEntry, BackboneAtom}, peptide_geometry as v, phase_word};
+use crate::{belnap::B4, protein_lattice::{Interaction, PairReadout, Response}};
 
 pub struct Contact { pub i: usize, pub j: usize }
 pub struct Return {
     pub steps: Vec<RamaEntry>, pub backbone: Vec<BackboneAtom>,
     pub initial: f64, pub final_score: f64, pub accepted: usize,
     pub word_calls: usize, pub payload_moves: usize,
+    pub interactions: Vec<PairReadout>,
 }
 fn local(bb:&[BackboneAtom], i:usize, step:&RamaEntry, aa:&str)->Vec<v::Point> {
     let b=&bb[i];let deg=core::f64::consts::PI/180.0;
@@ -36,16 +38,22 @@ impl Model {
     }
 }
 fn score(chain:&[&str], steps:&[RamaEntry], bb:&[BackboneAtom], contacts:&[Contact], model:&Model)->(f64,Vec<v::Point>,Vec<v::Point>) {
+    evaluate(chain,steps,bb,contacts,model,None)
+}
+fn evaluate(chain:&[&str], steps:&[RamaEntry], bb:&[BackboneAtom], contacts:&[Contact], model:&Model,
+            mut retained:Option<&mut Vec<PairReadout>>)->(f64,Vec<v::Point>,Vec<v::Point>) {
     let points:Vec<_>=(0..chain.len()).flat_map(|i|local(bb,i,&steps[i],chain[i])).collect();
     let mut gradient=vec![(0.0,0.0,0.0);points.len()];let mut value=0.0;
-    for c in contacts {
-        let (i,j)=(model.starts[c.i]+1,model.starts[c.j]+1);
+    let mut interactions=alloc::collections::BTreeMap::<(usize,usize),Interaction>::new();
+    for (source,c) in contacts.iter().enumerate() {
+        let (left,right)=(model.starts[c.i]+1,model.starts[c.j]+1);
+        let (i,j)=(left.min(right),left.max(right));
         let delta=v::sub(points[i],points[j]);
         let distance=fold3d::sqrt_f64(v::dot(delta,delta)).max(1e-9);
         let k=1.0/model.degrees[c.i].max(model.degrees[c.j]).max(1) as f64;
-        let error=(distance-8.0).max(0.0);value+=k*error*error;
-        let g=v::scale(delta,2.0*k*error/distance);
-        gradient[i]=v::add(gradient[i],g);gradient[j]=v::sub(gradient[j],g);
+        let error=(distance-8.0).max(0.0);
+        interactions.entry((i,j)).or_default().insert(source,B4::T,
+            Response{energy:k*error*error,radial_derivative:2.0*k*error});
     }
     // Cell list avoids scanning all heavy-atom pairs on long proteins.
     let cell=|p:v::Point| {
@@ -62,11 +70,23 @@ fn score(chain:&[&str], steps:&[RamaEntry], bb:&[BackboneAtom], contacts:&[Conta
                 let delta=v::sub(point,points[j]);
                 let distance=fold3d::sqrt_f64(v::dot(delta,delta)).max(1e-9);
                 let error=(model.radii[i]+model.radii[j]-crate::peptide_closure::CLASH_OVERLAP-distance).max(0.0);
-                value+=10.0*error*error;
-                let g=v::scale(delta,-20.0*error/distance);
-                gradient[i]=v::add(gradient[i],g);gradient[j]=v::sub(gradient[j],g);
+                if error>0.0 {
+                    interactions.entry((i,j)).or_default().insert(contacts.len(),B4::F,
+                        Response{energy:10.0*error*error,radial_derivative:-20.0*error});
+                }
             }}
         }}}
+    }
+    for ((i,j),interaction) in interactions {
+        let distance=fold3d::sqrt_f64(v::dot(v::sub(points[i],points[j]),v::sub(points[i],points[j]))).max(1e-9);
+        let total=interaction.evaluate();
+        value+=total.energy;
+        let g=v::scale(v::sub(points[i],points[j]),total.radial_derivative/distance);
+        gradient[i]=v::add(gradient[i],g);gradient[j]=v::sub(gradient[j],g);
+        if let Some(rows)=retained.as_deref_mut() {
+            let (state,family)=interaction.family();
+            rows.push(PairReadout{atoms:(i,j),distance,state,family,terms:interaction.terms});
+        }
     }
     (value,gradient,points)
 }
@@ -141,8 +161,10 @@ pub fn run(chain:&[&str], initial:&[RamaEntry], contacts:&[Contact],
         }
         if !improved {break;}
     }
+    let mut interactions=Vec::new();
+    evaluate(chain,&steps,&bb,contacts,&model,Some(&mut interactions));
     Ok(Return{steps,backbone:bb,initial:initial_score,final_score:current,accepted,
-        word_calls:calls,payload_moves:moves})
+        word_calls:calls,payload_moves:moves,interactions})
 }
 
 #[cfg(test)]

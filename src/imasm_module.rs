@@ -144,7 +144,7 @@ pub fn emit_standalone(raw: &[u8]) -> Result<String, String> {
 /// needed by the executing machine.
 pub fn emit_standalone_to(raw: &[u8], mut write: impl FnMut(&[u8]) -> Result<(), String>) -> Result<(), String> {
     loader::standalone(raw)?;
-    let l = loader::load(raw);
+    let mut l = loader::load(raw);
     let bits = bits_of(l.arch);
     write(b"; standalone static-v1\n")?;
     write(format!("; {} module ({} {})\n; entry 0x{:x}\n; bits {}\n", INDIRECT,l.format,l.arch,l.entry,bits).as_bytes())?;
@@ -153,7 +153,37 @@ pub fn emit_standalone_to(raw: &[u8], mut write: impl FnMut(&[u8]) -> Result<(),
     }
     for (name,addr) in &l.symbols {write(format!("; sym {} 0x{:x}\n",name,addr).as_bytes())?;}
     for (slot,resolver) in &l.irelative {write(format!("; irel 0x{:x} 0x{:x}\n",slot,resolver).as_bytes())?;}
-    for (slot,value) in &l.relative {write(format!("; rela 0x{:x} 0x{:x}\n",slot,value).as_bytes())?;}
+    for (slot,value) in &l.relative {write(format!("; rela 0x{:x} 0x{:x}\n",slot,value).as_bytes())?;
+    }
+
+    // PE import stubs: halt external IAT calls to prevent VM halt from unmapped target
+    if l.format == "pe" && !l.iat_fixups.is_empty() {
+        // Generate a halt stub in the last code segment
+        if let Some((last_base, last_bytes)) = l.code.last_mut() {
+            let stub_start = last_bytes.len();
+            // Append: hlt (0xf4), ret (0xc3)
+            last_bytes.extend_from_slice(&[0xf4, 0xc3]);
+            let stub_addr = *last_base + stub_start as u64;
+            // Patch IAT slots to point to our stub
+            for (iat_slot, _target) in &l.iat_fixups {
+                // Find the data segment that contains this slot and patch it
+                for (data_base, data_bytes) in &mut l.data {
+                    let data_size = data_bytes.len() as u64;
+                    if *iat_slot >= *data_base && *iat_slot < *data_base + data_size {
+                        // Found it! Patch the IAT entry
+                        let offset = (*iat_slot - *data_base) as usize;
+                        if offset + 8 <= data_bytes.len() {
+                            data_bytes[offset..offset+8].copy_from_slice(&stub_addr.to_le_bytes());
+                        } else if offset + 4 <= data_bytes.len() {
+                            data_bytes[offset..offset+4].copy_from_slice(&(stub_addr as u32).to_le_bytes());
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     const HEX: &[u8;16] = b"0123456789abcdef";
     let mut encoded = [0u8;8192];
     for (at,blob) in &l.data {

@@ -109,6 +109,13 @@ Standalone `vox compile` and hosted `g-momonados vox compile` call the same `Vox
 
 `vox compile` preserves all twenty amino acids and their complete source-bound self-marks. Native glut, chemical-form alternatives and word executions accompany the coordinate readout. The build prepares these records from the sibling Rebis and ob3ect sources; the live Lean correspondence supplies the promoted-primitive table.
 
+The returned carrier includes `lattice-interaction-work`: source-addressed
+pair potentials and radial derivatives on native N,T,F,B memberships, together
+with the initial and final configured model potential. The torsion calculation
+uses these same responses for its coordinate gradients. The current contact
+and excluded-volume potentials remain explicit geometry-model inputs. See
+[the interaction laws and measured structures](../ig-docs/protein_folding_lattice_rules.md).
+
 ```bash
 target/x86_64-unknown-linux-musl/release/vox compile --fasta protein.fasta --input protein --pdb protein.pdb
 ```

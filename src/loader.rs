@@ -24,6 +24,9 @@ pub struct Loaded {
     /// The machine the code is for, so a non-x86-64 binary is refused rather
     /// than silently misdecoded: "x86-64", "x86-32", "arm64", "arm", or a name.
     pub arch: &'static str,
+    /// IAT slots whose target address is outside all code segments; (slot_addr, stub_addr).
+    /// `emit_standalone_to` writes halt stubs at stub_addr and patches data at slot_addr.
+    pub iat_fixups: alloc::vec::Vec<(u64, u64)>,
     /// R_X86_64_IRELATIVE relocations: (GOT slot address, resolver address). A
     /// static binary leaves these for its startup to apply — run each resolver,
     /// store the pointer it returns in the slot — which is how the CPU-specific
@@ -67,56 +70,59 @@ pub fn load(raw: &[u8]) -> Loaded {
     }
     // raw / flat binary: the whole file as code, a conventional load base.
     Loaded { entry: 0x1000, phdr: 0, phent: 0, phnum: 0, code: alloc::vec![(0x1000, raw.to_vec())], data: Vec::new(),
-             symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "raw", arch: "x86-64" }
+             symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), iat_fixups: alloc::vec::Vec::new(), format: "raw", arch: "x86-64" }
 }
 
 /// Check the runtime-linkage boundary before exporting or running a membrane.
 /// Build-time dependencies are already part of the executable. ELF interpreters
 /// and DT_NEEDED entries instead name code outside that retained image.
 pub fn standalone(raw: &[u8]) -> Result<(), String> {
-    if !raw.starts_with(b"\x7fELF") {
-        return Err("standalone membrane requires an ELF executable".into());
-    }
-    if raw.len() < 52 || raw[5] != 1 || !matches!(raw[4], 1 | 2) {
-        return Err("invalid or unsupported standalone ELF header".into());
-    }
-    let wide = raw[4] == 2;
-    if wide && raw.len() < 64 { return Err("truncated ELF header".into()); }
-    let (off, size, count) = if wide {
-        (le(raw, 32, 8), le(raw, 54, 2), le(raw, 56, 2))
-    } else { (le(raw, 28, 4), le(raw, 42, 2), le(raw, 44, 2)) };
-    if count == 0 || size < if wide { 56 } else { 32 } {
-        return Err("standalone ELF has no valid program headers".into());
-    }
-    let end = count.checked_mul(size).and_then(|n| off.checked_add(n))
-        .ok_or("ELF program-header range overflow")?;
-    if end > raw.len() as u64 { return Err("truncated ELF program headers".into()); }
-    for index in 0..count {
-        let p = (off + index * size) as usize;
-        match le(raw, p, 4) {
-            3 => return Err("membrane requires an external ELF interpreter; rebuild it statically".into()),
-            2 => {
-                let (start, len, stride) = if wide {
-                    (le(raw, p + 8, 8), le(raw, p + 32, 8), 16)
-                } else { (le(raw, p + 4, 4), le(raw, p + 16, 4), 8) };
-                let end = start.checked_add(len).ok_or("ELF dynamic range overflow")?;
-                if end > raw.len() as u64 || len % stride != 0 {
-                    return Err("truncated ELF dynamic table".into());
-                }
-                let mut at = start;
-                while at < end {
-                    let tag = le(raw, at as usize, (stride / 2) as usize);
-                    if tag == 0 { break; }
-                    if matches!(tag, 1 | 0x7fff_fffd | 0x7fff_ffff) {
-                        return Err("membrane requires an external shared library; rebuild it statically".into());
-                    }
-                    at += stride;
-                }
-            }
-            _ => {}
+    if raw.starts_with(b"\x7fELF") {
+        if raw.len() < 52 || raw[5] != 1 || !matches!(raw[4], 1 | 2) {
+            return Err("invalid or unsupported standalone ELF header".into());
         }
+        let wide = raw[4] == 2;
+        if wide && raw.len() < 64 { return Err("truncated ELF header".into()); }
+        let (off, size, count) = if wide {
+            (le(raw, 32, 8), le(raw, 54, 2), le(raw, 56, 2))
+        } else { (le(raw, 28, 4), le(raw, 42, 2), le(raw, 44, 2)) };
+        if count == 0 || size < if wide { 56 } else { 32 } {
+            return Err("standalone ELF has no valid program headers".into());
+        }
+        let end = count.checked_mul(size).and_then(|n| off.checked_add(n))
+            .ok_or("ELF program-header range overflow")?;
+        if end > raw.len() as u64 { return Err("truncated ELF program headers".into()); }
+        for index in 0..count {
+            let p = (off + index * size) as usize;
+            match le(raw, p, 4) {
+                3 => return Err("membrane requires an external ELF interpreter; rebuild it statically".into()),
+                2 => {
+                    let (start, len, stride) = if wide {
+                        (le(raw, p + 8, 8), le(raw, p + 32, 8), 16)
+                    } else { (le(raw, p + 4, 4), le(raw, p + 16, 4), 8) };
+                    let end = start.checked_add(len).ok_or("ELF dynamic range overflow")?;
+                    if end > raw.len() as u64 || len % stride != 0 {
+                        return Err("truncated ELF dynamic table".into());
+                    }
+                    let mut at = start;
+                    while at < end {
+                        let tag = le(raw, at as usize, (stride / 2) as usize);
+                        if tag == 0 { break; }
+                        if matches!(tag, 1 | 0x7fff_fffd | 0x7fff_ffff) {
+                            return Err("membrane requires an external shared library; rebuild it statically".into());
+                        }
+                        at += stride;
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    } else if &raw[0..2] == b"MZ" {
+        PE::standalone(raw)
+    } else {
+        Err("standalone membrane requires an ELF executable".into())
     }
-    Ok(())
 }
 
 #[cfg(test)]
@@ -200,7 +206,7 @@ mod standalone_tests {
 // ── ELF (32- and 64-bit) ──────────────────────────────────────────────────────
 fn elf(raw: &[u8]) -> Loaded {
     let is64 = raw.get(4).copied() == Some(2);
-    let mut out = Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "elf", arch: arch_name(le(raw,18,2), "elf") };
+    let mut out = Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), iat_fixups: alloc::vec::Vec::new(), format: "elf", arch: arch_name(le(raw,18,2), "elf") };
     // header field widths and offsets differ by class
     let w = if is64 { 8usize } else { 4 };                 // address width
     out.entry = le(raw, 24, w);
@@ -317,8 +323,58 @@ fn elf(raw: &[u8]) -> Loaded {
 }
 
 // ── PE ───────────────────────────────────────────────────────────────────────
+struct PE {}
+
+impl PE {
+    fn standalone(_raw: &[u8]) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+#[allow(dead_code)]
+fn pe_rva_to_off(raw: &[u8], rva: u64) -> Option<usize> {
+    let lfanew = le(raw, 0x3c, 4) as usize;
+    if lfanew + 24 > raw.len() { return None; }
+    let coff = lfanew + 4;
+    let nsec = le(raw, coff + 2, 2) as usize;
+    let opt_size = le(raw, coff + 16, 2) as usize;
+    let opt = coff + 20;
+    let sects = opt + opt_size;
+    for k in 0..nsec {
+        let s = sects + k * 40;
+        if s + 40 > raw.len() { break; }
+        let vaddr = le(raw, s + 12, 4);
+        let raw_size = le(raw, s + 16, 4) as usize;
+        let raw_ptr = le(raw, s + 20, 4) as usize;
+        if rva >= vaddr as u64 && rva < (vaddr as u64 + raw_size as u64) {
+            return Some(raw_ptr + (rva - vaddr as u64) as usize);
+        }
+    }
+    None
+}
+
+#[allow(dead_code)]
+fn pe_count_iat(raw: &[u8], iat_rva: u64, is64: bool) -> usize {
+    let mut count = 0;
+    let mut off = match pe_rva_to_off(raw, iat_rva) { Some(o) => o, None => return 0 };
+    let stride = if is64 { 8 } else { 4 };
+    while off + stride <= raw.len() {
+        let val = le(raw, off, stride);
+        if val == 0 { break; }
+        if is64 {
+            if (val >> 63) & 1 == 1 { count += 1; off += stride; continue; }
+            count += 1;
+        } else {
+            if (val >> 31) & 1 == 1 { count += 1; off += stride; continue; }
+            count += 1;
+        }
+        off += stride;
+    }
+    count
+}
+
 fn pe(raw: &[u8]) -> Loaded {
-    let mut out = Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "pe", arch: "other" };
+    let mut out = Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), iat_fixups: alloc::vec::Vec::new(), format: "pe", arch: "other" };
     let lfanew = le(raw, 0x3c, 4) as usize;
     if lfanew + 24 > raw.len() || &raw[lfanew..lfanew + 4] != b"PE\0\0" { return out; }
     let coff = lfanew + 4;
@@ -348,6 +404,48 @@ fn pe(raw: &[u8]) -> Loaded {
         if (chars & 0x2000_0000) != 0 || (chars & 0x20) != 0 { out.code.push((base, bytes)); }
         else if (chars & 0x4000_0000) != 0 { out.data.push((base, bytes)); }   // MEM_READ
     }
+
+    // ── Import directory: collect IAT slots pointing outside code ──
+    // Data directory entry 1 = imports. PE32+ puts entry 0 at opt+112, entry 1 at opt+120.
+    // PE32 puts entry 0 at opt+96, entry 1 at opt+104.
+    let (is64, dir_off) = if magic == 0x20b {
+        (true, opt + 120)         // PE32+: entry 1 (imports)
+    } else {
+        (false, opt + 104)         // PE32: entry 1 (imports)
+    };
+    let dir_rva = le(raw, dir_off, 4);
+    let dir_size = le(raw, dir_off + 4, 4) as usize;
+    if dir_rva != 0 && dir_size != 0 {
+        let mut at_rva = dir_rva;
+        let mut at_off = pe_rva_to_off(raw, at_rva);
+        while let Some(off) = at_off {
+            if off + 20 > raw.len() { break; }
+            let orig_rva = le(raw, off, 4);
+            let iat_rva   = le(raw, off + 16, 4);
+            if orig_rva == 0 && iat_rva == 0 { break; }
+            if iat_rva != 0 {
+                let mut slot_rva = iat_rva;
+                loop {
+                    let slot_off = match pe_rva_to_off(raw, slot_rva) { Some(o) => o, None => break };
+                    let target = le(raw, slot_off, if is64 { 8 } else { 4 });
+                    if target == 0 { break; }
+                    // Only stub slots whose target is outside all code segments
+                    let mut in_code = false;
+                    for (cb, cbytes) in &out.code {
+                        let cstart = *cb;
+                        let cend = cstart + cbytes.len() as u64;
+                        if target >= cstart && target < cend { in_code = true; break; }
+                    }
+                    if !in_code {
+                        out.iat_fixups.push((image_base + slot_rva, target));
+                    }
+                    slot_rva += if is64 { 8 } else { 4 };
+                }
+            }
+            at_rva += 20;
+            at_off = pe_rva_to_off(raw, at_rva);
+        }
+    }
     out
 }
 
@@ -361,11 +459,11 @@ fn macho_fat(raw: &[u8]) -> Loaded {
         if cputype == 0x0100_0007 && offset < raw.len() { return macho(raw, offset); }   // x86_64
     }
     if nfat > 0 { return macho(raw, be(raw, 16, 4) as usize); }
-    Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "macho-fat", arch: "other" }
+    Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), iat_fixups: alloc::vec::Vec::new(), format: "macho-fat", arch: "other" }
 }
 
 fn macho(raw: &[u8], base_off: usize) -> Loaded {
-    let mut out = Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), format: "macho", arch: arch_name(le(raw, base_off+4, 4), "macho") };
+    let mut out = Loaded { entry: 0, phdr: 0, phent: 0, phnum: 0, code: Vec::new(), data: Vec::new(), symbols: BTreeMap::new(), irelative: alloc::vec::Vec::new(), relative: alloc::vec::Vec::new(), iat_fixups: alloc::vec::Vec::new(), format: "macho", arch: arch_name(le(raw, base_off+4, 4), "macho") };
     let ncmds = le(raw, base_off + 16, 4) as usize;
     let mut cmd = base_off + 32;   // 64-bit header
     let mut text_base = 0u64;
