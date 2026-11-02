@@ -68,6 +68,12 @@ impl SiteProgram {
     }
     pub fn histogram(&self,seed:u8)->&[u64;16]{&self.histograms[seed as usize]}
     pub fn edge_count(&self)->usize{self.graph.edges.len()}
+    pub fn edge_states(&self,seed:u8)->&[u8]{&self.edge_states[seed as usize]}
+    /// Native boundary of this prepared source graph for a carried input.
+    /// Its complete node/edge state remains in the same source record.
+    pub fn returned_state(&self,seed:u8)->u8{
+        *self.node_states[seed as usize].last().expect("validated source graph has a terminal node")
+    }
     pub fn record(&self)->serde_json::Value {
         let (pairs,fully)=self.graph.frobenius_closures();
         let closure=match self.graph.closure_state(){ClosureState::Closed(_)=>"transformed-reconnected",
@@ -119,6 +125,46 @@ impl SiteCarrier {
     }
     pub fn program(&self,residue:usize,form:usize,part:usize)->&SiteProgram{
         &self.programs[self.bindings[residue][form][part]]
+    }
+    /// Retain the complete deterministic graph state at one joint source event.
+    /// Edge ordinals refer to the graph edges exported by `record`.
+    pub fn joint_event_ports(&self,forms:&[usize],part:usize,seeds:&[u8])
+        ->Result<serde_json::Value,String>{
+        if forms.len()!=self.bindings.len()||seeds.len()!=forms.len(){
+            return Err("joint source event has incomplete residue bindings".into());
+        }
+        let mut ports=Vec::with_capacity(forms.len());
+        for (residue,(&form,&seed)) in forms.iter().zip(seeds).enumerate(){
+            let program_id=*self.bindings[residue].get(form).and_then(|p|p.get(part))
+                .ok_or("joint source event has an invalid graph binding")?;
+            if seed>=16{return Err("joint source event seed is outside SIXTEEN_3".into());}
+            ports.push(serde_json::json!({"residue":residue,"form":form,"component":part,
+                "program":program_id,"seed":seed,
+                "edge_states":self.programs[program_id].edge_states(seed)}));
+        }
+        Ok(serde_json::json!(ports))
+    }
+    /// Execute ordered residue words on one banked continuation.
+    pub fn joint_sequence_event(&self,forms:&[usize],part:usize)
+        ->Result<serde_json::Value,String>{
+        if forms.len()!=self.bindings.len(){return Err("incomplete joint sequence".into());}
+        let mut carried=phase_word::Continuation::<usize>::default();
+        let mut states=Vec::new();let mut ancestry=Vec::new();
+        for (residue,&form) in forms.iter().enumerate(){
+            let program=*self.bindings[residue].get(form).and_then(|p|p.get(part))
+                .ok_or("joint sequence has an invalid component")?;
+            let before=carried.readout().register;
+            carried.advance_with(&self.programs[program].word,&residue,|_,_|Ok(()))?;
+            states.push(phase_word::native_mask_from_runtime(carried.readout().register));
+            ancestry.push(serde_json::json!({"residue":residue,"form":form,"component":part,
+                "program":program,"input_runtime_register":before,
+                "returned_runtime_register":carried.readout().register,
+                "open_bank_sizes":carried.frames().iter().map(Vec::len).collect::<Vec<_>>(),
+                "next_deposit_id":carried.next_deposit_id()}));
+        }
+        Ok(serde_json::json!({"operation":"ordered source words on one retained native continuation",
+            "states":states,"mass":1,"ancestry":ancestry,
+            "returned_register":carried.readout().register,"fixed":carried.is_fixed()}))
     }
     pub fn record(&self)->serde_json::Value{
         serde_json::json!({"schema":"native-protein-port-graphs/v1",

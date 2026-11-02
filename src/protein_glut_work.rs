@@ -28,6 +28,11 @@ impl Cell {
         let z=self.coordinate();
         libm::sqrt(n*(p*n+z*z)/(p+n))
     }
+    /// Fixed-conformation minimizer of channel deformation plus live bank.
+    pub fn conditional_preference(&self,distance:f64)->f64{
+        let p=self.positive as f64;let n=self.negative as f64;
+        (distance*n/(p+n)).max(libm::sqrt(p*n*n/(p+n))).min(self.preference())
+    }
     pub fn available(&self)->f64{
         let z=self.coordinate();self.multiplicity as f64*self.positive as f64*z*z/2.0
     }
@@ -105,6 +110,23 @@ impl WorkBank {
 #[cfg(test)]
 mod tests{
     use super::*;
+    #[test]
+    fn conditional_nest_is_idempotent_and_minimizes_coupled_energy(){
+        for p in 1..=2{for n in 1..=2{for tick in 0..=32{
+            let cell=Cell::new([0,1,1,2],3,p,n);let distance=tick as f64/4.0;
+            let q=cell.conditional_preference(distance);
+            let (p,n,c)=(p as f64,n as f64,3.0);
+            let lower=libm::sqrt(p*n*n/(p+n));let upper=cell.preference();
+            let energy=|x:f64|c*(p+n)*(distance-x)*(distance-x)/2.0
+                +c*p*((p+n)*x*x/n-p*n)/2.0;
+            assert!(energy(q)<=energy(upper)+1e-10);
+            for trial in [lower,upper,(q-0.01).max(lower),(q+0.01).min(upper)]{
+                assert!(energy(q)<=energy(trial)+1e-10);
+            }
+            let repeated=(distance*n/(p+n)).max(lower).min(q);
+            assert_eq!(q,repeated);
+        }}}
+    }
     #[test]
     fn release_pays_for_actual_work_and_preserves_the_remaining_glut(){
         let mut bank=WorkBank{cells:alloc::vec![Cell::new([0,1,1,2],3,1,1),Cell::new([1,2,3,0],5,2,1)]};

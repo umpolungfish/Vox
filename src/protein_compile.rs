@@ -76,6 +76,13 @@ pub fn run(args: &[String]) -> i32 {
     let mut coords_mode = false;
     let mut native_lattice = true;
     let mut observation_steps = None;
+    let mut prepare_only = false;
+    let mut one_shot = false;
+    let mut supplied_operator:Option<String>=None;
+    let mut whole_return_path:Option<String>=None;
+    let mut whole_event_sic:Option<(String,String)>=None;
+    let mut joint_frame:Option<(String,String,String)>=None;
+    let mut joint_root:Option<(String,String)>=None;
     let mut resume_path = None;
     let mut route_glut_path:Option<String>=None;
     let mut route_pdb_path:Option<String>=None;
@@ -84,15 +91,23 @@ pub fn run(args: &[String]) -> i32 {
     while i < args.len() {
         match args[i].as_str() {
             "--help" | "-h" => {
-                println!("vox compile <seq> | --fasta <file> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--carrier <path>] [--steps <count>] [--resume <carrier>] [--route-branch <glut.json> --route-branch-pdb <pdb>] [--coords] [--pdb <path>] [--configured]");
+                println!("vox compile <seq> | --fasta <file> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--carrier <path>] [--steps <count>] [--resume <carrier>] [--route-branch <glut.json> --route-branch-pdb <pdb>] [--coords] [--one-shot] [--pdb <path>] [--configured]");
                 println!("Execute native Glut parameters and FOUR-derived geometry in membership units by default. --carrier exports the source-bound residue-centre structure and full lattice interactions; --coords prints native positions. --input protein resolves nucleotide-alphabet ambiguity. --fasta reads one record.");
                 println!("--lattice explicitly selects the default native path. --configured selects the earlier model with supplied physical parameters and enables PDB export.");
                 println!("--steps bounds the native observation interval and returns the complete held carrier.");
+                println!("--prepare-only constructs the entire source carrier without relaxation transformations.");
                 return 0;
             }
             "--resume" if i+1<args.len() => {resume_path=Some(args[i+1].clone());i+=2;}
             "--route-branch" if i+1<args.len() => {route_glut_path=Some(args[i+1].clone());i+=2;}
             "--route-branch-pdb" if i+1<args.len() => {route_pdb_path=Some(args[i+1].clone());i+=2;}
+            "--whole-algebraic-return" if i+1<args.len()=>{whole_return_path=Some(args[i+1].clone());i+=2;}
+            "--joint-frame-return" if i+3<args.len()=>{joint_frame=Some((args[i+1].clone(),args[i+2].clone(),args[i+3].clone()));i+=4;}
+            "--joint-root-return" if i+2<args.len()=>{joint_root=Some((args[i+1].clone(),args[i+2].clone()));i+=3;}
+            "--whole-source-event-sic" if i+2<args.len()=>{whole_event_sic=Some((args[i+1].clone(),args[i+2].clone()));i+=3;}
+            "--prepare-only" => { prepare_only=true; i+=1; }
+            "--one-shot" => { one_shot=true; i+=1; }
+            "--peptide-operator" if i+1<args.len()=>{supplied_operator=Some(args[i+1].clone());i+=2;}
             "--coords" => { coords_mode = true; i += 1; }
             "--lattice" => { native_lattice = true; i += 1; }
             "--configured" => { native_lattice = false; i += 1; }
@@ -134,6 +149,53 @@ pub fn run(args: &[String]) -> i32 {
             other => { seq_parts.push(other.to_string()); i += 1; }
         }
     }
+    if let Some((input,output))=joint_root{
+        let operation=(||->Result<(),String>{
+            let bytes=std::fs::read(input).map_err(|e|e.to_string())?;
+            let value=serde_json::from_slice(&bytes).map_err(|e|e.to_string())?;
+            let result=crate::protein_native::joint_root_return(&value)?;
+            std::fs::write(output,serde_json::to_vec_pretty(&result).map_err(|e|e.to_string())?)
+                .map_err(|e|e.to_string())?;Ok(())
+        })();
+        return match operation{Ok(())=>0,Err(e)=>{eprintln!("{}",e);1}};
+    }
+    if let Some((source,response,output))=joint_frame{
+        let operation=(||->Result<(),String>{
+            let read=|p:&str|->Result<serde_json::Value,String>{serde_json::from_slice(
+                &std::fs::read(p).map_err(|e|e.to_string())?).map_err(|e|e.to_string())};
+            let result=crate::protein_native::joint_frame_return(&read(&source)?,&read(&response)?)?;
+            std::fs::write(output,serde_json::to_vec_pretty(&result).map_err(|e|e.to_string())?)
+                .map_err(|e|e.to_string())?;Ok(())
+        })();
+        return match operation{Ok(())=>0,Err(e)=>{eprintln!("{}",e);1}};
+    }
+    if let Some(path)=whole_return_path{
+        let operation=(||->Result<(),String>{
+            let bytes=std::fs::read(&path).map_err(|e|e.to_string())?;
+            let mut value:serde_json::Value=serde_json::from_slice(&bytes).map_err(|e|e.to_string())?;
+            let native_return=crate::protein_native::whole_algebraic_return(&value)?;
+            let carrier_fixed=native_return["full_carrier_fixed_point"]["verified"]==true;
+            value["full_carrier_fixed_point"]=native_return["full_carrier_fixed_point"].clone();
+            value["full_chain_lattice_fold_closed"]=serde_json::json!(carrier_fixed);
+            value["native_return"]=native_return;
+            let output=carrier_path.as_deref().unwrap_or(&path);
+            std::fs::write(output,serde_json::to_vec_pretty(&value).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+            println!("whole algebraic parent/SIC return written to {}",output);Ok(())
+        })();
+        return match operation{Ok(())=>0,Err(e)=>{eprintln!("{}",e);1}};
+    }
+    if let Some((input,output))=whole_event_sic{
+        let operation=(||->Result<(),String>{
+            let bytes=std::fs::read(&input).map_err(|e|e.to_string())?;
+            let value:serde_json::Value=serde_json::from_slice(&bytes).map_err(|e|e.to_string())?;
+            let result=crate::protein_native::whole_source_event_sic(&value)?;
+            std::fs::write(&output,serde_json::to_vec_pretty(&result).map_err(|e|e.to_string())?)
+                .map_err(|e|e.to_string())?;
+            println!("source-event FOUR/SIC re-entry written to {}",output);Ok(())
+        })();
+        return match operation{Ok(())=>0,Err(e)=>{eprintln!("{}",e);1}};
+    }
+    if prepare_only { observation_steps=Some(0); }
     let seq = seq_parts.join(" ");
     if observation_steps.is_some() && !native_lattice {
         eprintln!("--steps requires native folding");return 1;
@@ -256,21 +318,56 @@ pub fn run(args: &[String]) -> i32 {
     fn report_fold(chain: &[&'static str], b4_path: &[char], mrna: &str, start: usize,
                    pdb_path: Option<&str>, carrier_path: Option<&str>, coords_mode: bool,
                    native_lattice: bool, observation_steps: Option<usize>,
-                   route_paths:Option<(&str,&str)>) -> Result<(), String> {
+                   one_shot: bool,
+                   route_paths:Option<(&str,&str)>,supplied_operator:Option<&str>) -> Result<(), String> {
         let carrier = crate::protein_glut::ProteinGlut::prepare(chain, mrna, start)?;
         println!("native protein B: {} residues, {} chemical forms; full self-marks executed",
             carrier.residues.len(), carrier.residues.iter().map(|r|r.forms.len()).sum::<usize>());
+        if let Some(path)=supplied_operator{
+            let bytes=std::fs::read(path).map_err(|e|e.to_string())?;
+            let operator=serde_json::from_slice(&bytes).map_err(|e|e.to_string())?;
+            let result=crate::peptide_operator::prepare(&operator,carrier.source_record())?;
+            let output=carrier_path.ok_or("supplied peptide operator requires --carrier")?;
+            {
+                use std::io::Write;
+                let pending=format!("{}.pending.{}",output,std::process::id());
+                let file=std::fs::File::create(&pending).map_err(|e|e.to_string())?;
+                let mut writer=std::io::BufWriter::new(file);
+                serde_json::to_writer_pretty(&mut writer,&result).map_err(|e|e.to_string())?;
+                writer.flush().map_err(|e|e.to_string())?;
+                std::fs::rename(&pending,output).map_err(|e|e.to_string())?;
+            }
+            println!("supplied peptide operator: {}",result["status"].as_str().unwrap_or("held"));
+            return Ok(());
+        }
         if native_lattice {
             if pdb_path.is_some(){return Err("native folding exports membership units through --carrier; PDB requires a derived unit conversion".into());}
             let route=route_paths.map(|(glut,pdb)|route_branch(glut,pdb,chain)).transpose()?;
-            let mut result=crate::protein_native::fold_programs_observed_with_branch(&carrier.native_programs(),observation_steps,route.as_ref())?;
+            let mut result=if one_shot{crate::protein_native::fold_programs_one_shot(&carrier.native_programs(),route.as_ref())?}
+                else if observation_steps==Some(0){crate::protein_native::prepare_whole_programs(&carrier.native_programs(),route.as_ref())?}
+                else{crate::protein_native::fold_programs_observed_with_branch(&carrier.native_programs(),observation_steps,route.as_ref())?};
             result["source"]=carrier.source_record();
+            if one_shot {
+                result["one_shot_lattice_contraction"]["sequence"]=serde_json::json!(chain.join("-"));
+            }
             println!("information-order closure: {} maximal joint observations, {} retained information gains",
                 result["maximal_joint_observations"],result["information_transition_count"]);
             println!("mechanical readout: deformation {} -> {}, retained strain {}, {} accepted coordinate steps",
                 result["initial_deformation"],result["final_deformation"],result["retained_strain"],
                 result["accepted_steps"].as_array().unwrap().len());
             println!("geometry: native membership units; {} retained residue centres",chain.len());
+            let modulus=&result["residue_modulus"];
+            if one_shot {
+                println!("one-shot lattice closure: {} residue tensors, {} pair tensors, one contraction; exact algebraic FOUR geometry emitted",
+                    result["one_shot_lattice_contraction"]["residue_tensors"],
+                    result["one_shot_lattice_contraction"]["pair_tensors"]);
+            } else {
+                println!("residue modulus: Z/{}Z, {} paired residue addresses, N/C seam cut; coordinate stationary {} (max torsion gradient {}); whole-carrier fixed point verified {}",
+                    modulus["modulus"],modulus["paired_residue_count"],
+                    if modulus["coordinate_stationary"]["reached"]==true{"yes"}else{"no"},
+                    modulus["coordinate_stationary"]["max_torsion_gradient"],
+                    if modulus["whole_carrier_fixed_point"]["verified"]==true{"yes"}else{"no"});
+            }
             if coords_mode {
                 for (i,p) in result["positions"].as_array().unwrap().iter().enumerate(){
                     println!("{} {} {} {} {}",i+1,chain[i],p[0],p[1],p[2]);
@@ -389,8 +486,8 @@ pub fn run(args: &[String]) -> i32 {
             Some(s) => println!("stop     {}", s),
             None => println!("stop     (none: the sequence ran out before a stop)"),
         }
-        match report_fold(&t.protein, &b4_path, &t.mrna, t.start, pdb_path.as_deref(), carrier_path.as_deref(), coords_mode, native_lattice, observation_steps,
-            route_glut_path.as_deref().zip(route_pdb_path.as_deref())) {
+        match report_fold(&t.protein, &b4_path, &t.mrna, t.start, pdb_path.as_deref(), carrier_path.as_deref(), coords_mode, native_lattice, observation_steps, one_shot,
+            route_glut_path.as_deref().zip(route_pdb_path.as_deref()),supplied_operator.as_deref()) {
             Ok(())=>0, Err(e)=>{eprintln!("{}",e);1}
         }
     } else {
@@ -418,8 +515,8 @@ pub fn run(args: &[String]) -> i32 {
         println!("dna      {}", dna);
         println!("degeneracy  {} total possible mRNA sequences (product of per-residue codon counts)",
             reverse.total_combinations);
-        match report_fold(&chain, &b4_path, &reverse.mrna, 0, pdb_path.as_deref(), carrier_path.as_deref(), coords_mode, native_lattice, observation_steps,
-            route_glut_path.as_deref().zip(route_pdb_path.as_deref())) {
+        match report_fold(&chain, &b4_path, &reverse.mrna, 0, pdb_path.as_deref(), carrier_path.as_deref(), coords_mode, native_lattice, observation_steps, one_shot,
+            route_glut_path.as_deref().zip(route_pdb_path.as_deref()),supplied_operator.as_deref()) {
             Ok(())=>0, Err(e)=>{eprintln!("{}",e);1}
         }
     }

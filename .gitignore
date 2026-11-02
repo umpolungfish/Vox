@@ -1,5 +1,7 @@
+membranes/
 
 # test targets, not part of the tool
+*.cpp
 *.bin
 *.dll
 *.exe

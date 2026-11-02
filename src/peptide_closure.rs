@@ -55,7 +55,51 @@ fn check_torsion(e:&mut Evidence,atoms:&[Atom<'_>],ids:[usize;4],expected:f64){
  if agreement<cos(1.0*DEG){e.issue("torsion",format!("{}:{}-{}-{}-{} disagrees with retained {:.3} deg",atoms[c].residue+1,atoms[a].name,atoms[b].name,atoms[c].name,atoms[d].name,expected));}
 }
 pub(crate) fn radius(name:&str)->f64 {match name.as_bytes().first(){Some(b'N')=>1.55,Some(b'O')=>1.52,Some(b'S')=>1.80,_=>1.70}}
+/// C-alpha projection of the existing full molecular nonbonded check.
+/// The exclusions follow molecular connectivity rather than residue spacing.
+pub(crate) fn ca_exclusion_relations(chain:&[&str])->Vec<(usize,usize,f64)>{
+ let excluded=steric_exclusions(chain);let mut ca=Vec::new();let mut offset=0;
+ for aa in chain{ca.push(offset+1);offset+=4+crate::fold3d::sidechain_topology(aa).len();}
+ let mut result=Vec::new();
+ for i in 0..ca.len(){for j in i+1..ca.len(){
+  if !excluded[ca[i]].contains(&ca[j]){
+   result.push((i,j,2.0*radius("CA")-CLASH_OVERLAP));
+  }
+ }}result
+}
+/// Source molecular constraints for propagation, before any contact selection.
+pub(crate) fn molecular_constraint_source(chain:&[&str])->serde_json::Value{
+ let mut atoms=Vec::new();let mut starts=Vec::new();let mut names=Vec::new();
+ for (residue,aa) in chain.iter().enumerate(){
+  starts.push(names.len());
+  for name in ["N","CA","C","O"].into_iter().chain(crate::fold3d::sidechain_topology(aa).iter().map(|x|x.0.trim())){
+   atoms.push(serde_json::json!({"residue":residue,"name":name}));names.push(name);
+  }
+ }
+ let mut edges=Vec::new();
+ for (i,&aa) in chain.iter().enumerate(){
+  let start=starts[i];let end=starts.get(i+1).copied().unwrap_or(names.len());
+  let find=|name:&str|start+names[start..end].iter().position(|&n|n==name).expect("source atom inventory");
+  for (a,b,length) in [("N","CA",1.458),("CA","C",1.525),("C","O",1.231)]{
+   edges.push(serde_json::json!([find(a),find(b),(length*1000.0+0.5) as u64]));
+  }
+  if i>0{edges.push(serde_json::json!([starts[i-1]+2,find("N"),1329]));}
+  for &(name,parent,_) in crate::fold3d::sidechain_topology(aa){
+   let length=source_sidechain_length(aa,name.trim(),parent);
+   edges.push(serde_json::json!([find(name.trim()),find(parent),(length*1000.0+0.5) as u64]));
+  }
+  for &(a,b,length) in ring_edges(aa){edges.push(serde_json::json!([find(a),find(b),(length*1000.0+0.5) as u64]));}
+ }
+ serde_json::json!({"atoms":atoms,"bonds":edges,"distance_unit":"1/1000 angstrom",
+  "source":"native peptide molecular inventory and bond constraints"})
+}
 fn aromatic(residue:&str)->bool {matches!(residue,"Phe"|"PHE"|"Tyr"|"TYR"|"His"|"HIS"|"Trp"|"TRP")}
+fn source_sidechain_length(residue:&str,name:&str,parent:&str)->f64{
+ if name=="CB"{1.53}else if aromatic(residue)&&parent!="CB"{
+  if name=="OH"{1.36}else{1.39}
+ }else if matches!(residue,"Pro"|"PRO"){1.50}
+ else{crate::peptide_geometry::bond_length(residue,name,parent)}
+}
 fn ring_edges(residue:&str)->&'static [(&'static str,&'static str,f64)] {
  match residue {
   "Pro"|"PRO"=>&[("CD","N",1.47)],
@@ -120,8 +164,7 @@ pub fn assess(chain:&[&str],backbone:&[[Point;4]],sidechains:&[Vec<(&str,Point)>
   if i>0 {edges.push((find(i-1,"C"),find(i,"N"),1.329,false));}
   for &(name,parent,_) in crate::fold3d::sidechain_topology(residue){
    let name=name.trim();
-   let length=if name=="CB" {1.53} else if aromatic(residue)&&parent!="CB" {if name=="OH" {1.36}else{1.39}}
-    else if matches!(residue,"Pro"|"PRO") {1.50}else{crate::peptide_geometry::bond_length(residue,name,parent)};
+   let length=source_sidechain_length(residue,name,parent);
    edges.push((find(i,parent),find(i,name),length,false));
   }
   for &(a,b,length) in ring_edges(residue){edges.push((find(i,a),find(i,b),length,true));}
