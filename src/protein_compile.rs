@@ -84,6 +84,7 @@ pub fn run(args: &[String]) -> i32 {
     let mut joint_frame:Option<(String,String,String)>=None;
     let mut joint_root:Option<(String,String)>=None;
     let mut resume_path = None;
+    let mut observations_only = false;
     let mut route_glut_path:Option<String>=None;
     let mut route_pdb_path:Option<String>=None;
     let mut seq_parts: Vec<String> = Vec::new();
@@ -91,13 +92,15 @@ pub fn run(args: &[String]) -> i32 {
     while i < args.len() {
         match args[i].as_str() {
             "--help" | "-h" => {
-                println!("vox compile <seq> | --fasta <file> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--carrier <path>] [--steps <count>] [--resume <carrier>] [--route-branch <glut.json> --route-branch-pdb <pdb>] [--coords] [--one-shot] [--pdb <path>] [--configured]");
+                println!("vox compile <seq> | --fasta <file> [--input auto|rna|dna|protein] [--code standard|mitochondrial] [--carrier <path>] [--steps <count>] [--resume <carrier>] [--observations-only] [--route-branch <glut.json> --route-branch-pdb <pdb>] [--coords] [--one-shot] [--pdb <path>] [--configured]");
                 println!("Execute native Glut parameters and FOUR-derived geometry in membership units by default. --carrier exports the source-bound residue-centre structure and full lattice interactions; --coords prints native positions. --input protein resolves nucleotide-alphabet ambiguity. --fasta reads one record.");
                 println!("--lattice explicitly selects the default native path. --configured selects the earlier model with supplied physical parameters and enables PDB export.");
                 println!("--steps bounds the native observation interval and returns the complete held carrier.");
+                println!("--observations-only with --resume exports current physical observations to --carrier without advancing or changing the input membrane.");
                 println!("--prepare-only constructs the entire source carrier without relaxation transformations.");
                 return 0;
             }
+            "--observations-only" => {observations_only=true;i+=1;}
             "--resume" if i+1<args.len() => {resume_path=Some(args[i+1].clone());i+=2;}
             "--route-branch" if i+1<args.len() => {route_glut_path=Some(args[i+1].clone());i+=2;}
             "--route-branch-pdb" if i+1<args.len() => {route_pdb_path=Some(args[i+1].clone());i+=2;}
@@ -206,6 +209,7 @@ pub fn run(args: &[String]) -> i32 {
     if resume_path.is_some()&&route_glut_path.is_some(){
         eprintln!("route branches enter native preparation; they cannot be added to a held return");return 1;
     }
+    if observations_only&&resume_path.is_none(){eprintln!("--observations-only requires --resume");return 1;}
     if let Some(path)=resume_path {
         if !native_lattice||!seq_parts.is_empty(){
             eprintln!("--resume uses the native source already retained in the carrier");return 1;
@@ -215,6 +219,31 @@ pub fn run(args: &[String]) -> i32 {
             let bytes=std::fs::read(&path).map_err(|e|format!("cannot read held carrier: {e}"))?;
             let mut held:serde_json::Value=serde_json::from_slice(&bytes).map_err(|e|e.to_string())?;
             drop(bytes);
+            let write_observations=|state:&serde_json::Value,source:&str,output:&str|->Result<(),String>{
+                let mut observation=crate::protein_folding_operator::supplied_observations(state).ok_or("held carrier has no supplied physical roots")?;
+                let digest=std::process::Command::new("sha256sum").arg("--").arg(source).output().map_err(|e|e.to_string())?;
+                if !digest.status.success(){return Err("cannot bind physical observations to their complete carrier".into());}
+                observation["source_carrier_sha256"]=serde_json::json!(String::from_utf8_lossy(&digest.stdout).split_whitespace().next().ok_or("empty carrier digest")?);
+                observation["source_carrier_file"]=serde_json::json!(source);
+                let file=std::fs::File::create(output).map_err(|e|e.to_string())?;let mut writer=std::io::BufWriter::new(file);serde_json::to_writer(&mut writer,&observation).map_err(|e|e.to_string())?;writer.flush().map_err(|e|e.to_string())
+            };
+            if observations_only{
+                if observation_steps.is_some(){return Err("--observations-only does not advance --steps".into());}
+                let output=carrier_path.as_ref().ok_or("physical observation export requires --carrier output")?;
+                if std::fs::canonicalize(output).ok()==std::fs::canonicalize(&path).ok(){return Err("observation output must differ from the complete input carrier".into());}
+                write_observations(&held,&path,output)?;println!("Physical observations exported to {output}; complete carrier unchanged.");return Ok(());
+            }
+            if crate::protein_folding_operator::resume_supplied(&mut held,observation_steps.unwrap_or(64))?{
+                if pdb_path.is_some(){return Err("supplied-operator continuation exports its complete atomic carrier; PDB resume export is not implemented".into());}
+                let output=carrier_path.as_ref().ok_or("supplied-operator resume requires --carrier output")?;
+                let file=std::fs::File::create(output).map_err(|e|e.to_string())?;
+                let mut writer=std::io::BufWriter::new(file);
+                serde_json::to_writer(&mut writer,&held).map_err(|e|e.to_string())?;
+                writer.flush().map_err(|e|e.to_string())?;
+                write_observations(&held,output,&format!("{output}.readout.json"))?;
+                println!("Retained atomic continuation returned to {output}; source word and banked records preserved.");
+                return Ok(());
+            }
             crate::protein_records::compact_held(&mut held);
             let mut result=crate::protein_native::resume_saved(&held,observation_steps)?;
             result["source"]=held["source"].clone();

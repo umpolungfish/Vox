@@ -48,6 +48,17 @@ pub mod peptide_relations;
 pub mod peptide_paths;
 pub mod peptide_reentry;
 pub mod peptide_phase;
+pub mod protein_folding_operator;
+mod protein_spatial_domain;
+mod protein_cycle_density;
+mod protein_contact_gram;
+#[path="protein_native_sic_field.rs"]
+mod protein_sic_exact;
+mod protein_contact_frames;
+mod protein_joint_conformation;
+mod protein_surface_response;
+mod protein_atomic_conformation;
+mod protein_atomic_surface;
 pub mod peptide_ccr;
 pub mod protein_orbital;
 pub mod protein_electronic;

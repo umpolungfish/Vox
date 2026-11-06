@@ -22,6 +22,7 @@ fn choose(n:usize,k:usize)->u128 {
     for i in 0..k.min(n-k) { result=result*(n-i) as u128/(i+1) as u128; }
     result
 }
+#[derive(Clone)]
 pub struct SectorOperator {
     pub orbitals:usize, pub up:usize, pub down:usize, pub states:Vec<u64>,
     pub diagonal:Vec<f64>, pub edges:Vec<(usize,usize,f64)>, pub applications:u64,

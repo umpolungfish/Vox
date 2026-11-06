@@ -34,6 +34,80 @@ fn compose(f:&Family)->(Family,Vec<[usize;3]>){
     (out,witnesses)
 }
 
+#[derive(Clone)]
+pub(crate) struct BankedPathObject { current:Family, versions:Vec<serde_json::Value> }
+impl BankedPathObject {
+    pub fn from_source(field:&serde_json::Value)->Result<Self,String>{
+        let mut current=Family::new();
+        let rows=field["ordered_source_carrier"]["steps"].as_array().ok_or("missing source path template")?;
+        for (id,row) in rows.iter().enumerate(){if row["reachable_from_source_seed"]==true{
+            let parse=|v:&serde_json::Value|->Result<Boundary,String>{Ok((v[0].as_u64().ok_or("invalid source boundary")? as usize,
+                v[1].as_u64().filter(|v|*v<16).ok_or("invalid source register")? as u8))};
+            let start=parse(&row["input_node"])?;let end=parse(&row["output_node"])?;
+            add(&mut current,Path{start,end,steps:alloc::vec![(id,false)]},start.1);
+        }}
+        let initial=serde_json::json!({"version":0,"operation":"source preparation","paths":record(&current)});
+        Ok(Self{current,versions:alloc::vec![initial]})
+    }
+    pub fn compose_at(&mut self,source_step:usize){
+        let (next,witnesses)=compose(&self.current);self.current=next;
+        self.versions.push(serde_json::json!({"version":self.versions.len(),"source_step":source_step,
+            "operation":"CLINK composition on the same source path object",
+            "paths":record(&self.current),"shared_boundary_witnesses":witnesses}));
+    }
+    pub fn propagate_at(&mut self,source_step:usize,source:&Self)->Result<(),String>{
+        let mut rounds=0;let mut witness_counts=Vec::new();
+        // Source boundaries increase by residue. This is finite ordered source
+        // propagation, retaining the exact path word and all zero-evidence paths.
+        if source.current.keys().any(|p|p.end.0<=p.start.0){return Err("source propagation requires its ordered residue DAG".into());}
+        loop{
+            let mut next=self.current.clone();let mut witnesses=0;
+            for (a,&ma) in &self.current{for (b,&mb) in &source.current{
+                if a.end==b.start{
+                    let mut steps=a.steps.clone();steps.extend_from_slice(&b.steps);
+                    add(&mut next,Path{start:a.start,end:b.end,steps},ma&mb);witnesses+=1;
+                }
+            }}
+            if next==self.current{break;}
+            self.current=next;rounds+=1;witness_counts.push(witnesses);
+        }
+        self.versions.push(serde_json::json!({"version":self.versions.len(),"source_step":source_step,
+            "operation":"AFWD exact ordered source-path propagation to finite closure","rounds":rounds,
+            "extension_witness_counts":witness_counts,"paths":record(&self.current)}));
+        Ok(())
+    }
+    pub fn version(&self)->usize{self.versions.len()-1}
+    pub fn identity_from_source(field:&serde_json::Value)->Result<Self,String>{
+        let root=&field["ordered_source_carrier"]["source_root"];
+        let boundary=(root[0].as_u64().ok_or("missing source unit boundary")? as usize,
+            root[1].as_u64().ok_or("missing source unit register")? as u8);
+        let mut current=Family::new();add(&mut current,Path{start:boundary,end:boundary,steps:Vec::new()},15);
+        Ok(Self{versions:alloc::vec![serde_json::json!({"version":0,"operation":"identity continuation on the retained source boundary",
+            "paths":record(&current)})],current})
+    }
+    pub fn fuse_sources(sources:&[&Self],source_step:usize)->Self{
+        let mut current=Family::new();
+        for source in sources{for (path,&value) in &source.current{add(&mut current,path.clone(),value);}}
+        Self{versions:alloc::vec![serde_json::json!({"version":0,"operation":"source FFUSE union with parent references retained",
+            "source_step":source_step,"paths":record(&current)})],current}
+    }
+    pub fn complete_chain_witnesses(&self,root:(usize,u8),residues:usize)->serde_json::Value{
+        let mut rows=Vec::new();
+        for (path,&value) in &self.current{
+            if path.start!=root||path.end.0!=residues||path.steps.len()!=residues{continue;}
+            let cuts=(1..path.steps.len()).flat_map(|a|((a+1)..path.steps.len()).map(move|b|[a,b])).collect::<Vec<_>>();
+            rows.push(serde_json::json!({"start":path.start,"end":path.end,"source_steps":path.steps,
+                "native_register":value,"three_unit_path_cuts":cuts,
+                "scope":"complete ordered source-word witness; physical residue contacts remain unresolved"}));
+        }
+        serde_json::json!(rows)
+    }
+    pub fn path_count(&self)->usize{self.current.len()}
+    pub fn report(&self)->serde_json::Value{serde_json::json!({"versions":self.versions,
+        "current_version":self.version(),"current_paths":self.current.len(),
+        "source_role":"whole source path/contact-map hypothesis object; spatial conformation remains unresolved"})}
+}
+
 pub fn execute(graph:&Graph,field:&serde_json::Value)->Result<serde_json::Value,String>{
     let dag=&field["ordered_source_carrier"];
     let steps=dag["steps"].as_array().ok_or("missing correlated source carrier")?;

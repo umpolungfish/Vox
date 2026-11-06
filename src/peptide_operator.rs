@@ -4,7 +4,7 @@ use imasm_core::{check::Graph,classic::Token,flow::{flow_values,gate_out},imasm1
 
 /// Lift the declared graph to the whole addressed residue field. Each field
 /// coordinate retains its source graph edge; no marginal distributions are made.
-fn lattice_field(graph:&Graph,peptide:&serde_json::Value,seed:u8)->Result<serde_json::Value,String>{
+pub(crate) fn lattice_field(graph:&Graph,peptide:&serde_json::Value,seed:u8)->Result<serde_json::Value,String>{
     use crate::{phase_word,protein_sites::{SiteProgram,ProgramSpec}};
     let residues=peptide["residues"].as_array().ok_or("missing lattice residues")?;
     let native_seed=phase_word::native_mask_from_runtime(seed);
@@ -102,7 +102,7 @@ fn lattice_field(graph:&Graph,peptide:&serde_json::Value,seed:u8)->Result<serde_
 fn mask(r:Reg16_3)->u8{u8::from(r.big_t)|u8::from(r.big_f)<<1|
     u8::from(r.small_t)<<2|u8::from(r.small_f)<<3}
 
-fn propagate_source(peptide:&serde_json::Value)->Result<serde_json::Value,String>{
+pub(crate) fn propagate_source(peptide:&serde_json::Value)->Result<serde_json::Value,String>{
     let residues=peptide["residues"].as_array().ok_or("unfolded chain lacks residues")?;
     let chain=residues.iter().map(|r|r["aa"].as_str().ok_or("residue lacks identity"))
         .collect::<Result<Vec<_>,_>>()?;
@@ -162,6 +162,9 @@ pub fn prepare(operator:&serde_json::Value,peptide:serde_json::Value)->Result<se
         }}
     }
     let (pairs,reconnected)=graph.frobenius_closures();
+    if operator["name"]=="Protein_Folding_Operator" {
+        return crate::protein_folding_operator::prepare(operator,peptide,&graph,seed);
+    }
     let forward=steps.iter().position(|s|s["opcode"]=="≻").ok_or("operator lacks forward propagation")?;
     let mut propagated=propagate_source(&peptide)?;
     propagated["native_lattice_field"]=lattice_field(&graph,&peptide,seed)?;

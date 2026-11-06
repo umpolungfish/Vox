@@ -8,6 +8,14 @@ use core::sync::atomic::{AtomicBool,Ordering};
 #[derive(Clone)]
 pub(super) struct E{pub(super) c:[BigInt;8],pub(super) d:BigInt}
 impl E{
+    fn float(value:f64)->Self{
+        let bits=value.to_bits();let exponent=((bits>>52)&2047) as i32;
+        let mut numerator=BigInt::from(if exponent==0{bits&((1u64<<52)-1)}else{(bits&((1u64<<52)-1))|(1u64<<52)});
+        if bits>>63!=0{numerator=-numerator;}
+        let power=if exponent==0{-1074}else{exponent-1023-52};
+        let denominator=if power>=0{numerator<<=power as usize;BigInt::one()}else{BigInt::one()<<(-power as usize)};
+        let mut c=core::array::from_fn(|_|BigInt::zero());c[0]=numerator;Self{c,d:denominator}.normalize()
+    }
     fn normalize(mut self)->Self{
         let g=self.c.iter().fold(self.d.clone(),|g,c|g.gcd(c));
         if !g.is_one(){for c in &mut self.c{*c/=&g;}self.d/=g;}self
@@ -33,6 +41,38 @@ impl E{
     fn equals_integer(&self,n:i64)->bool{
         self.c[0]==&self.d*n&&self.c[1..].iter().all(Zero::is_zero)
     }
+}
+
+/// Execute the canonical exact split and full dual synthesis on this input.
+/// A cache reuses only equal numerical operators; callers retain source ancestry.
+pub(super) fn return_operator(input:&[(f64,f64)])->Result<Vec<(f64,f64)>,String>{
+    if input.len()!=16||input.iter().any(|(r,i)|!r.is_finite()||!i.is_finite()){return Err("invalid exact SIC source operator".into());}
+    #[cfg(feature="hosted")]
+    let key:Vec<_>=input.iter().flat_map(|(r,i)|[r.to_bits(),i.to_bits()]).collect();
+    #[cfg(feature="hosted")]
+    static CACHE:std::sync::OnceLock<std::sync::Mutex<alloc::collections::BTreeSet<Vec<u64>>>>=std::sync::OnceLock::new();
+    #[cfg(feature="hosted")]
+    if CACHE.get_or_init(Default::default).lock().unwrap().contains(&key){return Ok(input.to_vec());}
+    let source:Vec<_>=input.iter().map(|&(r,i)|Z{re:E::float(r),im:E::float(i)}).collect();
+    let zero=|z:&Z|z.re.equals_integer(0)&&z.im.equals_integer(0);
+    let projectors=projectors();let mut returned=alloc::vec![Z::zero();16];
+    for projector in projectors{
+        let mut mass=Z::zero();
+        for i in 0..4{for j in 0..4{let z=&source[i*4+j];if !zero(z){mass=mass.add(&projector[j*4+i].mul(z));}}}
+        mass=mass.divide(4);
+        for output in 0..16{
+            let mut dual=projector[output].scale(5);if output/4==output%4{dual.re=dual.re.sub(&E::integer(1));}
+            returned[output]=returned[output].add(&mass.mul(&dual));
+        }
+    }
+    for (a,b) in returned.iter().zip(&source){
+        if !zero(&a.sub(b)){return Err("exact canonical SIC dual did not return the full source matrix".into());}
+    }
+    #[cfg(feature="hosted")]
+    CACHE.get().unwrap().lock().unwrap().insert(key);
+    // Exact equality establishes that these binary64 values serialize the
+    // returned field elements without a second numerical approximation.
+    Ok(input.to_vec())
 }
 #[derive(Clone)]
 pub(super) struct Z{pub(super) re:E,pub(super) im:E}

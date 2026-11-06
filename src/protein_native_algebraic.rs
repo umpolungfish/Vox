@@ -7,8 +7,7 @@ use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One,Zero,ToPrimitive};
 
-#[path="protein_native_sic_field.rs"]
-mod field;
+use crate::protein_sic_exact as field;
 
 const BITS:usize=128;
 #[derive(Clone,Debug,PartialEq,Eq)]

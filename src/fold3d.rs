@@ -24,7 +24,17 @@ use alloc::vec::Vec;
 pub(crate) fn sqrt_f64(x: f64) -> f64 {
     if x <= 0.0 { return 0.0; }
     let mut guess = if x > 1.0 { x / 2.0 } else { 1.0 };
-    for _ in 0..40 { guess = 0.5 * (guess + x / guess); }
+    let mut previous=None;
+    for iteration in 0..40 {
+        let next=0.5*(guess+x/guess);
+        // An identical complete floating state has identical future returns.
+        if next.to_bits()==guess.to_bits(){return next;}
+        if previous==Some(next.to_bits()){
+            // Both states remain distinct; retain the exact terminal parity.
+            return if (39-iteration)%2==0{next}else{guess};
+        }
+        previous=Some(guess.to_bits());guess=next;
+    }
     guess
 }
 
@@ -375,6 +385,20 @@ pub fn write_pdb_with_steps(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn sqrt_fixed_state_shortcut_preserves_old_40_step_bits(){
+        let previous=|x:f64|{if x<=0.0{return 0.0;}let mut guess=if x>1.0{x/2.0}else{1.0};for _ in 0..40{guess=0.5*(guess+x/guess);}guess};
+        let mut seed=0x38f62a41cda98217u64;
+        for _ in 0..10000{
+            seed^=seed<<13;seed^=seed>>7;seed^=seed<<17;
+            let x=f64::from_bits(seed&0x7fefffffffffffff);
+            assert_eq!(super::sqrt_f64(x).to_bits(),previous(x).to_bits());
+        }
+        for center in [0.16f64,1.0,6.25,7.1289,7.9524,8.1225,9.0,25.0,10000.0]{for offset in -1024i64..=1024{
+            let x=f64::from_bits((center.to_bits() as i64+offset) as u64);
+            assert_eq!(super::sqrt_f64(x).to_bits(),previous(x).to_bits());
+        }}
+    }
     use super::*;
 
     #[test]

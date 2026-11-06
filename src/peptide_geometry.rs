@@ -29,6 +29,13 @@ pub fn bond_length(residue:&str,name:&str,parent:&str)->f64 {
  if name.starts_with('N') {return if matches!(residue,"Asn"|"ASN"|"Gln"|"GLN") {1.33} else {1.47};}
  1.525
 }
+/// The existing carboxyl template supplies the open terminal oxygen length.
+pub(crate) fn terminal_carboxyl_length()->f64{bond_length("Asp","OD2","CG")}
+pub(crate) fn terminal_carboxyl_position(ca:Point,c:Point,o:Point)->Point{
+ let axis=unit(sub(ca,c));let direction=unit(sub(o,c));
+ let paired=sub(scale(axis,2.0*dot(axis,direction)),direction);
+ add(c,scale(paired,terminal_carboxyl_length()))
+}
 /// Complete sidechain geometry; B4 supplies torsions, topology supplies connectivity.
 pub fn sidechain(residue:&str,n:Point,ca:Point,c:Point,phi:f64,psi:f64)->Vec<(&'static str,Point)> {
  // Solve residue geometry in one canonical local frame. Optimizing a proline
@@ -64,6 +71,7 @@ fn sidechain_in_frame(residue:&str,n:Point,ca:Point,c:Point,phi:f64,psi:f64)->Ve
  }
  if matches!(residue,"Pro"|"PRO") {
   // Close both ring bonds while fitting the remaining pyrrolidine angles.
+  let solve=||{
   let candidate=|torsion:f64,rotation:f64| -> Option<(f64,Point,Point)> {
    let cg=nerf(n,ca,cb,1.50,104.5*DEG,torsion);
    let e=unit(sub(n,cg));let distance=sqrt(dot(sub(n,cg),sub(n,cg)));
@@ -91,11 +99,25 @@ fn sidechain_in_frame(residue:&str,n:Point,ca:Point,c:Point,phi:f64,psi:f64)->Ve
    delta*=0.5;
   }
   assert!(best.0.is_finite(),"proline ring closure");
-  atoms[1].1=best.3;atoms[2].1=best.4;
+  (best.3,best.4)
+  };
+  // This private routine receives the canonical N/CA/C frame above. The
+  // closure is independent of phi/psi; reuse the instrument's exact result.
+  #[cfg(feature="hosted")]
+  let (cg,cd)={static CLOSED:std::sync::OnceLock<(Point,Point)>=std::sync::OnceLock::new();*CLOSED.get_or_init(solve)};
+  #[cfg(not(feature="hosted"))]
+  let (cg,cd)=solve();
+  let plane=unit(cross(sub(n,ca),sub(cb,ca)));
+  let reflect=|p:Point|sub(p,scale(plane,2.0*dot(sub(p,ca),plane)));
+  let reverse=cos(phi*DEG)<0.0;
+  atoms[1].1=if reverse{reflect(cg)}else{cg};atoms[2].1=if reverse{reflect(cd)}else{cd};
  }
  if matches!(residue,"Phe"|"PHE"|"Tyr"|"TYR"|"His"|"HIS"|"Trp"|"TRP") {
   let cg=get("CG",&atoms);let axis=unit(sub(cg,cb));
-  let normal=unit(cross(sub(cb,ca),axis));let tangent=cross(normal,axis);
+  let reference_normal=unit(cross(sub(cb,ca),axis));let reference_tangent=cross(reference_normal,axis);
+  let twist=psi*DEG;
+  let normal=add(scale(reference_normal,cos(twist)),scale(reference_tangent,-sin(twist)));
+  let tangent=add(scale(reference_tangent,cos(twist)),scale(reference_normal,sin(twist)));
   let six=matches!(residue,"Phe"|"PHE"|"Tyr"|"TYR");
   let vertices=ring(cg,axis,tangent,if six {6}else{5},1.39);
   let names:&[&str]=if six {&["CG","CD1","CE1","CZ","CE2","CD2"]}
